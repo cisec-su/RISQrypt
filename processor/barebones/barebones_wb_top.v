@@ -7,7 +7,7 @@ module barebones_wb_top(input clk_i,
 `include "defines.vh"
 
 
-parameter NUM_SLAVES = 4;
+parameter NUM_SLAVES = 5;
 wire mtip;
 
 //Wishbone master interface signals for core
@@ -67,6 +67,10 @@ assign slave_adr_end[2] =    MTIME_END;
 
 assign slave_adr_begin[3] =  DEBUG_I_START;
 assign slave_adr_end[3] =    DEBUG_I_END;
+
+assign slave_adr_begin[4] =  NTT_I_START;
+assign slave_adr_end[4] =    NTT_I_END;
+
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
 assign wb_stb_i[0] = inst_wb_stb_o;
@@ -233,5 +237,19 @@ debug_interface_wb debug_if (.wb_cyc_i(wb_cyc_i[3]),
                              .wb_err_o(wb_err_o[3]),
                              .wb_rst_i(wb_rst_i[3]),
                              .wb_clk_i(wb_clk_i[3]));
+                             
+ntt_acc_wb ntt_acc              (.wb_cyc_i(wb_cyc_i[4]),
+                                .wb_stb_i(wb_stb_i[4]),
+                                .wb_we_i(wb_we_i[4]),
+                                .wb_adr_i(wb_adr_i[4]),
+                                .wb_dat_i(wb_dat_i[4]),
+                                .wb_sel_i(wb_sel_i[4]),
+                                .wb_stall_o(wb_stall_o[4]),
+                                .wb_ack_o(wb_ack_o[4]),
+                                .wb_dat_o(wb_dat_o[4]),
+                                .wb_err_o(wb_err_o[4]),
+                                .wb_rst_i(wb_rst_i[4]),
+                                .wb_clk_i(wb_clk_i[4])
+                                );
 
 endmodule

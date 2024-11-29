@@ -15,12 +15,10 @@ clk_i = 1'b0; #5; clk_i = 1'b1; #5;
 end
 
 initial begin
-//uncomment the program you want to simulate
-//remove the " ../../test/memory_contents/ " parts if you are using Vivado.
-//$readmemh("../../test/memory_contents/bubble_sort_irq.data",uut.memory.mem);
-//$readmemh("../../test/memory_contents/bubble_sort.data",uut.memory.mem);
-$readmemh("../../test/memory_contents/aes_test.data",uut.memory.mem);
-//$readmemh("../../test/memory_contents/soft_float.data",uut.memory.mem);
+
+$readmemh("C:/Users/cisec/Documents/GitHub/enCrypton/test/main.data",uut.memory.mem);
+
+
 reset_i = 1'b0; fast_irq_i = 16'b0; meip_i = 1'b0;
 #200;
 reset_i = 1'b1;
