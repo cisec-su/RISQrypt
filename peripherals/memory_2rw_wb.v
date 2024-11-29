@@ -144,5 +144,4 @@ begin : MEM_READ1
         port1_wb_dat_o <= mem[addr1];
 end
 
-
 endmodule
