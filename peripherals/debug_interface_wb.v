@@ -32,7 +32,7 @@ begin
 	begin
 		if(wb_cyc_i && wb_stb_i && wb_we_i)
 		begin
-			if(wb_dat_i == 32'b1)
+			if(wb_dat_i == 32'h11111111)
 			begin
 				$display("Success!");
 				$finish;

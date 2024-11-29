@@ -89,8 +89,8 @@ reg [DATA_WIDTH-1:0] mem [0:RAM_DEPTH-1] /*verilator public*/;
 generate
     if (FPGA_READMEM) begin
         initial $readmemh("uart_example.mem",mem,ROM_START >> 2,RAM_DEPTH-1);
-        // initial $readmemh("reset_handler.mem",mem,ROM_START >> 2,7487);
-        // initial $readmemh("bootloader.mem",mem,7488,RAM_DEPTH-1);
+        // initial $readmemh("reset_handler.mem",mem,7424,7487);
+        // initial $readmemh("bootloader.mem",mem,7488,8191);
     end
 endgenerate
 
