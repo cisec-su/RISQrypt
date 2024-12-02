@@ -145,6 +145,18 @@ assign data_wb_err_i = r_data_wb_err_i;
 assign data_wb_clk_i = clk_i;
 assign data_wb_rst_i = ~reset_i;
 
+wire DMA_cyc_i;
+wire DMA_stb_i;
+wire DMA_we_i;
+wire [31:0] DMA_adr_i;
+wire [31:0] DMA_dat_i;
+wire [3:0] DMA_sel_i;
+wire DMA_stall_o;
+wire DMA_ack_o;
+wire [31:0] DMA_dat_o;
+wire DMA_err_o;
+wire DMA_rst_i;
+
 core_wb core0 (.reset_i(reset_i),
                .clk_i(clk_i),
 
@@ -183,7 +195,7 @@ core_wb core0 (.reset_i(reset_i),
                .fast_irq_i(fast_irq_i),
                .irq_ack_o(irq_ack_o));
 
-memory_2rw_wb #(.ADDR_WIDTH(14)) memory(.port0_wb_cyc_i(wb_cyc_i[0]),
+memory_2rw_wb_DMA memory(.port0_wb_cyc_i(wb_cyc_i[0]),
                                         .port0_wb_stb_i(wb_stb_i[0]),
                                         .port0_wb_we_i(wb_we_i[0]),
                                         .port0_wb_adr_i(wb_adr_i[0]),
@@ -207,7 +219,20 @@ memory_2rw_wb #(.ADDR_WIDTH(14)) memory(.port0_wb_cyc_i(wb_cyc_i[0]),
                                         .port1_wb_dat_o(wb_dat_o[1]),
                                         .port1_wb_err_o(wb_err_o[1]),
                                         .port1_wb_rst_i(wb_rst_i[1]),
-                                        .port1_wb_clk_i(wb_clk_i[1]));
+                                        .port1_wb_clk_i(wb_clk_i[1]),
+                                        
+                                        .DMA_cyc_i(DMA_cyc_i),
+                                        .DMA_stb_i(DMA_stb_i),
+                                        .DMA_we_i(DMA_we_i),
+                                        .DMA_adr_i(DMA_adr_i),
+                                        .DMA_dat_i(DMA_dat_i),
+                                        .DMA_sel_i(DMA_sel_i),
+                                        .DMA_stall_o(DMA_stall_o),
+                                        .DMA_ack_o(DMA_ack_o),
+                                        .DMA_dat_o(DMA_dat_o),
+                                        .DMA_err_o(DMA_err_o),
+                                        .DMA_rst_i(DMA_rst_i)
+                                        );
 
 mtime_registers_wb #(.mtime_adr   (MTIME_START    ),
                      .mtimecmp_adr(MTIME_START + 8))
@@ -249,7 +274,21 @@ ntt_acc_wb ntt_acc              (.wb_cyc_i(wb_cyc_i[4]),
                                 .wb_dat_o(wb_dat_o[4]),
                                 .wb_err_o(wb_err_o[4]),
                                 .wb_rst_i(wb_rst_i[4]),
-                                .wb_clk_i(wb_clk_i[4])
+                                .wb_clk_i(wb_clk_i[4]),
+                                
+                                .DMA_cyc_i(DMA_cyc_i),
+                                .DMA_stb_i(DMA_stb_i),
+                                .DMA_we_i(DMA_we_i),
+                                .DMA_adr_i(DMA_adr_i),
+                                .DMA_dat_i(DMA_dat_i),
+                                .DMA_sel_i(DMA_sel_i),
+                                .DMA_stall_o(DMA_stall_o),
+                                .DMA_ack_o(DMA_ack_o),
+                                .DMA_dat_o(DMA_dat_o),
+                                .DMA_err_o(DMA_err_o),
+                                .DMA_rst_i(DMA_rst_i)
                                 );
 
 endmodule
+
+

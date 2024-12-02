@@ -16,7 +16,7 @@ end
 
 initial begin
 
-$readmemh("C:/Users/cisec/Documents/GitHub/enCrypton/test/main.data",uut.memory.mem);
+$readmemh("C:/Users/cisec/Documents/GitHub/HORNET-FHE/test/main.data",uut.memory.memory.mem);
 
 
 reset_i = 1'b0; fast_irq_i = 16'b0; meip_i = 1'b0;
