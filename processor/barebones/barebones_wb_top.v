@@ -279,7 +279,19 @@ ntt_acc_wb ntt_acc              (.wb_cyc_i(wb_cyc_i[4]),
                                 .wb_dat_o(wb_dat_o[4]),
                                 .wb_err_o(wb_err_o[4]),
                                 .wb_rst_i(wb_rst_i[4]),
-                                .wb_clk_i(wb_clk_i[4])
+                                .wb_clk_i(wb_clk_i[4]),
+                                
+                                .DMA_cyc_i(DMA_cyc_i),
+                                .DMA_stb_i(DMA_stb_i),
+                                .DMA_we_i(DMA_we_i),
+                                .DMA_adr_i(DMA_adr_i),
+                                .DMA_dat_i(DMA_dat_i),
+                                .DMA_sel_i(DMA_sel_i),
+                                .DMA_stall_o(DMA_stall_o),
+                                .DMA_ack_o(DMA_ack_o),
+                                .DMA_dat_o(DMA_dat_o),
+                                .DMA_err_o(DMA_err_o),
+                                .DMA_rst_i(DMA_rst_i)
                                 );
 
 endmodule

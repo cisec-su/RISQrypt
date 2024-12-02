@@ -143,5 +143,14 @@ begin : MEM_READ1
     if (!cs1 && we1)
         port1_wb_dat_o <= mem[addr1];
 end
+/*
+wire [31:0] test1;
+wire [31:0] test2;
+wire [31:0] test3;
+wire [31:0] test4;
+assign test1 = mem[14204];
+assign test2 = mem[14205];
+assign test3 = mem[14330];
+assign test4 = mem[14331];*/
 
 endmodule
