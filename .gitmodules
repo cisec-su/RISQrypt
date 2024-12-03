@@ -1,3 +1,6 @@
 [submodule "peripherals/keccak"]
 	path = peripherals/keccak
 	url = https://github.com/cisec-su/Keccak_Acc.git
+[submodule "peripherals/ntt"]
+	path = peripherals/ntt
+	url = https://github.com/cisec-su/NTT-Lite.git
