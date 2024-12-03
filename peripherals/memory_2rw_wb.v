@@ -29,7 +29,7 @@ input         port1_wb_clk_i);
 parameter FPGA_READMEM = 1 ;
 parameter NUM_WMASKS = 4 ;
 parameter DATA_WIDTH = 32 ;
-parameter ADDR_WIDTH = 14 ;
+parameter ADDR_WIDTH = 18 ;
 parameter RAM_DEPTH = 1 << ADDR_WIDTH;
 parameter ROM_START = 4'h7400;
 
@@ -142,14 +142,14 @@ begin : MEM_READ1
     if (!cs1 && we1)
         port1_wb_dat_o <= mem[addr1];
 end
-/*
+
 wire [31:0] test1;
 wire [31:0] test2;
 wire [31:0] test3;
 wire [31:0] test4;
-assign test1 = mem[14204];
-assign test2 = mem[14205];
-assign test3 = mem[14330];
-assign test4 = mem[14331];*/
+assign test1 = mem[6074];
+assign test2 = mem[6075];
+assign test3 = mem[6076];
+assign test4 = mem[6077];
 
 endmodule

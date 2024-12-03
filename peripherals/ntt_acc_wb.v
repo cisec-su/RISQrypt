@@ -61,6 +61,7 @@ reg [2:0] cmd;
 reg [1:0] mode;
 reg [31:0] i_data;
 reg i_valid;
+reg status;
 
 wire busy;
 wire o_valid;
@@ -105,7 +106,7 @@ reg [31:0] psi_addr;
 reg [31:0] poly_addr;
 reg [2:0] addr_flag;
 
-reg [31:0] cstate, nstate, pstate, cnt;
+reg [31:0] cstate, nstate, pstate, cnt, cnt2;
 
 reg cntup,cntres;
 
@@ -120,6 +121,8 @@ begin
         cstate <= 0;
         pstate <= 0;
         cnt <= 0;
+        cnt2 <= 0;
+        status <= 0;
     end
     else
     begin
@@ -133,6 +136,7 @@ begin
             
         if(wb_cyc_i && stb && we)
         begin
+            status <= 0;
             case(adr)
                 ADDR_LOAD_Q: 
                 begin
@@ -152,12 +156,15 @@ begin
             endcase
         end
         
+        
         if((cstate == ST_Q) && (cnt == 1))
             addr_flag[0] <= 1'b0;
         if((cstate == ST_PSI) && (cnt == (2*N-1)))
             addr_flag[1] <= 1'b0;
         if((cstate == ST_POLY) && (cnt == (2*N-1)))
             addr_flag[2] <= 1'b0;
+        if((cstate == ST_READY) && !o_valid)
+            status <= 1;
     end
 end
 
@@ -339,6 +346,7 @@ begin
     begin
         cmd <= 3'b0;
         mode <= 2'd0;
+        
     end
     else if (DMA_cyc_i_prev && DMA_stb_i_prev && !DMA_we_i_prev)
     begin
@@ -348,28 +356,36 @@ begin
                 cmd <= 3'd1;
                 i_valid <= 1'b1;
                 i_data <= DMA_dat_o;
+               
             end
             ST_PSI:
             begin
                 cmd <= 3'd2;
                 i_valid <= 1'b1;
                 i_data <= DMA_dat_o;
+                
             end
             ST_POLY:
             begin
                 cmd <= 3'd3;
                 i_valid <= 1'b1;
                 i_data <= DMA_dat_o;
+                
             end
         endcase
     
     end
     
     else if((cstate == ST_RUN) && o_valid)
+    begin
         cmd <= 3'd5;
         
+    end    
     else if((cstate == ST_READY) && !o_valid)
+    begin
         cmd <= 3'd0;
+        
+    end
     //else
     //begin
         //cmd <= 0;
@@ -381,7 +397,7 @@ end
 always @ (*)
 begin
     if(adr == ADDR_CHECK_STATUS)
-        wb_dat_o = {31'd0,o_valid};
+        wb_dat_o = {31'd0,status};
     else if(adr == ADDR_READ_RESULT)
         wb_dat_o = o_data;
     else 
