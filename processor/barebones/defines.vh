@@ -2,8 +2,8 @@
 `define _DEFINES_
 
 parameter ROM_START     =  32'h0000_0000;
-parameter ROM_END       =  32'h0000_3FFF;
-parameter RAM_START     =  32'h0000_4000;
+parameter ROM_END       =  32'h0000_5FFF;
+parameter RAM_START     =  32'h0000_6000;
 parameter RAM_END       =  32'h0003_FFFF;
 parameter MTIME_START   =  32'h0004_0000;
 parameter MTIME_END     =  32'h0004_000F;

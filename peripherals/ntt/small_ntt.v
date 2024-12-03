@@ -370,7 +370,7 @@ always @(*) begin
 
             busy = 1;
             // BU input for next stage is valid after processing half of the poly
-            if ((ctr1 == (N/4)) && (ctrS != (LOGN - 1))) begin
+            if ((ctr1 >= (N/4)) && (ctrS != (LOGN - 1))) begin
                 next_state = ST_NTT0;
                 ctrS_inc = 1; // go to next stage
             end
