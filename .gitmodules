@@ -1,0 +1,3 @@
+[submodule "peripherals/ntt"]
+	path = peripherals/ntt
+	url = https://github.com/cisec-su/NTT-Lite.git
