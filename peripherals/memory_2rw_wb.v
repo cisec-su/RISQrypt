@@ -143,13 +143,5 @@ begin : MEM_READ1
         port1_wb_dat_o <= mem[addr1];
 end
 
-wire [31:0] test1;
-wire [31:0] test2;
-wire [31:0] test3;
-wire [31:0] test4;
-assign test1 = mem[6074];
-assign test2 = mem[6075];
-assign test3 = mem[6076];
-assign test4 = mem[6077];
 
 endmodule

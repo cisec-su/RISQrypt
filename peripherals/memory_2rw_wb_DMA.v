@@ -53,8 +53,34 @@ wire         wb_ack_o;
 wire  [31:0] wb_dat_o;
 wire         wb_err_o;
 
+reg stb;
+
 always @ (*)
 begin
+    if(stb)
+    begin
+        port1_wb_stall_o = wb_stall_o;
+        port1_wb_ack_o = wb_ack_o;
+        port1_wb_dat_o = wb_dat_o;
+        port1_wb_err_o = wb_err_o;
+        DMA_stall_o = 1'b1;
+        DMA_ack_o = 1'b0;
+        DMA_dat_o = 1'b0;
+        DMA_err_o = 1'b0;
+    end
+    else
+    begin
+        port1_wb_stall_o = wb_stall_o;
+        port1_wb_ack_o = wb_ack_o;
+        port1_wb_dat_o = wb_dat_o;
+        port1_wb_err_o = wb_err_o;
+        DMA_stall_o = wb_stall_o;
+        DMA_ack_o = wb_ack_o;
+        DMA_dat_o = wb_dat_o;
+        DMA_err_o = wb_err_o;
+    end
+    
+        
     if(port1_wb_stb_i)
     begin
         wb_cyc_i = port1_wb_cyc_i;
@@ -65,16 +91,7 @@ begin
         wb_sel_i = port1_wb_sel_i;  
         wb_rst_i = port1_wb_rst_i;
         wb_clk_i = port1_wb_clk_i; 
-        
-        port1_wb_stall_o = wb_stall_o;
-        port1_wb_ack_o = wb_ack_o;
-        port1_wb_dat_o = wb_dat_o;
-        port1_wb_err_o = wb_err_o;
-        
-        DMA_stall_o = 1'b1;
-        DMA_ack_o = 1'b0;
-        DMA_dat_o = 1'b0;
-        DMA_err_o = 1'b0;
+
     end
     else
     begin
@@ -87,18 +104,17 @@ begin
         wb_rst_i = DMA_rst_i;
         wb_clk_i = port1_wb_clk_i; 
         
-        port1_wb_stall_o = 0;
-        port1_wb_ack_o = 0;
-        port1_wb_dat_o = 0;
-        port1_wb_err_o = 0;
         
-        DMA_stall_o = wb_stall_o;
-        DMA_ack_o = wb_ack_o;
-        DMA_dat_o = wb_dat_o;
-        DMA_err_o = wb_err_o;
     end
 end
 
+always @(posedge port0_wb_clk_i or posedge port0_wb_rst_i)
+begin
+    if(port0_wb_rst_i)
+        stb <= 0;
+    else 
+        stb <= port1_wb_stb_i;
+end
 
 
 
