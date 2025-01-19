@@ -1,5 +1,7 @@
-#include "../../../lib/uart.h"
+#include "uart.h"
+
 int main()
+
 {
     uart uart0;
     uart_init(&uart0,0x00008010);
