@@ -14,9 +14,13 @@ typedef struct {
 } uart_t;
 
 
-#define UART_STATUS_S                ((uint32_t) 1  )
-#define UART_STATUS_M                ((uint32_t) 0x1)
-#define UART_STATUS_V                (UART_STATUS_M << UART_STATUS_S)
+#define UART_RX_STATUS_S                ((uint32_t) 0  )
+#define UART_RX_STATUS_M                ((uint32_t) 0x1)
+#define UART_RX_STATUS_V                (UART_RX_STATUS_M << UART_RX_STATUS_S)
+
+#define UART_TX_STATUS_S                ((uint32_t) 1  )
+#define UART_TX_STATUS_M                ((uint32_t) 0x1)
+#define UART_TX_STATUS_V                (UART_TX_STATUS_M << UART_TX_STATUS_S)
 
 
 #endif

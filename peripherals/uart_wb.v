@@ -33,6 +33,8 @@ reg stb, we;
 reg [3:0] sel;
 reg [31:0] adr,dat;
 
+reg rx_st;
+
 assign clk = wb_clk_i;
 assign rst = ~wb_rst_i;
 
@@ -56,11 +58,24 @@ begin
     end
 end
 
+always @(posedge clk)
+begin
+    if (!rst) begin
+        rx_st <= 1'b0;
+    end else begin
+        if (rx_irq_o == 1'b1) begin
+            rx_st <= 1'b1;
+        end else if (stb & sel[2]) begin // Clear on Read
+            rx_st <= 1'b0;
+        end
+    end
+end
+
 assign transmit = we & stb & sel[0];
 assign tx_byte = dat[7:0];
 
 assign wb_dat_o = {8'b0,5'b0,uart_status,rx_byte,8'b0}; //what's this? - to be changed.
-assign uart_status[0] = 1'b0;
+assign uart_status[0] = rx_st;
 assign uart_status[2] = 1'b0;
 
 UART_TX #(.CLKS_PER_BIT(CLK_DIVIDER)) uart_tx0
