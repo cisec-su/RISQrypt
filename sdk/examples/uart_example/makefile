@@ -4,10 +4,9 @@ TOOLCHAIN_DIR = ../../toolchain
 
 LIB_DIR = ../../lib
 
-SRC  = uart_example.c \
-	  $(LIB_DIR)/uart.c
+SRC = uart_example.c
 
-# OBJ_DUMP = 1 # Uncomment if disassembly is needed
+OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
 # CFLAGS = # Use as needed
 

@@ -13,16 +13,16 @@ parameter ROM_START = 32'h0000_0000;
 parameter ROM_END   = 32'h0000_5FFF;
 
 parameter RAM_START = 32'h0000_0000; // will fix that later.
-parameter RAM_END   = 32'h0000_7FFF;
+parameter RAM_END   = 32'h0007_FFFF;
 
-parameter MTIME_START = 32'h0000_8000;
-parameter MTIME_END   = 32'h0000_800F;
+parameter MTIME_START = 32'h1000_8000;
+parameter MTIME_END   = 32'h1000_800F;
 
-parameter UART_START = 32'h0000_8010;
-parameter UART_END   = 32'h0000_8013;
+parameter UART_START = 32'h1000_8010;
+parameter UART_END   = 32'h1000_8013;
 
-parameter RESET_START = 32'h0000_8014;
-parameter RESET_END   = 32'h0000_8014;
+parameter RESET_START = 32'h1000_8014;
+parameter RESET_END   = 32'h1000_8014;
 
 parameter ADDR_WIDTH =  $rtoi($ceil($clog2(((RAM_END - ROM_START + 1) >> 2))));
 

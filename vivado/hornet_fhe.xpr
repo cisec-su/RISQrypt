@@ -4,7 +4,7 @@
 <!-- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.                   -->
 <!-- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.   -->
 
-<Project Product="Vivado" Version="7" Minor="63">
+<Project Product="Vivado" Version="7" Minor="63" Path="/home/toluntosun/Desktop/RISQrypt/HORNET_FHE/Hornet-FHE/vivado/hornet_fhe.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="c986f35115f4443e973d9d5088f14d39"/>
@@ -261,7 +261,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../processor/fpga_uart/uart_main/uart_main.mem">
+      <File Path="$PPRDIR/../sdk/examples/uart_example/uart_example.mem">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -302,6 +302,14 @@
     </FileSet>
     <FileSet Name="utils_1" Type="Utils" RelSrcDir="$PSRCDIR/utils_1" RelGenDir="$PGENDIR/utils_1">
       <Filter Type="Utils"/>
+      <File Path="$PSRCDIR/utils_1/imports/synth_1/fpga_top.dcp">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedInSteps" Val="synth_1"/>
+          <Attr Name="AutoDcp" Val="1"/>
+        </FileInfo>
+      </File>
       <Config>
         <Option Name="TopAutoSet" Val="TRUE"/>
       </Config>
@@ -342,7 +350,7 @@
     </Simulator>
   </Simulators>
   <Runs Version="1" Minor="20">
-    <Run Id="synth_1" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a100tcsg324-1" ConstrsSet="constrs_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="true" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/synth_1">
+    <Run Id="synth_1" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a100tcsg324-1" ConstrsSet="constrs_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="true" IncrementalCheckpoint="$PSRCDIR/utils_1/imports/synth_1/fpga_top.dcp" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
           <Desc>Vivado Synthesis Defaults</Desc>
