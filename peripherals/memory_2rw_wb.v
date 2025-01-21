@@ -26,10 +26,12 @@ output        port1_wb_err_o,
 input         port1_wb_rst_i,
 input         port1_wb_clk_i);
 
+parameter FPGA_READMEM = 1 ;
 parameter NUM_WMASKS = 4 ;
 parameter DATA_WIDTH = 32 ;
 parameter ADDR_WIDTH = 9 ;
 parameter RAM_DEPTH = 1 << ADDR_WIDTH;
+parameter ROM_START = 4'h7400;
 
 wire clk0; // clock
 wire cs0; // active low chip select
@@ -84,10 +86,13 @@ assign port1_wb_err_o = 1'b0;
 
 reg [DATA_WIDTH-1:0] mem [0:RAM_DEPTH-1] /*verilator public*/;
 
-`ifdef FPGA_READMEM
-initial $readmemh("reset_handler.mem",mem,7424,7487);
-initial $readmemh("bootloader.mem",mem,7488,8191);
-`endif
+generate
+    if (FPGA_READMEM) begin
+        initial $readmemh("uart_example.mem",mem,ROM_START >> 2,RAM_DEPTH-1);
+        // initial $readmemh("reset_handler.mem",mem,ROM_START >> 2,7487);
+        // initial $readmemh("bootloader.mem",mem,7488,RAM_DEPTH-1);
+    end
+endgenerate
 
   // Memory Write Block Port 0
   // Write Operation : When we0 = 0, cs0 = 0

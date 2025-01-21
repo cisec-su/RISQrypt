@@ -9,6 +9,24 @@ module fpga_top(input M100_clk_i,
 parameter SYS_CLK_FREQ = 50000000;
 parameter NUM_SLAVES = 5;
 
+parameter ROM_START = 32'h0000_0000;
+parameter ROM_END   = 32'h0000_5FFF;
+
+parameter RAM_START = 32'h0000_0000; // will fix that later.
+parameter RAM_END   = 32'h0007_FFFF;
+
+parameter MTIME_START = 32'h1000_8000;
+parameter MTIME_END   = 32'h1000_800F;
+
+parameter UART_START = 32'h1000_8010;
+parameter UART_END   = 32'h1000_8013;
+
+parameter RESET_START = 32'h1000_8014;
+parameter RESET_END   = 32'h1000_8014;
+
+parameter ADDR_WIDTH =  $rtoi($ceil($clog2(((RAM_END - ROM_START + 1) >> 2))));
+
+
 wire loader_reset;
 wire [31:0] loader_reg_o;
 wire reset;
@@ -75,20 +93,20 @@ reg [NUM_SLAVES-1 : 0] r_stb;
 wire [31:0] slave_adr_begin [NUM_SLAVES-1 : 0];
 wire [31:0] slave_adr_end [NUM_SLAVES-1 : 0];
 
-assign slave_adr_begin[0] = 32'h0000_0000;
-assign slave_adr_end[0] = 32'h0000_7FFF;
+assign slave_adr_begin[0] = ROM_START;
+assign slave_adr_end[0] = ROM_END;
 
-assign slave_adr_begin[1] = 32'h0000_0000;
-assign slave_adr_end[1] = 32'h0000_7FFF;
+assign slave_adr_begin[1] = RAM_START;
+assign slave_adr_end[1] = RAM_END;
 
-assign slave_adr_begin[2] = 32'h0000_8000;
-assign slave_adr_end[2] = 32'h0000_800F;
+assign slave_adr_begin[2] = MTIME_START;
+assign slave_adr_end[2] = MTIME_END;
 
-assign slave_adr_begin[3] = 32'h0000_8010;
-assign slave_adr_end[3] = 32'h0000_8013;
+assign slave_adr_begin[3] = UART_START;
+assign slave_adr_end[3] = UART_END;
 
-assign slave_adr_begin[4] = 32'h0000_8014;
-assign slave_adr_end[4] = 32'h0000_8014;
+assign slave_adr_begin[4] = RESET_START;
+assign slave_adr_end[4] = RESET_END;
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
 assign wb_stb_i[0] = inst_wb_stb_o;
@@ -170,7 +188,7 @@ assign data_wb_rst_i = ~reset;
 
 assign reset = loader_reset & reset_i;
 
-core_wb #(.reset_vector(32'h7400))
+core_wb #(.reset_vector(ROM_START))
     core0(.reset_i(reset), //active-low reset
           .clk_i(clk_i),
           //Wishbone interface for data memory
@@ -206,7 +224,7 @@ core_wb #(.reset_vector(32'h7400))
           .fast_irq_i({15'b0,rx_irq_o}),
           .irq_ack_o(irq_ack_o));
 
-memory_2rw_wb #(.ADDR_WIDTH(13))
+memory_2rw_wb #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
     memory(.port0_wb_cyc_i(wb_cyc_i[0]),
            .port0_wb_stb_i(wb_stb_i[0]),
            .port0_wb_we_i(wb_we_i[0]),
@@ -233,8 +251,8 @@ memory_2rw_wb #(.ADDR_WIDTH(13))
            .port1_wb_rst_i(wb_rst_i[1]),
            .port1_wb_clk_i(wb_clk_i[1]));
 
-mtime_registers_wb #(.mtime_adr(32'h0000_8000),
-                     .mtimecmp_adr(32'h0000_8008))
+mtime_registers_wb #(.mtime_adr(MTIME_START),
+                     .mtimecmp_adr(MTIME_START + 8))
     mtime_regs(.wb_cyc_i(wb_cyc_i[2]),
                .wb_stb_i(wb_stb_i[2]),
                .wb_we_i(wb_we_i[2]),
