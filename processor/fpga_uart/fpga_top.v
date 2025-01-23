@@ -7,7 +7,7 @@ module fpga_top(input M100_clk_i,
                 output led1,led2,led4);
 
 parameter SYS_CLK_FREQ = 50000000;
-parameter NUM_SLAVES = 5;
+parameter NUM_SLAVES = 6;
 
 parameter ROM_START = 32'h0000_0000;
 parameter ROM_END   = 32'h0000_5FFF;
@@ -15,14 +15,18 @@ parameter ROM_END   = 32'h0000_5FFF;
 parameter RAM_START = 32'h0000_0000; // will fix that later.
 parameter RAM_END   = 32'h0007_FFFF;
 
-parameter MTIME_START = 32'h1000_8000;
-parameter MTIME_END   = 32'h1000_800F;
+parameter MTIME_START = 32'h2000_8000;
+parameter MTIME_END   = 32'h2000_800F;
 
 parameter UART_START = 32'h1000_8010;
 parameter UART_END   = 32'h1000_8013;
 
 parameter RESET_START = 32'h1000_8014;
 parameter RESET_END   = 32'h1000_8014;
+
+parameter KECCAK_START =  32'h1004_0020;
+parameter KECCAK_END   =  32'h1004_0050;
+
 
 parameter ADDR_WIDTH =  $rtoi($ceil($clog2(((RAM_END - ROM_START + 1) >> 2))));
 
@@ -93,6 +97,19 @@ reg [NUM_SLAVES-1 : 0] r_stb;
 wire [31:0] slave_adr_begin [NUM_SLAVES-1 : 0];
 wire [31:0] slave_adr_end [NUM_SLAVES-1 : 0];
 
+wire dma_cyc_i;
+wire dma_stb_i;
+wire dma_we_i;
+wire [31:0] dma_adr_i;
+wire [31:0] dma_dat_i;
+wire [3:0] dma_sel_i;
+wire dma_stall_o;
+wire dma_ack_o;
+wire [31:0] dma_dat_o;
+wire dma_err_o;
+wire dma_rst_i;
+
+
 assign slave_adr_begin[0] = ROM_START;
 assign slave_adr_end[0] = ROM_END;
 
@@ -107,6 +124,9 @@ assign slave_adr_end[3] = UART_END;
 
 assign slave_adr_begin[4] = RESET_START;
 assign slave_adr_end[4] = RESET_END;
+
+assign slave_adr_begin[5] = KECCAK_START;
+assign slave_adr_end[5] = KECCAK_END;
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
 assign wb_stb_i[0] = inst_wb_stb_o;
@@ -186,7 +206,7 @@ assign data_wb_err_i = r_data_wb_err_i;
 assign data_wb_clk_i = clk_i;
 assign data_wb_rst_i = ~reset;
 
-assign reset = loader_reset & reset_i;
+assign reset = /*loader_reset & */reset_i;
 
 core_wb #(.reset_vector(ROM_START))
     core0(.reset_i(reset), //active-low reset
@@ -224,7 +244,7 @@ core_wb #(.reset_vector(ROM_START))
           .fast_irq_i({15'b0,rx_irq_o}),
           .irq_ack_o(irq_ack_o));
 
-memory_2rw_wb #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
+memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
     memory(.port0_wb_cyc_i(wb_cyc_i[0]),
            .port0_wb_stb_i(wb_stb_i[0]),
            .port0_wb_we_i(wb_we_i[0]),
@@ -249,7 +269,20 @@ memory_2rw_wb #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
            .port1_wb_dat_o(wb_dat_o[1]),
            .port1_wb_err_o(wb_err_o[1]),
            .port1_wb_rst_i(wb_rst_i[1]),
-           .port1_wb_clk_i(wb_clk_i[1]));
+           .port1_wb_clk_i(wb_clk_i[1]),
+           
+           .dma_cyc_i(dma_cyc_i),
+           .dma_stb_i(dma_stb_i),
+           .dma_we_i(dma_we_i),
+           .dma_adr_i(dma_adr_i),
+           .dma_dat_i(dma_dat_i),
+           .dma_sel_i(dma_sel_i),
+           .dma_stall_o(dma_stall_o),
+           .dma_ack_o(dma_ack_o),
+           .dma_dat_o(dma_dat_o),
+           .dma_err_o(dma_err_o),
+           .dma_rst_i(dma_rst_i)
+           );
 
 mtime_registers_wb #(.mtime_adr(MTIME_START),
                      .mtimecmp_adr(MTIME_START + 8))
@@ -304,5 +337,34 @@ loader_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ))
             .uart_rx_byte(rx_byte),
             .reset_o(loader_reset),
             .led1(led1), .led2(led2), .led4(led4));
+
+
+keccak_acc_top #(.BASE_ADDR(KECCAK_START))
+    keccak_acc_top (
+        .wb_cyc_i(wb_cyc_i[5]),
+        .wb_stb_i(wb_stb_i[5]),
+        .wb_we_i(wb_we_i[5]),
+        .wb_adr_i(wb_adr_i[5]),
+        .wb_dat_i(wb_dat_i[5]),
+        .wb_sel_i(wb_sel_i[5]),
+        .wb_stall_o(wb_stall_o[5]),
+        .wb_ack_o(wb_ack_o[5]),
+        .wb_dat_o(wb_dat_o[5]),
+        .wb_err_o(wb_err_o[5]),
+        .wb_rst_i(wb_rst_i[5]),
+        .wb_clk_i(wb_clk_i[5]),
+
+        .dma_cyc_i(dma_cyc_i),
+        .dma_stb_i(dma_stb_i),
+        .dma_we_i(dma_we_i),
+        .dma_adr_i(dma_adr_i),
+        .dma_dat_i(dma_dat_i),
+        .dma_sel_i(dma_sel_i),
+        .dma_stall_o(dma_stall_o),
+        .dma_ack_o(dma_ack_o),
+        .dma_dat_o(dma_dat_o),
+        .dma_err_o(dma_err_o),
+        .dma_rst_i(dma_rst_i)
+    );
 
 endmodule

@@ -1,6 +1,11 @@
 `timescale 1ns/1ps
 
-module mtime_registers_wb(input         wb_cyc_i,
+module mtime_registers_wb
+                        #(
+                          parameter mtime_adr    = 32'h0000_2010,
+                          parameter mtimecmp_adr = mtime_adr + 8
+                        )(
+                          input         wb_cyc_i,
                           input         wb_stb_i,
                           input         wb_we_i,
                           input [31:0]  wb_adr_i,
@@ -12,12 +17,9 @@ module mtime_registers_wb(input         wb_cyc_i,
                           output        wb_err_o,
                           input         wb_rst_i,
                           input         wb_clk_i,
-                          
                           output mtip_o);
 
-//Register addresses - to be overridden in the top module
-parameter mtime_adr    = 32'h0000_2010;
-parameter mtimecmp_adr = 32'h0000_2018;
+
 
 reg [63:0] mtime, mtimecmp;
 

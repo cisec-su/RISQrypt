@@ -11,7 +11,7 @@ typedef struct {
     O_U8  tx;
     I_U8  rx;
     IO_U8 status;
-} uart_t;
+} uart_regs_t;
 
 
 #define UART_RX_STATUS_S                ((uint32_t) 0  )

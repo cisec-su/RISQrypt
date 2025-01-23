@@ -4,7 +4,7 @@ _start:
     .cfi_startproc
     la sp, __stack_top
     add s0, sp, zero
-    jal zero, main
+    jal ra, main
     loop:
         j loop
     .cfi_endproc

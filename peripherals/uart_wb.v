@@ -141,6 +141,10 @@ module UART_TX
       r_SM_Main <= 3'b000;
       o_TX_Done <= 1'b0;
       o_TX_Active <= 1'b0;
+      o_TX_Serial   <= 1'b1;
+      r_TX_Data     <= 8'd0;
+      r_Clock_Count <= 0;
+      r_Bit_Index   <= 0;
     end
     else
     begin
@@ -289,6 +293,9 @@ module UART_RX
     begin
       r_SM_Main <= 3'b000;
       o_RX_DV   <= 1'b0;
+      r_Clock_Count <= 0;
+      r_Bit_Index   <= 0;
+      o_RX_Byte     <= 8'd0;
     end
     else
     begin

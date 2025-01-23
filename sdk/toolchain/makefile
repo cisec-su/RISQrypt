@@ -7,14 +7,15 @@ ROM_GEN = $(PYTHON) $(TOOLCHAIN_DIR)/rom_generator.py
 
 LIB_INC = -I$(LIB_DIR)
 
-SRC += $(LIB_DIR)/uart.c
 SRC += $(TOOLCHAIN_DIR)/start.s
+SRC += $(LIB_DIR)/uart.c
+SRC += $(LIB_DIR)/keccak.c
 
 ifndef OPTIMIZATION
 	OPTIMIZATION = -O0
 endif
 
-_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) -march=rv32i -mabi=ilp32 -O0 -T $(LINKER) -nostartfiles -o $(PROJ).elf
+_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) -march=rv32i -mabi=ilp32 -mstrict-align -O0 -T $(LINKER) -nostartfiles -o $(PROJ).elf
 
 
 

@@ -1,11 +1,11 @@
-#include "hornet.h"
 #include "uart.h"
+#include "hornet.h"
 
 
 void uart_transmit_byte(const char data)
 {
-    while (((UART_0->status) & UART_TX_STATUS_V));
-    UART_0->tx = data;
+    while (((UART_0_REGS->status) & UART_TX_STATUS_V));
+    UART_0_REGS->tx = data;
 }
 
 
@@ -20,8 +20,8 @@ void uart_transmit_string(char const *data, size_t len)
 
 void uart_receive_byte(char *data)
 {
-    while (!((UART_0->status) & UART_RX_STATUS_V));
-    *data = UART_0->rx;
+    while (!((UART_0_REGS->status) & UART_RX_STATUS_V));
+    *data = UART_0_REGS->rx;
 }
 
 

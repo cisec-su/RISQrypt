@@ -12,10 +12,7 @@ module fpga_top_tb;
         .reset_i(reset_i),
         .rx_i(),        // Unconnected
         .tx_o(),        // Unconnected
-        .led1(), .led2(), .led3(), .led4(), // Ignored outputs
-        .led5(), .led6(), .led7(), .led8(),
-        .led9(), .led10(), .led11(), .led12(),
-        .led13(), .led14()
+        .led1(), .led2(), .led4() // Ignored outputs
     );
 
     // Generate the clock signal
@@ -27,13 +24,13 @@ module fpga_top_tb;
     // Test sequence
     initial begin
         // Apply reset
-        reset_i = 1; // Active-high reset
+        reset_i = 0; // Active-high reset
         #50;         // Hold reset for 50ns
         
-        reset_i = 0; // Release reset
+        reset_i = 1; // Release reset
         #1000;       // Simulate for 1000ns to observe behavior
         
-        $stop;       // End the simulation
+        // $stop;       // End the simulation
     end
 
 endmodule
