@@ -31,7 +31,7 @@ parameter NUM_WMASKS = 4 ;
 parameter DATA_WIDTH = 32 ;
 parameter ADDR_WIDTH = 18 ;
 parameter RAM_DEPTH = 1 << ADDR_WIDTH;
-parameter ROM_START = 4'h7400;
+parameter ROM_START = 16'h7400;
 
 wire clk0; // clock
 wire cs0; // active low chip select
@@ -88,7 +88,8 @@ reg [DATA_WIDTH-1:0] mem [0:RAM_DEPTH-1] /*verilator public*/;
 
 generate
     if (FPGA_READMEM) begin
-        initial $readmemh("uart_example.mem",mem,ROM_START >> 2,RAM_DEPTH-1);
+        initial $readmemh("keccak_example.mem",mem,ROM_START >> 2,RAM_DEPTH-1);
+        // initial $readmemh("uart_example.mem",mem,ROM_START >> 2,RAM_DEPTH-1);
         // initial $readmemh("reset_handler.mem",mem,7424,7487);
         // initial $readmemh("bootloader.mem",mem,7488,8191);
     end
