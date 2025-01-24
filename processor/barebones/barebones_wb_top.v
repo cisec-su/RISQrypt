@@ -68,8 +68,8 @@ assign slave_adr_end[2] =    MTIME_END;
 assign slave_adr_begin[3] =  DEBUG_I_START;
 assign slave_adr_end[3] =    DEBUG_I_END;
 
-assign slave_adr_begin[4] =  KECCAK_I_START;
-assign slave_adr_end[4] =    KECCAK_I_END;
+assign slave_adr_begin[4] =  NTT_I_START;
+assign slave_adr_end[4] =    NTT_I_END;
 
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
@@ -263,7 +263,7 @@ debug_interface_wb debug_if (.wb_cyc_i(wb_cyc_i[3]),
                              .wb_rst_i(wb_rst_i[3]),
                              .wb_clk_i(wb_clk_i[3]));
                              
-keccak_acc_top keccak_acc_top   (.wb_cyc_i(wb_cyc_i[4]),
+ntt_acc_wb ntt_acc              (.wb_cyc_i(wb_cyc_i[4]),
                                 .wb_stb_i(wb_stb_i[4]),
                                 .wb_we_i(wb_we_i[4]),
                                 .wb_adr_i(wb_adr_i[4]),
@@ -276,17 +276,17 @@ keccak_acc_top keccak_acc_top   (.wb_cyc_i(wb_cyc_i[4]),
                                 .wb_rst_i(wb_rst_i[4]),
                                 .wb_clk_i(wb_clk_i[4]),
                                 
-                                .dma_cyc_i(DMA_cyc_i),
-                                .dma_stb_i(DMA_stb_i),
-                                .dma_we_i(DMA_we_i),
-                                .dma_adr_i(DMA_adr_i),
-                                .dma_dat_i(DMA_dat_i),
-                                .dma_sel_i(DMA_sel_i),
-                                .dma_stall_o(DMA_stall_o),
-                                .dma_ack_o(DMA_ack_o),
-                                .dma_dat_o(DMA_dat_o),
-                                .dma_err_o(DMA_err_o),
-                                .dma_rst_i(DMA_rst_i)
+                                .DMA_cyc_i(DMA_cyc_i),
+                                .DMA_stb_i(DMA_stb_i),
+                                .DMA_we_i(DMA_we_i),
+                                .DMA_adr_i(DMA_adr_i),
+                                .DMA_dat_i(DMA_dat_i),
+                                .DMA_sel_i(DMA_sel_i),
+                                .DMA_stall_o(DMA_stall_o),
+                                .DMA_ack_o(DMA_ack_o),
+                                .DMA_dat_o(DMA_dat_o),
+                                .DMA_err_o(DMA_err_o),
+                                .DMA_rst_i(DMA_rst_i)
                                 );
 
 endmodule

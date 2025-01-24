@@ -1,23 +1,8 @@
-#include <stdio.h>
 #include <stdint.h>
 #include "string.h"
 #include "keccak.h"
 #include "uart.h"
-
-
-char LUT[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-void byte_to_hex(char *hex, const char *byte_arr, size_t len) {
-    unsigned char byte;
-    size_t i = 0;
-    for (i = 0; i < len; i++) {
-        // Convert each character to hex
-        byte = (unsigned char)*byte_arr;
-        hex[i << 1] = LUT[byte >> 4];
-        hex[(i << 1) + 1] = LUT[byte & 0xF];       
-        byte_arr++;
-    }
-}
+#include "util.h"
 
 
 int main() {
@@ -33,7 +18,7 @@ int main() {
     uint32_t hash[8] = {0xf8c6ffa7, 0x66d71ebf, 0x5647c151, 0x62d661a0, 0x4dff80f5, 0xfa493be4, 0x4b0ad882, 0x4a43f880};
 
 
-    // uart_transmit_string("Keccak Example: Null digest for SHA3-256\n\n", 41);
+    uart_transmit_string("Keccak Example: Null digest for SHA3-256\n\n", 41);
 
     share_in_0[0] = 0x06;
 

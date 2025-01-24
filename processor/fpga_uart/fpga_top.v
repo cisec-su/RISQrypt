@@ -7,7 +7,8 @@ module fpga_top(input M100_clk_i,
                 output led1,led2,led4);
 
 parameter SYS_CLK_FREQ = 50000000;
-parameter NUM_SLAVES = 6;
+parameter NUM_SLAVES = 7;
+parameter NUM_DMA_ACCS = 2;
 
 parameter ROM_START = 32'h0000_0000;
 parameter ROM_END   = 32'h0000_5FFF;
@@ -23,6 +24,9 @@ parameter UART_END   = 32'h1000_8013;
 
 parameter RESET_START = 32'h1000_8014;
 parameter RESET_END   = 32'h1000_8014;
+
+parameter NTT_START =  32'h1004_0000;
+parameter NTT_END   =  32'h1004_000F;
 
 parameter KECCAK_START =  32'h1004_0020;
 parameter KECCAK_END   =  32'h1004_0050;
@@ -97,17 +101,17 @@ reg [NUM_SLAVES-1 : 0] r_stb;
 wire [31:0] slave_adr_begin [NUM_SLAVES-1 : 0];
 wire [31:0] slave_adr_end [NUM_SLAVES-1 : 0];
 
-wire dma_cyc_i;
-wire dma_stb_i;
-wire dma_we_i;
-wire [31:0] dma_adr_i;
-wire [31:0] dma_dat_i;
-wire [3:0] dma_sel_i;
-wire dma_stall_o;
-wire dma_ack_o;
-wire [31:0] dma_dat_o;
-wire dma_err_o;
-wire dma_rst_i;
+wire [NUM_DMA_ACCS-1 : 0] dma_cyc_i ;
+wire [NUM_DMA_ACCS-1 : 0] dma_stb_i;
+wire [NUM_DMA_ACCS-1 : 0] dma_we_i;
+wire [31:0] dma_adr_i [NUM_DMA_ACCS-1 : 0];
+wire [31:0] dma_dat_i [NUM_DMA_ACCS-1 : 0];
+wire [3:0] dma_sel_i [NUM_DMA_ACCS-1 : 0];
+wire [NUM_DMA_ACCS-1 : 0] dma_stall_o;
+wire [NUM_DMA_ACCS-1 : 0] dma_ack_o;
+wire [31:0] dma_dat_o [NUM_DMA_ACCS-1 : 0];
+wire [NUM_DMA_ACCS-1 : 0] dma_err_o;
+wire [NUM_DMA_ACCS-1 : 0] dma_rst_i;
 
 
 assign slave_adr_begin[0] = ROM_START;
@@ -125,8 +129,11 @@ assign slave_adr_end[3] = UART_END;
 assign slave_adr_begin[4] = RESET_START;
 assign slave_adr_end[4] = RESET_END;
 
-assign slave_adr_begin[5] = KECCAK_START;
-assign slave_adr_end[5] = KECCAK_END;
+assign slave_adr_begin[5] = NTT_START;
+assign slave_adr_end[5] =   NTT_END;
+
+assign slave_adr_begin[6] = KECCAK_START;
+assign slave_adr_end[6] = KECCAK_END;
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
 assign wb_stb_i[0] = inst_wb_stb_o;
@@ -271,17 +278,29 @@ memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
            .port1_wb_rst_i(wb_rst_i[1]),
            .port1_wb_clk_i(wb_clk_i[1]),
            
-           .dma_cyc_i(dma_cyc_i),
-           .dma_stb_i(dma_stb_i),
-           .dma_we_i(dma_we_i),
-           .dma_adr_i(dma_adr_i),
-           .dma_dat_i(dma_dat_i),
-           .dma_sel_i(dma_sel_i),
-           .dma_stall_o(dma_stall_o),
-           .dma_ack_o(dma_ack_o),
-           .dma_dat_o(dma_dat_o),
-           .dma_err_o(dma_err_o),
-           .dma_rst_i(dma_rst_i)
+           .dma_cyc_i_0(dma_cyc_i[0]),
+           .dma_stb_i_0(dma_stb_i[0]),
+           .dma_we_i_0(dma_we_i[0]),
+           .dma_adr_i_0(dma_adr_i[0]),
+           .dma_dat_i_0(dma_dat_i[0]),
+           .dma_sel_i_0(dma_sel_i[0]),
+           .dma_stall_o_0(dma_stall_o[0]),
+           .dma_ack_o_0(dma_ack_o[0]),
+           .dma_dat_o_0(dma_dat_o[0]),
+           .dma_err_o_0(dma_err_o[0]),
+           .dma_rst_i_0(dma_rst_i[0]),
+           
+           .dma_cyc_i_1(dma_cyc_i[1]),
+           .dma_stb_i_1(dma_stb_i[1]),
+           .dma_we_i_1(dma_we_i[1]),
+           .dma_adr_i_1(dma_adr_i[1]),
+           .dma_dat_i_1(dma_dat_i[1]),
+           .dma_sel_i_1(dma_sel_i[1]),
+           .dma_stall_o_1(dma_stall_o[1]),
+           .dma_ack_o_1(dma_ack_o[1]),
+           .dma_dat_o_1(dma_dat_o[1]),
+           .dma_err_o_1(dma_err_o[1]),
+           .dma_rst_i_1(dma_rst_i[1])
            );
 
 mtime_registers_wb #(.mtime_adr(MTIME_START),
@@ -339,32 +358,61 @@ loader_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ))
             .led1(led1), .led2(led2), .led4(led4));
 
 
-keccak_acc_top #(.BASE_ADDR(KECCAK_START))
-    keccak_acc_top (
-        .wb_cyc_i(wb_cyc_i[5]),
-        .wb_stb_i(wb_stb_i[5]),
-        .wb_we_i(wb_we_i[5]),
-        .wb_adr_i(wb_adr_i[5]),
-        .wb_dat_i(wb_dat_i[5]),
-        .wb_sel_i(wb_sel_i[5]),
-        .wb_stall_o(wb_stall_o[5]),
-        .wb_ack_o(wb_ack_o[5]),
-        .wb_dat_o(wb_dat_o[5]),
-        .wb_err_o(wb_err_o[5]),
-        .wb_rst_i(wb_rst_i[5]),
-        .wb_clk_i(wb_clk_i[5]),
+ntt_lite_acc_top #(.BASE_ADDR(NTT_START))
+    ntt_lite_acc_top_inst (
+            .wb_cyc_i(wb_cyc_i[5]),
+            .wb_stb_i(wb_stb_i[5]),
+            .wb_we_i(wb_we_i[5]),
+            .wb_adr_i(wb_adr_i[5]),
+            .wb_dat_i(wb_dat_i[5]),
+            .wb_sel_i(wb_sel_i[5]),
+            .wb_stall_o(wb_stall_o[5]),
+            .wb_ack_o(wb_ack_o[5]),
+            .wb_dat_o(wb_dat_o[5]),
+            .wb_err_o(wb_err_o[5]),
+            .wb_rst_i(wb_rst_i[5]),
+            .wb_clk_i(wb_clk_i[5]),
+            
+            .dma_cyc_i(dma_cyc_i[0]),
+            .dma_stb_i(dma_stb_i[0]),
+            .dma_we_i(dma_we_i[0]),
+            .dma_adr_i(dma_adr_i[0]),
+            .dma_dat_i(dma_dat_i[0]),
+            .dma_sel_i(dma_sel_i[0]),
+            .dma_stall_o(dma_stall_o[0]),
+            .dma_ack_o(dma_ack_o[0]),
+            .dma_dat_o(dma_dat_o[0]),
+            .dma_err_o(dma_err_o[0]),
+            .dma_rst_i(dma_rst_i[0])
+            );
 
-        .dma_cyc_i(dma_cyc_i),
-        .dma_stb_i(dma_stb_i),
-        .dma_we_i(dma_we_i),
-        .dma_adr_i(dma_adr_i),
-        .dma_dat_i(dma_dat_i),
-        .dma_sel_i(dma_sel_i),
-        .dma_stall_o(dma_stall_o),
-        .dma_ack_o(dma_ack_o),
-        .dma_dat_o(dma_dat_o),
-        .dma_err_o(dma_err_o),
-        .dma_rst_i(dma_rst_i)
-    );
+
+keccak_acc_top #(.BASE_ADDR(KECCAK_START))
+    keccak_acc_top_inst (
+            .wb_cyc_i(wb_cyc_i[6]),
+            .wb_stb_i(wb_stb_i[6]),
+            .wb_we_i(wb_we_i[6]),
+            .wb_adr_i(wb_adr_i[6]),
+            .wb_dat_i(wb_dat_i[6]),
+            .wb_sel_i(wb_sel_i[6]),
+            .wb_stall_o(wb_stall_o[6]),
+            .wb_ack_o(wb_ack_o[6]),
+            .wb_dat_o(wb_dat_o[6]),
+            .wb_err_o(wb_err_o[6]),
+            .wb_rst_i(wb_rst_i[6]),
+            .wb_clk_i(wb_clk_i[6]),
+            
+            .dma_cyc_i(dma_cyc_i[1]),
+            .dma_stb_i(dma_stb_i[1]),
+            .dma_we_i(dma_we_i[1]),
+            .dma_adr_i(dma_adr_i[1]),
+            .dma_dat_i(dma_dat_i[1]),
+            .dma_sel_i(dma_sel_i[1]),
+            .dma_stall_o(dma_stall_o[1]),
+            .dma_ack_o(dma_ack_o[1]),
+            .dma_dat_o(dma_dat_o[1]),
+            .dma_err_o(dma_err_o[1]),
+            .dma_rst_i(dma_rst_i[1])
+            );
 
 endmodule

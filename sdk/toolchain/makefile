@@ -8,8 +8,10 @@ ROM_GEN = $(PYTHON) $(TOOLCHAIN_DIR)/rom_generator.py
 LIB_INC = -I$(LIB_DIR)
 
 SRC += $(TOOLCHAIN_DIR)/start.s
+SRC += $(LIB_DIR)/util.c
 SRC += $(LIB_DIR)/uart.c
 SRC += $(LIB_DIR)/keccak.c
+SRC += $(LIB_DIR)/ntt_lite.c
 
 ifndef OPTIMIZATION
 	OPTIMIZATION = -O0
