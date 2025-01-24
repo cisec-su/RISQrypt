@@ -10,9 +10,15 @@
 #define UART_0_REGS               ((uart_regs_t*) UART_0_BASE_ADDR)
 
 
+#include "ntt_lite_regs.h"
+
+#define NTT_LITE_BASE_ADDR        ((uint32_t) 0x10040000)
+#define NTT_LITE_REGS             ((ntt_lite_regs_t*) NTT_LITE_BASE_ADDR)
+
+
 #include "keccak_regs.h"
 
-#define KECCAK_BASE_ADDR     ((uint32_t) 0x10040020)
-#define KECCAK_REGS          ((keccak_regs_t*) KECCAK_BASE_ADDR)
+#define KECCAK_BASE_ADDR          ((uint32_t) 0x10040020)
+#define KECCAK_REGS               ((keccak_regs_t*) KECCAK_BASE_ADDR)
 
 #endif

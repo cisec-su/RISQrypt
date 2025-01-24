@@ -17,7 +17,6 @@ __pycache__/
 *.hwdef
 *.sysdef
 *.runs
-*.srcs
 *.data
 *.ip_user_files
 *.sim
