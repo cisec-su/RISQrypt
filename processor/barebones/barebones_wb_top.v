@@ -68,13 +68,8 @@ assign slave_adr_end[2] =    MTIME_END;
 assign slave_adr_begin[3] =  DEBUG_I_START;
 assign slave_adr_end[3] =    DEBUG_I_END;
 
-<<<<<<< HEAD
-assign slave_adr_begin[4] =  KECCAK_I_START;
-assign slave_adr_end[4] =    KECCAK_I_END;
-=======
 assign slave_adr_begin[4] =  NTT_I_START;
 assign slave_adr_end[4] =    NTT_I_END;
->>>>>>> d8580b9 (Acc. Integration)
 
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;

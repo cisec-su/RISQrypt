@@ -340,7 +340,7 @@ loader_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ))
 
 
 keccak_acc_top #(.BASE_ADDR(KECCAK_START))
-    keccak_acc_top (
+    keccak_acc_top_inst (
         .wb_cyc_i(wb_cyc_i[5]),
         .wb_stb_i(wb_stb_i[5]),
         .wb_we_i(wb_we_i[5]),
