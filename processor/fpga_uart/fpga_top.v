@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module fpga_top(input M100_clk_i,
                 input reset_i,
                 input rx_i,
@@ -11,7 +9,7 @@ parameter NUM_SLAVES = 7;
 parameter NUM_DMA_ACCS = 2;
 
 parameter ROM_START = 32'h0000_0000;
-parameter ROM_END   = 32'h0000_5FFF;
+parameter ROM_END   = 32'h0007_FFFF;
 
 parameter RAM_START = 32'h0000_0000; // will fix that later.
 parameter RAM_END   = 32'h0007_FFFF;
@@ -213,7 +211,7 @@ assign data_wb_err_i = r_data_wb_err_i;
 assign data_wb_clk_i = clk_i;
 assign data_wb_rst_i = ~reset;
 
-assign reset = /*loader_reset & */reset_i;
+assign reset = loader_reset & reset_i;
 
 core_wb #(.reset_vector(ROM_START))
     core0(.reset_i(reset), //active-low reset

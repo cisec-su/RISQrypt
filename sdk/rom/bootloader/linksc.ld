@@ -8,8 +8,8 @@ OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
 OUTPUT_ARCH(riscv)
 MEMORY
 {
-    ROM(RX)   : ORIGIN = 0x00001000, LENGTH = 0x00006000
-    RAM(WAIL) : ORIGIN = 0x00007000, LENGTH = 0x00078FFC
+    ROM(RX)   : ORIGIN = 0x00000020, LENGTH = 0x00000800
+    RAM(WAIL) : ORIGIN = 0x00000820, LENGTH = 0x000002FC
 }
 
 ENTRY(_start)
@@ -200,7 +200,7 @@ SECTIONS
   . = SEGMENT_START("ldata-segment", .);
   . = ALIGN(32 / 8);
   __BSS_END__ = .;
-    /*__global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800,
+   /* __global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800,
 		            MAX(__DATA_BEGIN__ + 0x800, __BSS_END__ - 0x800));*/
   _end = .; PROVIDE (end = .);
   . = DATA_SEGMENT_END (.);
