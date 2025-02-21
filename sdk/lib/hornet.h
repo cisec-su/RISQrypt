@@ -31,4 +31,10 @@
 #define KECCAK_BASE_ADDR          ((uint32_t) 0x10040020)
 #define KECCAK_REGS               ((keccak_regs_t*) KECCAK_BASE_ADDR)
 
+
+#include "x2x_regs.h"
+
+#define X2X_BASE_ADDR             ((uint32_t) 0x10040050)
+#define X2X_REGS                  ((x2x_regs_t*) X2X_BASE_ADDR)
+
 #endif
