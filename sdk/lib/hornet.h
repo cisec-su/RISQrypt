@@ -4,6 +4,10 @@
 #include <stdint.h>
 
 
+#define BOOTLOADER_BASE_ADDR      ((uint32_t) 0x00000020)
+#define PROGRAM_BASE_ADDR         ((uint32_t) 0x00001000)
+
+
 #include "uart_regs.h"
 
 #define UART_0_BASE_ADDR          ((uint32_t) 0x10008010)

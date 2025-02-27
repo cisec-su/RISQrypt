@@ -10,7 +10,7 @@ OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
 # CFLAGS = # Use as needed
 
-# OPTIMIZATION = -02 # Default is -O0
+# OPTIMIZATION = -O2 # Default is -O0
 
 
 include $(TOOLCHAIN_DIR)/makefile

@@ -19,7 +19,7 @@ void SET_MTVEC_VECTOR_MODE()
 void SET_MTVEC_DIRECT_MODE()
 {
     int base_addr;
-    base_addr = &direct_trap_handler;
+    base_addr = (int) (&direct_trap_handler);
     __asm__ volatile ("csrw mtvec,%[base_addr]" :: [base_addr] "r" (base_addr));
 }
 
