@@ -5,10 +5,19 @@
 #include <stdint.h>
 
 
-int ntt_lite_forward(uint32_t *b,  uint32_t *a, uint32_t *w, uint32_t *q, unsigned int logn, unsigned int logq);
+#define NTT_LITE_MODE_SINGLE ((uint32_t) 0x0)
+#define NTT_LITE_MODE_DUAL   ((uint32_t) 0x2)
+#define NTT_LITE_MODE_POLY   ((uint32_t) 0x3)
 
 
-int ntt_lite_forward_2d(uint32_t *b,  uint32_t *a, uint32_t *w0, uint32_t *w1, uint32_t *q, unsigned int logn, unsigned int logn0, unsigned int logq);
+
+int ntt_lite_load_q(const uint32_t *q, const uint32_t *mu, unsigned int logn, unsigned int logq, unsigned int mode);
+
+int ntt_lite_load_twiddle(const uint32_t *psi);
+
+int ntt_lite_forward_ntt(uint32_t *dst,  const uint32_t *src);
+
+int ntt_lite_inverse_ntt(uint32_t *dst,  const uint32_t *src);
 
 
 #endif
