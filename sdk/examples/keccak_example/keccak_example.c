@@ -26,7 +26,7 @@ int main() {
 
     uart_transmit_string("Init Done\n\n", 11);
 
-    byte_to_hex(hex_out, (char *)share_in_0, 32);
+    byte_to_hex(hex_out, (char *)share_in_0, 32, 0);
     uart_transmit_string(hex_out, 64);
     uart_transmit_string("\n\n", 2);
 
@@ -46,10 +46,10 @@ int main() {
     if (share_out_0[0] == 0x00000000 && share_out_1[0] == 0x00000000) {
         uart_transmit_string("Digest is null\n\n", 16);
     }
-    byte_to_hex(hex_out, (char *)share_out_0, 32);
+    byte_to_hex(hex_out, (char *)share_out_0, 32, 0);
     uart_transmit_string(hex_out, 64);
     uart_transmit_string("\n\n", 2);
-    byte_to_hex(hex_out, (char *)share_out_1, 32);
+    byte_to_hex(hex_out, (char *)share_out_1, 32, 0);
     uart_transmit_string(hex_out, 64);
     uart_transmit_string("\n\n", 2);
 

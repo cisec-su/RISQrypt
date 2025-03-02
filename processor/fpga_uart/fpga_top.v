@@ -24,7 +24,7 @@ parameter RESET_START = 32'h1000_8014;
 parameter RESET_END   = 32'h1000_8014;
 
 parameter NTT_START =  32'h1004_0000;
-parameter NTT_END   =  32'h1004_000F;
+parameter NTT_END   =  32'h1004_001F;
 
 parameter KECCAK_START =  32'h1004_0020;
 parameter KECCAK_END   =  32'h1004_0050;

@@ -6,11 +6,20 @@
 
 int ntt_lite_load_q(const uint32_t *q, const uint32_t *mu, unsigned int logn, unsigned int logq, unsigned int mode) {
 
+    unsigned int mode_int;
+
+
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
         return -1;
     }
 
-    unsigned int mode_int;
+    if (logn > 8) {
+        return -1;
+    }
+
+    if (logq > 32) {
+        return -1;
+    }
 
     if (mode == NTT_LITE_MODE_SINGLE) {
         mode_int = NTT_LITE_CTRL_MODE_SINGLE;
