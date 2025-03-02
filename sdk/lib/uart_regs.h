@@ -4,12 +4,14 @@
 #include <stdint.h>
 
 typedef volatile       uint8_t IO_U8;
-typedef volatile       uint8_t O_U8;
-typedef volatile const uint8_t I_U8;
+
+typedef volatile const uint8_t O_U8;
+
+typedef volatile       uint8_t I_U8;
 
 typedef struct {
-    O_U8  tx;
-    I_U8  rx;
+    I_U8  tx;
+    O_U8  rx;
     IO_U8 status;
 } uart_regs_t;
 

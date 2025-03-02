@@ -10,6 +10,7 @@ LIB_INC = -I$(LIB_DIR)
 SRC += $(TOOLCHAIN_DIR)/start.s
 SRC += $(LIB_DIR)/util.c
 SRC += $(LIB_DIR)/uart.c
+SRC += $(LIB_DIR)/timer.c
 SRC += $(LIB_DIR)/keccak.c
 SRC += $(LIB_DIR)/ntt_lite.c
 

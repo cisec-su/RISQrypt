@@ -1,4 +1,3 @@
-#include "ntt_lite_regs.h"
 #include "ntt_lite.h"
 #include "hornet.h"
 
