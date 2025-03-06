@@ -18,7 +18,7 @@ ifndef OPTIMIZATION
 	OPTIMIZATION = -O0
 endif
 
-_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) -march=rv32i -mabi=ilp32 -mstrict-align -O0 -T $(LINKER) -nostartfiles -o $(PROJ).elf
+_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) -march=rv32im -mabi=ilp32 -mstrict-align -T $(LINKER) -flto -ffunction-sections -fdata-sections -nostartfiles -o $(PROJ).elf
 
 
 

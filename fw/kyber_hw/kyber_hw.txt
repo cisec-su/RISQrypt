@@ -1,0 +1,646 @@
+
+kyber_hw.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .init:
+
+00001000 <_start>:
+    1000:	0003f117          	auipc	sp,0x3f
+    1004:	ffc10113          	addi	sp,sp,-4 # 3fffc <__stack_top>
+    1008:	00010433          	add	s0,sp,zero
+    100c:	008000ef          	jal	1014 <main>
+
+00001010 <loop>:
+    1010:	0000006f          	j	1010 <loop>
+
+Disassembly of section .text:
+
+00001014 <main>:
+    1014:	00002537          	lui	a0,0x2
+    1018:	fe010113          	addi	sp,sp,-32
+    101c:	01400593          	li	a1,20
+    1020:	9ac50513          	addi	a0,a0,-1620 # 19ac <memcmp+0x7c>
+    1024:	00112e23          	sw	ra,28(sp)
+    1028:	00812c23          	sw	s0,24(sp)
+    102c:	198000ef          	jal	11c4 <uart_transmit_string>
+    1030:	10008437          	lui	s0,0x10008
+    1034:	00200793          	li	a5,2
+    1038:	00f42c23          	sw	a5,24(s0) # 10008018 <__stack_top+0xffc801c>
+    103c:	00100793          	li	a5,1
+    1040:	00f42c23          	sw	a5,24(s0)
+    1044:	420000ef          	jal	1464 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0>
+    1048:	01840413          	addi	s0,s0,24
+    104c:	00442403          	lw	s0,4(s0)
+    1050:	00002537          	lui	a0,0x2
+    1054:	00600593          	li	a1,6
+    1058:	9c450513          	addi	a0,a0,-1596 # 19c4 <memcmp+0x94>
+    105c:	168000ef          	jal	11c4 <uart_transmit_string>
+    1060:	00845713          	srli	a4,s0,0x8
+    1064:	0ff77713          	zext.b	a4,a4
+    1068:	01045593          	srli	a1,s0,0x10
+    106c:	01845693          	srli	a3,s0,0x18
+    1070:	000027b7          	lui	a5,0x2
+    1074:	9e078793          	addi	a5,a5,-1568 # 19e0 <LUT>
+    1078:	0ff47613          	zext.b	a2,s0
+    107c:	0ff5f593          	zext.b	a1,a1
+    1080:	00f77893          	andi	a7,a4,15
+    1084:	00f6f693          	andi	a3,a3,15
+    1088:	011788b3          	add	a7,a5,a7
+    108c:	00465813          	srli	a6,a2,0x4
+    1090:	00d786b3          	add	a3,a5,a3
+    1094:	0045d513          	srli	a0,a1,0x4
+    1098:	00475713          	srli	a4,a4,0x4
+    109c:	01c45413          	srli	s0,s0,0x1c
+    10a0:	0008c303          	lbu	t1,0(a7)
+    10a4:	00e78733          	add	a4,a5,a4
+    10a8:	0006c883          	lbu	a7,0(a3)
+    10ac:	00878433          	add	s0,a5,s0
+    10b0:	010786b3          	add	a3,a5,a6
+    10b4:	00a78533          	add	a0,a5,a0
+    10b8:	00074703          	lbu	a4,0(a4)
+    10bc:	0006c803          	lbu	a6,0(a3)
+    10c0:	00054503          	lbu	a0,0(a0)
+    10c4:	00044683          	lbu	a3,0(s0)
+    10c8:	00f5f593          	andi	a1,a1,15
+    10cc:	00f67613          	andi	a2,a2,15
+    10d0:	00c78633          	add	a2,a5,a2
+    10d4:	00b787b3          	add	a5,a5,a1
+    10d8:	00889893          	slli	a7,a7,0x8
+    10dc:	00064583          	lbu	a1,0(a2)
+    10e0:	0007c603          	lbu	a2,0(a5)
+    10e4:	00831793          	slli	a5,t1,0x8
+    10e8:	01081813          	slli	a6,a6,0x10
+    10ec:	00f767b3          	or	a5,a4,a5
+    10f0:	01051513          	slli	a0,a0,0x10
+    10f4:	0116e733          	or	a4,a3,a7
+    10f8:	010006b7          	lui	a3,0x1000
+    10fc:	fff68693          	addi	a3,a3,-1 # ffffff <__stack_top+0xfc0003>
+    1100:	0107e7b3          	or	a5,a5,a6
+    1104:	00a76733          	or	a4,a4,a0
+    1108:	00d7f7b3          	and	a5,a5,a3
+    110c:	01861613          	slli	a2,a2,0x18
+    1110:	00d77733          	and	a4,a4,a3
+    1114:	01859593          	slli	a1,a1,0x18
+    1118:	00b7e7b3          	or	a5,a5,a1
+    111c:	00c76733          	or	a4,a4,a2
+    1120:	00800593          	li	a1,8
+    1124:	00810513          	addi	a0,sp,8
+    1128:	00e12423          	sw	a4,8(sp)
+    112c:	00f12623          	sw	a5,12(sp)
+    1130:	094000ef          	jal	11c4 <uart_transmit_string>
+    1134:	00002537          	lui	a0,0x2
+    1138:	00100593          	li	a1,1
+    113c:	9cc50513          	addi	a0,a0,-1588 # 19cc <memcmp+0x9c>
+    1140:	084000ef          	jal	11c4 <uart_transmit_string>
+    1144:	000075b7          	lui	a1,0x7
+    1148:	00008537          	lui	a0,0x8
+    114c:	60058593          	addi	a1,a1,1536 # 7600 <m>
+    1150:	02000613          	li	a2,32
+    1154:	ee050513          	addi	a0,a0,-288 # 7ee0 <c_dec>
+    1158:	7d8000ef          	jal	1930 <memcmp>
+    115c:	00600593          	li	a1,6
+    1160:	02051263          	bnez	a0,1184 <main+0x170>
+    1164:	00002537          	lui	a0,0x2
+    1168:	9d050513          	addi	a0,a0,-1584 # 19d0 <memcmp+0xa0>
+    116c:	058000ef          	jal	11c4 <uart_transmit_string>
+    1170:	01c12083          	lw	ra,28(sp)
+    1174:	01812403          	lw	s0,24(sp)
+    1178:	00000513          	li	a0,0
+    117c:	02010113          	addi	sp,sp,32
+    1180:	00008067          	ret
+    1184:	00002537          	lui	a0,0x2
+    1188:	9d850513          	addi	a0,a0,-1576 # 19d8 <memcmp+0xa8>
+    118c:	038000ef          	jal	11c4 <uart_transmit_string>
+    1190:	fe1ff06f          	j	1170 <main+0x15c>
+
+00001194 <ntt_lite_load_twiddle.isra.0>:
+    1194:	100407b7          	lui	a5,0x10040
+    1198:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    119c:	00171693          	slli	a3,a4,0x1
+    11a0:	0206c063          	bltz	a3,11c0 <ntt_lite_load_twiddle.isra.0+0x2c>
+    11a4:	00a7a223          	sw	a0,4(a5)
+    11a8:	0007a683          	lw	a3,0(a5)
+    11ac:	10040737          	lui	a4,0x10040
+    11b0:	0036e693          	ori	a3,a3,3
+    11b4:	00d7a023          	sw	a3,0(a5)
+    11b8:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    11bc:	fe07dee3          	bgez	a5,11b8 <ntt_lite_load_twiddle.isra.0+0x24>
+    11c0:	00008067          	ret
+
+000011c4 <uart_transmit_string>:
+    11c4:	10008737          	lui	a4,0x10008
+    11c8:	00b50633          	add	a2,a0,a1
+    11cc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
+    11d0:	00054683          	lbu	a3,0(a0)
+    11d4:	00150513          	addi	a0,a0,1
+    11d8:	00274783          	lbu	a5,2(a4)
+    11dc:	0027f793          	andi	a5,a5,2
+    11e0:	fe079ce3          	bnez	a5,11d8 <uart_transmit_string+0x14>
+    11e4:	00d70023          	sb	a3,0(a4)
+    11e8:	fec514e3          	bne	a0,a2,11d0 <uart_transmit_string+0xc>
+    11ec:	00008067          	ret
+
+000011f0 <ntt_lite_decode.isra.0>:
+    11f0:	100407b7          	lui	a5,0x10040
+    11f4:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    11f8:	00171693          	slli	a3,a4,0x1
+    11fc:	0606c463          	bltz	a3,1264 <ntt_lite_decode.isra.0+0x74>
+    1200:	0007a703          	lw	a4,0(a5)
+    1204:	00171693          	slli	a3,a4,0x1
+    1208:	0206c063          	bltz	a3,1228 <ntt_lite_decode.isra.0+0x38>
+    120c:	00b7a223          	sw	a1,4(a5)
+    1210:	0007a683          	lw	a3,0(a5)
+    1214:	10040737          	lui	a4,0x10040
+    1218:	0036e693          	ori	a3,a3,3
+    121c:	00d7a023          	sw	a3,0(a5)
+    1220:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1224:	fe07dee3          	bgez	a5,1220 <ntt_lite_decode.isra.0+0x30>
+    1228:	100407b7          	lui	a5,0x10040
+    122c:	00100713          	li	a4,1
+    1230:	00e7a623          	sw	a4,12(a5) # 1004000c <__stack_top+0x10000010>
+    1234:	01561613          	slli	a2,a2,0x15
+    1238:	02050863          	beqz	a0,1268 <ntt_lite_decode.isra.0+0x78>
+    123c:	00a7a423          	sw	a0,8(a5)
+    1240:	0007a703          	lw	a4,0(a5)
+    1244:	000016b7          	lui	a3,0x1
+    1248:	80268693          	addi	a3,a3,-2046 # 802 <_start-0x7fe>
+    124c:	00c76733          	or	a4,a4,a2
+    1250:	00d76733          	or	a4,a4,a3
+    1254:	00e7a023          	sw	a4,0(a5)
+    1258:	10040737          	lui	a4,0x10040
+    125c:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1260:	fe07dee3          	bgez	a5,125c <ntt_lite_decode.isra.0+0x6c>
+    1264:	00008067          	ret
+    1268:	0007a703          	lw	a4,0(a5)
+    126c:	200016b7          	lui	a3,0x20001
+    1270:	80268693          	addi	a3,a3,-2046 # 20000802 <__stack_top+0x1ffc0806>
+    1274:	00c76733          	or	a4,a4,a2
+    1278:	00d76733          	or	a4,a4,a3
+    127c:	00e7a023          	sw	a4,0(a5)
+    1280:	fd9ff06f          	j	1258 <ntt_lite_decode.isra.0+0x68>
+
+00001284 <ntt_lite_decompress.constprop.0.isra.0>:
+    1284:	100407b7          	lui	a5,0x10040
+    1288:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    128c:	00171693          	slli	a3,a4,0x1
+    1290:	0206c863          	bltz	a3,12c0 <ntt_lite_decompress.constprop.0.isra.0+0x3c>
+    1294:	00100713          	li	a4,1
+    1298:	00e7a623          	sw	a4,12(a5)
+    129c:	00a7a423          	sw	a0,8(a5)
+    12a0:	0007a683          	lw	a3,0(a5)
+    12a4:	01559593          	slli	a1,a1,0x15
+    12a8:	10040737          	lui	a4,0x10040
+    12ac:	00d5e5b3          	or	a1,a1,a3
+    12b0:	6025e593          	ori	a1,a1,1538
+    12b4:	00b7a023          	sw	a1,0(a5)
+    12b8:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    12bc:	fe07dee3          	bgez	a5,12b8 <ntt_lite_decompress.constprop.0.isra.0+0x34>
+    12c0:	00008067          	ret
+
+000012c4 <pqcrystals_kyber768_ref_poly_basemul>:
+    12c4:	100407b7          	lui	a5,0x10040
+    12c8:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    12cc:	e0010113          	addi	sp,sp,-512
+    12d0:	00171693          	slli	a3,a4,0x1
+    12d4:	0606c863          	bltz	a3,1344 <pqcrystals_kyber768_ref_poly_basemul+0x80>
+    12d8:	02060663          	beqz	a2,1304 <pqcrystals_kyber768_ref_poly_basemul+0x40>
+    12dc:	0007a703          	lw	a4,0(a5)
+    12e0:	00171693          	slli	a3,a4,0x1
+    12e4:	0206c063          	bltz	a3,1304 <pqcrystals_kyber768_ref_poly_basemul+0x40>
+    12e8:	00c7a223          	sw	a2,4(a5)
+    12ec:	0007a683          	lw	a3,0(a5)
+    12f0:	10040737          	lui	a4,0x10040
+    12f4:	0036e693          	ori	a3,a3,3
+    12f8:	00d7a023          	sw	a3,0(a5)
+    12fc:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1300:	fe07dee3          	bgez	a5,12fc <pqcrystals_kyber768_ref_poly_basemul+0x38>
+    1304:	00200613          	li	a2,2
+    1308:	00058863          	beqz	a1,1318 <pqcrystals_kyber768_ref_poly_basemul+0x54>
+    130c:	100407b7          	lui	a5,0x10040
+    1310:	00b7a223          	sw	a1,4(a5) # 10040004 <__stack_top+0x10000008>
+    1314:	00400613          	li	a2,4
+    1318:	100406b7          	lui	a3,0x10040
+    131c:	00a6a423          	sw	a0,8(a3) # 10040008 <__stack_top+0x1000000c>
+    1320:	00100793          	li	a5,1
+    1324:	00f6a623          	sw	a5,12(a3)
+    1328:	0006a783          	lw	a5,0(a3)
+    132c:	10040737          	lui	a4,0x10040
+    1330:	00c7e7b3          	or	a5,a5,a2
+    1334:	2007e793          	ori	a5,a5,512
+    1338:	00f6a023          	sw	a5,0(a3)
+    133c:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1340:	fe07dee3          	bgez	a5,133c <pqcrystals_kyber768_ref_poly_basemul+0x78>
+    1344:	10040737          	lui	a4,0x10040
+    1348:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    134c:	00179693          	slli	a3,a5,0x1
+    1350:	0206c063          	bltz	a3,1370 <pqcrystals_kyber768_ref_poly_basemul+0xac>
+    1354:	00072783          	lw	a5,0(a4)
+    1358:	ffe806b7          	lui	a3,0xffe80
+    135c:	fff68693          	addi	a3,a3,-1 # ffe7ffff <__stack_top+0xffe40003>
+    1360:	00d7f7b3          	and	a5,a5,a3
+    1364:	001006b7          	lui	a3,0x100
+    1368:	00d7e7b3          	or	a5,a5,a3
+    136c:	00f72023          	sw	a5,0(a4)
+    1370:	100407b7          	lui	a5,0x10040
+    1374:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    1378:	00171693          	slli	a3,a4,0x1
+    137c:	0206cc63          	bltz	a3,13b4 <pqcrystals_kyber768_ref_poly_basemul+0xf0>
+    1380:	00007737          	lui	a4,0x7
+    1384:	40070713          	addi	a4,a4,1024 # 7400 <zetas>
+    1388:	00e7a223          	sw	a4,4(a5)
+    138c:	00100713          	li	a4,1
+    1390:	00e7a623          	sw	a4,12(a5)
+    1394:	0007a703          	lw	a4,0(a5)
+    1398:	200006b7          	lui	a3,0x20000
+    139c:	20468693          	addi	a3,a3,516 # 20000204 <__stack_top+0x1ffc0208>
+    13a0:	00d76733          	or	a4,a4,a3
+    13a4:	00e7a023          	sw	a4,0(a5)
+    13a8:	10040737          	lui	a4,0x10040
+    13ac:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    13b0:	fe07dee3          	bgez	a5,13ac <pqcrystals_kyber768_ref_poly_basemul+0xe8>
+    13b4:	100407b7          	lui	a5,0x10040
+    13b8:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    13bc:	00171693          	slli	a3,a4,0x1
+    13c0:	0006ca63          	bltz	a3,13d4 <pqcrystals_kyber768_ref_poly_basemul+0x110>
+    13c4:	0007a703          	lw	a4,0(a5)
+    13c8:	001806b7          	lui	a3,0x180
+    13cc:	00d76733          	or	a4,a4,a3
+    13d0:	00e7a023          	sw	a4,0(a5)
+    13d4:	100407b7          	lui	a5,0x10040
+    13d8:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    13dc:	00171693          	slli	a3,a4,0x1
+    13e0:	0606ce63          	bltz	a3,145c <pqcrystals_kyber768_ref_poly_basemul+0x198>
+    13e4:	02058663          	beqz	a1,1410 <pqcrystals_kyber768_ref_poly_basemul+0x14c>
+    13e8:	0007a703          	lw	a4,0(a5)
+    13ec:	00171693          	slli	a3,a4,0x1
+    13f0:	0206c063          	bltz	a3,1410 <pqcrystals_kyber768_ref_poly_basemul+0x14c>
+    13f4:	00b7a223          	sw	a1,4(a5)
+    13f8:	0007a683          	lw	a3,0(a5)
+    13fc:	10040737          	lui	a4,0x10040
+    1400:	0036e693          	ori	a3,a3,3
+    1404:	00d7a023          	sw	a3,0(a5)
+    1408:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    140c:	fe07dee3          	bgez	a5,1408 <pqcrystals_kyber768_ref_poly_basemul+0x144>
+    1410:	10040737          	lui	a4,0x10040
+    1414:	00010793          	mv	a5,sp
+    1418:	00f72423          	sw	a5,8(a4) # 10040008 <__stack_top+0x1000000c>
+    141c:	00100693          	li	a3,1
+    1420:	00d72623          	sw	a3,12(a4)
+    1424:	00072603          	lw	a2,0(a4)
+    1428:	100406b7          	lui	a3,0x10040
+    142c:	20266613          	ori	a2,a2,514
+    1430:	00c72023          	sw	a2,0(a4)
+    1434:	0006a703          	lw	a4,0(a3) # 10040000 <__stack_top+0x10000004>
+    1438:	fe075ee3          	bgez	a4,1434 <pqcrystals_kyber768_ref_poly_basemul+0x170>
+    143c:	20010693          	addi	a3,sp,512
+    1440:	0007d703          	lhu	a4,0(a5)
+    1444:	00478793          	addi	a5,a5,4
+    1448:	00450513          	addi	a0,a0,4
+    144c:	fee51e23          	sh	a4,-4(a0)
+    1450:	fef698e3          	bne	a3,a5,1440 <pqcrystals_kyber768_ref_poly_basemul+0x17c>
+    1454:	20010113          	addi	sp,sp,512
+    1458:	00008067          	ret
+    145c:	00010793          	mv	a5,sp
+    1460:	fddff06f          	j	143c <pqcrystals_kyber768_ref_poly_basemul+0x178>
+
+00001464 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0>:
+    1464:	100407b7          	lui	a5,0x10040
+    1468:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    146c:	dd010113          	addi	sp,sp,-560
+    1470:	22112623          	sw	ra,556(sp)
+    1474:	22812423          	sw	s0,552(sp)
+    1478:	22912223          	sw	s1,548(sp)
+    147c:	23212023          	sw	s2,544(sp)
+    1480:	21312e23          	sw	s3,540(sp)
+    1484:	fffff2b7          	lui	t0,0xfffff
+    1488:	00171693          	slli	a3,a4,0x1
+    148c:	00510133          	add	sp,sp,t0
+    1490:	0206c863          	bltz	a3,14c0 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x5c>
+    1494:	000016b7          	lui	a3,0x1
+    1498:	d0168693          	addi	a3,a3,-767 # d01 <_start-0x2ff>
+    149c:	00001737          	lui	a4,0x1
+    14a0:	00d7a823          	sw	a3,16(a5)
+    14a4:	3af70713          	addi	a4,a4,943 # 13af <pqcrystals_kyber768_ref_poly_basemul+0xeb>
+    14a8:	00e7aa23          	sw	a4,20(a5)
+    14ac:	68100693          	li	a3,1665
+    14b0:	00198737          	lui	a4,0x198
+    14b4:	00d7ae23          	sw	a3,28(a5)
+    14b8:	07070713          	addi	a4,a4,112 # 198070 <__stack_top+0x158074>
+    14bc:	00e7a023          	sw	a4,0(a5)
+    14c0:	000085b7          	lui	a1,0x8
+    14c4:	00a00613          	li	a2,10
+    14c8:	aa058593          	addi	a1,a1,-1376 # 7aa0 <c>
+    14cc:	00000513          	li	a0,0
+    14d0:	d21ff0ef          	jal	11f0 <ntt_lite_decode.isra.0>
+    14d4:	00001437          	lui	s0,0x1
+    14d8:	fffff7b7          	lui	a5,0xfffff
+    14dc:	40078793          	addi	a5,a5,1024 # fffff400 <__stack_top+0xfffbf404>
+    14e0:	20040713          	addi	a4,s0,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    14e4:	00f70733          	add	a4,a4,a5
+    14e8:	01010793          	addi	a5,sp,16
+    14ec:	00f707b3          	add	a5,a4,a5
+    14f0:	00078513          	mv	a0,a5
+    14f4:	00a00593          	li	a1,10
+    14f8:	00f12423          	sw	a5,8(sp)
+    14fc:	d89ff0ef          	jal	1284 <ntt_lite_decompress.constprop.0.isra.0>
+    1500:	000085b7          	lui	a1,0x8
+    1504:	00a00613          	li	a2,10
+    1508:	be058593          	addi	a1,a1,-1056 # 7be0 <c+0x140>
+    150c:	00000513          	li	a0,0
+    1510:	ce1ff0ef          	jal	11f0 <ntt_lite_decode.isra.0>
+    1514:	00812783          	lw	a5,8(sp)
+    1518:	00a00593          	li	a1,10
+    151c:	20078513          	addi	a0,a5,512
+    1520:	d65ff0ef          	jal	1284 <ntt_lite_decompress.constprop.0.isra.0>
+    1524:	000085b7          	lui	a1,0x8
+    1528:	00a00613          	li	a2,10
+    152c:	d2058593          	addi	a1,a1,-736 # 7d20 <c+0x280>
+    1530:	00000513          	li	a0,0
+    1534:	cbdff0ef          	jal	11f0 <ntt_lite_decode.isra.0>
+    1538:	a1040793          	addi	a5,s0,-1520
+    153c:	00278533          	add	a0,a5,sp
+    1540:	00a00593          	li	a1,10
+    1544:	d41ff0ef          	jal	1284 <ntt_lite_decompress.constprop.0.isra.0>
+    1548:	000085b7          	lui	a1,0x8
+    154c:	00400613          	li	a2,4
+    1550:	e6058593          	addi	a1,a1,-416 # 7e60 <c+0x3c0>
+    1554:	00000513          	li	a0,0
+    1558:	c99ff0ef          	jal	11f0 <ntt_lite_decode.isra.0>
+    155c:	fffff537          	lui	a0,0xfffff
+    1560:	e0050513          	addi	a0,a0,-512 # ffffee00 <__stack_top+0xfffbee04>
+    1564:	20040793          	addi	a5,s0,512
+    1568:	00a787b3          	add	a5,a5,a0
+    156c:	01010713          	addi	a4,sp,16
+    1570:	00e78533          	add	a0,a5,a4
+    1574:	00400593          	li	a1,4
+    1578:	d0dff0ef          	jal	1284 <ntt_lite_decompress.constprop.0.isra.0>
+    157c:	c1040793          	addi	a5,s0,-1008
+    1580:	000076b7          	lui	a3,0x7
+    1584:	00278433          	add	s0,a5,sp
+    1588:	62068693          	addi	a3,a3,1568 # 7620 <sk>
+    158c:	018015b7          	lui	a1,0x1801
+    1590:	48068513          	addi	a0,a3,1152
+    1594:	00040613          	mv	a2,s0
+    1598:	100407b7          	lui	a5,0x10040
+    159c:	00100813          	li	a6,1
+    15a0:	80258593          	addi	a1,a1,-2046 # 1800802 <__stack_top+0x17c0806>
+    15a4:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    15a8:	00171893          	slli	a7,a4,0x1
+    15ac:	0408c263          	bltz	a7,15f0 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x18c>
+    15b0:	0007a703          	lw	a4,0(a5)
+    15b4:	00171893          	slli	a7,a4,0x1
+    15b8:	0008ce63          	bltz	a7,15d4 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x170>
+    15bc:	00d7a223          	sw	a3,4(a5)
+    15c0:	0007a703          	lw	a4,0(a5)
+    15c4:	00376713          	ori	a4,a4,3
+    15c8:	00e7a023          	sw	a4,0(a5)
+    15cc:	0007a703          	lw	a4,0(a5)
+    15d0:	fe075ee3          	bgez	a4,15cc <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x168>
+    15d4:	0107a623          	sw	a6,12(a5)
+    15d8:	00c7a423          	sw	a2,8(a5)
+    15dc:	0007a703          	lw	a4,0(a5)
+    15e0:	00b76733          	or	a4,a4,a1
+    15e4:	00e7a023          	sw	a4,0(a5)
+    15e8:	0007a703          	lw	a4,0(a5)
+    15ec:	fe075ee3          	bgez	a4,15e8 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x184>
+    15f0:	18068693          	addi	a3,a3,384
+    15f4:	20060613          	addi	a2,a2,512
+    15f8:	fad516e3          	bne	a0,a3,15a4 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x140>
+    15fc:	00007537          	lui	a0,0x7
+    1600:	20050513          	addi	a0,a0,512 # 7200 <psi>
+    1604:	b91ff0ef          	jal	1194 <ntt_lite_load_twiddle.isra.0>
+    1608:	fffff6b7          	lui	a3,0xfffff
+    160c:	000017b7          	lui	a5,0x1
+    1610:	40068693          	addi	a3,a3,1024 # fffff400 <__stack_top+0xfffbf404>
+    1614:	20078793          	addi	a5,a5,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    1618:	01010713          	addi	a4,sp,16
+    161c:	00d787b3          	add	a5,a5,a3
+    1620:	00e786b3          	add	a3,a5,a4
+    1624:	00100613          	li	a2,1
+    1628:	10040737          	lui	a4,0x10040
+    162c:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1630:	00179593          	slli	a1,a5,0x1
+    1634:	0205c263          	bltz	a1,1658 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x1f4>
+    1638:	00c72623          	sw	a2,12(a4)
+    163c:	00d72223          	sw	a3,4(a4)
+    1640:	00d72423          	sw	a3,8(a4)
+    1644:	00072783          	lw	a5,0(a4)
+    1648:	0047e793          	ori	a5,a5,4
+    164c:	00f72023          	sw	a5,0(a4)
+    1650:	00072783          	lw	a5,0(a4)
+    1654:	fe07dee3          	bgez	a5,1650 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x1ec>
+    1658:	20068693          	addi	a3,a3,512
+    165c:	fcd418e3          	bne	s0,a3,162c <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x1c8>
+    1660:	000014b7          	lui	s1,0x1
+    1664:	fffff7b7          	lui	a5,0xfffff
+    1668:	40078793          	addi	a5,a5,1024 # fffff400 <__stack_top+0xfffbf404>
+    166c:	20048713          	addi	a4,s1,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    1670:	00f70733          	add	a4,a4,a5
+    1674:	01010793          	addi	a5,sp,16
+    1678:	00f707b3          	add	a5,a4,a5
+    167c:	00f12623          	sw	a5,12(sp)
+    1680:	20048713          	addi	a4,s1,512
+    1684:	fffff7b7          	lui	a5,0xfffff
+    1688:	00f70733          	add	a4,a4,a5
+    168c:	00c12603          	lw	a2,12(sp)
+    1690:	01010793          	addi	a5,sp,16
+    1694:	00f707b3          	add	a5,a4,a5
+    1698:	00040593          	mv	a1,s0
+    169c:	00078513          	mv	a0,a5
+    16a0:	00f12423          	sw	a5,8(sp)
+    16a4:	c21ff0ef          	jal	12c4 <pqcrystals_kyber768_ref_poly_basemul>
+    16a8:	e1048693          	addi	a3,s1,-496
+    16ac:	00048713          	mv	a4,s1
+    16b0:	fffff7b7          	lui	a5,0xfffff
+    16b4:	20078793          	addi	a5,a5,512 # fffff200 <__stack_top+0xfffbf204>
+    16b8:	00268933          	add	s2,a3,sp
+    16bc:	20070713          	addi	a4,a4,512
+    16c0:	00c12683          	lw	a3,12(sp)
+    16c4:	00f70733          	add	a4,a4,a5
+    16c8:	01010793          	addi	a5,sp,16
+    16cc:	00f707b3          	add	a5,a4,a5
+    16d0:	20068493          	addi	s1,a3,512
+    16d4:	00f12623          	sw	a5,12(sp)
+    16d8:	10040437          	lui	s0,0x10040
+    16dc:	00100993          	li	s3,1
+    16e0:	00c12503          	lw	a0,12(sp)
+    16e4:	00048613          	mv	a2,s1
+    16e8:	00090593          	mv	a1,s2
+    16ec:	bd9ff0ef          	jal	12c4 <pqcrystals_kyber768_ref_poly_basemul>
+    16f0:	00042783          	lw	a5,0(s0) # 10040000 <__stack_top+0x10000004>
+    16f4:	00179713          	slli	a4,a5,0x1
+    16f8:	04074a63          	bltz	a4,174c <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x2e8>
+    16fc:	00042783          	lw	a5,0(s0)
+    1700:	00179713          	slli	a4,a5,0x1
+    1704:	02074063          	bltz	a4,1724 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x2c0>
+    1708:	00c12783          	lw	a5,12(sp)
+    170c:	00f42223          	sw	a5,4(s0)
+    1710:	00042783          	lw	a5,0(s0)
+    1714:	0037e793          	ori	a5,a5,3
+    1718:	00f42023          	sw	a5,0(s0)
+    171c:	00042783          	lw	a5,0(s0)
+    1720:	fe07dee3          	bgez	a5,171c <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x2b8>
+    1724:	00812783          	lw	a5,8(sp)
+    1728:	00f42223          	sw	a5,4(s0)
+    172c:	00812783          	lw	a5,8(sp)
+    1730:	00f42423          	sw	a5,8(s0)
+    1734:	01342623          	sw	s3,12(s0)
+    1738:	00042783          	lw	a5,0(s0)
+    173c:	3047e793          	ori	a5,a5,772
+    1740:	00f42023          	sw	a5,0(s0)
+    1744:	00042783          	lw	a5,0(s0)
+    1748:	fe07dee3          	bgez	a5,1744 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x2e0>
+    174c:	000017b7          	lui	a5,0x1
+    1750:	20078793          	addi	a5,a5,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    1754:	01010713          	addi	a4,sp,16
+    1758:	20090913          	addi	s2,s2,512
+    175c:	00e787b3          	add	a5,a5,a4
+    1760:	20048493          	addi	s1,s1,512
+    1764:	f7279ee3          	bne	a5,s2,16e0 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x27c>
+    1768:	00007537          	lui	a0,0x7
+    176c:	00050513          	mv	a0,a0
+    1770:	a25ff0ef          	jal	1194 <ntt_lite_load_twiddle.isra.0>
+    1774:	100407b7          	lui	a5,0x10040
+    1778:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    177c:	00171693          	slli	a3,a4,0x1
+    1780:	0406c663          	bltz	a3,17cc <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x368>
+    1784:	00100713          	li	a4,1
+    1788:	000016b7          	lui	a3,0x1
+    178c:	00e7a623          	sw	a4,12(a5)
+    1790:	20068693          	addi	a3,a3,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    1794:	fffff737          	lui	a4,0xfffff
+    1798:	00e686b3          	add	a3,a3,a4
+    179c:	01010713          	addi	a4,sp,16
+    17a0:	00e68733          	add	a4,a3,a4
+    17a4:	00e12423          	sw	a4,8(sp)
+    17a8:	00e7a223          	sw	a4,4(a5)
+    17ac:	00812703          	lw	a4,8(sp)
+    17b0:	00e7a423          	sw	a4,8(a5)
+    17b4:	0007a683          	lw	a3,0(a5)
+    17b8:	10040737          	lui	a4,0x10040
+    17bc:	1046e693          	ori	a3,a3,260
+    17c0:	00d7a023          	sw	a3,0(a5)
+    17c4:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    17c8:	fe07dee3          	bgez	a5,17c4 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x360>
+    17cc:	100407b7          	lui	a5,0x10040
+    17d0:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    17d4:	00171693          	slli	a3,a4,0x1
+    17d8:	0806ce63          	bltz	a3,1874 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x410>
+    17dc:	00001637          	lui	a2,0x1
+    17e0:	0007a703          	lw	a4,0(a5)
+    17e4:	fffff6b7          	lui	a3,0xfffff
+    17e8:	20060613          	addi	a2,a2,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    17ec:	00d60633          	add	a2,a2,a3
+    17f0:	01010693          	addi	a3,sp,16
+    17f4:	00d606b3          	add	a3,a2,a3
+    17f8:	00d12423          	sw	a3,8(sp)
+    17fc:	00171693          	slli	a3,a4,0x1
+    1800:	0206c263          	bltz	a3,1824 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x3c0>
+    1804:	00812703          	lw	a4,8(sp)
+    1808:	00e7a223          	sw	a4,4(a5)
+    180c:	0007a683          	lw	a3,0(a5)
+    1810:	10040737          	lui	a4,0x10040
+    1814:	0036e693          	ori	a3,a3,3
+    1818:	00d7a023          	sw	a3,0(a5)
+    181c:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1820:	fe07dee3          	bgez	a5,181c <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x3b8>
+    1824:	fffff737          	lui	a4,0xfffff
+    1828:	000016b7          	lui	a3,0x1
+    182c:	e0070713          	addi	a4,a4,-512 # ffffee00 <__stack_top+0xfffbee04>
+    1830:	20068693          	addi	a3,a3,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    1834:	00e686b3          	add	a3,a3,a4
+    1838:	01010713          	addi	a4,sp,16
+    183c:	00e68733          	add	a4,a3,a4
+    1840:	100407b7          	lui	a5,0x10040
+    1844:	00e12623          	sw	a4,12(sp)
+    1848:	00e7a223          	sw	a4,4(a5) # 10040004 <__stack_top+0x10000008>
+    184c:	00812703          	lw	a4,8(sp)
+    1850:	00e7a423          	sw	a4,8(a5)
+    1854:	00100713          	li	a4,1
+    1858:	00e7a623          	sw	a4,12(a5)
+    185c:	0007a683          	lw	a3,0(a5)
+    1860:	10040737          	lui	a4,0x10040
+    1864:	4046e693          	ori	a3,a3,1028
+    1868:	00d7a023          	sw	a3,0(a5)
+    186c:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1870:	fe07dee3          	bgez	a5,186c <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x408>
+    1874:	100407b7          	lui	a5,0x10040
+    1878:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    187c:	00171693          	slli	a3,a4,0x1
+    1880:	0406c463          	bltz	a3,18c8 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x464>
+    1884:	00100713          	li	a4,1
+    1888:	000016b7          	lui	a3,0x1
+    188c:	00e7a623          	sw	a4,12(a5)
+    1890:	20068693          	addi	a3,a3,512 # 1200 <ntt_lite_decode.isra.0+0x10>
+    1894:	fffff737          	lui	a4,0xfffff
+    1898:	00e686b3          	add	a3,a3,a4
+    189c:	01010713          	addi	a4,sp,16
+    18a0:	00e68733          	add	a4,a3,a4
+    18a4:	00e7a223          	sw	a4,4(a5)
+    18a8:	0007a703          	lw	a4,0(a5)
+    18ac:	202006b7          	lui	a3,0x20200
+    18b0:	50468693          	addi	a3,a3,1284 # 20200504 <__stack_top+0x201c0508>
+    18b4:	00d76733          	or	a4,a4,a3
+    18b8:	00e7a023          	sw	a4,0(a5)
+    18bc:	10040737          	lui	a4,0x10040
+    18c0:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    18c4:	fe07dee3          	bgez	a5,18c0 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x45c>
+    18c8:	100407b7          	lui	a5,0x10040
+    18cc:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
+    18d0:	00171693          	slli	a3,a4,0x1
+    18d4:	0206cc63          	bltz	a3,190c <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x4a8>
+    18d8:	00100713          	li	a4,1
+    18dc:	00e7a623          	sw	a4,12(a5)
+    18e0:	00008737          	lui	a4,0x8
+    18e4:	ee070713          	addi	a4,a4,-288 # 7ee0 <c_dec>
+    18e8:	00e7a423          	sw	a4,8(a5)
+    18ec:	0007a703          	lw	a4,0(a5)
+    18f0:	002006b7          	lui	a3,0x200
+    18f4:	70268693          	addi	a3,a3,1794 # 200702 <__stack_top+0x1c0706>
+    18f8:	00d76733          	or	a4,a4,a3
+    18fc:	00e7a023          	sw	a4,0(a5)
+    1900:	10040737          	lui	a4,0x10040
+    1904:	00072783          	lw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
+    1908:	fe07dee3          	bgez	a5,1904 <pqcrystals_kyber768_ref_indcpa_dec.constprop.0+0x4a0>
+    190c:	000012b7          	lui	t0,0x1
+    1910:	00510133          	add	sp,sp,t0
+    1914:	22c12083          	lw	ra,556(sp)
+    1918:	22812403          	lw	s0,552(sp)
+    191c:	22412483          	lw	s1,548(sp)
+    1920:	22012903          	lw	s2,544(sp)
+    1924:	21c12983          	lw	s3,540(sp)
+    1928:	23010113          	addi	sp,sp,560
+    192c:	00008067          	ret
+
+00001930 <memcmp>:
+    1930:	00300793          	li	a5,3
+    1934:	02c7fe63          	bgeu	a5,a2,1970 <memcmp+0x40>
+    1938:	00a5e7b3          	or	a5,a1,a0
+    193c:	0037f793          	andi	a5,a5,3
+    1940:	02079463          	bnez	a5,1968 <memcmp+0x38>
+    1944:	00300693          	li	a3,3
+    1948:	0140006f          	j	195c <memcmp+0x2c>
+    194c:	ffc60613          	addi	a2,a2,-4
+    1950:	00450513          	addi	a0,a0,4 # 7004 <psi_inv+0x4>
+    1954:	00458593          	addi	a1,a1,4
+    1958:	00c6fc63          	bgeu	a3,a2,1970 <memcmp+0x40>
+    195c:	00052703          	lw	a4,0(a0)
+    1960:	0005a783          	lw	a5,0(a1)
+    1964:	fef704e3          	beq	a4,a5,194c <memcmp+0x1c>
+    1968:	fff60693          	addi	a3,a2,-1
+    196c:	00c0006f          	j	1978 <memcmp+0x48>
+    1970:	fff60693          	addi	a3,a2,-1
+    1974:	02060863          	beqz	a2,19a4 <memcmp+0x74>
+    1978:	00168693          	addi	a3,a3,1
+    197c:	00d506b3          	add	a3,a0,a3
+    1980:	0080006f          	j	1988 <memcmp+0x58>
+    1984:	02a68063          	beq	a3,a0,19a4 <memcmp+0x74>
+    1988:	00054783          	lbu	a5,0(a0)
+    198c:	0005c703          	lbu	a4,0(a1)
+    1990:	00150513          	addi	a0,a0,1
+    1994:	00158593          	addi	a1,a1,1
+    1998:	fee786e3          	beq	a5,a4,1984 <memcmp+0x54>
+    199c:	40e78533          	sub	a0,a5,a4
+    19a0:	00008067          	ret
+    19a4:	00000513          	li	a0,0
+    19a8:	00008067          	ret
