@@ -338,12 +338,10 @@ void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
   poly_init_ntt();
   polyvec_ntt(&bp);
 
-  polyvec_pointwise_acc(&mp, &skpv, &bp);
+  polyvec_pointwise_acc_invntt(&mp, &skpv, &bp);
 
-  poly_init_invntt();
-  poly_invntt(&mp);
+  // poly_init_invntt();
+  // poly_invntt(&mp);
 
-  poly_sub(&mp, &v, &mp);
-
-  poly_tomsg(m, &mp);
+  poly_sub_tomsg(m, &v, &mp);
 }

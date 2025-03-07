@@ -193,7 +193,7 @@ void poly_init_invntt() {
 **************************************************/
 void poly_ntt(poly *r)
 {
-	ntt_lite_forward_ntt(r, r);
+	ntt_lite_forward_ntt(r->coeffs, r->coeffs);
 }
 
 /*************************************************
@@ -207,7 +207,7 @@ void poly_ntt(poly *r)
 **************************************************/
 void poly_invntt(poly *r)
 {
-	ntt_lite_backward_ntt(r, r);
+	ntt_lite_backward_ntt(r->coeffs, r->coeffs);
 }
 
 /*************************************************
@@ -261,4 +261,17 @@ void poly_add(poly *r, const poly *a, const poly *b)
 void poly_sub(poly *r, const poly *a, const poly *b)
 {
   ntt_lite_sub(r->coeffs, a->coeffs, b->coeffs);
+}
+
+
+
+
+
+
+
+void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a, poly *b)
+{
+  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, a->coeffs, b->coeffs);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 1);
+  ntt_lite_encode(msg, NTT_LITE_INPUT_DIS, 1);
 }

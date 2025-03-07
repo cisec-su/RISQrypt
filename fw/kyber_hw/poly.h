@@ -50,6 +50,9 @@ void poly_add(poly *r, const poly *a, const poly *b);
 #define poly_sub KYBER_NAMESPACE(_poly_sub)
 void poly_sub(poly *r, const poly *a, const poly *b);
 
+#define poly_sub_tomsg KYBER_NAMESPACE(_poly_sub_tomsg)
+void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a, poly *b);
+
 void poly_init_q();
 
 void poly_init_ntt();

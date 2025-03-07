@@ -160,39 +160,25 @@ void print_arr(uint32_t *ptr, uint32_t len);
 *            - const polyvec *a: pointer to first input vector of polynomials
 *            - const polyvec *b: pointer to second input vector of polynomials
 **************************************************/
-void polyvec_pointwise_acc(poly *r,
-                           const polyvec *a,
-                           const polyvec *b)
+void polyvec_pointwise_acc_invntt(poly *r,
+                                  const polyvec *a,
+                                  const polyvec *b)
 {
   unsigned int i;
   poly t;
 
-  // uart_transmit_string("0A------\n", 9);
-  // print_arr(&a->vec[0], 128);
-  // uart_transmit_string("0B------\n", 9);
-  // print_arr(&b->vec[0], 128);
-  // uart_transmit_string("--------\n", 9);
-
   poly_basemul(r, &a->vec[0], &b->vec[0]);
 
-  // uart_transmit_string("0R------\n", 9);
-  // print_arr(r, 128);
-  // uart_transmit_string("--------\n", 9);
-
-  for(i=1;i<KYBER_K;i++) {
-    // uart_transmit_string("1A------\n", 9);
-    // print_arr(&a->vec[i], 128);
-    // uart_transmit_string("1B------\n", 9);
-    // print_arr(&b->vec[i], 128);
-    // uart_transmit_string("--------\n", 9);  
-
+  for(i = 1; i < KYBER_K; i++) {
     poly_basemul(&t, &a->vec[i], &b->vec[i]);
-    poly_add(r, r, &t);
-
-    // uart_transmit_string("1R------\n", 9);
-    // print_arr(r, 128);
-    // uart_transmit_string("--------\n", 9);  
+    if (i == (KYBER_K - 1)) {
+      poly_add(NTT_LITE_OUTPUT_DIS, r, &t);
+    } else {
+      poly_add(r, r, &t);
+    }
   }
+  poly_init_invntt();  
+  ntt_lite_backward_ntt(r->coeffs, NTT_LITE_INPUT_DIS);
 }
 
 /*************************************************

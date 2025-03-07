@@ -84,17 +84,33 @@ int ntt_lite_load_twiddle(const uint32_t *psi) {
 
 static int ntt_lite_core(uint32_t *dst, const uint32_t *src, int flag) {
 
+    uint32_t cmd;
+    uint32_t out_dis;
+
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
         return -1;
     }
 
-    NTT_LITE_REGS->stride = 1;
-    NTT_LITE_REGS->din_addr = (uint32_t) src;
-    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-    if (flag) {
-        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_POLY | NTT_LITE_CTRL_OP_NTT;
+    if (src == NTT_LITE_INPUT_DIS) {
+        cmd = NTT_LITE_CTRL_CMD_START;
     } else {
-        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_POLY | NTT_LITE_CTRL_OP_INTT;
+        cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
+        NTT_LITE_REGS->din_addr = (uint32_t) src;
+    }
+
+    if (dst == NTT_LITE_OUTPUT_DIS) {
+        out_dis = NTT_LITE_CTRL_OUT_DIS_V;
+    } else {
+        out_dis = 0;
+        NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+    }
+
+
+    NTT_LITE_REGS->stride = 1;
+    if (flag) {
+        NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_NTT | out_dis;
+    } else {
+        NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_INTT | out_dis;
     }
 
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
@@ -208,18 +224,29 @@ int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d) {
 
 int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d) {
 
+    uint32_t cmd;
+    uint32_t out_dis;
+
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
         return -1;
     }
 
-    NTT_LITE_REGS->stride = 1;
-    NTT_LITE_REGS->din_addr = (uint32_t) src;
-    if (dst != NTT_LITE_OUTPUT_DIS) {
-        NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_POLY | NTT_LITE_CTRL_OP_COMPRESS | (d << NTT_LITE_CTRL_D_S);
+    if (src == NTT_LITE_INPUT_DIS) {
+        cmd = NTT_LITE_CTRL_CMD_START;
     } else {
-        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_POLY | NTT_LITE_CTRL_OP_COMPRESS | (d << NTT_LITE_CTRL_D_S) | NTT_LITE_CTRL_OUT_DIS_V;
+        cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
+        NTT_LITE_REGS->din_addr = (uint32_t) src;
     }
+
+    if (dst == NTT_LITE_OUTPUT_DIS) {
+        out_dis = NTT_LITE_CTRL_OUT_DIS_V;
+    } else {
+        out_dis = 0;
+        NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+    }
+
+    NTT_LITE_REGS->stride = 1;
+    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_COMPRESS | (d << NTT_LITE_CTRL_D_S) | out_dis;
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     return 0;
