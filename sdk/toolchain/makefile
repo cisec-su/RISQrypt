@@ -1,6 +1,8 @@
 CC32 = /opt/riscv/bin/riscv64-unknown-elf
 CC64 = /opt/riscv/bin/riscv64-unknown-elf
 
+SIZE = /opt/riscv/bin/riscv64-unknown-elf-size
+
 LINKER = $(TOOLCHAIN_DIR)/linksc.ld
 PYTHON = python3
 ROM_GEN = $(PYTHON) $(TOOLCHAIN_DIR)/rom_generator.py
@@ -30,6 +32,7 @@ build:
 	@if [ -n "$(OBJ_DUMP)" ]; then \
 		$(CC32)-objdump -d $(PROJ).elf > $(PROJ).txt; \
 	fi
+	$(SIZE) -B $(PROJ).elf
 
 clean:
 	rm -f *.elf *.bin *.mem *.data *.txt

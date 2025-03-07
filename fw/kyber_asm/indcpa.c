@@ -309,13 +309,6 @@ static unsigned int rej_uniform(int16_t *r,
 //   pack_ciphertext(c, &bp, &v);
 // }
 
-void print_time(uint32_t time) {
-  char hex_out[sizeof(uint32_t) << 1];
-  byte_to_hex(hex_out, (const char *)(&time), sizeof(uint32_t), 1);
-  uart_transmit_string(hex_out, sizeof(uint32_t) << 1);
-  uart_transmit_string("\n", 1);
-}
-
 /*************************************************
 * Name:        indcpa_dec
 *
@@ -338,14 +331,8 @@ void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
   uint32_t time; 
   unsigned int i;
 
-  timer_start();
-
   unpack_ciphertext(&bp, &v, c);
   unpack_sk(&skpv, sk);
-
-  time = timer_read();
-  print_time(time);
-  timer_start();
 
   polyvec_ntt(&bp);
   polyvec_pointwise_acc_montgomery(&mp, &skpv, &bp);
@@ -353,12 +340,6 @@ void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
   poly_sub(&mp, &v, &mp);
   poly_reduce(&mp);
 
-  time = timer_read();
-  print_time(time);
-  timer_start();
-
   poly_tomsg(m, &mp);
 
-  time = timer_read();
-  print_time(time);
 }
