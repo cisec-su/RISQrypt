@@ -4,3 +4,6 @@
 [submodule "peripherals/ntt"]
 	path = peripherals/ntt
 	url = https://github.com/cisec-su/NTT-Lite.git
+[submodule "peripherals/x2x_wb/x2x"]
+	path = peripherals/x2x_wb/x2x
+	url = https://github.com/KULeuven-COSIC/X2X.git
