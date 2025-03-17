@@ -11,7 +11,8 @@ SRC += polyvec.c
 SRC += cbd.c
 SRC += symmetric-shake.c
 SRC += rng.c
-
+SRC += kem.c
+SRC += verify.c
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

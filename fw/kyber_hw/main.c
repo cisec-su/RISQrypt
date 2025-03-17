@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "util.h"
 #include "indcpa.h"
+#include "kem.h"
 
 
 uint8_t m[KYBER_INDCPA_MSGBYTES] __attribute__((aligned(4))) = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
@@ -16,6 +17,12 @@ uint8_t m_[KYBER_INDCPA_BYTES] __attribute__((aligned(4)));
 uint8_t sk_[KYBER_INDCPA_SECRETKEYBYTES] __attribute__((aligned(4)));
 uint8_t pk_[KYBER_INDCPA_PUBLICKEYBYTES] __attribute__((aligned(4)));
 
+
+uint8_t pk_cca[KYBER_PUBLICKEYBYTES] __attribute__((aligned(4)));
+uint8_t sk_cca[KYBER_SECRETKEYBYTES] __attribute__((aligned(4)));
+uint8_t c_cca[KYBER_CIPHERTEXTBYTES] __attribute__((aligned(4)));
+uint8_t K[KYBER_SSBYTES] __attribute__((aligned(4)));
+uint8_t K_[KYBER_SSBYTES] __attribute__((aligned(4)));
 
 
 void test_indcpa_dec() {
@@ -70,7 +77,7 @@ void test_indcpa_keypair() {
 
     unsigned int time;
 
-    print_string("Kyber CPA_PKA Keygen: \n");
+    print_string("Kyber CPA_PKE Keygen: \n");
 
     timer_start();
 
@@ -96,11 +103,60 @@ void test_indcpa_keypair() {
 }
 
 
+void test_indcca() {
+
+    unsigned int time;
+
+    print_string("Kyber CCA_PKE Keygen: \n");
+
+    timer_start();
+
+    crypto_kem_keypair(pk_cca, sk_cca);
+
+    time = timer_read();
+    print_string("Time: ");
+    print_u32(time);
+    print_string("\n");
+
+
+    print_string("Kyber CCA_PKE Enc: \n");
+
+    timer_start();
+
+    crypto_kem_enc(c_cca, K, pk_cca);
+
+    time = timer_read();
+    print_string("Time: ");
+    print_u32(time);
+    print_string("\n");
+
+
+    print_string("Kyber CCA_PKE Dec: \n");
+
+    timer_start();
+
+    crypto_kem_dec(K_, c_cca, sk_cca);
+
+    time = timer_read();
+    print_string("Time: ");
+    print_u32(time);
+    print_string("\n");
+
+    if (memcmp(K_, K, KYBER_SSBYTES) == 0) {
+        print_string("CCA PASS\n\n");
+    } else {
+        print_string("CCA FAIL\n\n");
+    }
+
+}
+
+
 int main() {
 
-  test_indcpa_dec();
-  test_indcpa_enc();
-  test_indcpa_keypair();
-  print_string("DONE\n");
+    test_indcpa_dec();
+    test_indcpa_enc();
+    test_indcpa_keypair();
+    test_indcca();
+    print_string("DONE\n");
 
 }

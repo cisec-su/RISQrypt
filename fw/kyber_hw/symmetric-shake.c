@@ -29,7 +29,7 @@ void kyber_shake128_absorb(const uint8_t seed[KYBER_SYMBYTES],
                            uint8_t y) {
   volatile uint32_t t;
   keccak_absorb(seed, NULL, KYBER_SYMBYTES >> 2);
-  t = (0x1F << 16) | (((uint32_t) y) << 8) | ((uint32_t) x);
+  t = (SHAKE_PAD << 16) | (((uint32_t) y) << 8) | ((uint32_t) x);
   keccak_finish(&t);
 }
 
@@ -61,9 +61,33 @@ void kyber_shake256_prf(uint8_t *out,
   volatile uint32_t t;
   keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
   keccak_absorb(key, NULL, KYBER_SYMBYTES >> 2);
-  t = (0x1F << 8) | ((uint32_t) nonce);
+  t = (SHAKE_PAD << 8) | ((uint32_t) nonce);
   keccak_finish(&t);
   keccak_squeeze(out, NULL, outlen >> 2);
+}
+
+
+void shake256(uint8_t *dst,
+              size_t dst_len,
+              const uint8_t *src,
+              size_t src_len)
+{
+  volatile uint32_t t;
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb(src, NULL, src_len >> 2);
+  t = SHAKE_PAD;
+  keccak_finish(&t);
+  keccak_squeeze(dst, NULL, dst_len >> 2);
+}
+
+
+void sha3_256(uint8_t *dst, const uint8_t *src, size_t len) {
+  volatile uint32_t t;
+  keccak_init(SHA3_256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb(src, NULL, len >> 2);
+  t = SHA3_PAD;
+  keccak_finish(&t);
+  keccak_squeeze(dst, NULL, SHA3_256_RATE_HASH_SIZE >> 2);
 }
 
 
@@ -72,7 +96,7 @@ void sha3_512(uint8_t *dst, const uint8_t *src, size_t len) {
   volatile uint32_t t;
   keccak_init(SHA3_512_RATE >> 3, KECCAK_MASK_DIS);
   keccak_absorb(src, NULL, len >> 2);
-  t = 0x06;
+  t = SHA3_PAD;
   keccak_finish(&t);
-  keccak_squeeze(dst, NULL, 512 >> 5);
+  keccak_squeeze(dst, NULL, SHA3_512_RATE_HASH_SIZE >> 2);
 }

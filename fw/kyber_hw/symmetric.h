@@ -66,7 +66,12 @@ void kyber_shake256_prf(uint8_t *out,
 
 #define SHAKE128_RATE 168
 #define SHAKE256_RATE 136
+#define SHAKE_PAD 0x1F
+#define SHA3_256_RATE 136
 #define SHA3_512_RATE 72
+#define SHA3_PAD 0x06
+#define SHA3_256_RATE_HASH_SIZE 32
+#define SHA3_512_RATE_HASH_SIZE 64
 #define XOF_BLOCKBYTES SHAKE128_RATE
 
 #define hash_h(OUT, IN, INBYTES) sha3_256(OUT, IN, INBYTES)
