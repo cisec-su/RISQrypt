@@ -15,51 +15,14 @@
 **************************************************/
 void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], polyvec *a)
 {
-  unsigned int i,j,k;
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, &(a->vec[0]), KYBER_DU);
+  ntt_lite_encode(r, NTT_LITE_INPUT_DIS, KYBER_DU);
 
-  polyvec_csubq(a);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, &(a->vec[1]), KYBER_DU);
+  ntt_lite_encode(r + KYBER_POLYVECCOMPRESSEDBYTES/3, NTT_LITE_INPUT_DIS, KYBER_DU);
 
-#if (KYBER_POLYVECCOMPRESSEDBYTES == (KYBER_K * 352))
-  uint16_t t[8];
-  for(i=0;i<KYBER_K;i++) {
-    for(j=0;j<KYBER_N/8;j++) {
-      for(k=0;k<8;k++)
-        t[k] = ((((uint32_t)a->vec[i].coeffs[8*j+k] << 11) + KYBER_Q/2)
-                /KYBER_Q) & 0x7ff;
-
-      r[ 0] = (t[0] >>  0);
-      r[ 1] = (t[0] >>  8) | (t[1] << 3);
-      r[ 2] = (t[1] >>  5) | (t[2] << 6);
-      r[ 3] = (t[2] >>  2);
-      r[ 4] = (t[2] >> 10) | (t[3] << 1);
-      r[ 5] = (t[3] >>  7) | (t[4] << 4);
-      r[ 6] = (t[4] >>  4) | (t[5] << 7);
-      r[ 7] = (t[5] >>  1);
-      r[ 8] = (t[5] >>  9) | (t[6] << 2);
-      r[ 9] = (t[6] >>  6) | (t[7] << 5);
-      r[10] = (t[7] >>  3);
-      r += 11;
-    }
-  }
-#elif (KYBER_POLYVECCOMPRESSEDBYTES == (KYBER_K * 320))
-  uint16_t t[4];
-  for(i=0;i<KYBER_K;i++) {
-    for(j=0;j<KYBER_N/4;j++) {
-      for(k=0;k<4;k++)
-        t[k] = ((((uint32_t)a->vec[i].coeffs[4*j+k] << 10) + KYBER_Q/2)
-                / KYBER_Q) & 0x3ff;
-
-      r[0] = (t[0] >> 0);
-      r[1] = (t[0] >> 8) | (t[1] << 2);
-      r[2] = (t[1] >> 6) | (t[2] << 4);
-      r[3] = (t[2] >> 4) | (t[3] << 6);
-      r[4] = (t[3] >> 2);
-      r += 5;
-    }
-  }
-#else
-#error "KYBER_POLYVECCOMPRESSEDBYTES needs to be in {320*KYBER_K, 352*KYBER_K}"
-#endif
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, &(a->vec[2]), KYBER_DU);
+  ntt_lite_encode(r + 2*KYBER_POLYVECCOMPRESSEDBYTES/3, NTT_LITE_INPUT_DIS, KYBER_DU);
 }
 
 /*************************************************
@@ -148,7 +111,6 @@ void polyvec_invntt_tomont(polyvec *r)
 }
 
 
-void print_arr(uint32_t *ptr, uint32_t len);
 
 /*************************************************
 * Name:        polyvec_pointwise_acc
