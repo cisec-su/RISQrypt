@@ -111,6 +111,31 @@ void polyvec_invntt_tomont(polyvec *r)
 }
 
 
+static void polyvec_pointwise_acc_core(poly *r,
+                                       const polyvec *a,
+                                       const polyvec *b,
+                                       int intt)
+{
+  unsigned int i;
+  poly t;
+
+  poly_basemul(r, &a->vec[0], &b->vec[0]);
+
+  for(i = 1; i < KYBER_K; i++) {
+    poly_basemul(&t, &a->vec[i], &b->vec[i]);
+    if ((i == (KYBER_K - 1)) & intt) {
+      poly_add(NTT_LITE_OUTPUT_DIS, r, &t);
+    } else {
+      poly_add(r, r, &t);
+    }
+  }
+  if (intt) {
+    poly_init_invntt();  
+    ntt_lite_backward_ntt(r->coeffs, NTT_LITE_INPUT_DIS);
+  }
+}
+
+
 
 /*************************************************
 * Name:        polyvec_pointwise_acc
@@ -126,21 +151,15 @@ void polyvec_pointwise_acc_invntt(poly *r,
                                   const polyvec *a,
                                   const polyvec *b)
 {
-  unsigned int i;
-  poly t;
+  polyvec_pointwise_acc_core(r, a, b, 1);
+}
 
-  poly_basemul(r, &a->vec[0], &b->vec[0]);
 
-  for(i = 1; i < KYBER_K; i++) {
-    poly_basemul(&t, &a->vec[i], &b->vec[i]);
-    if (i == (KYBER_K - 1)) {
-      poly_add(NTT_LITE_OUTPUT_DIS, r, &t);
-    } else {
-      poly_add(r, r, &t);
-    }
-  }
-  poly_init_invntt();  
-  ntt_lite_backward_ntt(r->coeffs, NTT_LITE_INPUT_DIS);
+void polyvec_pointwise_acc(poly *r,
+                           const polyvec *a,
+                           const polyvec *b)
+{
+  polyvec_pointwise_acc_core(r, a, b, 0);
 }
 
 /*************************************************

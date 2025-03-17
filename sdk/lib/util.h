@@ -15,5 +15,7 @@ void print_hex(const uint8_t *byte_arr, size_t len, unsigned int reverse);
 
 void print_u32(uint32_t num);
 
+void print_u32_arr(uint32_t *ptr, size_t len);
+
 
 #endif

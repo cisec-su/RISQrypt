@@ -46,3 +46,14 @@ void print_hex(const uint8_t *byte_arr, size_t len, unsigned int reverse) {
 void print_u32(uint32_t num) {
     print_hex((const uint8_t*) &num, sizeof(uint32_t), 1);
 }
+
+
+void print_u32_arr(uint32_t *ptr, size_t len) {
+    size_t i;
+    for (i = 0; i < len; i++) {
+        print_u32(i);
+        print_string(":\t0x");
+        print_u32(ptr[i]);
+        print_string("\n");
+    }
+}

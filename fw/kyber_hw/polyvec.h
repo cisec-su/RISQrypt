@@ -31,6 +31,12 @@ void polyvec_pointwise_acc_invntt(poly *r,
                                   const polyvec *a,
                                   const polyvec *b);
 
+#define polyvec_pointwise_acc \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc)
+void polyvec_pointwise_acc(poly *r,
+                           const polyvec *a,
+                           const polyvec *b);
+
 #define polyvec_reduce KYBER_NAMESPACE(_polyvec_reduce)
 void polyvec_reduce(polyvec *r);
 #define polyvec_csubq KYBER_NAMESPACE(_polyvec_csubq)

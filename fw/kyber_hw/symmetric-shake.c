@@ -65,3 +65,14 @@ void kyber_shake256_prf(uint8_t *out,
   keccak_finish(&t);
   keccak_squeeze(out, NULL, outlen >> 2);
 }
+
+
+
+void sha3_512(uint8_t *dst, const uint8_t *src, size_t len) {
+  volatile uint32_t t;
+  keccak_init(SHA3_512_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb(src, NULL, len >> 2);
+  t = 0x06;
+  keccak_finish(&t);
+  keccak_squeeze(dst, NULL, 512 >> 5);
+}

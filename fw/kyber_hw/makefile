@@ -10,6 +10,7 @@ SRC += poly.c
 SRC += polyvec.c
 SRC += cbd.c
 SRC += symmetric-shake.c
+SRC += rng.c
 
 
 

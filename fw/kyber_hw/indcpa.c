@@ -4,8 +4,7 @@
 #include "indcpa.h"
 #include "poly.h"
 #include "polyvec.h"
-//#include "rng.h"
-//#include "ntt_lite.h"
+#include "rng.h"
 #include "symmetric.h"
 
 /*************************************************
@@ -218,41 +217,42 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
 *              - uint8_t *sk: pointer to output private key
                               (of length KYBER_INDCPA_SECRETKEYBYTES bytes)
 **************************************************/
-// void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
-//                     uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES])
-// {
-//   unsigned int i;
-//   uint8_t buf[2*KYBER_SYMBYTES];
-//   const uint8_t *publicseed = buf;
-//   const uint8_t *noiseseed = buf+KYBER_SYMBYTES;
-//   uint8_t nonce = 0;
-//   polyvec a[KYBER_K], e, pkpv, skpv;
+void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
+                    uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES])
+{
+  unsigned int i;
+  uint8_t buf[2*KYBER_SYMBYTES];
+  const uint8_t *publicseed = buf;
+  const uint8_t *noiseseed = buf+KYBER_SYMBYTES;
+  uint8_t nonce = 0;
+  polyvec a[KYBER_K], e, pkpv, skpv;
 
-//   randombytes(buf, KYBER_SYMBYTES);
-//   hash_g(buf, buf, KYBER_SYMBYTES);
+  poly_init_q();
 
-//   gen_a(a, publicseed);
+  randombytes(buf, KYBER_SYMBYTES);
+  hash_g(buf, buf, KYBER_SYMBYTES);
 
-//   for(i=0;i<KYBER_K;i++)
-//     poly_getnoise_eta1(&skpv.vec[i], noiseseed, nonce++);
-//   for(i=0;i<KYBER_K;i++)
-//     poly_getnoise_eta1(&e.vec[i], noiseseed, nonce++);
+  gen_a(a, publicseed);
 
-//   polyvec_ntt(&skpv);
-//   polyvec_ntt(&e);
+  for(i=0;i<KYBER_K;i++)
+    poly_getnoise_eta1(&skpv.vec[i], noiseseed, nonce++);
+  for(i=0;i<KYBER_K;i++)
+    poly_getnoise_eta1(&e.vec[i], noiseseed, nonce++);
 
-//   // matrix-vector multiplication
-//   for(i=0;i<KYBER_K;i++) {
-//     polyvec_pointwise_acc_montgomery(&pkpv.vec[i], &a[i], &skpv);
-//     poly_tomont(&pkpv.vec[i]);
-//   }
+  poly_init_ntt();
+  polyvec_ntt(&skpv);
+  polyvec_ntt(&e);
 
-//   polyvec_add(&pkpv, &pkpv, &e);
-//   polyvec_reduce(&pkpv);
+  // matrix-vector multiplication
+  for(i=0;i<KYBER_K;i++) {
+    polyvec_pointwise_acc(&pkpv.vec[i], &a[i], &skpv);
+  }
 
-//   pack_sk(sk, &skpv);
-//   pack_pk(pk, &pkpv, publicseed);
-// }
+  polyvec_add(&pkpv, &pkpv, &e);
+
+  pack_sk(sk, &skpv);
+  pack_pk(pk, &pkpv, publicseed);
+}
 
 /*************************************************
 * Name:        indcpa_enc
