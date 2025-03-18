@@ -15,14 +15,14 @@
 **************************************************/
 void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], polyvec *a)
 {
-  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, &(a->vec[0]), KYBER_DU);
-  ntt_lite_encode(r, NTT_LITE_INPUT_DIS, KYBER_DU);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) &(a->vec[0]), KYBER_DU);
+  ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, KYBER_DU);
 
-  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, &(a->vec[1]), KYBER_DU);
-  ntt_lite_encode(r + KYBER_POLYVECCOMPRESSEDBYTES/3, NTT_LITE_INPUT_DIS, KYBER_DU);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) &(a->vec[1]), KYBER_DU);
+  ntt_lite_encode((uint32_t*) (r + KYBER_POLYVECCOMPRESSEDBYTES/3), NTT_LITE_INPUT_DIS, KYBER_DU);
 
-  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, &(a->vec[2]), KYBER_DU);
-  ntt_lite_encode(r + 2*KYBER_POLYVECCOMPRESSEDBYTES/3, NTT_LITE_INPUT_DIS, KYBER_DU);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) &(a->vec[2]), KYBER_DU);
+  ntt_lite_encode((uint32_t*) (r + 2*KYBER_POLYVECCOMPRESSEDBYTES/3), NTT_LITE_INPUT_DIS, KYBER_DU);
 }
 
 /*************************************************
@@ -35,17 +35,16 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], polyvec *a)
 *              - const uint8_t *a: pointer to input byte array
 *                                  (of length KYBER_POLYVECCOMPRESSEDBYTES)
 **************************************************/
-void polyvec_decompress(polyvec *r,
-                        const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES])
+void polyvec_decompress(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES])
 {
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, a, KYBER_DU);
-  ntt_lite_decompress(&(r->vec[0]), NTT_LITE_INPUT_DIS, KYBER_DU);
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, KYBER_DU);
+  ntt_lite_decompress((uint32_t*) &(r->vec[0]), NTT_LITE_INPUT_DIS, KYBER_DU);
 
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, a +   KYBER_POLYVECCOMPRESSEDBYTES/3, KYBER_DU);
-  ntt_lite_decompress(&(r->vec[1]), NTT_LITE_INPUT_DIS, KYBER_DU);
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) (a + KYBER_POLYVECCOMPRESSEDBYTES/3), KYBER_DU);
+  ntt_lite_decompress((uint32_t*) &(r->vec[1]), NTT_LITE_INPUT_DIS, KYBER_DU);
 
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, a + 2*KYBER_POLYVECCOMPRESSEDBYTES/3, KYBER_DU);
-  ntt_lite_decompress(&(r->vec[2]), NTT_LITE_INPUT_DIS, KYBER_DU);
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) (a + 2*KYBER_POLYVECCOMPRESSEDBYTES/3), KYBER_DU);
+  ntt_lite_decompress((uint32_t*) &(r->vec[2]), NTT_LITE_INPUT_DIS, KYBER_DU);
 }
 
 /*************************************************
@@ -95,26 +94,8 @@ void polyvec_ntt(polyvec *r)
     poly_ntt(&r->vec[i]);
 }
 
-/*************************************************
-* Name:        polyvec_invntt_tomont
-*
-* Description: Apply inverse NTT to all elements of a vector of polynomials
-*              and multiply by Montgomery factor 2^16
-*
-* Arguments:   - polyvec *r: pointer to in/output vector of polynomials
-**************************************************/
-void polyvec_invntt_tomont(polyvec *r)
-{
-  unsigned int i;
-  for(i=0;i<KYBER_K;i++)
-    poly_invntt_tomont(&r->vec[i]);
-}
 
-
-static void polyvec_pointwise_acc_core(poly *r,
-                                       const polyvec *a,
-                                       const polyvec *b,
-                                       int intt)
+static void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt)
 {
   unsigned int i;
   poly t;
@@ -124,14 +105,14 @@ static void polyvec_pointwise_acc_core(poly *r,
   for(i = 1; i < KYBER_K; i++) {
     poly_basemul(&t, &a->vec[i], &b->vec[i]);
     if ((i == (KYBER_K - 1)) & intt) {
-      poly_add(NTT_LITE_OUTPUT_DIS, r, &t);
+      ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) r->coeffs, (uint32_t*) t.coeffs);      
     } else {
-      poly_add(r, r, &t);
+      ntt_lite_add((uint32_t*) r->coeffs, (uint32_t*) r->coeffs, (uint32_t*) t.coeffs);      
     }
   }
   if (intt) {
     poly_init_invntt();  
-    ntt_lite_backward_ntt(r->coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_backward_ntt((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS);
   }
 }
 
@@ -147,53 +128,17 @@ static void polyvec_pointwise_acc_core(poly *r,
 *            - const polyvec *a: pointer to first input vector of polynomials
 *            - const polyvec *b: pointer to second input vector of polynomials
 **************************************************/
-void polyvec_pointwise_acc_invntt(poly *r,
-                                  const polyvec *a,
-                                  const polyvec *b)
+void polyvec_pointwise_acc_invntt(poly *r, const polyvec *a, const polyvec *b)
 {
   polyvec_pointwise_acc_core(r, a, b, 1);
 }
 
 
-void polyvec_pointwise_acc(poly *r,
-                           const polyvec *a,
-                           const polyvec *b)
+void polyvec_pointwise_acc(poly *r, const polyvec *a, const polyvec *b)
 {
   polyvec_pointwise_acc_core(r, a, b, 0);
 }
 
-/*************************************************
-* Name:        polyvec_reduce
-*
-* Description: Applies Barrett reduction to each coefficient
-*              of each element of a vector of polynomials
-*              for details of the Barrett reduction see comments in reduce.c
-*
-* Arguments:   - poly *r: pointer to input/output polynomial
-**************************************************/
-void polyvec_reduce(polyvec *r)
-{
-  unsigned int i;
-  for(i=0;i<KYBER_K;i++)
-    poly_reduce(&r->vec[i]);
-}
-
-/*************************************************
-* Name:        polyvec_csubq
-*
-* Description: Applies conditional subtraction of q to each coefficient
-*              of each element of a vector of polynomials
-*              for details of conditional subtraction of q see comments in
-*              reduce.c
-*
-* Arguments:   - poly *r: pointer to input/output polynomial
-**************************************************/
-void polyvec_csubq(polyvec *r)
-{
-  unsigned int i;
-  for(i=0;i<KYBER_K;i++)
-    poly_csubq(&r->vec[i]);
-}
 
 /*************************************************
 * Name:        polyvec_add

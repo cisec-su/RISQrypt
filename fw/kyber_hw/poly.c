@@ -29,8 +29,8 @@ const int32_t zetas[128] = {
 **************************************************/
 void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], poly *a)
 {
-  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, a->coeffs, KYBER_DV);
-  ntt_lite_encode(r, NTT_LITE_INPUT_DIS, KYBER_DV);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, KYBER_DV);
+  ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, KYBER_DV);
 }
 
 /*************************************************
@@ -45,8 +45,8 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], poly *a)
 **************************************************/
 void poly_decompress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES])
 {
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, a, KYBER_DV);
-  ntt_lite_decompress(r->coeffs, NTT_LITE_INPUT_DIS, KYBER_DV);
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, KYBER_DV);
+  ntt_lite_decompress((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, KYBER_DV);
 }
 
 /*************************************************
@@ -60,7 +60,7 @@ void poly_decompress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES])
 **************************************************/
 void poly_tobytes(uint8_t r[KYBER_POLYBYTES], poly *a)
 {
-  ntt_lite_encode(r, a->coeffs, 12);
+  ntt_lite_encode((uint32_t*) r, (uint32_t*) a->coeffs, 12);
 }
 
 /*************************************************
@@ -75,7 +75,7 @@ void poly_tobytes(uint8_t r[KYBER_POLYBYTES], poly *a)
 **************************************************/
 void poly_frombytes(poly *r, const uint8_t a[KYBER_POLYBYTES])
 {
-  ntt_lite_decode(r->coeffs, a, 12);
+  ntt_lite_decode((uint32_t*) r->coeffs, (uint32_t*) a, 12);
 }
 
 /*************************************************
@@ -88,8 +88,8 @@ void poly_frombytes(poly *r, const uint8_t a[KYBER_POLYBYTES])
 **************************************************/
 void poly_frommsg(poly *r, const uint8_t msg[KYBER_INDCPA_MSGBYTES])
 {
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, msg, 1);
-  ntt_lite_decompress(r->coeffs, NTT_LITE_INPUT_DIS, 1);
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) msg, 1);
+  ntt_lite_decompress((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, 1);
 }
 
 /*************************************************
@@ -102,8 +102,8 @@ void poly_frommsg(poly *r, const uint8_t msg[KYBER_INDCPA_MSGBYTES])
 **************************************************/
 void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a)
 {
-  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, a->coeffs, 1);
-  ntt_lite_encode(msg, NTT_LITE_INPUT_DIS, 1);
+  ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, 1);
+  ntt_lite_encode((uint32_t*) msg, NTT_LITE_INPUT_DIS, 1);
 }
 
 /*************************************************
@@ -152,11 +152,11 @@ void poly_init_q() {
 }
 
 void poly_init_ntt() {
-	ntt_lite_load_twiddle(psi);
+	ntt_lite_load_twiddle((uint32_t*) psi);
 }
 
 void poly_init_invntt() {
-	ntt_lite_load_twiddle(psi_inv);
+	ntt_lite_load_twiddle((uint32_t*) psi_inv);
 }
 
 
@@ -171,7 +171,7 @@ void poly_init_invntt() {
 **************************************************/
 void poly_ntt(poly *r)
 {
-	ntt_lite_forward_ntt(r->coeffs, r->coeffs);
+	ntt_lite_forward_ntt((uint32_t*) r->coeffs, (uint32_t*) r->coeffs);
 }
 
 /*************************************************
@@ -185,7 +185,7 @@ void poly_ntt(poly *r)
 **************************************************/
 void poly_invntt(poly *r)
 {
-	ntt_lite_backward_ntt(r->coeffs, r->coeffs);
+	ntt_lite_backward_ntt((uint32_t*) r->coeffs, (uint32_t*) r->coeffs);
 }
 
 /*************************************************
@@ -202,11 +202,11 @@ void poly_basemul(poly *r, const poly *a, const poly *b)
   unsigned int i;
   uint32_t temp[128];
   uint16_t *ptr = (uint16_t*) temp;
-  ntt_lite_pwm(r->coeffs, a->coeffs, b->coeffs);
+  ntt_lite_pwm((uint32_t*) r->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
   ntt_lite_set_mode(NTT_LITE_MODE_DUAL);
-  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, zetas, NTT_LITE_INPUT_DIS);
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) zetas, NTT_LITE_INPUT_DIS);
   ntt_lite_set_mode(NTT_LITE_MODE_POLY);
-  ntt_lite_pwm(temp, NTT_LITE_INPUT_DIS, a->coeffs);
+  ntt_lite_pwm((uint32_t*) temp, NTT_LITE_INPUT_DIS, (uint32_t*) a->coeffs);
   for (i = 0; i < 256; i += 2) {
     r->coeffs[i] = ptr[i];
   }
@@ -224,7 +224,7 @@ void poly_basemul(poly *r, const poly *a, const poly *b)
 **************************************************/
 void poly_add(poly *r, const poly *a, const poly *b)
 {
-  ntt_lite_add(r->coeffs, a->coeffs, b->coeffs);
+  ntt_lite_add((uint32_t*) r->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
 }
 
 /*************************************************
@@ -238,7 +238,7 @@ void poly_add(poly *r, const poly *a, const poly *b)
 **************************************************/
 void poly_sub(poly *r, const poly *a, const poly *b)
 {
-  ntt_lite_sub(r->coeffs, a->coeffs, b->coeffs);
+  ntt_lite_sub((uint32_t*) r->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
 }
 
 
@@ -249,7 +249,7 @@ void poly_sub(poly *r, const poly *a, const poly *b)
 
 void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a, poly *b)
 {
-  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, a->coeffs, b->coeffs);
+  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
   ntt_lite_compress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 1);
-  ntt_lite_encode(msg, NTT_LITE_INPUT_DIS, 1);
+  ntt_lite_encode((uint32_t*) msg, NTT_LITE_INPUT_DIS, 1);
 }

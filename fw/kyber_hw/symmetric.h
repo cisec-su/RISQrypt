@@ -47,22 +47,15 @@ void kyber_aes256ctr_prf(uint8_t *out,
 void kyber_shake128_init();
 
 #define kyber_shake128_absorb KYBER_NAMESPACE(_kyber_shake128_absorb)
-void kyber_shake128_absorb(const uint8_t seed[KYBER_SYMBYTES],
-                           uint8_t x,
-                           uint8_t y);
-
+void kyber_shake128_absorb(const uint8_t seed[KYBER_SYMBYTES], uint8_t x, uint8_t y);
 
 #define kyber_shake128_squeezeblocks KYBER_NAMESPACE(_kyber_shake128_squeezeblocks)
 void kyber_shake128_squeezeblocks(uint8_t *out,
                                   unsigned int num_blocks);
-                           
-
 
 #define kyber_shake256_prf KYBER_NAMESPACE(_kyber_shake256_prf)
-void kyber_shake256_prf(uint8_t *out,
-                        size_t outlen,
-                        const uint8_t key[KYBER_SYMBYTES],
-                        uint8_t nonce);
+void kyber_shake256_prf(uint8_t *out, size_t outlen, const uint8_t key[KYBER_SYMBYTES], uint8_t nonce);
+
 
 #define SHAKE128_RATE 168
 #define SHAKE256_RATE 136
@@ -73,6 +66,12 @@ void kyber_shake256_prf(uint8_t *out,
 #define SHA3_256_RATE_HASH_SIZE 32
 #define SHA3_512_RATE_HASH_SIZE 64
 #define XOF_BLOCKBYTES SHAKE128_RATE
+
+
+void shake256(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len);
+void sha3_256(uint8_t *dst, const uint8_t *src, size_t len);
+void sha3_512(uint8_t *dst, const uint8_t *src, size_t len);
+
 
 #define hash_h(OUT, IN, INBYTES) sha3_256(OUT, IN, INBYTES)
 #define hash_g(OUT, IN, INBYTES) sha3_512(OUT, IN, INBYTES)
