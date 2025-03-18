@@ -13,6 +13,14 @@ SRC += ntt.c
 SRC += ntt_forward.S
 SRC += ntt_backward.S
 SRC += BaseMul.S
+SRC += cbd.c
+SRC += fips202.c
+SRC += keccakf1600_asm.S
+SRC += kem.c
+SRC += verify.c
+SRC += read_ra.S
+SRC += symmetric-shake.c
+SRC += rng.c
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

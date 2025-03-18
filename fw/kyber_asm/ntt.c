@@ -196,5 +196,11 @@ void invntt(int16_t r[256]) {
 
 void basemul(int16_t r[256],int16_t a[256],int16_t b[256]){
 		BaseMul(a, b, root_table_Rfield_pairwise, r);
+                printf("basemul:\n");
+                printf("basemul_r = ");
+  		for(int i=0; i<KYBER_N; i++){
+    			printf("%d,",r[i]);
+  		}
+  		printf("\n");
 }
      

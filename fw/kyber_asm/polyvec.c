@@ -193,11 +193,14 @@ void polyvec_pointwise_acc_montgomery(poly *r,
   unsigned int j;
   poly t;
   poly_basemul_montgomery(r, &a->vec[0], &b->vec[0]);
-
+  
 
   for(i=1;i<KYBER_K;i++) {
     poly_basemul_montgomery(&t, &a->vec[i], &b->vec[i]);
-    poly_add(r, r, &t);  
+
+  poly_add(r, r, &t);
+    
+    
   }
   poly_reduce(r);
   

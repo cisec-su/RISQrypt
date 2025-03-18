@@ -3,8 +3,8 @@
 #include "poly.h"
 #include "ntt.h"
 #include "reduce.h"
-//#include "cbd.h"
-//#include "symmetric.h"
+#include "cbd.h"
+#include "symmetric.h"
 
 /*************************************************
 * Name:        poly_compress
@@ -197,12 +197,12 @@ void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a)
 *                                     (of length KYBER_SYMBYTES bytes)
 *              - uint8_t nonce:       one-byte input nonce
 **************************************************/
-// void poly_getnoise_eta1(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce)
-// {
-//   uint8_t buf[KYBER_ETA1*KYBER_N/4];
-//   prf(buf, sizeof(buf), seed, nonce);
-//   cbd_eta1(r, buf);
-// }
+void poly_getnoise_eta1(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce)
+{
+  uint8_t buf[KYBER_ETA1*KYBER_N/4];
+  prf(buf, sizeof(buf), seed, nonce);
+  cbd_eta1(r, buf);
+}
 
 /*************************************************
 * Name:        poly_getnoise_eta2
@@ -216,12 +216,12 @@ void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a)
 *                                     (of length KYBER_SYMBYTES bytes)
 *              - uint8_t nonce:       one-byte input nonce
 **************************************************/
-// void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce)
-// {
-//   uint8_t buf[KYBER_ETA2*KYBER_N/4];
-//   prf(buf, sizeof(buf), seed, nonce);
-//   cbd_eta2(r, buf);
-// }
+void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce)
+{
+  uint8_t buf[KYBER_ETA2*KYBER_N/4];
+  prf(buf, sizeof(buf), seed, nonce);
+  cbd_eta2(r, buf);
+}
 
 
 /*************************************************
