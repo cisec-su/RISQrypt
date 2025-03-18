@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "params.h"
 #include "cbd.h"
+#include "reduce.h"
 
 /*************************************************
 * Name:        load32_littleendian
@@ -70,9 +71,7 @@ static void cbd2(poly *r, const uint8_t buf[2*KYBER_N/4])
       a = (d >> (4*j+0)) & 0x3;
       b = (d >> (4*j+2)) & 0x3;
       r->coeffs[8*i+j] = a - b;
-      if (r->coeffs[8*i+j] < 0) {
-        r->coeffs[8*i+j] += KYBER_Q;
-      }
+      caddq(&r->coeffs[8*i+j]);
     }
   }
 }
