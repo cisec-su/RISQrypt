@@ -24,13 +24,15 @@ def send_data(ser, data):
         ser.write(data.encode('utf-8'))
         print(f"Sent: {data}")
 
-def read_data(ser):
+def read_data(ser, done):
     if ser.is_open:
         incoming_data = ser.readline().decode('utf-8').strip()
         if incoming_data:
-            print(f"Received: {incoming_data}")
-        else:
-            print("No data received.")
+            print(f"{incoming_data}")
+            if done in incoming_data:
+                ser.close()
+                exit(0)
+
 
 if __name__ == "__main__":
 
@@ -78,6 +80,14 @@ if __name__ == "__main__":
             help="Timeout"
         )
 
+    parser.add_argument(
+            "-d", "--done",
+            type=str,
+            required=False,
+            default="DONE",
+            help="Terminator string"
+        )
+
     args = parser.parse_args()
 
     ser = serial.Serial(args.port, baudrate=args.baudrate, timeout=args.timeout)
@@ -93,11 +103,11 @@ if __name__ == "__main__":
         time.sleep(1)
         send_data(ser, "-p")
         time.sleep(1)
-        read_data(ser)
+        read_data(ser, args.done)
         send_file_via_uart(ser, args.file, chunk_size=args.chunk_size, sleep_time=args.sleep_time)
 
         while(True):
-            read_data(ser)
+            read_data(ser, args.done)
 
 
         

@@ -14,6 +14,12 @@
 #define UART_0_REGS               ((uart_regs_t*) UART_0_BASE_ADDR)
 
 
+#include "timer_regs.h"
+
+#define TIMER_BASE_ADDR          ((uint32_t) 0x10008018)
+#define TIMER_REGS               ((timer_regs_t*) TIMER_BASE_ADDR)
+
+
 #include "ntt_lite_regs.h"
 
 #define NTT_LITE_BASE_ADDR        ((uint32_t) 0x10040000)

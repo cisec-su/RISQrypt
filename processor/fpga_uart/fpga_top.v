@@ -5,14 +5,14 @@ module fpga_top(input M100_clk_i,
                 output led1,led2,led4);
 
 parameter SYS_CLK_FREQ = 50000000;
-parameter NUM_SLAVES = 7;
+parameter NUM_SLAVES = 8;
 parameter NUM_DMA_ACCS = 2;
 
 parameter ROM_START = 32'h0000_0000;
-parameter ROM_END   = 32'h0007_FFFF;
+parameter ROM_END   = 32'h0003_FFFF;
 
 parameter RAM_START = 32'h0000_0000; // will fix that later.
-parameter RAM_END   = 32'h0007_FFFF;
+parameter RAM_END   = 32'h0003_FFFF;
 
 parameter MTIME_START = 32'h2000_8000;
 parameter MTIME_END   = 32'h2000_800F;
@@ -23,8 +23,11 @@ parameter UART_END   = 32'h1000_8013;
 parameter RESET_START = 32'h1000_8014;
 parameter RESET_END   = 32'h1000_8014;
 
+parameter TIMER_START = 32'h1000_8018;
+parameter TIMER_END   = 32'h1000_801F;
+
 parameter NTT_START =  32'h1004_0000;
-parameter NTT_END   =  32'h1004_000F;
+parameter NTT_END   =  32'h1004_001F;
 
 parameter KECCAK_START =  32'h1004_0020;
 parameter KECCAK_END   =  32'h1004_0050;
@@ -127,11 +130,15 @@ assign slave_adr_end[3] = UART_END;
 assign slave_adr_begin[4] = RESET_START;
 assign slave_adr_end[4] = RESET_END;
 
-assign slave_adr_begin[5] = NTT_START;
-assign slave_adr_end[5] =   NTT_END;
+assign slave_adr_begin[5] = TIMER_START;
+assign slave_adr_end[5] = TIMER_END;
 
-assign slave_adr_begin[6] = KECCAK_START;
-assign slave_adr_end[6] = KECCAK_END;
+assign slave_adr_begin[6] = NTT_START;
+assign slave_adr_end[6] =   NTT_END;
+
+assign slave_adr_begin[7] = KECCAK_START;
+assign slave_adr_end[7] = KECCAK_END;
+
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
 assign wb_stb_i[0] = inst_wb_stb_o;
@@ -356,20 +363,35 @@ loader_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ))
             .led1(led1), .led2(led2), .led4(led4));
 
 
+timer_wb #(.BASE_ADDR(TIMER_START))
+    timer0(.wb_cyc_i(wb_cyc_i[5]),
+           .wb_stb_i(wb_stb_i[5]),
+           .wb_we_i(wb_we_i[5]),
+           .wb_adr_i(wb_adr_i[5]),
+           .wb_dat_i(wb_dat_i[5]),
+           .wb_sel_i(wb_sel_i[5]),
+           .wb_stall_o(wb_stall_o[5]),
+           .wb_ack_o(wb_ack_o[5]),
+           .wb_dat_o(wb_dat_o[5]),
+           .wb_err_o(wb_err_o[5]),
+           .wb_rst_i(wb_rst_i[5]),
+           .wb_clk_i(wb_clk_i[5]));
+
+
 ntt_lite_acc_top #(.BASE_ADDR(NTT_START))
     ntt_lite_acc_top_inst (
-            .wb_cyc_i(wb_cyc_i[5]),
-            .wb_stb_i(wb_stb_i[5]),
-            .wb_we_i(wb_we_i[5]),
-            .wb_adr_i(wb_adr_i[5]),
-            .wb_dat_i(wb_dat_i[5]),
-            .wb_sel_i(wb_sel_i[5]),
-            .wb_stall_o(wb_stall_o[5]),
-            .wb_ack_o(wb_ack_o[5]),
-            .wb_dat_o(wb_dat_o[5]),
-            .wb_err_o(wb_err_o[5]),
-            .wb_rst_i(wb_rst_i[5]),
-            .wb_clk_i(wb_clk_i[5]),
+            .wb_cyc_i(wb_cyc_i[6]),
+            .wb_stb_i(wb_stb_i[6]),
+            .wb_we_i(wb_we_i[6]),
+            .wb_adr_i(wb_adr_i[6]),
+            .wb_dat_i(wb_dat_i[6]),
+            .wb_sel_i(wb_sel_i[6]),
+            .wb_stall_o(wb_stall_o[6]),
+            .wb_ack_o(wb_ack_o[6]),
+            .wb_dat_o(wb_dat_o[6]),
+            .wb_err_o(wb_err_o[6]),
+            .wb_rst_i(wb_rst_i[6]),
+            .wb_clk_i(wb_clk_i[6]),
             
             .dma_cyc_i(dma_cyc_i[0]),
             .dma_stb_i(dma_stb_i[0]),
@@ -387,18 +409,18 @@ ntt_lite_acc_top #(.BASE_ADDR(NTT_START))
 
 keccak_acc_top #(.BASE_ADDR(KECCAK_START))
     keccak_acc_top_inst (
-            .wb_cyc_i(wb_cyc_i[6]),
-            .wb_stb_i(wb_stb_i[6]),
-            .wb_we_i(wb_we_i[6]),
-            .wb_adr_i(wb_adr_i[6]),
-            .wb_dat_i(wb_dat_i[6]),
-            .wb_sel_i(wb_sel_i[6]),
-            .wb_stall_o(wb_stall_o[6]),
-            .wb_ack_o(wb_ack_o[6]),
-            .wb_dat_o(wb_dat_o[6]),
-            .wb_err_o(wb_err_o[6]),
-            .wb_rst_i(wb_rst_i[6]),
-            .wb_clk_i(wb_clk_i[6]),
+            .wb_cyc_i(wb_cyc_i[7]),
+            .wb_stb_i(wb_stb_i[7]),
+            .wb_we_i(wb_we_i[7]),
+            .wb_adr_i(wb_adr_i[7]),
+            .wb_dat_i(wb_dat_i[7]),
+            .wb_sel_i(wb_sel_i[7]),
+            .wb_stall_o(wb_stall_o[7]),
+            .wb_ack_o(wb_ack_o[7]),
+            .wb_dat_o(wb_dat_o[7]),
+            .wb_err_o(wb_err_o[7]),
+            .wb_rst_i(wb_rst_i[7]),
+            .wb_clk_i(wb_clk_i[7]),
             
             .dma_cyc_i(dma_cyc_i[1]),
             .dma_stb_i(dma_stb_i[1]),
