@@ -70,6 +70,10 @@ typedef struct
 #define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x7F)
 #define NTT_LITE_CTRL_D_V                  (NTT_LITE_CTRL_D_M << NTT_LITE_CTRL_D_S)
 
+#define NTT_LITE_CTRL_ROUND_DIS_S          ((uint32_t) 28 )
+#define NTT_LITE_CTRL_ROUND_DIS_M          ((uint32_t) 0x1)
+#define NTT_LITE_CTRL_ROUND_DIS_V          (NTT_LITE_CTRL_ROUND_DIS_M << NTT_LITE_CTRL_ROUND_DIS_S)
+
 #define NTT_LITE_CTRL_OUT_DIS_S            ((uint32_t) 29 )
 #define NTT_LITE_CTRL_OUT_DIS_M            ((uint32_t) 0x1)
 #define NTT_LITE_CTRL_OUT_DIS_V            (NTT_LITE_CTRL_OUT_DIS_M << NTT_LITE_CTRL_OUT_DIS_S)

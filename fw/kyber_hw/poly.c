@@ -1,9 +1,9 @@
 #include <stdint.h>
-#include "params.h"
-#include "poly.h"
 #include "ntt_lite.h"
+#include "params.h"
 #include "cbd.h"
 #include "symmetric.h"
+#include "poly.h"
 
 
 const uint32_t psi[128] = {
@@ -148,7 +148,7 @@ void poly_init_q() {
   const uint32_t q = KYBER_Q;
   const uint32_t mu = 0x13af; 
   const uint32_t inv2 = 0x681;
-  ntt_lite_load_q(&q, &mu, 7, 12, inv2, NTT_LITE_MODE_POLY);
+  ntt_lite_load_q(q, &mu, 7, 12, inv2, NTT_LITE_MODE_POLY);
 }
 
 void poly_init_ntt() {

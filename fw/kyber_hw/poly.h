@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "params.h"
 
+
 /*
  * Elements of R_q = Z_q[X]/(X^n + 1). Represents polynomial
  * coeffs[0] + X*coeffs[1] + X^2*xoeffs[2] + ... + X^{n-1}*coeffs[n-1]
@@ -11,6 +12,7 @@
 typedef struct{
   int16_t coeffs[KYBER_N];
 } poly;
+
 
 #define poly_compress KYBER_NAMESPACE(_poly_compress)
 void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], poly *a);
@@ -39,11 +41,6 @@ void poly_ntt(poly *r);
 void poly_invntt(poly *r);
 #define poly_basemul KYBER_NAMESPACE(_poly_basemul)
 void poly_basemul(poly *r, const poly *a, const poly *b);
-
-#define poly_reduce KYBER_NAMESPACE(_poly_reduce)
-void poly_reduce(poly *r);
-#define poly_csubq KYBER_NAMESPACE(_poly_csubq)
-void poly_csubq(poly *r);
 
 #define poly_add KYBER_NAMESPACE(_poly_add)
 void poly_add(poly *r, const poly *a, const poly *b);

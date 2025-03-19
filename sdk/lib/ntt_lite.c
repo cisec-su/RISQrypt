@@ -3,7 +3,7 @@
 
 
 
-int ntt_lite_load_q(const uint32_t *q, const uint32_t *mu, uint32_t logn, uint32_t logq, uint32_t inv2, uint32_t mode) {
+int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t logq, uint32_t inv2, uint32_t mode) {
 
     uint32_t mode_int;
 
@@ -29,7 +29,7 @@ int ntt_lite_load_q(const uint32_t *q, const uint32_t *mu, uint32_t logn, uint32
         return -1;
     }
 
-    NTT_LITE_REGS->q = q[0];
+    NTT_LITE_REGS->q = q;
     NTT_LITE_REGS->mu[0] = mu[0];
 
     if (logq == 32) {
@@ -82,7 +82,7 @@ int ntt_lite_load_twiddle(const uint32_t *psi) {
 }
 
 
-static int ntt_lite_core(uint32_t *dst, const uint32_t *src, int flag) {
+static int ntt_lite_ntt_core(uint32_t *dst, const uint32_t *src, int flag) {
 
     uint32_t cmd;
     uint32_t out_dis;
@@ -120,12 +120,12 @@ static int ntt_lite_core(uint32_t *dst, const uint32_t *src, int flag) {
 
 
 int ntt_lite_forward_ntt(uint32_t *dst, const uint32_t *src) {
-    return ntt_lite_core(dst, src, 1);
+    return ntt_lite_ntt_core(dst, src, 1);
 }
 
 
 int ntt_lite_backward_ntt(uint32_t *dst, const uint32_t *src) {
-    return ntt_lite_core(dst, src, 0);
+    return ntt_lite_ntt_core(dst, src, 0);
 }
 
 
@@ -253,22 +253,50 @@ int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d) {
 }
 
 
-int ntt_lite_decompress(uint32_t *dst, const uint32_t *src, uint32_t d) {
+static int ntt_lite_decompress_core(uint32_t *dst, const uint32_t *src, uint32_t d, unsigned int round) {
+
+    uint32_t cmd;
+    uint32_t out_dis;
+    uint32_t round_dis;
 
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
         return -1;
     }
 
     NTT_LITE_REGS->stride = 1;
-    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-    if (src != NTT_LITE_INPUT_DIS) {
-        NTT_LITE_REGS->din_addr = (uint32_t) src;
-        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_POLY | NTT_LITE_CTRL_OP_DECOMPRESS | (d << NTT_LITE_CTRL_D_S);
-    } else {
-        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START     | NTT_LITE_CTRL_OP_DECOMPRESS | (d << NTT_LITE_CTRL_D_S);
-    }
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
-    return 0;
+    if (src == NTT_LITE_INPUT_DIS) {
+        cmd = NTT_LITE_CTRL_CMD_START;
+    } else {
+        cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
+        NTT_LITE_REGS->din_addr = (uint32_t) src;
+    }
+
+    if (dst == NTT_LITE_OUTPUT_DIS) {
+        out_dis = NTT_LITE_CTRL_OUT_DIS_V;
+    } else {
+        out_dis = 0;
+        NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+    }
+
+    if (round) {
+        round_dis = 0;
+    } else {
+        round_dis = NTT_LITE_CTRL_ROUND_DIS_V;
+    }
+
+    NTT_LITE_REGS->stride = 1;
+    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_DECOMPRESS | (d << NTT_LITE_CTRL_D_S) | out_dis | round_dis;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 }
 
+
+int ntt_lite_decompress(uint32_t *dst, const uint32_t *src, uint32_t d) {
+    return ntt_lite_decompress_core(dst, src, d, 1);
+}
+
+
+
+int ntt_lite_decompress_floor(uint32_t *dst, const uint32_t *src, uint32_t d) {
+    return ntt_lite_decompress_core(dst, src, d, 0);
+}
