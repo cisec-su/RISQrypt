@@ -13,6 +13,7 @@ SRC += symmetric-shake.c
 SRC += rng.c
 SRC += kem.c
 SRC += verify.c
+SRC += masked_gadgets.c
 SRC += masked_poly.c
 
 
