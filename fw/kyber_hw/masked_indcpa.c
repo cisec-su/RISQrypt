@@ -1,349 +1,133 @@
-#include <stddef.h>
-#include <stdint.h>
-#include "params.h"
-#include "indcpa.h"
-#include "poly.h"
 #include "polyvec.h"
-#include "rng.h"
-#include "symmetric.h"
-
-/*************************************************
-* Name:        pack_pk
-*
-* Description: Serialize the public key as concatenation of the
-*              serialized vector of polynomials pk
-*              and the public seed used to generate the matrix A.
-*
-* Arguments:   uint8_t *r:          pointer to the output serialized public key
-*              polyvec *pk:         pointer to the input public-key polyvec
-*              const uint8_t *seed: pointer to the input public seed
-**************************************************/
-static void pack_pk(uint8_t r[KYBER_INDCPA_PUBLICKEYBYTES],
-                    polyvec *pk,
-                    const uint8_t seed[KYBER_SYMBYTES])
-{
-  size_t i;
-  polyvec_tobytes(r, pk);
-  for(i=0;i<KYBER_SYMBYTES;i++)
-    r[i+KYBER_POLYVECBYTES] = seed[i];
-}
-
-/*************************************************
-* Name:        unpack_pk
-*
-* Description: De-serialize public key from a byte array;
-*              approximate inverse of pack_pk
-*
-* Arguments:   - polyvec *pk:             pointer to output public-key
-*                                         polynomial vector
-*              - uint8_t *seed:           pointer to output seed to generate
-*                                         matrix A
-*              - const uint8_t *packedpk: pointer to input serialized public key
-**************************************************/
-static void unpack_pk(polyvec *pk,
-                      uint8_t seed[KYBER_SYMBYTES],
-                      const uint8_t packedpk[KYBER_INDCPA_PUBLICKEYBYTES])
-{
-  size_t i;
-  polyvec_frombytes(pk, packedpk);
-  for(i=0;i<KYBER_SYMBYTES;i++)
-    seed[i] = packedpk[i+KYBER_POLYVECBYTES];
-}
-
-/*************************************************
-* Name:        pack_sk
-*
-* Description: Serialize the secret key
-*
-* Arguments:   - uint8_t *r:  pointer to output serialized secret key
-*              - polyvec *sk: pointer to input vector of polynomials (secret key)
-**************************************************/
-static void pack_sk(uint8_t r[KYBER_INDCPA_SECRETKEYBYTES], polyvec *sk)
-{
-  polyvec_tobytes(r, sk);
-}
-
-/*************************************************
-* Name:        unpack_sk
-*
-* Description: De-serialize the secret key;
-*              inverse of pack_sk
-*
-* Arguments:   - polyvec *sk:             pointer to output vector of
-*                                         polynomials (secret key)
-*              - const uint8_t *packedsk: pointer to input serialized secret key
-**************************************************/
-static void unpack_sk(polyvec *sk,
-                      const uint8_t packedsk[KYBER_INDCPA_SECRETKEYBYTES])
-{
-  polyvec_frombytes(sk, packedsk);
-}
-
-/*************************************************
-* Name:        pack_ciphertext
-*
-* Description: Serialize the ciphertext as concatenation of the
-*              compressed and serialized vector of polynomials b
-*              and the compressed and serialized polynomial v
-*
-* Arguments:   uint8_t *r: pointer to the output serialized ciphertext
-*              poly *pk:   pointer to the input vector of polynomials b
-*              poly *v:    pointer to the input polynomial v
-**************************************************/
-static void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES],
-                            polyvec *b,
-                            poly *v)
-{
-  polyvec_compress(r, b);
-  poly_compress(r+KYBER_POLYVECCOMPRESSEDBYTES, v);
-}
-
-/*************************************************
-* Name:        unpack_ciphertext
-*
-* Description: De-serialize and decompress ciphertext from a byte array;
-*              approximate inverse of pack_ciphertext
-*
-* Arguments:   - polyvec *b:       pointer to the output vector of polynomials b
-*              - poly *v:          pointer to the output polynomial v
-*              - const uint8_t *c: pointer to the input serialized ciphertext
-**************************************************/
-static void unpack_ciphertext(polyvec *b,
-                              poly *v,
-                              const uint8_t c[KYBER_INDCPA_BYTES])
-{
-  polyvec_decompress(b, c);
-  poly_decompress(v, c+KYBER_POLYVECCOMPRESSEDBYTES);
-}
-
-/*************************************************
-* Name:        rej_uniform
-*
-* Description: Run rejection sampling on uniform random bytes to generate
-*              uniform random integers mod q
-*
-* Arguments:   - int16_t *r:          pointer to output buffer
-*              - unsigned int len:    requested number of 16-bit integers
-*                                     (uniform mod q)
-*              - const uint8_t *buf:  pointer to input buffer
-*                                     (assumed to be uniform random bytes)
-*              - unsigned int buflen: length of input buffer in bytes
-*
-* Returns number of sampled 16-bit integers (at most len)
-**************************************************/
-static unsigned int rej_uniform(int16_t *r,
-                                unsigned int len,
-                                const uint8_t *buf,
-                                unsigned int buflen)
-{
-  unsigned int ctr, pos;
-  uint16_t val0, val1;
-
-  ctr = pos = 0;
-  while(ctr < len && pos + 3 <= buflen) {
-    val0 = ((buf[pos+0] >> 0) | ((uint16_t)buf[pos+1] << 8)) & 0xFFF;
-    val1 = ((buf[pos+1] >> 4) | ((uint16_t)buf[pos+2] << 4)) & 0xFFF;
-    pos += 3;
-
-    if(val0 < KYBER_Q)
-      r[ctr++] = val0;
-    if(ctr < len && val1 < KYBER_Q)
-      r[ctr++] = val1;
-  }
-
-  return ctr;
-}
-
-#define gen_a(A,B)  gen_matrix(A,B,0)
-#define gen_at(A,B) gen_matrix(A,B,1)
-
-/*************************************************
-* Name:        gen_matrix
-*
-* Description: Deterministically generate matrix A (or the transpose of A)
-*              from a seed. Entries of the matrix are polynomials that look
-*              uniformly random. Performs rejection sampling on output of
-*              a XOF
-*
-* Arguments:   - polyvec *a:          pointer to ouptput matrix A
-*              - const uint8_t *seed: pointer to input seed
-*              - int transposed:      boolean deciding whether A or A^T
-*                                     is generated
-**************************************************/
-#define GEN_MATRIX_NBLOCKS ((12*KYBER_N/8*(1 << 12)/KYBER_Q \
-                             + XOF_BLOCKBYTES)/XOF_BLOCKBYTES)
-// Not static for benchmarking
-void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
-{
-  unsigned int ctr, i, j, k;
-  unsigned int buflen, off;
-  uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
-
-  for(i=0;i<KYBER_K;i++) {
-    for(j=0;j<KYBER_K;j++) {
-
-      xof_init();
-
-      if(transposed)
-        xof_absorb(seed, i, j);
-      else
-        xof_absorb(seed, j, i);
-
-      xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
-
-      buflen = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
-      ctr = rej_uniform(a[i].vec[j].coeffs, KYBER_N, buf, buflen);
-
-      while(ctr < KYBER_N) {
-        off = buflen % 3;
-        for(k = 0; k < off; k++)
-          buf[k] = buf[buflen - off + k];
-        xof_squeezeblocks(buf + off, 1);
-        buflen = off + XOF_BLOCKBYTES;
-        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf, buflen);
-      }
-    }
-  }
-}
-
-/*************************************************
-* Name:        indcpa_keypair
-*
-* Description: Generates public and private key for the CPA-secure
-*              public-key encryption scheme underlying Kyber
-*
-* Arguments:   - uint8_t *pk: pointer to output public key
-*                             (of length KYBER_INDCPA_PUBLICKEYBYTES bytes)
-*              - uint8_t *sk: pointer to output private key
-                              (of length KYBER_INDCPA_SECRETKEYBYTES bytes)
-**************************************************/
-void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
-                    uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES])
-{
-  unsigned int i;
-  uint8_t buf[2*KYBER_SYMBYTES];
-  const uint8_t *publicseed = buf;
-  const uint8_t *noiseseed = buf+KYBER_SYMBYTES;
-  uint8_t nonce = 0;
-  polyvec a[KYBER_K], e, pkpv, skpv;
-
-  poly_init_q();
-
-  randombytes(buf, KYBER_SYMBYTES);
-  hash_g(buf, buf, KYBER_SYMBYTES);
-
-  gen_a(a, publicseed);
-
-  for(i=0;i<KYBER_K;i++)
-    poly_getnoise_eta1(&skpv.vec[i], noiseseed, nonce++);
-  for(i=0;i<KYBER_K;i++)
-    poly_getnoise_eta1(&e.vec[i], noiseseed, nonce++);
-
-  poly_init_ntt();
-  polyvec_ntt(&skpv);
-  polyvec_ntt(&e);
-
-  // matrix-vector multiplication
-  for(i=0;i<KYBER_K;i++) {
-    polyvec_pointwise_acc(&pkpv.vec[i], &a[i], &skpv);
-  }
-
-  polyvec_add(&pkpv, &pkpv, &e);
-
-  pack_sk(sk, &skpv);
-  pack_pk(pk, &pkpv, publicseed);
-}
-
-/*************************************************
-* Name:        indcpa_enc
-*
-* Description: Encryption function of the CPA-secure
-*              public-key encryption scheme underlying Kyber.
-*
-* Arguments:   - uint8_t *c:           pointer to output ciphertext
-*                                      (of length KYBER_INDCPA_BYTES bytes)
-*              - const uint8_t *m:     pointer to input message
-*                                      (of length KYBER_INDCPA_MSGBYTES bytes)
-*              - const uint8_t *pk:    pointer to input public key
-*                                      (of length KYBER_INDCPA_PUBLICKEYBYTES)
-*              - const uint8_t *coins: pointer to input random coins
-*                                      used as seed (of length KYBER_SYMBYTES)
-*                                      to deterministically generate all
-*                                      randomness
-**************************************************/
-void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
-                const uint8_t m[KYBER_INDCPA_MSGBYTES],
-                const uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
-                const uint8_t coins[KYBER_SYMBYTES])
-{
-  unsigned int i;
-  uint8_t seed[KYBER_SYMBYTES];
-  uint8_t nonce = 0;
-  polyvec sp, pkpv, ep, at[KYBER_K], bp;
-  poly v, k, epp;
-
-  poly_init_q();
-
-  unpack_pk(&pkpv, seed, pk);
-  poly_frommsg(&k, m);
-
-  gen_at(at, seed);
-
-  for(i=0;i<KYBER_K;i++)
-    poly_getnoise_eta1(sp.vec+i, coins, nonce++);
-
-  for(i=0;i<KYBER_K;i++)
-    poly_getnoise_eta2(ep.vec+i, coins, nonce++);
-  poly_getnoise_eta2(&epp, coins, nonce++);
-
-  poly_init_ntt();
-  polyvec_ntt(&sp);
-
-  // // matrix-vector multiplication
-  for(i=0;i<KYBER_K;i++)
-    polyvec_pointwise_acc_invntt(&bp.vec[i], &at[i], &sp);
-
-  polyvec_pointwise_acc_invntt(&v, &pkpv, &sp);
-
-  polyvec_add(&bp, &bp, &ep);
-
-  poly_add(&v, &v, &epp);
-  poly_add(&v, &v, &k);
-
-  pack_ciphertext(c, &bp, &v);
-
-}
+#include "masked.h"
+#include "pack.h"
+#include "masked_poly.h"
+#include "masked_polyvec.h"
+#include "masked_indcpa.h"
 
 
-/*************************************************
-* Name:        indcpa_dec
-*
-* Description: Decryption function of the CPA-secure
-*              public-key encryption scheme underlying Kyber.
-*
-* Arguments:   - uint8_t *m:        pointer to output decrypted message
-*                                   (of length KYBER_INDCPA_MSGBYTES)
-*              - const uint8_t *c:  pointer to input ciphertext
-*                                   (of length KYBER_INDCPA_BYTES)
-*              - const uint8_t *sk: pointer to input secret key
-*                                   (of length KYBER_INDCPA_SECRETKEYBYTES)
-**************************************************/
-void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
-                const uint8_t c[KYBER_INDCPA_BYTES],
-                const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES])
-{
-  polyvec bp, skpv;
-  poly v, mp;
 
-  poly_init_q();
 
-  unpack_ciphertext(&bp, &v, c);
-  unpack_sk(&skpv, sk);
+
+
+int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
+                          const masked_msg m,
+                          const uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
+                          const masked_sym coins) {
+    unsigned int i;
+    polyvec bp, pkpv, at[KYBER_K];
+    poly v;
+    uint8_t nonce = 0;
+    masked_poly mepp, mv, mk;
+    masked_polyvec mskpv, msp, mep, mbp;
+    masked_coeff t;
+    uint8_t seed[KYBER_SYMBYTES];
+
+    masked_poly_frommsg(&mk, m);
+
+    poly_init_q();
+
+    unpack_ciphertext(&bp, &v, c);
+    // polyvec_decompress_compress(&bp, c);
+    // poly_decompress_compress(&v, c + KYBER_POLYVECCOMPRESSEDBYTES);
+
+    unpack_pk(&pkpv, seed, pk);
   
-  poly_init_ntt();
-  polyvec_ntt(&bp);
+    gen_at(at, seed);
+    masked_polyvec_getnoise_eta1(&msp, coins, &nonce);
+    masked_polyvec_getnoise_eta2(&mep, coins, &nonce);    
+    masked_poly_getnoise_eta2(&mepp, coins, &nonce);
 
-  polyvec_pointwise_acc_invntt(&mp, &skpv, &bp);
+    poly_init_ntt();
+    masked_polyvec_ntt(&msp);
 
-  poly_sub_tomsg(m, &v, &mp);
+    for(i = 0; i < KYBER_K; i++) {
+        masked_polyvec_pointwise_acc_invntt_i(&mbp, &msp, &at[i], i);
+    }
+    masked_polyvec_pointwise_acc_invntt(&mv, &msp, &pkpv);
+
+    masked_polyvec_add(&mbp, &mbp, &mep);
+
+    masked_poly_add_chain(&mv, &mv, &mepp, &mk);
+
+    // exponentation-based comparsion
+    // https://eprint.iacr.org/2021/1615.pdf
+    // distinct then the reference, we use decompressed polynomials, and use a second exp. instead of secure ands.
+    // after the exponentation, we add all the coefficients, so if any non-zero bit exists, the sum will be non-zero
+    // then, we perform a second exponentation.
+    poly_init_dual();
+    masked_polyvec_sub_exp(&mbp, &mbp, &bp);
+    masked_poly_sub_exp(&mv, &mv, &v);
+
+    // 1 - x^{q-1}
+    masked_polyvec_sub_one(&mbp, &mbp);
+    // array of 1s will be on the HW engine.
+    // therefore, we call the subtraction function which subtracts whatever left inside the HW from mv  
+    masked_poly_sub_x(&mv, &mv);
+
+    // at this point, any coefficient which is 1 (shared) shows a mismatch in the comparison
+    // therefore we sum them up and perform the second exponentation.
+    masked_polyvec_acc(&mv, &mbp, &mv);
+    masked_poly_sum(&t, &mv);
+    masked_poly_coeff_exp(&t, &t);
+
+    masked_poly_unmask_coeff_inp(&t);
+
+    return (int) t[0];
+}
+
+
+void masked_indcpa_dec(masked_msg m,
+                      const uint8_t c[KYBER_INDCPA_BYTES],
+                      const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
+    unsigned int i;
+    polyvec bp, skpv;
+    poly v;
+    masked_poly mp;
+    masked_polyvec mskpv;
+                                            
+    poly_init_q();
+
+    unpack_ciphertext(&bp, &v, c);
+
+    unpack_sk(&skpv, sk);
+
+    poly_init_ntt();
+    polyvec_ntt(&bp);
+
+    masked_polyvec_mask(&mskpv, &skpv);
+
+    masked_polyvec_pointwise_acc_invntt(&mp, &mskpv, &bp);
+
+    masked_poly_sub_tomsg(m, &v, &mp);
+}
+
+
+void unmask_and_print_u32_vec(masked_polyvec *a, unsigned int i, unsigned int len) {
+    poly b;
+    unsigned int j, k;
+    uint16_t t;
+    for (j = 0; j < KYBER_N; j++) {
+        t = 0;
+        for (k = 0; k < MASKING_N; k++) {
+            t += a->share[k].vec[i].coeffs[j];
+        }
+        b.coeffs[j] = t % KYBER_Q;
+    }
+    print_u32_arr((uint32_t*) b.coeffs, len);
+}
+
+
+void unmask_and_print_u32(masked_poly *a, unsigned int len) {
+    poly b;
+    unsigned int j, k;
+    uint16_t t;
+    for (j = 0; j < KYBER_N; j++) {
+        t = 0;
+        for (k = 0; k < MASKING_N; k++) {
+            t += a->share[k].coeffs[j];
+        }
+        b.coeffs[j] = t % KYBER_Q;
+    }
+    print_u32_arr((uint32_t*) b.coeffs, len);
 }

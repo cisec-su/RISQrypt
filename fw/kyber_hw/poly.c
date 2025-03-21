@@ -3,6 +3,7 @@
 #include "params.h"
 #include "cbd.h"
 #include "symmetric.h"
+#include "reduce.h"
 #include "poly.h"
 
 
@@ -32,6 +33,16 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], poly *a)
   ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, KYBER_DV);
   ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, KYBER_DV);
 }
+
+
+void poly_decompress_compress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES])
+{
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, KYBER_DV);
+  ntt_lite_decompress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DV);
+  ntt_lite_decompress((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, KYBER_DV);
+}
+
+
 
 /*************************************************
 * Name:        poly_decompress
@@ -227,6 +238,14 @@ void poly_add(poly *r, const poly *a, const poly *b)
   ntt_lite_add((uint32_t*) r->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
 }
 
+
+void poly_add_chain(poly *r, const poly *a, const poly *b, const poly *c)
+{
+  ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
+  ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) c->coeffs);
+}
+
+
 /*************************************************
 * Name:        poly_sub
 *
@@ -242,14 +261,72 @@ void poly_sub(poly *r, const poly *a, const poly *b)
 }
 
 
-
-
-
-
-
-void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a, poly *b)
+void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a, const poly *b)
 {
   ntt_lite_sub(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
   ntt_lite_compress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 1);
   ntt_lite_encode((uint32_t*) msg, NTT_LITE_INPUT_DIS, 1);
+}
+
+
+void poly_init_dual() {
+  const uint32_t q = KYBER_Q;
+  const uint32_t mu = 0x13af; 
+  const uint32_t inv2 = 0x681;
+  ntt_lite_load_q(q, &mu, 7, 12, inv2, NTT_LITE_MODE_DUAL);
+}
+
+
+static void poly_sub_exp_core_u32(uint32_t *r, const uint32_t *a, const uint32_t *b, unsigned int sub) {
+  unsigned int i;
+  if (sub) {
+    ntt_lite_sub(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, (uint32_t*) b);
+    ntt_lite_square(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+  }
+  else {
+    ntt_lite_square(NTT_LITE_OUTPUT_DIS, (uint32_t*) a);
+  }
+  ntt_lite_load_twiddle((uint32_t*) (uint32_t*) a);
+  // x^0xd
+  ntt_lite_square(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+  ntt_lite_square(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+  ntt_lite_square(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+  // x^d0x1
+  for (unsigned int j = 0; j < 7; j++) {
+    ntt_lite_square(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+  }
+  ntt_lite_square((uint32_t*) r, NTT_LITE_INPUT_DIS);
+}
+
+
+static void poly_sub_exp_core(poly *r, const poly *a, const poly *b, unsigned int sub) {
+  poly_sub_exp_core_u32((uint32_t*) r->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs, sub);
+}
+
+
+void poly_sub_exp(poly *r, const poly *a, const poly *b) {
+  poly_sub_exp_core(r, a, b, 1);
+}
+
+
+void poly_exp(poly *r, const poly *a) {
+  poly_sub_exp_core(r, a, a, 0);
+}
+
+
+void poly_sum(uint32_t *r, const poly *a) {
+  uint16_t *t0, *t1;
+  ntt_lite_sum(r, (uint32_t*) a->coeffs);
+  t0 = (uint16_t*) r;
+  t1 = ((uint16_t*) r) + 1;
+  *t0 += *t1;
+  csubq(t0);
+  *t1 = 0;
+}
+
+
+void poly_coeff_exp(coeff *r, const coeff *a) {
+  poly_sub_exp_core_u32((uint32_t*) r, (uint32_t*) a, (uint32_t*) a, 0);
 }

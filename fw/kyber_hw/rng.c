@@ -1,3 +1,4 @@
+#include "stdint.h"
 #include "rng.h"
 
 
@@ -10,3 +11,13 @@ int randombytes(unsigned char *x, unsigned long long xlen) {
     return 0;
 }
 
+static int t = 0;
+
+uint16_t rand16() {
+    uint16_t temp = ((uint16_t*) d)[t];
+    t += 2;
+    if (t == 32) {
+        t = 0;
+    }
+    return temp;
+}
