@@ -180,6 +180,19 @@ int ntt_lite_sub(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
 }
 
 
+int ntt_lite_square(uint32_t *dst, const uint32_t *src) {
+    return ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_PWM);
+}
+
+
+int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
+    ntt_lite_pointwise_op(NTT_LITE_OUTPUT_DIS, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_ADD);
+    *dst = src[0];
+    return 0;
+}
+
+
+
 int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
 
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {

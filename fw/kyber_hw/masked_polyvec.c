@@ -43,6 +43,21 @@ void masked_polyvec_add(masked_polyvec *r, const masked_polyvec *a, const masked
 }
 
 
+void masked_polyvec_compress(masked_polyvec *r, const masked_polyvec *a) {
+    unsigned int i;
+    const poly *a_[MASKING_N];
+    poly *r_[MASKING_N];
+    for (i = 0; i < KYBER_K; i++) {
+        a_[0] = &(a->share[0].vec[i]);
+        a_[1] = &(a->share[1].vec[i]);
+        r_[0] = &(r->share[0].vec[i]);
+        r_[1] = &(r->share[1].vec[i]);
+        masked_poly_compress_du(r_, a_);
+    }
+}
+
+
+
 void masked_polyvec_cmp(masked_polyvec *r, const masked_polyvec *a, const polyvec *b) {
     unsigned int i;
     for (i = 0; i < MASKING_N; i++) {
@@ -83,7 +98,18 @@ void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint
     masked_ptr ptr = {buf[0], buf[1]};
     unsigned int i;
     for (i = 0; i < KYBER_K; i++) {
-        masked_prf(ptr, sizeof(buf) / MASKING_N, seed, (*nonce)++);
+        print_string("seed0: ");
+        print_hex(seed[0], KYBER_SYMBYTES);
+        print_string("\nseed1: ");
+        print_hex(seed[1], KYBER_SYMBYTES);
+        print_string("\n");        
+        masked_prf(ptr, /*sizeof(buf) / MASKING_N*/4, seed, (*nonce)++);
+        print_string("buf[0]: ");
+        print_u32_arr((uint32_t*) buf[0], 8);
+        print_string("buf[1]: ");
+        print_u32_arr((uint32_t*) buf[1], 8);
+        print_string("flag: \n");
+        print_u32_arr(((uint32_t*) buf)[0] ^ ((uint32_t*) buf)[1], 8);
         masked_cbd_eta1_i(r, buf, i);
     }    
 }

@@ -48,6 +48,8 @@ typedef struct
 #define NTT_LITE_CTRL_OP_DECOMPRESS        (((uint32_t) 0x6) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_ENCODE            (((uint32_t) 0x7) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_DECODE            (((uint32_t) 0x8) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_SQUARE            (((uint32_t) 0x9) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_SUM               (((uint32_t) 0x10) << NTT_LITE_CTRL_OP_S)
 
 #define NTT_LITE_CTRL_OTF_S                ((uint32_t) 12 )
 #define NTT_LITE_CTRL_OTF_M                ((uint32_t) 0x1)

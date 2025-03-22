@@ -30,11 +30,11 @@ void masked_poly_sub_tomsg(masked_msg msg, const poly *b, masked_poly *a);
 #define masked_poly_frommsg KYBER_NAMESPACE(_masked_poly_frommsg)
 void masked_poly_frommsg(masked_poly *a, const masked_msg msg);
 
-#define masked_poly_compress_dv KYBER_NAMESPACE(_masked_poly_compress_dv)
-void masked_poly_compress_dv(uint8_t *r[MASKING_N], const masked_poly *a);
+#define masked_poly_compress KYBER_NAMESPACE(_masked_poly_compress)
+void masked_poly_compress(masked_poly *r, const masked_poly *a);
 
 #define masked_poly_compress_du KYBER_NAMESPACE(_masked_poly_compress_du)
-void masked_poly_compress_du(uint8_t *r[MASKING_N], const masked_poly *a);
+void masked_poly_compress_du(poly *r[MASKING_N], const poly *a[MASKING_N]);
 
 #define masked_poly_getnoise_eta2 KYBER_NAMESPACE(_masked_poly_getnoise_eta2)
 void masked_poly_getnoise_eta2(masked_poly *r, const masked_sym seed, uint8_t *nonce);

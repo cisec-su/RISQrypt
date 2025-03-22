@@ -23,21 +23,24 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
     masked_coeff t;
     uint8_t seed[KYBER_SYMBYTES];
 
-    masked_poly_frommsg(&mk, m);
-
     poly_init_q();
 
     unpack_ciphertext(&bp, &v, c);
-    // polyvec_decompress_compress(&bp, c);
-    // poly_decompress_compress(&v, c + KYBER_POLYVECCOMPRESSEDBYTES);
+
+    masked_poly_frommsg(&mk, m);
+
+    poly_init_q();
 
     unpack_pk(&pkpv, seed, pk);
   
     gen_at(at, seed);
     masked_polyvec_getnoise_eta1(&msp, coins, &nonce);
+    print_string("msp\n");
+    unmask_and_print_u32_vec(&msp, 0, 4);
     masked_polyvec_getnoise_eta2(&mep, coins, &nonce);    
     masked_poly_getnoise_eta2(&mepp, coins, &nonce);
-
+    print_string("mepp\n");
+    unmask_and_print_u32(&mepp, 4);
     poly_init_ntt();
     masked_polyvec_ntt(&msp);
 
@@ -47,8 +50,10 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
     masked_polyvec_pointwise_acc_invntt(&mv, &msp, &pkpv);
 
     masked_polyvec_add(&mbp, &mbp, &mep);
-
     masked_poly_add_chain(&mv, &mv, &mepp, &mk);
+
+    masked_polyvec_compress(&mbp, &mbp);
+    masked_poly_compress(&mv, &mv);
 
     // exponentation-based comparsion
     // https://eprint.iacr.org/2021/1615.pdf

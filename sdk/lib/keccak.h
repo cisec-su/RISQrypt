@@ -10,7 +10,7 @@
 #define KECCAK_NULL_PAD_WORD  ((uint32_t*) 0x0)
 
 
-int keccak_init(uint32_t rate, uint32_t mask_en);
+int keccak_init(uint32_t rate, uint32_t mask);
 
 
 int keccak_absorb(const uint32_t *share_0, const uint32_t *share_1, unsigned int len);
