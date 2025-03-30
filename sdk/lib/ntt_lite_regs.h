@@ -48,8 +48,7 @@ typedef struct
 #define NTT_LITE_CTRL_OP_DECOMPRESS        (((uint32_t) 0x6) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_ENCODE            (((uint32_t) 0x7) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_DECODE            (((uint32_t) 0x8) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_SQUARE            (((uint32_t) 0x9) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_SUM               (((uint32_t) 0x10) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_SUM               (((uint32_t) 0x9) << NTT_LITE_CTRL_OP_S)
 
 #define NTT_LITE_CTRL_OTF_S                ((uint32_t) 12 )
 #define NTT_LITE_CTRL_OTF_M                ((uint32_t) 0x1)
@@ -57,9 +56,9 @@ typedef struct
 #define NTT_LITE_CTRL_OTF_DIS              (((uint32_t) 0x0) << NTT_LITE_CTRL_OTF_S)
 #define NTT_LITE_CTRL_OTF_EN               (((uint32_t) 0x1) << NTT_LITE_CTRL_OTF_S)
 
-#define NTT_LITE_CTRL_LOGQ_S               ((uint32_t) 13  )
-#define NTT_LITE_CTRL_LOGQ_M               ((uint32_t) 0x7F)
-#define NTT_LITE_CTRL_LOGQ_V               (NTT_LITE_CTRL_LOGQ_M << NTT_LITE_CTRL_LOGQ_S)
+#define NTT_LITE_CTRL_K_S                  ((uint32_t) 13  )
+#define NTT_LITE_CTRL_K_M                  ((uint32_t) 0x7F)
+#define NTT_LITE_CTRL_K_V                  (NTT_LITE_CTRL_K_M << NTT_LITE_CTRL_K_M)
 
 #define NTT_LITE_CTRL_MODE_S               ((uint32_t) 19  )
 #define NTT_LITE_CTRL_MODE_M               ((uint32_t) 0x3 )

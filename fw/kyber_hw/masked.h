@@ -15,4 +15,6 @@ typedef uint8_t masked_sym[MASKING_N][KYBER_SYMBYTES];
 
 typedef uint8_t *masked_ptr[MASKING_N];
 
+typedef uint32_t masked_u32[MASKING_N];
+
 #endif

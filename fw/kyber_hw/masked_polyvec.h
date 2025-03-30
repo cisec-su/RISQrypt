@@ -9,6 +9,10 @@ typedef struct{
     polyvec share[MASKING_N];
 } masked_polyvec;
 
+typedef struct{
+    polyvec_u32 share[MASKING_N];
+} masked_polyvec_u32;
+
 
 #define masked_polyvec_ntt KYBER_NAMESPACE(_masked_polyvec_ntt)
 void masked_polyvec_ntt(masked_polyvec *r);
@@ -19,8 +23,8 @@ void masked_polyvec_pointwise_acc_invntt_i(masked_polyvec *r, const masked_polyv
 #define masked_polyvec_pointwise_acc_invntt KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt)
 void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a, const polyvec *b);
 
-#define masked_polyvec_compress KYBER_NAMESPACE(_masked_polyvec_compress)
-void masked_polyvec_compress(masked_polyvec *r, const masked_polyvec *a);
+#define masked_polyvec_sub_compress KYBER_NAMESPACE(_masked_polyvec_sub_compress)
+void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a, const polyvec *b);
 
 void masked_polyvec_mask(masked_polyvec *r, polyvec *a);
 
@@ -35,14 +39,8 @@ void masked_polyvec_getnoise_eta2(masked_polyvec *r, const masked_sym seed, uint
 #define masked_polyvec_add KYBER_NAMESPACE(_masked_polyvec_add)
 void masked_polyvec_add(masked_polyvec *r, const masked_polyvec *a, const masked_polyvec *b);
 
-#define masked_polyvec_sub_exp KYBER_NAMESPACE(_masked_polyvec_sub_exp)
-void masked_polyvec_sub_exp(masked_polyvec *r, const masked_polyvec *a, const polyvec *b);
-
-#define masked_polyvec_sub_one KYBER_NAMESPACE(_masked_polyvec_sub_one)
-void masked_polyvec_sub_one(masked_polyvec *r, const masked_polyvec *a);
-
-#define masked_polyvec_acc KYBER_NAMESPACE(_masked_polyvec_acc)
-void masked_polyvec_acc(masked_poly *r, const masked_polyvec *a, const masked_poly *b);
+#define masked_polyvec_u32_acc KYBER_NAMESPACE(_masked_polyvec_u32_acc)
+void masked_polyvec_u32_acc(masked_poly_u32 *r, const masked_polyvec_u32 *a, const masked_poly_u32 *b);
 
 
 #endif

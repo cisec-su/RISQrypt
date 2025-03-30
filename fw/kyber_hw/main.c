@@ -376,7 +376,7 @@ int main() {
     test_indcpa_keypair();
     test_indcca();
     test_masked_poly_msg();
-    test_masked_poly_compress();
+    // test_masked_poly_compress();
     test_masked_indcpa_dec();
     test_masked_cbd();
     test_masked_indcpa_enc_cmp();    

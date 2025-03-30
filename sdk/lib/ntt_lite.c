@@ -3,7 +3,7 @@
 
 
 
-int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t logq, uint32_t inv2, uint32_t mode) {
+int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, uint32_t inv2, uint32_t mode) {
 
     uint32_t mode_int;
 
@@ -15,7 +15,7 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t logq
         return -1;
     }
 
-    if (logq > 32) {
+    if (k > 32) {
         return -1;
     }
 
@@ -31,14 +31,13 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t logq
 
     NTT_LITE_REGS->q = q;
     NTT_LITE_REGS->mu[0] = mu[0];
-
-    if (logq == 32) {
+    if (mode == NTT_LITE_MODE_SINGLE) {
         NTT_LITE_REGS->mu[1] = mu[1];
     }
 
     NTT_LITE_REGS->inv2 = inv2;
 
-    NTT_LITE_REGS->ctrl = (logn << NTT_LITE_CTRL_LOGN_S) | (logq << NTT_LITE_CTRL_LOGQ_S) | mode_int;
+    NTT_LITE_REGS->ctrl = (logn << NTT_LITE_CTRL_LOGN_S) | (k << NTT_LITE_CTRL_K_S) | mode_int;
 
     return 0;
 }
@@ -186,9 +185,7 @@ int ntt_lite_square(uint32_t *dst, const uint32_t *src) {
 
 
 int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
-    ntt_lite_pointwise_op(NTT_LITE_OUTPUT_DIS, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_ADD);
-    *dst = src[0];
-    return 0;
+    return ntt_lite_pointwise_op(NTT_LITE_OUTPUT_DIS, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM);
 }
 
 

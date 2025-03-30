@@ -376,6 +376,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../peripherals/ntt/src/bu/addsub_dual.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../peripherals/ntt/src/bu/asr.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -384,6 +391,13 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../peripherals/ntt/src/bu/mac_std_dual_32x34.svh">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+          <Attr Name="IsVisible" Val="1"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../peripherals/ntt/src/bu/intmul_karatsuba_dual.svh">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -412,6 +426,13 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../peripherals/ntt/src/bu/encode.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../peripherals/ntt/src/bu/intmul_karatsuba_dual.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -453,6 +474,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../peripherals/ntt/src/bu/lsb_dual.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../peripherals/ntt/src/bu/mac_std_dual_32x34.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -482,6 +510,13 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../peripherals/ntt/src/bu/modsub.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../peripherals/ntt/src/bu/msb_dual.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

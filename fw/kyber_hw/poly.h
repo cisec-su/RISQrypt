@@ -10,7 +10,9 @@ typedef struct{
 } poly;
 
 
-typedef int32_t coeff;
+typedef struct{
+    uint32_t coeffs[KYBER_N];
+} poly_u32;
 
 
 #define poly_compress KYBER_NAMESPACE(_poly_compress)
@@ -18,9 +20,6 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], poly *a);
 
 #define poly_decompress KYBER_NAMESPACE(_poly_decompress)
 void poly_decompress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES]);
-
-#define poly_decompress_compress KYBER_NAMESPACE(_poly_decompress_compress)
-void poly_decompress_compress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES]);
 
 #define poly_tobytes KYBER_NAMESPACE(_poly_tobytes)
 void poly_tobytes(uint8_t r[KYBER_POLYBYTES], poly *a);
@@ -70,19 +69,7 @@ void poly_init_ntt();
 #define poly_init_invntt KYBER_NAMESPACE(_poly_init_invntt)
 void poly_init_invntt();
 
-#define poly_init_dual KYBER_NAMESPACE(_poly_init_dual)
-void poly_init_dual();
-
-#define poly_sub_exp KYBER_NAMESPACE(_poly_sub_exp)
-void poly_sub_exp(poly *r, const poly *a, const poly *b);
-
-#define poly_exp KYBER_NAMESPACE(_poly_exp)
-void poly_exp(poly *r, const poly *a);
-
-#define poly_sum KYBER_NAMESPACE(_poly_sum)
-void poly_sum(uint32_t *r, const poly *a);
-
-#define poly_coeff_exp KYBER_NAMESPACE(_poly_coeff_exp)
-void poly_coeff_exp(coeff *r, const coeff *a);
+#define poly_u32_sum KYBER_NAMESPACE(_poly_u32_sum)
+void poly_u32_sum(uint32_t *r, const poly_u32 *a);
 
 #endif

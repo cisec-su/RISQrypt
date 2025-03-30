@@ -3,6 +3,7 @@
 #include "pack.h"
 #include "masked_poly.h"
 #include "masked_polyvec.h"
+#include "masked_gadgets.h"
 #include "masked_indcpa.h"
 
 
@@ -20,7 +21,10 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
     uint8_t nonce = 0;
     masked_poly mepp, mv, mk;
     masked_polyvec mskpv, msp, mep, mbp;
-    masked_coeff t;
+    masked_poly_u32 mpu32;
+    masked_polyvec_u32 mpvu32;
+    masked_u32 t1, t0;
+    uint32_t t;
     uint8_t seed[KYBER_SYMBYTES];
 
     poly_init_q();
@@ -35,16 +39,16 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
   
     gen_at(at, seed);
     masked_polyvec_getnoise_eta1(&msp, coins, &nonce);
-    print_string("msp\n");
-    unmask_and_print_u32_vec(&msp, 0, 4);
+    // print_string("msp\n");
+    // unmask_and_print_u32_vec(&msp, 0, 4);
     masked_polyvec_getnoise_eta2(&mep, coins, &nonce);    
     masked_poly_getnoise_eta2(&mepp, coins, &nonce);
-    print_string("mepp\n");
-    unmask_and_print_u32(&mepp, 4);
+    // print_string("mepp\n");
+    // unmask_and_print_u32(&mepp, 4);
     poly_init_ntt();
     masked_polyvec_ntt(&msp);
 
-    for(i = 0; i < KYBER_K; i++) {
+    for (i = 0; i < KYBER_K; i++) {
         masked_polyvec_pointwise_acc_invntt_i(&mbp, &msp, &at[i], i);
     }
     masked_polyvec_pointwise_acc_invntt(&mv, &msp, &pkpv);
@@ -52,33 +56,17 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
     masked_polyvec_add(&mbp, &mbp, &mep);
     masked_poly_add_chain(&mv, &mv, &mepp, &mk);
 
-    masked_polyvec_compress(&mbp, &mbp);
-    masked_poly_compress(&mv, &mv);
+    masked_polyvec_sub_compress(&mpvu32, &mbp, &bp);
+    masked_poly_sub_compress(&mpu32, &mv, &v);
 
-    // exponentation-based comparsion
-    // https://eprint.iacr.org/2021/1615.pdf
-    // distinct then the reference, we use decompressed polynomials, and use a second exp. instead of secure ands.
-    // after the exponentation, we add all the coefficients, so if any non-zero bit exists, the sum will be non-zero
-    // then, we perform a second exponentation.
-    poly_init_dual();
-    masked_polyvec_sub_exp(&mbp, &mbp, &bp);
-    masked_poly_sub_exp(&mv, &mv, &v);
+    masked_gadgets_B2A_2k_u32_vec(&mpvu32, &mpvu32);
+    masked_gadgets_B2A_2k_u32(&mpu32, &mpu32);
 
-    // 1 - x^{q-1}
-    masked_polyvec_sub_one(&mbp, &mbp);
-    // array of 1s will be on the HW engine.
-    // therefore, we call the subtraction function which subtracts whatever left inside the HW from mv  
-    masked_poly_sub_x(&mv, &mv);
-
-    // at this point, any coefficient which is 1 (shared) shows a mismatch in the comparison
-    // therefore we sum them up and perform the second exponentation.
-    masked_polyvec_acc(&mv, &mbp, &mv);
-    masked_poly_sum(&t, &mv);
-    masked_poly_coeff_exp(&t, &t);
-
-    masked_poly_unmask_coeff_inp(&t);
-
-    return (int) t[0];
+    masked_polyvec_u32_acc(&mpu32, &mpvu32, &mpu32);
+    masked_poly_u32_sum(t0, &mpu32);
+    masked_gadgets_exp_u32(t1, t0);
+    masked_gadgets_unmask_u32(&t, t1);
+    return (int) t;
 }
 
 

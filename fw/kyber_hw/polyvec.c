@@ -48,23 +48,6 @@ void polyvec_decompress(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES
   ntt_lite_decompress((uint32_t*) &(r->vec[2]), NTT_LITE_INPUT_DIS, KYBER_DU);
 }
 
-
-void polyvec_decompress_compress(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES])
-{
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, KYBER_DU);
-  ntt_lite_decompress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DU);
-  ntt_lite_compress((uint32_t*) &(r->vec[0]), NTT_LITE_INPUT_DIS, KYBER_DU);
-
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) (a + KYBER_POLYVECCOMPRESSEDBYTES/3), KYBER_DU);
-  ntt_lite_decompress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DU);
-  ntt_lite_compress((uint32_t*) &(r->vec[1]), NTT_LITE_INPUT_DIS, KYBER_DU);
-
-  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) (a + 2*KYBER_POLYVECCOMPRESSEDBYTES/3), KYBER_DU);
-  ntt_lite_decompress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DU);
-  ntt_lite_compress((uint32_t*) &(r->vec[2]), NTT_LITE_INPUT_DIS, KYBER_DU);
-
-}
-
 /*************************************************
 * Name:        polyvec_tobytes
 *
