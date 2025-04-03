@@ -17,6 +17,7 @@ int main() {
     uint32_t share_out_1[len];
 
     uint32_t modulus = 3329;
+    uint32_t seed[2] = {1, 1};
 
     unsigned int i, flag;
 
@@ -24,7 +25,9 @@ int main() {
 
     uart_transmit_string("X2X Example: A2B\n\n", 20);
 
-    x2x_set_modulus(&modulus, 1, X2X_MODULUS_PRIME);
+    x2x_set_modulus(&modulus, X2X_MODULUS_PRIME);
+    x2x_seed(seed);
+
 
     uart_transmit_string("Set Modulus Done\n\n", 18);
 

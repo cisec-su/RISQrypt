@@ -19,8 +19,8 @@ typedef struct
 {
     IO ctrl;                     // BASE_ADDR + 0x0000
     IO data_len;                 // BASE_ADDR + 0x0004
-    I seed_ptr;                  // BASE_ADDR + 0x0008
-    IO modulus[2];               // BASE_ADDR + 0x0004    
+    I seed[2];                   // BASE_ADDR + 0x0008
+    IO modulus;                  // BASE_ADDR + 0x0004    
     I din_addr[SHARES];          // BASE_ADDR + 0x000C to BASE_ADDR + (0x000C + (SHARES-1)*4)
     O rfu_0x20[8 - SHARES];      // BASE_ADDR + 0x000C to BASE_ADDR + (0x000C + (SHARES-1)*4)
     IO dout_addr[SHARES];        // BASE_ADDR + 0x002C to BASE_ADDR + (0x002C + (SHARES-1)*4)
@@ -50,6 +50,10 @@ typedef struct
 #define X2X_CTRL_DUAL_MODE_EN_S   ((uint32_t) 4)
 #define X2X_CTRL_DUAL_MODE_EN_M   ((uint32_t) 0x1)
 #define X2X_CTRL_DUAL_MODE_EN_V   (X2X_CTRL_DUAL_MODE_EN_M << X2X_CTRL_DUAL_MODE_EN_S)
+
+#define X2X_CTRL_SRC_MASK_S       ((uint32_t) 5)
+#define X2X_CTRL_SRC_MASK_M       ((uint32_t) 0x1)
+#define X2X_CTRL_SRC_MASK_V       (X2X_CTRL_SRC_MASK_M << X2X_CTRL_SRC_MASK_S)
 
 #define X2X_CTRL_BUSY_S           ((uint32_t) 30)
 #define X2X_CTRL_BUSY_M           ((uint32_t) 0x1)

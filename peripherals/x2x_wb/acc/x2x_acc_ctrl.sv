@@ -15,9 +15,10 @@ module x2x_acc_ctrl
         output reg [      31:0]  rdata                 ,     // Read data      
         // ctrl reg fields                    
         output reg               start                 ,     // (Write/Self-Clear)
-        output reg               conv_mode             ,     // (Read/Write)
+        output reg               conv_mode             ,     // (Write)
         output reg               data_type             ,     // (Read/Write)
         output reg               dual_mode             ,     // (Read/Write)
+        output reg               mask                  ,     // (Write)
         
         //output reg [SHARES-1:0]  s_dis                 ,     // (Read/Write)
         //output reg               perm_dis              ,     // (Read/Write)
@@ -26,7 +27,7 @@ module x2x_acc_ctrl
         output reg [      31:0]  din_addr  [0:SHARES-1],     // (Write)
         output reg [      31:0]  dout_addr [0:SHARES-1],     // (Write)
         output reg [  LOGL-1:0]  data_len              ,     // (Write)
-        output reg [      31:0]  seed_addr             ,     // (Write)
+        output reg [      63:0]  seed                  ,     // (Write)
         input                    busy                  ,     // Busy status input
         input                    done                        // Done status input
     );
@@ -35,8 +36,9 @@ module x2x_acc_ctrl
 // Register relative addresses
 localparam CTRL_ADDR           = 12'h0000;   // Offset for ctrl register
 localparam DATA_LEN_ADDR       = 12'h0004;   // Offset for data_len register
-localparam SEED_PTR_ADDR       = 12'h0008;   // Offset for seed low bits register
-localparam MODULUS_ADDR        = 12'h000C;   // Offset to load modulus
+localparam SEED_ADDR_LOW       = 12'h0008;   // Offset for seed low bits register
+localparam SEED_ADDR_HIGH      = 12'h000C;   // Offset for seed low bits register
+localparam MODULUS_ADDR        = 12'h0010;   // Offset to load modulus
 localparam DIN_PTR_ADDR_START  = 12'h0014;   // Offset for first share din_addr register
 localparam DIN_PTR_ADDR_END    = DIN_PTR_ADDR_START + ((SHARES - 1) << 2); // Offset for last share din_addr register
 localparam DOUT_PTR_ADDR_START = 12'h0034;   // Offset for first share dout_addr register
@@ -48,6 +50,7 @@ localparam CTRL_RESET_BIT     = 1;
 localparam CTRL_CONV_MODE_BIT = 2;
 localparam CTRL_DATA_TYPE_BIT = 3;
 localparam CTRL_DUAL_MODE_BIT = 4;
+localparam CTRL_MASK_BIT      = 5;
 localparam CTRL_BUSY_BIT     = 30;
 localparam CTRL_DONE_BIT     = 31;
 
@@ -89,9 +92,6 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         conv_mode <= 1'd0;
     end
-    /*else if (we && (addr_offset == CTRL_ADDR) && wdata[CTRL_RESET_BIT])begin
-        conv_mode <= 1'd0;
-    end*/
     else if (we && (addr_offset == CTRL_ADDR)) begin
         conv_mode <= wdata[CTRL_CONV_MODE_BIT];
     end
@@ -104,9 +104,6 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         data_type <= 1'd0;
     end
-    /*else if (we && (addr_offset == CTRL_ADDR) && wdata[CTRL_RESET_BIT])begin
-        data_type <= 1'd0;
-    end*/
     else if (we && (addr_offset == CTRL_ADDR)) begin
         data_type <= wdata[CTRL_DATA_TYPE_BIT];
     end
@@ -119,14 +116,22 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         dual_mode <= 1'd0;
     end
-    /*else if (we && (addr_offset == CTRL_ADDR) && wdata[CTRL_RESET_BIT])begin
-        dual_mode <= 1'd0;
-    end*/
     else if (we && (addr_offset == CTRL_ADDR)) begin
         dual_mode <= wdata[CTRL_DUAL_MODE_BIT];
-    end
-    
+    end 
 end
+
+
+// SHARE (Write)
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        mask <= 1'd0;
+    end
+    else if (we && (addr_offset == CTRL_ADDR)) begin
+        mask <= wdata[CTRL_MASK_BIT];
+    end 
+end
+
 
 generate
     for (genvar i = 0; i < SHARES; i = i + 1) begin : SHARE_GEN
@@ -159,10 +164,13 @@ end
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        seed_addr <= 32'd0;
+        seed <= 64'd0;
     end else if (we) begin
-        if (addr_offset == SEED_PTR_ADDR) begin
-            seed_addr <= wdata;
+        if (addr_offset == SEED_ADDR_LOW) begin
+            seed[31:0] <= wdata;
+        end
+        else if (addr_offset == SEED_ADDR_HIGH) begin
+            seed[63:32] <= wdata;
         end
     end
 end
@@ -190,17 +198,13 @@ always @(posedge clk or negedge rst_n) begin
         end else begin
             case (addr_offset)
                 CTRL_ADDR: begin
-                    //rdata[CTRL_RATE_MSB:CTRL_RATE_LSB]   <= rate;
-                    //rdata[CTRL_S_DIS_MSB:CTRL_S_DIS_LSB] <= s_dis;
-                    //rdata[CTRL_PERM_DIS_BIT]             <= perm_dis;
-                    rdata[CTRL_BUSY_BIT]                 <= 0;
-                    rdata[CTRL_DONE_BIT]                 <= 1;
-                    
-                    //rdata[CTRL_BUSY_BIT]                 <= busy;
-                    //rdata[CTRL_DONE_BIT]                 <= done_q | done;
+                    rdata[CTRL_DATA_TYPE_BIT]             <= data_type;
+                    rdata[CTRL_DUAL_MODE_BIT]             <= dual_mode;
+                    rdata[CTRL_BUSY_BIT     ]             <= busy;
+                    rdata[CTRL_DONE_BIT     ]             <= done_q | done;
                 end
-                //DATA_LEN_ADDR:    rdata <= data_len;
-                //SEED_PTR_ADDR:    rdata <= 32'd0;
+                DATA_LEN_ADDR:    rdata <= data_len;
+                MODULUS_ADDR :    rdata <= modulus;
                 default:          rdata <= 32'd0;
             endcase
         end

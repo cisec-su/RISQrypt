@@ -3,12 +3,8 @@
 
 
 
-int x2x_set_modulus(uint32_t *modulus, unsigned int len, unsigned int modulus_type)
+int x2x_set_modulus(uint32_t *modulus, unsigned int modulus_type)
 {
-
-    if (len > 1) {
-        return -1;
-    }
 
     X2X_REGS->ctrl |= X2X_CTRL_RESET_V;
 
@@ -24,31 +20,41 @@ int x2x_set_modulus(uint32_t *modulus, unsigned int len, unsigned int modulus_ty
     }
 
 
-    X2X_REGS->modulus[0] = modulus[0];
-
-    if (len == 2) {
-        X2X_REGS->modulus[1] = modulus[1];
-    }
+    X2X_REGS->modulus = modulus[0];
 
     return 0;
 }
 
 
-static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len, uint32_t conv_mode)
+int x2x_seed(uint32_t *seed)
 {
 
-    X2X_REGS->ctrl |= X2X_CTRL_RESET_V;
+    if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
+        return -1;
+    }
 
-    while ((X2X_REGS->ctrl & X2X_CTRL_DONE_V) == 0);
+    X2X_REGS->seed[0] = seed[0];
+    X2X_REGS->seed[1] = seed[1];
+
+    return 0;
+}
+
+
+static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len, uint32_t conv_mode, uint32_t mask)
+{
+    if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
+        return -1;
+    }
 
     X2X_REGS->data_len = len;
     X2X_REGS->din_addr[0] = (uint32_t) src0;
-    X2X_REGS->din_addr[1] = (uint32_t) src_1;
+    if (mask != X2X_CTRL_SRC_MASK_V) {
+        X2X_REGS->din_addr[1] = (uint32_t) src_1;
+    }
     X2X_REGS->dout_addr[0] = (uint32_t) dst_0;
     X2X_REGS->dout_addr[1] = (uint32_t) dst_1;
 
-    X2X_REGS->ctrl = (X2X_REGS->ctrl & ~X2X_CTRL_CONV_MODE_M) | conv_mode;
-    X2X_REGS->ctrl |= X2X_CTRL_START_V;
+    X2X_REGS->ctrl = X2X_CTRL_START_V | conv_mode | mask;
 
     while ((X2X_REGS->ctrl & X2X_CTRL_DONE_V) == 0);
 
@@ -58,11 +64,23 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
 
 int x2x_a2b(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src0, len, X2X_CTRL_CONV_MODE_A2B);
+    return x2x_core(dst_1, dst_0, src_1, src0, len, X2X_CTRL_CONV_MODE_A2B, 0);
 }
 
 
 int x2x_b2a(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src0, len, X2X_CTRL_CONV_MODE_B2A);
+    return x2x_core(dst_1, dst_0, src_1, src0, len, X2X_CTRL_CONV_MODE_B2A, 0);
+}
+
+
+int x2x_b_mask(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
+{
+    return x2x_core(dst_1, dst_0, src, 0x0, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_MASK_V);
+}
+
+
+int x2x_a_mask(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
+{
+    return x2x_core(dst_1, dst_0, src, 0x0, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_MASK_V);
 }
