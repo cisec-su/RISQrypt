@@ -47,11 +47,11 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
 
     unsigned int i;
     const uint32_t q = KYBER_Q << 1;
-    const uint32_t mu = 0x275f;
+    const uint32_t mu[2] = {0xb405d82a, 0x9d7db};
     const uint32_t inv2 = 0x681;
     const uint32_t alpha = 12 + LOG_MASKING_N;
-    const uint32_t alpha_dual = ((1 << (alpha - 1)) << 16) | (1 << (alpha - 1));
-    const uint32_t d_ = alpha + 1 + KYBER_DV;
+    const uint32_t alpha_shift = (1 << (alpha - 1));
+    const uint32_t d_ = alpha + 1 + d;
     uint32_t t[KYBER_N];
     masked_poly_u32 mpu32;
     uint32_t *dst;
@@ -59,12 +59,12 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
 
     poly_init_q();
 
-    ntt_lite_sub(NTT_LITE_OUTPUT_DIS, (uint32_t*) a[0]->coeffs, (uint32_t*) b->coeffs);
+    ntt_lite_sub(t, (uint32_t*) a[0]->coeffs, (uint32_t*) b->coeffs);
 
     ntt_lite_load_q(q, &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
 
     for (i = 0; i < MASKING_N; i++) {
-        if (i == MASKING_N - 1 && 0x0) {
+        if (i == MASKING_N - 1) {
             dst = NTT_LITE_OUTPUT_DIS;
         }
         else {
@@ -74,24 +74,28 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
             src = (uint32_t*) a[i]->coeffs;
         }
         else {
-            src = NTT_LITE_INPUT_DIS;
+            src = t;
         }
-        ntt_lite_decode(NTT_LITE_OUTPUT_DIS, src, 16);
+        ntt_lite_decode(dst, (uint32_t*) a[i]->coeffs, 16);
         ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
+        print_string("Compress: ");
+        print_u32_arr((uint32_t*) dst, 8);
     }
 
     for (i = 0; i < (KYBER_N); i++) {
-        t[i] = alpha_dual;
+        t[i] = alpha_shift;
     }
     ntt_lite_load_q((1 << d_), &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
     ntt_lite_add((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) t);
 
     masked_gadgets_A2B_2k_u32(&mpu32, &mpu32, (1 << d_) - 1);
 
+    ntt_lite_load_q(1, &mu, 8, d, inv2, NTT_LITE_MODE_SINGLE);
+
     for (i = 0; i < MASKING_N; i++) {
-        ntt_lite_load_q(1, &mu, 8, 1, inv2, NTT_LITE_MODE_SINGLE);
         ntt_lite_decompress_floor(r[i]->coeffs, (uint32_t*) mpu32.share[i].coeffs, alpha);
     }
+
 }
 
 
