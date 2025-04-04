@@ -78,8 +78,6 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
         }
         ntt_lite_decode(dst, (uint32_t*) a[i]->coeffs, 16);
         ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
-        print_string("Compress: ");
-        print_u32_arr((uint32_t*) dst, 8);
     }
 
     for (i = 0; i < (KYBER_N); i++) {
