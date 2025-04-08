@@ -29,8 +29,6 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
 
     poly_init_q();
 
-    unpack_ciphertext(&bp, &v, c);
-
     masked_poly_frommsg(&mk, m);
 
     poly_init_q();
@@ -39,32 +37,31 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
   
     gen_at(at, seed);
     masked_polyvec_getnoise_eta1(&msp, coins, &nonce);
-    // print_string("msp\n");
-    // unmask_and_print_u32_vec(&msp, 0, 4);
     masked_polyvec_getnoise_eta2(&mep, coins, &nonce);    
     masked_poly_getnoise_eta2(&mepp, coins, &nonce);
-    // print_string("mepp\n");
-    // unmask_and_print_u32(&mepp, 4);
     poly_init_ntt();
     masked_polyvec_ntt(&msp);
 
     for (i = 0; i < KYBER_K; i++) {
         masked_polyvec_pointwise_acc_invntt_i(&mbp, &msp, &at[i], i);
     }
+
     masked_polyvec_pointwise_acc_invntt(&mv, &msp, &pkpv);
 
     masked_polyvec_add(&mbp, &mbp, &mep);
+
     masked_poly_add_chain(&mv, &mv, &mepp, &mk);
+    
+    masked_polyvec_sub_compress(&mpvu32, &mbp, c);
+    masked_poly_sub_compress(&mpu32, &mv, c + KYBER_POLYVECCOMPRESSEDBYTES);
 
-    masked_polyvec_sub_compress(&mpvu32, &mbp, &bp);
-    masked_poly_sub_compress(&mpu32, &mv, &v);
+    masked_gadgets_B2A_qm_u32_vec(&mpvu32, &mpvu32);
+    masked_gadgets_B2A_qm_u32(&mpu32, &mpu32);
 
-    masked_gadgets_B2A_2k_u32_vec(&mpvu32, &mpvu32);
-    masked_gadgets_B2A_2k_u32(&mpu32, &mpu32);
+    masked_polyvec_u32_acc(t0, &mpvu32, &mpu32);
 
-    masked_polyvec_u32_acc(&mpu32, &mpvu32, &mpu32);
-    masked_poly_u32_sum(t0, &mpu32);
     masked_gadgets_exp_u32(t1, t0);
+
     masked_gadgets_unmask_u32(&t, t1);
     return (int) t;
 }
@@ -123,4 +120,51 @@ void unmask_and_print_u32(masked_poly *a, unsigned int len) {
         b.coeffs[j] = t % KYBER_Q;
     }
     print_u32_arr((uint32_t*) b.coeffs, len);
+}
+
+
+
+void unmask_and_print_u32_bool(masked_poly *a, unsigned int len) {
+    poly b;
+    unsigned int j, k;
+    uint16_t t;
+    for (j = 0; j < KYBER_N; j++) {
+        t = 0;
+        for (k = 0; k < MASKING_N; k++) {
+            t ^= a->share[k].coeffs[j];
+        }
+        b.coeffs[j] = t;
+    }
+    print_u32_arr((uint32_t*) b.coeffs, len);
+}
+
+void unmask_and_print_u32_bool_vec(masked_polyvec *a, unsigned int i, unsigned int len) {
+    poly b;
+    unsigned int j, k;
+    uint16_t t;
+    for (j = 0; j < KYBER_N; j++) {
+        t = 0;
+        for (k = 0; k < MASKING_N; k++) {
+            t ^= a->share[k].vec[i].coeffs[j];
+        }
+        b.coeffs[j] = t;
+    }
+    print_u32_arr((uint32_t*) b.coeffs, len);
+}
+
+
+
+void unmask_and_print_bool(uint8_t **src, unsigned int len) {
+    poly b;
+    unsigned int j, k;
+    uint16_t t;
+    for (j = 0; j < KYBER_N; j++) {
+        t = 0;
+        for (k = 0; k < MASKING_N; k++) {
+            t ^= src[k][j];
+        }
+        b.coeffs[j] = t;
+    }
+    print_hex(src, len, 0);
+    print_string("\n");
 }

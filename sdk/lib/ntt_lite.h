@@ -29,8 +29,6 @@ int ntt_lite_add(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
 int ntt_lite_sub(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
-int ntt_lite_square(uint32_t *dst, const uint32_t *src);
-
 int ntt_lite_sum(uint32_t* dst, const uint32_t *src);
 
 int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d);

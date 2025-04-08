@@ -69,7 +69,4 @@ void poly_init_ntt();
 #define poly_init_invntt KYBER_NAMESPACE(_poly_init_invntt)
 void poly_init_invntt();
 
-#define poly_u32_sum KYBER_NAMESPACE(_poly_u32_sum)
-void poly_u32_sum(uint32_t *r, const poly_u32 *a);
-
 #endif

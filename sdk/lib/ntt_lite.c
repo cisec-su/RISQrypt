@@ -179,13 +179,8 @@ int ntt_lite_sub(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
 }
 
 
-int ntt_lite_square(uint32_t *dst, const uint32_t *src) {
-    return ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_PWM);
-}
-
-
 int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
-    return ntt_lite_pointwise_op(NTT_LITE_OUTPUT_DIS, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM);
+    return ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM);
 }
 
 

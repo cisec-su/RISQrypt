@@ -43,23 +43,22 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
 /* https://eprint.iacr.org/2022/158: Algorithm 15
  * Distinctively, we use mod c+alpha+1 during decompress.
  */
-static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const poly *b, uint32_t d) {
+static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const uint8_t *b, uint32_t d) {
 
     unsigned int i;
     const uint32_t q = KYBER_Q << 1;
     const uint32_t mu[2] = {0xb405d82a, 0x9d7db};
     const uint32_t inv2 = 0x681;
     const uint32_t alpha = 12 + LOG_MASKING_N;
-    const uint32_t alpha_shift = (1 << (alpha - 1));
+    const uint32_t alpha_shift = (1 << (alpha));
+    const uint32_t alpha_m1_shift = (1 << (alpha - 1));
     const uint32_t d_ = alpha + 1 + d;
     uint32_t t[KYBER_N];
     masked_poly_u32 mpu32;
     uint32_t *dst;
-    uint32_t *src;
 
     poly_init_q();
 
-    ntt_lite_sub(t, (uint32_t*) a[0]->coeffs, (uint32_t*) b->coeffs);
 
     ntt_lite_load_q(q, &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
 
@@ -70,21 +69,21 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
         else {
             dst = (uint32_t*) mpu32.share[i].coeffs;
         }
-        if (i != 0) {
-            src = (uint32_t*) a[i]->coeffs;
-        }
-        else {
-            src = t;
-        }
-        ntt_lite_decode(dst, (uint32_t*) a[i]->coeffs, 16);
+        ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a[i]->coeffs, 16);
         ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
     }
 
     for (i = 0; i < (KYBER_N); i++) {
-        t[i] = alpha_shift;
+        t[i] = alpha_m1_shift;
     }
     ntt_lite_load_q((1 << d_), &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
     ntt_lite_add((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) t);
+
+    ntt_lite_load_q(alpha_shift, &mu, 8, 32, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) b, d);
+    ntt_lite_decompress_floor(t, NTT_LITE_INPUT_DIS, 0);
+    ntt_lite_load_q((1 << d_), &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_sub((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs, (uint32_t*) t);
 
     masked_gadgets_A2B_2k_u32(&mpu32, &mpu32, (1 << d_) - 1);
 
@@ -97,14 +96,14 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
 }
 
 
-void masked_poly_sub_compress(masked_poly_u32 *r, const masked_poly *a, const poly *b) {
+void masked_poly_sub_compress(masked_poly_u32 *r, const masked_poly *a, const uint8_t *b) {
     poly_u32 *r_[MASKING_N] = {&r->share[0], &r->share[1]};
     const poly *a_[MASKING_N] = {&a->share[0], &a->share[1]};
     masked_poly_sub_compress_core(r_, a_, b, KYBER_DV);
 }
 
 
-void masked_poly_sub_compress_du(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const poly *b) {
+void masked_poly_sub_compress_du(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const uint8_t *b) {
     masked_poly_sub_compress_core(r, a, b, KYBER_DU);
 }
 
@@ -197,6 +196,10 @@ void masked_poly_add_chain(masked_poly *r, const masked_poly *a, const masked_po
 void masked_poly_u32_sum(masked_u32 r, const masked_poly_u32 *a) {
     unsigned int i;
     for (i = 0; i < MASKING_N; i++) {
+        // r[i] = 0;
+        // for (unsigned int j = 0; j < KYBER_N; j++) {
+        //     r[i] += a->share[i].coeffs[j];
+        // }
         poly_u32_sum(&((r)[i]), &(a->share[i]));
     }
 }

@@ -43,7 +43,7 @@ void masked_polyvec_add(masked_polyvec *r, const masked_polyvec *a, const masked
 }
 
 
-void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a, const polyvec *b) {
+void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a, const uint8_t *b) {
     unsigned int i;
     const poly *a_[MASKING_N];
     poly_u32 *r_[MASKING_N];
@@ -52,7 +52,7 @@ void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a,
         a_[1] = &(a->share[1].vec[i]);
         r_[0] = &(r->share[0].vec[i]);
         r_[1] = &(r->share[1].vec[i]);
-        masked_poly_sub_compress_du(r_, a_, &(b->vec[i]));
+        masked_poly_sub_compress_du(r_, a_, b + (i * (KYBER_POLYVECCOMPRESSEDBYTES / 3)));
     }
 }
 
@@ -94,13 +94,16 @@ void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint
         // print_string("\nseed1: ");
         // print_hex(seed[1], KYBER_SYMBYTES);
         // print_string("\n");        
-        masked_prf(ptr, /*sizeof(buf) / MASKING_N*/4, seed, (*nonce)++);
-        // print_string("buf[0]: ");
-        // print_u32_arr((uint32_t*) buf[0], 8);
-        // print_string("buf[1]: ");
-        // print_u32_arr((uint32_t*) buf[1], 8);
-        // print_string("flag: \n");
-        // print_u32_arr(((uint32_t*) buf)[0] ^ ((uint32_t*) buf)[1], 8);
+        masked_prf(ptr, sizeof(buf) / MASKING_N, seed, (*nonce)++);
+        // if (i == 0) {
+        //     print_string("buf[0]: ");
+        //     print_hex(buf[0], 32, 0);
+        //     print_string("\n");
+        //     print_string("buf[1]: ");
+        //     print_hex(buf[1], 32, 0);
+        //     print_string("flag: \n");
+        //     unmask_and_print_bool(buf, 32);
+        // }
         masked_cbd_eta1_i(r, buf, i);
     }    
 }
@@ -124,10 +127,13 @@ void masked_polyvec_getnoise_eta2(masked_polyvec *r, const masked_sym seed, uint
 }
 
 
-void masked_polyvec_u32_acc(masked_poly_u32 *r, const masked_polyvec_u32 *a, const masked_poly_u32 *b) {
+void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const masked_poly_u32 *b) {
     unsigned int i, j;
+    const uint32_t mu[2] = {MU_EXP_L, MU_EXP_H};
     uint32_t *src;
-    uint32_t *dst;
+
+    ntt_lite_load_q(Q_EXP, &mu, 8, 32, 0, NTT_LITE_MODE_SINGLE);
+
     for (j = 0; j < MASKING_N; j++) {
         for (i = 0; i < KYBER_K; i++) {
             if (i == 0) {
@@ -136,13 +142,8 @@ void masked_polyvec_u32_acc(masked_poly_u32 *r, const masked_polyvec_u32 *a, con
             else {
                 src = NTT_LITE_INPUT_DIS;
             }
-            if (i == KYBER_K - 1) {
-                dst = (uint32_t*) &(r->share[j].coeffs);
-            }
-            else {
-                dst = NTT_LITE_OUTPUT_DIS;
-            }
-            ntt_lite_add(dst, src, (uint32_t*) &(a->share[j].vec[i].coeffs));
+            ntt_lite_add(NTT_LITE_OUTPUT_DIS, src, (uint32_t*) &(a->share[j].vec[i].coeffs));
         }
+        ntt_lite_sum(&(r[j]), NTT_LITE_INPUT_DIS);
     }
 }

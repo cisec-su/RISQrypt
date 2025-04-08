@@ -267,9 +267,3 @@ void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a, const pol
   ntt_lite_compress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 1);
   ntt_lite_encode((uint32_t*) msg, NTT_LITE_INPUT_DIS, 1);
 }
-
-
-void poly_u32_sum(uint32_t *r, const poly_u32 *a) {
-  uint16_t *t0, *t1;
-  ntt_lite_sum(r, (uint32_t*) a->coeffs);
-}
