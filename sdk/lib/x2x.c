@@ -40,14 +40,14 @@ int x2x_seed(uint32_t *seed)
 }
 
 
-static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len, uint32_t conv_mode, uint32_t mask)
+static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t mask)
 {
     if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
         return -1;
     }
 
     X2X_REGS->data_len = len;
-    X2X_REGS->din_addr[0] = (uint32_t) src0;
+    X2X_REGS->din_addr[0] = (uint32_t) src_0;
     if (mask != X2X_CTRL_SRC_MASK_V) {
         X2X_REGS->din_addr[1] = (uint32_t) src_1;
     }
@@ -62,25 +62,25 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
 }
 
 
-int x2x_a2b(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len)
+int x2x_a2b(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src0, len, X2X_CTRL_CONV_MODE_A2B, 0);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_A2B, 0);
 }
 
 
-int x2x_b2a(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len)
+int x2x_b2a(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src0, len, X2X_CTRL_CONV_MODE_B2A, 0);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0);
 }
 
 
 int x2x_b_mask(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src, 0x0, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_MASK_V);
+    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_MASK_V);
 }
 
 
 int x2x_a_mask(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src, 0x0, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_MASK_V);
+    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_B2A, X2X_CTRL_SRC_MASK_V);
 }
