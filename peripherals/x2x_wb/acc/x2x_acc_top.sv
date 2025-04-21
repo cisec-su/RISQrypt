@@ -64,8 +64,10 @@ wire [3:0] cmd;
 wire [31:0] din_addr [0:SHARES-1];
 wire [31:0] dout_addr [0:SHARES-1];
 wire [LOGL-1:0] data_len;
-wire [31:0] seed_addr;
+wire [63:0] seed;
+wire start_RNG;
 wire busy, done;
+wire mask_mode;
 
 // fsm <-> dma
 wire [31:0] mem_addr;
@@ -135,7 +137,9 @@ x2x_acc_fsm #(
     .ctrl_din_addr   (din_addr         ),
     .ctrl_dout_addr  (dout_addr        ),
     .ctrl_data_len   (data_len         ),
-    .ctrl_seed_addr  (seed_addr        ),
+    .ctrl_seed  (seed        ),
+    .ctrl_start_RNG  (start_RNG        ),
+    .ctrl_mask_mode(mask_mode),
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
     .mem_re          (mem_re           ),
@@ -233,10 +237,12 @@ x2x_acc_ctrl #(
     .dual_mode (x2x_dual_mode),
     // ctrl <-> fsm
     .start     (start),
+    .mask_mode     (mask_mode),
     .din_addr  (din_addr  ),
     .dout_addr (dout_addr ),
     .data_len  (data_len  ),
-    .seed_addr (seed_addr ),
+    .seed (seed ),
+    .start_RNG (start_RNG ),
     .busy      (busy      ),
     .done      (done      )
 );

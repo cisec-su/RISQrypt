@@ -18,16 +18,15 @@ module x2x_acc_ctrl
         output reg               conv_mode             ,     // (Write)
         output reg               data_type             ,     // (Read/Write)
         output reg               dual_mode             ,     // (Read/Write)
-        output reg               mask                  ,     // (Write)
-        
-        //output reg [SHARES-1:0]  s_dis                 ,     // (Read/Write)
-        //output reg               perm_dis              ,     // (Read/Write)
+        output reg               mask_mode             ,     // (Write)
         
         // data address registers
         output reg [      31:0]  din_addr  [0:SHARES-1],     // (Write)
         output reg [      31:0]  dout_addr [0:SHARES-1],     // (Write)
         output reg [  LOGL-1:0]  data_len              ,     // (Write)
         output reg [      63:0]  seed                  ,     // (Write)
+        output reg               start_RNG             ,     // (Write/Self-Clear)
+
         input                    busy                  ,     // Busy status input
         input                    done                        // Done status input
     );
@@ -48,9 +47,10 @@ localparam DOUT_PTR_ADDR_END   = DOUT_PTR_ADDR_START + ((SHARES - 1) << 2);     
 localparam CTRL_START_BIT     = 0;
 localparam CTRL_RESET_BIT     = 1;
 localparam CTRL_CONV_MODE_BIT = 2;
-localparam CTRL_DATA_TYPE_BIT = 3;
-localparam CTRL_DUAL_MODE_BIT = 4;
-localparam CTRL_MASK_BIT      = 5;
+localparam CTRL_DATA_TYPE_BIT = 3;   //readback
+localparam CTRL_DUAL_MODE_BIT = 4;   //readback
+localparam CTRL_MASK_DATA_BIT = 5; 
+localparam CTRL_WORD_SIZE_BIT = 6; // 0-->32-bit // 1--> 2*16 //readback
 localparam CTRL_BUSY_BIT     = 30;
 localparam CTRL_DONE_BIT     = 31;
 
@@ -87,7 +87,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-// CONV_MODE (Self-Clear)
+// CONV_MODE
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         conv_mode <= 1'd0;
@@ -99,7 +99,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-// DATA_TYPE (Self-Clear)
+// DATA_TYPE
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         data_type <= 1'd0;
@@ -111,7 +111,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-// DUAL_MODE (Self-Clear)
+// DUAL_MODE
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         dual_mode <= 1'd0;
@@ -122,14 +122,13 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-// SHARE (Write)
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        mask <= 1'd0;
+        mask_mode <= 1'd0;
     end
     else if (we && (addr_offset == CTRL_ADDR)) begin
-        mask <= wdata[CTRL_MASK_BIT];
-    end 
+        mask_mode <= wdata[CTRL_MASK_DATA_BIT];
+    end
 end
 
 
@@ -175,6 +174,19 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+// START RNG (Self-Clear)
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        start_RNG <= 1'd0;
+    end
+    else if (we && (addr_offset == SEED_ADDR_H)) begin
+        start_RNG <= 1;
+    end
+    else begin
+        start_RNG <= 1'd0;
+    end
+end
+
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -202,6 +214,7 @@ always @(posedge clk or negedge rst_n) begin
                     rdata[CTRL_DUAL_MODE_BIT]             <= dual_mode;
                     rdata[CTRL_BUSY_BIT     ]             <= busy;
                     rdata[CTRL_DONE_BIT     ]             <= done_q | done;
+
                 end
                 DATA_LEN_ADDR:    rdata <= data_len;
                 MODULUS_ADDR :    rdata <= modulus;
