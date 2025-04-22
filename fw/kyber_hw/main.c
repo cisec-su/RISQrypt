@@ -379,8 +379,8 @@ void test_masked_indcpa_enc_cmp() {
     print_string("Kyber masked CPA_PKE Enc Comp: \n");
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
-        masked_coins[0][i] = 0x1 ^ coins[i];
-        masked_coins[1][i] = 0x1;
+        masked_coins[0][i] = i ^ coins[i];
+        masked_coins[1][i] = i;
     }
 
     timer_start();
@@ -400,16 +400,32 @@ void test_masked_indcpa_enc_cmp() {
     }
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
-        masked_coins[0][i] = 0x0 ^ coins[i];
-        masked_coins[1][i] = 0x1;
+        masked_coins[0][i] = i ^ coins[i];
+        masked_coins[1][i] = i;
     }
+    masked_coins[1][0] = 0x1;
 
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
     if (fail == 1) {
-        print_string("MASKED ENC (INCORR) PASS\n\n");
+        print_string("MASKED ENC (INCORR COIN) PASS\n\n");
     } else {
-        print_string("MASKED ENC (INCORR) FAIL\n\n");
+        print_string("MASKED ENC (INCORR COIN) FAIL\n\n");
+    }
+
+    for (i = 0; i < KYBER_SYMBYTES; i++) {
+        masked_coins[0][i] = i ^ coins[i];
+        masked_coins[1][i] = i;
+    }
+
+    c[0] += 1;
+
+    fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
+
+    if (fail == 1) {
+        print_string("MASKED ENC (INCORR C) PASS\n\n");
+    } else {
+        print_string("MASKED ENC (INCORR C) FAIL\n\n");
     }
 
 }
