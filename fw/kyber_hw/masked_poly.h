@@ -37,8 +37,5 @@ void masked_poly_add(masked_poly *r, const masked_poly *a, const masked_poly *b)
 #define masked_poly_add_chain KYBER_NAMESPACE(_masked_poly_add_chain)
 void masked_poly_add_chain(masked_poly *r, const masked_poly *a, const masked_poly *b, const masked_poly *c);
 
-#define masked_poly_u32_sum KYBER_NAMESPACE(_masked_poly_sum)
-void masked_poly_u32_sum(masked_u32 r, const masked_poly_u32 *a);
-
 
 #endif

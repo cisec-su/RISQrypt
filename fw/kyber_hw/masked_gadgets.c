@@ -177,12 +177,12 @@ void masked_gadgets_B2A_2k_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u
 
 
 // https://eprint.iacr.org/2021/1615.pdf alg.17
-void masked_gadgets_mul_u32(volatile masked_u32 r, volatile masked_u32 a, volatile masked_u32 b, volatile uint32_t rand) {
+void masked_gadgets_mul_u32(masked_u32 r, masked_u32 a, masked_u32 b, uint32_t rand) {
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif    
     unsigned int i,j;
-    volatile uint32_t t;
+    uint32_t t;
     // t = a[0]*b[1] + rand;
     // t = t + a[1]*b[0];
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, &a[0], &b[1]);
@@ -206,39 +206,40 @@ void masked_gadgets_exp_u32(masked_u32 r, masked_u32 a) {
 #error "This implementation requires MASKING_N = 2"
 #endif      
     unsigned int i,j;
-    volatile uint32_t buf[63];
-    volatile uint32_t t[MASKING_N];
+    uint32_t buf[63];
+    uint32_t t[MASKING_N];
     const uint32_t mu[2] = {MU_EXP_L, MU_EXP_H};
     const uint32_t mask = 0x7FFFFFFF; // Q_EXP is very close to 2**31
 
-    ntt_lite_load_q(Q_EXP, &mu, 0, 32, 1, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q(Q_EXP, mu, 0, 32, 1, NTT_LITE_MODE_SINGLE);
 
     for (i = 0; i < MASKING_N; i++) {
         r[i] = a[i];
     }
 
-    randombytes(buf, sizeof(buf));
+    randombytes((uint8_t*) buf, sizeof(buf));
 
     for (i = 0; i < (sizeof(buf) / sizeof(uint32_t)); i++) {
         buf[i] = buf[i] & mask;
     }
 
-
+    // uses 48 random words
     for (i = 0; i < 24; i++) {
         // mask refresh and square
         ntt_lite_add(&t[0], &r[0], &buf[i]);
         ntt_lite_sub(&t[1], &r[1], &buf[i]);
-        masked_gadgets_mul_u32(r, r, t, buf[28 + i]);
+        masked_gadgets_mul_u32(r, r, t, buf[24 + i]);
     }
 
     // multiply
-    masked_gadgets_mul_u32(r, r, a, buf[56]);
+    masked_gadgets_mul_u32(r, r, a, buf[48]);
 
+    // uses 14 random words
     for (i = 0; i < 7; i++) {
         // mask refresh and square
-        ntt_lite_add(&t[0], &r[0], &buf[57 + i]);
-        ntt_lite_sub(&t[1], &r[1], &buf[57 + i]);
-        masked_gadgets_mul_u32(r, r, t, buf[60 + i]);
+        ntt_lite_add(&t[0], &r[0], &buf[49 + i]);
+        ntt_lite_sub(&t[1], &r[1], &buf[49 + i]);
+        masked_gadgets_mul_u32(r, r, t, buf[56 + i]);
     }
 
 }

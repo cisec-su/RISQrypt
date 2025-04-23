@@ -132,7 +132,7 @@ void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const mas
     const uint32_t mu[2] = {MU_EXP_L, MU_EXP_H};
     uint32_t *src;
 
-    ntt_lite_load_q(Q_EXP, &mu, 8, 32, 0, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q(Q_EXP, mu, 8, 32, 0, NTT_LITE_MODE_SINGLE);
 
     for (j = 0; j < MASKING_N; j++) {
         for (i = 0; i < KYBER_K; i++) {

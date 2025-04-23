@@ -243,8 +243,8 @@ void test_masked_poly_compress() {
 
     unsigned int time;
     unsigned int i;
-    poly *mpoly_ptr_src[MASKING_N];
-    poly *mpoly_ptr_dst[MASKING_N];
+    const poly *mpoly_ptr_src[MASKING_N];
+    poly_u32 *mpoly_ptr_dst[MASKING_N];
 
     print_string("Kyber Masked poly_compress: \n");
 

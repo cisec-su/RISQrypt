@@ -60,7 +60,7 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     poly_init_q();
 
 
-    ntt_lite_load_q(q, &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q(q, mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
 
     for (i = 0; i < MASKING_N; i++) {
         if (i == MASKING_N - 1) {
@@ -76,18 +76,18 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     for (i = 0; i < (KYBER_N); i++) {
         t[i] = alpha_m1_shift;
     }
-    ntt_lite_load_q((1 << d_), &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q((1 << d_), mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
     ntt_lite_add((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) t);
 
-    ntt_lite_load_q(alpha_shift, &mu, 8, 32, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q(alpha_shift, mu, 8, 32, inv2, NTT_LITE_MODE_SINGLE);
     ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) b, d);
     ntt_lite_decompress_floor(t, NTT_LITE_INPUT_DIS, 0);
-    ntt_lite_load_q((1 << d_), &mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q((1 << d_), mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
     ntt_lite_sub((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs, (uint32_t*) t);
 
     masked_gadgets_A2B_2k_u32(&mpu32, &mpu32, (1 << d_) - 1);
 
-    ntt_lite_load_q(1, &mu, 8, d, inv2, NTT_LITE_MODE_SINGLE);
+    ntt_lite_load_q(1, mu, 8, d, inv2, NTT_LITE_MODE_SINGLE);
 
     for (i = 0; i < MASKING_N; i++) {
         ntt_lite_decompress_floor(r[i]->coeffs, (uint32_t*) mpu32.share[i].coeffs, alpha);
@@ -189,17 +189,5 @@ void masked_poly_add_chain(masked_poly *r, const masked_poly *a, const masked_po
     unsigned int i;
     for (i = 0; i < MASKING_N; i++) {
         poly_add_chain(&(r->share[i]), &(a->share[i]), &(b->share[i]), &(c->share[i]));
-    }
-}
-
-
-void masked_poly_u32_sum(masked_u32 r, const masked_poly_u32 *a) {
-    unsigned int i;
-    for (i = 0; i < MASKING_N; i++) {
-        // r[i] = 0;
-        // for (unsigned int j = 0; j < KYBER_N; j++) {
-        //     r[i] += a->share[i].coeffs[j];
-        // }
-        poly_u32_sum(&((r)[i]), &(a->share[i]));
     }
 }
