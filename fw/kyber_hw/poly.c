@@ -1,9 +1,10 @@
 #include <stdint.h>
-#include "params.h"
-#include "poly.h"
 #include "ntt_lite.h"
+#include "params.h"
 #include "cbd.h"
 #include "symmetric.h"
+#include "reduce.h"
+#include "poly.h"
 
 
 const uint32_t psi[128] = {
@@ -32,6 +33,16 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], poly *a)
   ntt_lite_compress(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, KYBER_DV);
   ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, KYBER_DV);
 }
+
+
+void poly_decompress_compress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES])
+{
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, KYBER_DV);
+  ntt_lite_decompress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DV);
+  ntt_lite_decompress((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, KYBER_DV);
+}
+
+
 
 /*************************************************
 * Name:        poly_decompress
@@ -146,9 +157,9 @@ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t non
 
 void poly_init_q() {
   const uint32_t q = KYBER_Q;
-  const uint32_t mu = 0x13af; 
+  const uint32_t mu = 0x13afb7; 
   const uint32_t inv2 = 0x681;
-  ntt_lite_load_q(&q, &mu, 7, 12, inv2, NTT_LITE_MODE_POLY);
+  ntt_lite_load_q(q, &mu, 7, 12, inv2, NTT_LITE_MODE_POLY);
 }
 
 void poly_init_ntt() {
@@ -227,6 +238,14 @@ void poly_add(poly *r, const poly *a, const poly *b)
   ntt_lite_add((uint32_t*) r->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
 }
 
+
+void poly_add_chain(poly *r, const poly *a, const poly *b, const poly *c)
+{
+  ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
+  ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) c->coeffs);
+}
+
+
 /*************************************************
 * Name:        poly_sub
 *
@@ -242,12 +261,7 @@ void poly_sub(poly *r, const poly *a, const poly *b)
 }
 
 
-
-
-
-
-
-void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a, poly *b)
+void poly_sub_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a, const poly *b)
 {
   ntt_lite_sub(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
   ntt_lite_compress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 1);

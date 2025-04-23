@@ -1,19 +1,25 @@
 #ifndef POLYVEC_H
 #define POLYVEC_H
 
+
 #include <stdint.h>
 #include "params.h"
 #include "poly.h"
 
+
 typedef struct{
-  poly vec[KYBER_K];
+    poly vec[KYBER_K];
 } polyvec;
+
+typedef struct{
+    poly_u32 vec[KYBER_K];
+} polyvec_u32;
+
 
 #define polyvec_compress KYBER_NAMESPACE(_polyvec_compress)
 void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], polyvec *a);
 #define polyvec_decompress KYBER_NAMESPACE(_polyvec_decompress)
-void polyvec_decompress(polyvec *r,
-                        const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES]);
+void polyvec_decompress(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES]);
 
 #define polyvec_tobytes KYBER_NAMESPACE(_polyvec_tobytes)
 void polyvec_tobytes(uint8_t r[KYBER_POLYVECBYTES], polyvec *a);
@@ -38,6 +44,6 @@ void polyvec_pointwise_acc(poly *r,
 #define polyvec_add KYBER_NAMESPACE(_polyvec_add)
 void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b);
 
-extern void read_ra();
+
 
 #endif

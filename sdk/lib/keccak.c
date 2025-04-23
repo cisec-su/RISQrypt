@@ -3,7 +3,7 @@
 
 
 
-int keccak_init(uint32_t rate, uint32_t mask_en) {
+int keccak_init(uint32_t rate, uint32_t mask) {
 
     uint32_t mask_flag;   
 
@@ -11,10 +11,10 @@ int keccak_init(uint32_t rate, uint32_t mask_en) {
         return -1;
     }
     
-    if (mask_en == KECCAK_MASK_EN) {
+    if (mask == KECCAK_MASK_EN) {
         mask_flag = 0;
     }
-    else if (mask_en == KECCAK_MASK_DIS) {
+    else if (mask == KECCAK_MASK_DIS) {
         mask_flag = KECCAK_CTRL_S_DIS_1S;
     }
     else {
