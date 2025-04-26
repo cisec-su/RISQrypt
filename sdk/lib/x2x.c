@@ -3,8 +3,22 @@
 
 
 
-int x2x_set_modulus(uint32_t *modulus, unsigned int modulus_type)
+int x2x_set_modulus(uint32_t *modulus, uint32_t modulus_type, uint32_t dual_mode)
 {
+    uint32_t dual_flag;
+
+    if (dual_mode == X2X_DUAL_MODE_EN) {
+        if (modulus_type == X2X_CTRL_DATA_TYPE_PRIME) {
+            return -1;
+        }
+        else {
+            dual_flag = X2X_CTRL_DUAL_MODE_EN_S;
+        }
+    } else if (dual_mode == X2X_DUAL_MODE_DIS) {
+        dual_flag = X2X_CTRL_DUAL_MODE_EN_S;
+    } else {
+        return -1;
+    }
 
     X2X_REGS->ctrl |= X2X_CTRL_RESET_V;
 
@@ -12,9 +26,9 @@ int x2x_set_modulus(uint32_t *modulus, unsigned int modulus_type)
 
 
     if (modulus_type == X2X_MODULUS_POW2) {
-        X2X_REGS->ctrl = (X2X_REGS->ctrl & ~X2X_CTRL_DATA_TYPE_M) | X2X_CTRL_DATA_TYPE_POW2;
+        X2X_REGS->ctrl = X2X_CTRL_DATA_TYPE_POW2 | dual_flag;
     } else if (modulus_type == X2X_MODULUS_PRIME) {
-        X2X_REGS->ctrl = (X2X_REGS->ctrl & ~X2X_CTRL_DATA_TYPE_M) | X2X_CTRL_DATA_TYPE_PRIME;
+        X2X_REGS->ctrl = X2X_CTRL_DATA_TYPE_PRIME | dual_flag;
     } else {
         return -1;
     }
