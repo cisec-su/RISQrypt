@@ -179,7 +179,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         start_RNG <= 1'd0;
     end
-    else if (we && (addr_offset == SEED_ADDR_H)) begin
+    else if (we && (addr_offset == SEED_ADDR_HIGH)) begin
         start_RNG <= 1;
     end
     else begin

@@ -24,6 +24,7 @@ module x2x_acc_fsm
         input      [      63:0] ctrl_seed             , 
         input                   ctrl_start_RNG             ,
         input ctrl_mask_mode,
+        input ctrl_dual_mode,
         // fsm <-> dma        
         output reg [      31:0] mem_addr                   ,
         output reg              mem_re                     ,
@@ -81,6 +82,9 @@ localparam ST_DONE                       = 4'd11;
 localparam ST_INIT                        = 4'd14;
 localparam ST_RESET                       = 4'd15;
 
+localparam WORD_PAD                       = 32-PARAM_WIDTH;
+localparam HALF_PAD                       = 32-PARAM_WIDTH;
+
 reg [3:0] fsm_state, fsm_next_state;
 reg [LOGN-1:0] ctr_array;
 reg ctr_array_rst, ctr_array_inc, ctr_array_inc_b;
@@ -96,7 +100,7 @@ reg ctr_iter_rst, ctr_iter_inc;
 
 reg [4:0] ctr_init;
 
-reg [PARAM_WIDTH-1:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
+reg [31:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
 reg write_s0, write_s1;
 
 
@@ -219,8 +223,13 @@ always @(*) begin
     end 
     ST_MASK_SEND:
     begin
-        x2x_original_data[0][0] = shares[0][ctr_block_r];
-        x2x_original_data[0][1] = shares[1][ctr_block_r];
+        x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
+        x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];
+        if(ctrl_dual_mode)
+        begin
+            x2x_original_data[1][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
+            x2x_original_data[1][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+        end
         x2x_valid_data = 1;
         x2x_ready_result = 1;
         if(x2x_ready_data)
@@ -392,8 +401,16 @@ for(genvar i = 0; i < SHARES ; i = i + 1) begin
             end
             else if (x2x_valid_result)
             begin
-                shares[0][ctr_block_w] <= x2x_converted_data[0][0];
-                shares[1][ctr_block_w] <= x2x_converted_data[0][1];
+                if(!ctrl_dual_mode)
+                begin
+                    shares[0][ctr_block_w] <= {{(32-PARAM_WIDTH){1'b0}},x2x_converted_data[0][0]};
+                    shares[1][ctr_block_w] <= {{(32-PARAM_WIDTH){1'b0}},x2x_converted_data[0][1]};
+                end
+                else
+                begin
+                    shares[0][ctr_block_w] <= {{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[1][0],{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[0][0]};
+                    shares[1][ctr_block_w] <= {{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[1][1],{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[0][1]};
+                end
             end    
         end
     end

@@ -140,6 +140,7 @@ x2x_acc_fsm #(
     .ctrl_seed  (seed        ),
     .ctrl_start_RNG  (start_RNG        ),
     .ctrl_mask_mode(mask_mode),
+    .ctrl_dual_mode(x2x_dual_mode),
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
     .mem_re          (mem_re           ),
