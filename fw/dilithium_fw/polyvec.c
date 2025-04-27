@@ -2,6 +2,7 @@
 #include "params.h"
 #include "polyvec.h"
 #include "poly.h"
+#include "ntt_lite.h"
 
 /*************************************************
 * Name:        expand_mat
@@ -85,7 +86,9 @@ void polyvecl_add(polyvecl *w, const polyvecl *u, const polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+    ntt_lite_add((uint32_t*)w->vec[i].coeffs,
+                 (uint32_t*)u->vec[i].coeffs,
+                 (uint32_t*)v->vec[i].coeffs);
 }
 
 /*************************************************
@@ -100,21 +103,23 @@ void polyvecl_ntt(polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    poly_ntt(&v->vec[i]);
+    ntt_lite_forward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
 }
 
 void polyvecl_invntt_tomont(polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    poly_invntt_tomont(&v->vec[i]);
+    ntt_lite_backward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
 }
 
 void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a, const polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+    ntt_lite_pwm((uint32_t*)r->vec[i].coeffs,
+                 (uint32_t*)a->coeffs,
+                 (uint32_t*)v->vec[i].coeffs);
 }
 
 /*************************************************
@@ -128,15 +133,21 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a, const polyve
 *              - const polyvecl *u: pointer to first input vector
 *              - const polyvecl *v: pointer to second input vector
 **************************************************/
-void polyvecl_pointwise_acc_montgomery(poly *w,
-                                       const polyvecl *u,
-                                       const polyvecl *v)
-{
+void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u, const polyvecl *v) {
+  ntt_lite_pwm((uint32_t*)w->coeffs, 
+              (uint32_t*)u->vec[0].coeffs, 
+              (uint32_t*)v->vec[0].coeffs);
+  
   unsigned int i;
-
-  poly_pointwise_montgomery(w, &u->vec[0], &v->vec[0]);
-  for(i = 1; i < L; ++i) {
-    poly_pointwise_acc_montgomery(w, &u->vec[i], &v->vec[i]);
+  
+  for(i = 0; i < L; ++i) {
+    poly tmp;
+    ntt_lite_pwm((uint32_t*)tmp.coeffs,
+                (uint32_t*)u->vec[i].coeffs,
+                (uint32_t*)v->vec[i].coeffs);
+    ntt_lite_add((uint32_t*)w->coeffs,
+                (uint32_t*)w->coeffs,
+                (uint32_t*)tmp.coeffs);
   }
 }
 
@@ -234,7 +245,9 @@ void polyveck_add(polyveck *w, const polyveck *u, const polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+    ntt_lite_add((uint32_t*)w->vec[i].coeffs,
+                 (uint32_t*)u->vec[i].coeffs,
+                 (uint32_t*)v->vec[i].coeffs);
 }
 
 /*************************************************
@@ -252,7 +265,9 @@ void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    poly_sub(&w->vec[i], &u->vec[i], &v->vec[i]);
+    ntt_lite_sub((uint32_t*)w->vec[i].coeffs,
+                 (uint32_t*)u->vec[i].coeffs,
+                 (uint32_t*)v->vec[i].coeffs);
 }
 
 /*************************************************
@@ -282,7 +297,7 @@ void polyveck_ntt(polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    poly_ntt(&v->vec[i]);
+    ntt_lite_forward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
 }
 
 /*************************************************
@@ -298,14 +313,16 @@ void polyveck_invntt_tomont(polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    poly_invntt_tomont(&v->vec[i]);
+    ntt_lite_backward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
 }
 
 void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a, const polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+    ntt_lite_pwm((uint32_t*)r->vec[i].coeffs,
+                (uint32_t*)a->coeffs,
+                (uint32_t*)v->vec[i].coeffs);
 }
 
 
