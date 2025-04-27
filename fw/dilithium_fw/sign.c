@@ -5,6 +5,7 @@
 #include "polyvec.h"
 #include "poly.h"
 #include "randombytes.h"
+#include "keccak.h"
 #include "symmetric.h"
 
 /*************************************************
@@ -29,7 +30,12 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 
   /* Get randomness for rho, rhoprime and key */
   randombytes(seedbuf, SEEDBYTES);
-  shake256(seedbuf, 2*SEEDBYTES + CRHBYTES, seedbuf, SEEDBYTES);
+
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t *)seedbuf, NULL, SEEDBYTES >> 2);
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+  keccak_squeeze((uint32_t *)seedbuf, NULL, (2*SEEDBYTES + CRHBYTES) >> 2);
+
   rho = seedbuf;
   rhoprime = rho + SEEDBYTES;
   key = rhoprime + CRHBYTES;
@@ -43,10 +49,10 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 
   /* Matrix-vector multiplication */
   s1hat = s1;
-  polyvecl_ntt(&s1hat);
+  ntt_lite_forward_ntt((uint32_t *)&s1hat, (uint32_t *)&s1hat);
   polyvec_matrix_pointwise_montgomery(&t1, mat, &s1hat);
   polyveck_reduce(&t1);
-  polyveck_invntt_tomont(&t1);
+  ntt_lite_backward_ntt((uint32_t *)&t1, (uint32_t *)&t1);
 
   /* Add error vector s2 */
   polyveck_add(&t1, &t1, &s2);
@@ -56,8 +62,11 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   polyveck_power2round(&t1, &t0, &t1);
   pack_pk(pk, rho, &t1);
 
-  /* Compute H(rho, t1) and write secret key */
-  shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t *)pk, NULL, CRYPTO_PUBLICKEYBYTES >> 2);
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+  keccak_squeeze((uint32_t *)tr, NULL, SEEDBYTES >> 2);
+
   pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
 
   return 0;
@@ -89,7 +98,8 @@ int crypto_sign_signature(uint8_t *sig,
   polyvecl mat[K], s1, y, z;
   polyveck t0, s2, w1, w0, h;
   poly cp;
-  shake256incctx state;
+  shake256incctx state; // assign dummy struct into symmetric.h 
+  // Empty struct needed because keccak HW handles everything no need for state
 
   rho = seedbuf;
   tr = rho + SEEDBYTES;
@@ -99,23 +109,26 @@ int crypto_sign_signature(uint8_t *sig,
   unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
 
   /* Compute CRH(tr, msg) */
-  shake256_inc_init(&state);
-  shake256_inc_absorb(&state, tr, SEEDBYTES);
-  shake256_inc_absorb(&state, m, mlen);
-  shake256_inc_finalize(&state);
-  shake256_inc_squeeze(mu, CRHBYTES, &state);
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t *)tr, NULL, (SEEDBYTES) >> 2);
+  keccak_absorb((uint32_t *)m, NULL, (mlen + 3) >> 2);
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+  keccak_squeeze((uint32_t *)mu, NULL, (CRHBYTES) >> 2);
 
 #ifdef DILITHIUM_RANDOMIZED_SIGNING
   randombytes(rhoprime, CRHBYTES);
 #else
-  shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t *)key, NULL, ((SEEDBYTES + CRHBYTES + 3) >> 2));
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+  keccak_squeeze((uint32_t *)rhoprime, NULL, (CRHBYTES) >> 2);
 #endif
 
   /* Expand matrix and transform vectors */
   polyvec_matrix_expand(mat, rho);
-  polyvecl_ntt(&s1);
-  polyveck_ntt(&s2);
-  polyveck_ntt(&t0);
+  ntt_lite_forward_ntt((uint32_t *)&s1, (uint32_t *)&s1);
+  ntt_lite_forward_ntt((uint32_t *)&s2, (uint32_t *)&s2);
+  ntt_lite_forward_ntt((uint32_t *)&t0, (uint32_t *)&t0);
 
 rej:
   /* Sample intermediate vector y */
@@ -123,27 +136,28 @@ rej:
 
   /* Matrix-vector multiplication */
   z = y;
-  polyvecl_ntt(&z);
+  ntt_lite_forward_ntt((uint32_t *)&z, (uint32_t *)&z);
   polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
   polyveck_reduce(&w1);
-  polyveck_invntt_tomont(&w1);
+  ntt_lite_backward_ntt((uint32_t *)&w1, (uint32_t *)&w1);
 
   /* Decompose w and call the random oracle */
   polyveck_caddq(&w1);
   polyveck_decompose(&w1, &w0, &w1);
   polyveck_pack_w1(sig, &w1);
 
-  shake256_inc_init(&state);
-  shake256_inc_absorb(&state, mu, CRHBYTES);
-  shake256_inc_absorb(&state, sig, K*POLYW1_PACKEDBYTES);
-  shake256_inc_finalize(&state);
-  shake256_inc_squeeze(sig, SEEDBYTES, &state);
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t *)mu, NULL, CRHBYTES >> 2);
+  keccak_absorb((uint32_t *)sig, NULL, (K * POLYW1_PACKEDBYTES + 3) >> 2);
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+  keccak_squeeze((uint32_t *)sig, NULL, (SEEDBYTES) >> 2);
+
   poly_challenge(&cp, sig);
-  poly_ntt(&cp);
+  ntt_lite_forward_ntt((uint32_t *)&cp, (uint32_t *)&cp);
 
   /* Compute z, reject if it reveals secret */
   polyvecl_pointwise_poly_montgomery(&z, &cp, &s1);
-  polyvecl_invntt_tomont(&z);
+  ntt_lite_backward_ntt((uint32_t *)&z, (uint32_t *)&z);
   polyvecl_add(&z, &z, &y);
   polyvecl_reduce(&z);
   if(polyvecl_chknorm(&z, GAMMA1 - BETA))
@@ -152,7 +166,7 @@ rej:
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
   polyveck_pointwise_poly_montgomery(&h, &cp, &s2);
-  polyveck_invntt_tomont(&h);
+  ntt_lite_backward_ntt((uint32_t *)&h, (uint32_t *)&h);
   polyveck_sub(&w0, &w0, &h);
   polyveck_reduce(&w0);
   if(polyveck_chknorm(&w0, GAMMA2 - BETA))
@@ -160,7 +174,7 @@ rej:
 
   /* Compute hints for w1 */
   polyveck_pointwise_poly_montgomery(&h, &cp, &t0);
-  polyveck_invntt_tomont(&h);
+  ntt_lite_backward_ntt((uint32_t *)&h, (uint32_t *)&h);
   polyveck_reduce(&h);
   if(polyveck_chknorm(&h, GAMMA2))
     goto rej;
@@ -235,7 +249,8 @@ int crypto_sign_verify(const uint8_t *sig,
   poly cp;
   polyvecl mat[K], z;
   polyveck t1, w1, h;
-  shake256incctx state;
+  shake256incctx state; // assign dummy struct into symmetric.h 
+  // Empty struct needed because keccak HW handles everything no need for state
 
   if(siglen != CRYPTO_BYTES)
     return -1;
