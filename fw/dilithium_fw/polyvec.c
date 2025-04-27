@@ -139,9 +139,10 @@ void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u, const polyvec
               (uint32_t*)v->vec[0].coeffs);
   
   unsigned int i;
-  
-  for(i = 0; i < L; ++i) {
-    poly tmp;
+  poly tmp;
+  // We already calculate 0th index at the first, prevent double evaluation by starting i index from 1 not 0
+  // May check again YS
+  for(i = 1; i < L; ++i) {
     ntt_lite_pwm((uint32_t*)tmp.coeffs,
                 (uint32_t*)u->vec[i].coeffs,
                 (uint32_t*)v->vec[i].coeffs);
