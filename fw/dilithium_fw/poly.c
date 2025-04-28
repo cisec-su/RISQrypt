@@ -6,6 +6,7 @@
 #include "pointwise_mont.h"
 #include "rounding.h"
 #include "symmetric.h"
+#include "keccak.h"
 
 #ifdef DBENCH
 #include "test/cpucycles.h"
@@ -159,8 +160,8 @@ void poly_invntt_tomont(poly *a) {
 void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b) {
   DBENCH_START();
 
-  asm_pointwise_montgomery(c->coeffs, a->coeffs, b->coeffs);
-
+  ntt_lite_pwm((uint32_t*)c->coeffs, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
+  
   DBENCH_STOP(*tmul);
 }
 
@@ -177,8 +178,10 @@ void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b) {
 **************************************************/
 void poly_pointwise_acc_montgomery(poly *c, const poly *a, const poly *b) {
   DBENCH_START();
-
-  asm_pointwise_acc_montgomery(c->coeffs, a->coeffs, b->coeffs);
+  //ask tolun
+  uint32_t temp[N]; 
+  ntt_lite_pwm(temp, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
+  ntt_lite_add((uint32_t*)c->coeffs, (uint32_t*)c->coeffs, temp);
 
   DBENCH_STOP(*tmul);
 }
@@ -327,23 +330,22 @@ void poly_uniform(poly *a,
                   uint16_t nonce)
 {
   unsigned int i, ctr, off;
-  unsigned int buflen = POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES;
-  uint8_t buf[POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES + 2];
-  stream128_state state;
+  uint8_t buf[SHAKE128_RATE];  // SHAKE128 rate
+  uint8_t extseed[SEEDBYTES + 2];
 
-  stream128_init(&state, seed, nonce);
-  stream128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS, &state);
+  for (i = 0; i < SEEDBYTES; ++i)
+    extseed[i] = seed[i];
+  extseed[SEEDBYTES] = nonce & 0xFF;
+  extseed[SEEDBYTES+1] = nonce >> 8;
 
-  ctr = asm_rej_uniform(a->coeffs, N, buf, buflen);
+  keccak_init(SHAKE128_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t*)extseed, NULL, (SEEDBYTES + 2 + 3) >> 2);  // Round up to multiple of 4 bytes
+  keccak_finish(KECCAK_NULL_PAD_WORD);
 
-  while(ctr < N) {
-    off = buflen % 3;
-    for(i = 0; i < off; ++i)
-      buf[i] = buf[buflen - off + i];
-
-    stream128_squeezeblocks(buf + off, 1, &state);
-    buflen = STREAM128_BLOCKBYTES + off;
-    ctr += asm_rej_uniform(a->coeffs + ctr, N - ctr, buf, buflen);
+  ctr = 0;
+  while (ctr < N) {
+    keccak_squeeze((uint32_t*)buf, NULL, (SHAKE128_RATE) >> 2);
+    ctr += asm_rej_uniform(a->coeffs + ctr, N - ctr, buf, SHAKE128_RATE);
   }
 }
 
@@ -413,21 +415,25 @@ static unsigned int rej_eta(int32_t *a,
 #define POLY_UNIFORM_ETA_NBLOCKS ((227 + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
 #endif
 void poly_uniform_eta(poly *a,
-        const uint8_t seed[CRHBYTES],
-        uint16_t nonce) {
+                      const uint8_t seed[CRHBYTES],
+                      uint16_t nonce) {
   unsigned int ctr;
-  unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES;
-  uint8_t buf[POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES];
-  stream256_state state;
+  uint8_t buf[SHAKE256_RATE]; // I dont need to calc uniform_eta_nblocks since I use it as much as I need in HW.
+  uint8_t extseed[CRHBYTES + 2];
 
-  stream256_init(&state, seed, nonce);
-  stream256_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS, &state);
+  for (unsigned int i = 0; i < CRHBYTES; ++i)
+    extseed[i] = seed[i];
+  extseed[CRHBYTES] = nonce & 0xFF;
+  extseed[CRHBYTES+1] = nonce >> 8;
 
-  ctr = rej_eta(a->coeffs, N, buf, buflen);
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t*)extseed, NULL, (CRHBYTES + 2 + 3) >> 2);
+  keccak_finish(KECCAK_NULL_PAD_WORD);
 
-  while(ctr < N) {
-    stream256_squeezeblocks(buf, 1, &state);
-    ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, STREAM256_BLOCKBYTES);
+  ctr = 0;
+  while (ctr < N) {
+    keccak_squeeze((uint32_t*)buf, NULL, (SHAKE256_RATE) >> 2);
+    ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, SHAKE256_RATE);
   }
 }
 
@@ -445,13 +451,19 @@ void poly_uniform_eta(poly *a,
 #define POLY_UNIFORM_GAMMA1_NBLOCKS ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
 void poly_uniform_gamma1(poly *a,
                          const uint8_t seed[CRHBYTES],
-                         uint16_t nonce)
-{
-  uint8_t buf[POLY_UNIFORM_GAMMA1_NBLOCKS*STREAM256_BLOCKBYTES];
-  stream256_state state;
+                         uint16_t nonce) {
+  uint8_t buf[POLYZ_PACKEDBYTES]; // I dont need to calc uniform_eta_nblocks since I use it as much as I need in HW.
+  uint8_t extseed[CRHBYTES + 2];
 
-  stream256_init(&state, seed, nonce);
-  stream256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
+  for (unsigned int i = 0; i < CRHBYTES; ++i)
+    extseed[i] = seed[i];
+  extseed[CRHBYTES] = nonce & 0xFF;
+  extseed[CRHBYTES+1] = nonce >> 8;
+
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t*)extseed, NULL, (CRHBYTES + 2 + 3) >> 2);
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+  keccak_squeeze((uint32_t*)buf, NULL, (POLYZ_PACKEDBYTES + 3) >> 2);
   polyz_unpack(a, buf);
 }
 
@@ -469,12 +481,12 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
   unsigned int i, b, pos;
   uint64_t signs;
   uint8_t buf[SHAKE256_RATE];
-  shake256incctx state;
 
-  shake256_inc_init(&state);
-  shake256_inc_absorb(&state, seed, SEEDBYTES);
-  shake256_inc_finalize(&state);
-  shake256_inc_squeezeblocks(buf, 1, &state);
+  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+  keccak_absorb((uint32_t*)seed, NULL, (SEEDBYTES + 3) >> 2); // SEEDBYTES + padding
+  keccak_finish(KECCAK_NULL_PAD_WORD);
+
+  keccak_squeeze((uint32_t*)buf, NULL, (SHAKE256_RATE) >> 2);
 
   signs = 0;
   for(i = 0; i < 8; ++i)
@@ -486,7 +498,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
   for(i = N-TAU; i < N; ++i) {
     do {
       if(pos >= SHAKE256_RATE) {
-        shake256_inc_squeezeblocks(buf, 1, &state);
+        keccak_squeeze((uint32_t*)buf, NULL, (SHAKE256_RATE) >> 2);
         pos = 0;
       }
 
@@ -498,6 +510,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
     signs >>= 1;
   }
 }
+// no more hw acceleratable func after this line only bit shift pack funcs
 
 /*************************************************
 * Name:        polyeta_pack
