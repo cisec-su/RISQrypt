@@ -124,7 +124,7 @@ void poly_shiftl(poly *a) {
 void poly_ntt(poly *a) {
   DBENCH_START();
 
-  ntt(a->coeffs);
+  ntt_lite_forward_ntt((uint32_t*)a->coeffs, (uint32_t*)a->coeffs);
 
   DBENCH_STOP(*tmul);
 }
@@ -141,7 +141,7 @@ void poly_ntt(poly *a) {
 void poly_invntt_tomont(poly *a) {
   DBENCH_START();
 
-  invntt_tomont(a->coeffs);
+  ntt_lite_backward_ntt((uint32_t*)a->coeffs, (uint32_t*)a->coeffs);
 
   DBENCH_STOP(*tmul);
 }
