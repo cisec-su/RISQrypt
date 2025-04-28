@@ -66,14 +66,13 @@ void poly_freeze(poly *a) {
 *              - const poly *b: pointer to second summand
 **************************************************/
 void poly_add(poly *c, const poly *a, const poly *b)  {
-  unsigned int i;
   DBENCH_START();
 
-  for(i = 0; i < N; ++i)
-    c->coeffs[i] = a->coeffs[i] + b->coeffs[i];
+  ntt_lite_add((uint32_t*)c->coeffs, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
 
   DBENCH_STOP(*tadd);
 }
+
 
 /*************************************************
 * Name:        poly_sub
@@ -86,15 +85,14 @@ void poly_add(poly *c, const poly *a, const poly *b)  {
 *              - const poly *b: pointer to second input polynomial to be
 *                               subtraced from first input polynomial
 **************************************************/
-void poly_sub(poly *c, const poly *a, const poly *b) {
-  unsigned int i;
+void poly_sub(poly *c, const poly *a, const poly *b)  {
   DBENCH_START();
 
-  for(i = 0; i < N; ++i)
-    c->coeffs[i] = a->coeffs[i] - b->coeffs[i];
+  ntt_lite_sub((uint32_t*)c->coeffs, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
 
   DBENCH_STOP(*tadd);
 }
+
 
 /*************************************************
 * Name:        poly_shiftl
