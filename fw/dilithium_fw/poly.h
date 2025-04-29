@@ -24,12 +24,12 @@ void poly_shiftl(poly *a);
 
 #define poly_ntt DILITHIUM_NAMESPACE(poly_ntt)
 void poly_ntt(poly *a);
-#define poly_invntt_tomont DILITHIUM_NAMESPACE(poly_invntt_tomont)
-void poly_invntt_tomont(poly *a);
-#define poly_pointwise_montgomery DILITHIUM_NAMESPACE(poly_pointwise_montgomery)
-void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b);
-#define poly_pointwise_acc_montgomery DILITHIUM_NAMESPACE(poly_pointwise_acc_montgomery)
-void poly_pointwise_acc_montgomery(poly *c, const poly *a, const poly *b);
+#define poly_invntt DILITHIUM_NAMESPACE(poly_invntt)
+void poly_invntt(poly *a);
+#define poly_pointwise DILITHIUM_NAMESPACE(poly_pointwise)
+void poly_pointwise(poly *c, const poly *a, const poly *b);
+#define poly_pointwise_acc DILITHIUM_NAMESPACE(poly_pointwise_acc)
+void poly_pointwise_acc(poly *c, const poly *a, const poly *b);
 
 #define poly_power2round DILITHIUM_NAMESPACE(poly_power2round)
 void poly_power2round(poly *a1, poly *a0, const poly *a);

@@ -49,7 +49,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 
   /* Matrix-vector multiplication */
   s1hat = s1;
-  ntt_lite_forward_ntt((uint32_t *)&s1hat, (uint32_t *)&s1hat);
+  ntt_lite_forward_ntt((uint32_t *)&s1hat, (uint32_t *)&s1hat); //use polyvec functions not ntt funcs directly
   polyvec_matrix_pointwise_montgomery(&t1, mat, &s1hat);
   polyveck_reduce(&t1);
   ntt_lite_backward_ntt((uint32_t *)&t1, (uint32_t *)&t1);
@@ -262,6 +262,7 @@ int crypto_sign_verify(const uint8_t *sig,
     return -1;
 
   /* Compute CRH(h(rho, t1), msg) */
+  //edit here HAL
   shake256(mu, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
   shake256_inc_init(&state);
   shake256_inc_absorb(&state, mu, SEEDBYTES);

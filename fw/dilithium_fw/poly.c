@@ -7,6 +7,7 @@
 #include "rounding.h"
 #include "symmetric.h"
 #include "keccak.h"
+#include "ntt_lite.h"
 
 #ifdef DBENCH
 #include "test/cpucycles.h"
@@ -18,6 +19,35 @@ extern uint64_t *tred, *tadd, *tmul, *tround, *tsample, *tpack;
 #define DBENCH_START()
 #define DBENCH_STOP(t)
 #endif
+
+#define DILITHIUM_Q 8380417
+
+//add poly_init_q here to load ntt params check mail sent by tolun
+// poly_init_ntt poly_init_invntt funs as well to kick start ntt
+
+const uint32_t psi[128] = {
+	0x6c1, 0xa14, 0xcd9, 0xa52, 0x276, 0x769, 0x350, 0x426, 0x77f, 0xc1, 0x31d, 0xae2, 0xcbc, 0x239, 0x6d2, 0x128, 0x98f, 0x53b, 0x5c4, 0xbe6, 0x38, 0x8c0, 0x535, 0x592, 0x82e, 0x217, 0xb42, 0x959, 0xb3f, 0x7b6, 0x335, 0x121, 0x14b, 0xcb5, 0x6dc, 0x4ad, 0x900, 0x8e5, 0x807, 0x28a, 0x7b9, 0x9d1, 0x278, 0xb31, 0x21, 0x528, 0x77b, 0x90f, 0x59b, 0x327, 0x1c4, 0x59e, 0xb34, 0x5fe, 0x962, 0xa57, 0xa39, 0x5c9, 0x288, 0x9aa, 0xc26, 0x4cb, 0x38e, 0x11, 0xac9, 0x247, 0xa59, 0x665, 0x2d3, 0x8f0, 0x44c, 0x581, 0xa66, 0xcd1, 0xe9, 0x2f4, 0x86c, 0xbc7, 0xbea, 0x6a7, 0x673, 0xae5, 0x6fd, 0x737, 0x3b8, 0x5b5, 0xa7f, 0x3ab, 0x904, 0x985, 0x954, 0x2dd, 0x921, 0x10c, 0x281, 0x630, 0x8fa, 0x7f5, 0xc94, 0x177, 0x9f5, 0x82a, 0x66d, 0x427, 0x13f, 0xad5, 0x2f5, 0x833, 0x231, 0x9a2, 0xa22, 0xaf4, 0x444, 0x193, 0x402, 0x477, 0x866, 0xad7, 0x376, 0x6ba, 0x4bc, 0x752, 0x405, 0x83e, 0xb77, 0x375, 0x86a, 0x1
+	}; //ask psi parameters
+
+const uint32_t psi_inv[128] = {
+	0x320, 0x14, 0x7f7, 0xb59, 0x2cc, 0xbc6, 0x7d8, 0x998, 0x564, 0x6a3, 0x790, 0x4f2, 0x620, 0x2c1, 0xaee, 0x4e6, 0x926, 0xe1, 0x1d4, 0x760, 0x575, 0x8ea, 0xa38, 0x3e6, 0x8a1, 0xce5, 0x70e, 0xa1f, 0x3e3, 0x1b9, 0xc6d, 0xb3a, 0x41b, 0x6ee, 0x82c, 0xbbd, 0x39c, 0x164, 0x155, 0x850, 0xa02, 0x767, 0xa32, 0xc1f, 0x4ed, 0x3b3, 0x1f9, 0x2c3, 0xa6d, 0x670, 0xe8, 0xbc5, 0x198, 0x2a4, 0xbbc, 0x27d, 0x20e, 0x881, 0x42a, 0x993, 0x26, 0x5db, 0x5f0, 0x8cc, 0x4c6, 0xc5, 0x8e2, 0x47e, 0x958, 0xaa3, 0x9a4, 0xb46, 0x115, 0x8ce, 0x445, 0xb00, 0x5b7, 0xadf, 0x787, 0x7f0, 0x830, 0x568, 0x267, 0x506, 0x116, 0x5e1, 0x46d, 0x34a, 0x8ec, 0x186, 0x5c5, 0x6b7, 0x286, 0x884, 0x9e9, 0x540, 0xc7b, 0x1f0, 0x512, 0x857, 0x1be, 0x87f, 0x4ab, 0x141, 0x3a6, 0xb25, 0x2e5, 0x302, 0x10e, 0x347, 0x32d, 0x70c, 0x9d, 0x8cb, 0xb87, 0x60c, 0x18, 0x7ce, 0x3c0, 0xadb, 0x889, 0x517, 0x34e, 0x154, 0x55d, 0x11c, 0x678, 0x1
+	};
+
+
+void poly_init_q() {
+  const uint32_t q = DILITHIUM_Q;
+  const uint32_t mu[2] = {0x801C0601, 0x00000200}; 
+  const uint32_t inv2 = 0x3ff001;
+  ntt_lite_load_q(q, mu, 8, 23, inv2, NTT_LITE_MODE_SINGLE);
+}
+// q: 8380417, logn: 8, logq:23, mu: {0x801c0601, 0x200} 2**64/q, NTT_LITE_MODE_SINGLE, inv2: 0x3ff001 2^-1 % q
+void poly_init_ntt() {
+	ntt_lite_load_twiddle((uint32_t*) psi);
+}
+
+void poly_init_invntt() {
+	ntt_lite_load_twiddle((uint32_t*) psi_inv);
+}
 
 /*************************************************
 * Name:        poly_reduce
@@ -130,7 +160,7 @@ void poly_ntt(poly *a) {
 }
 
 /*************************************************
-* Name:        poly_invntt_tomont
+* Name:        poly_invntt
 *
 * Description: Inplace inverse NTT and multiplication by 2^{32}.
 *              Input coefficients need to be less than Q in absolute
@@ -138,7 +168,7 @@ void poly_ntt(poly *a) {
 *
 * Arguments:   - poly *a: pointer to input/output polynomial
 **************************************************/
-void poly_invntt_tomont(poly *a) {
+void poly_invntt(poly *a) {
   DBENCH_START();
 
   ntt_lite_backward_ntt((uint32_t*)a->coeffs, (uint32_t*)a->coeffs);
@@ -147,7 +177,7 @@ void poly_invntt_tomont(poly *a) {
 }
 
 /*************************************************
-* Name:        poly_pointwise_montgomery
+* Name:        poly_pointwise
 *
 * Description: Pointwise multiplication of polynomials in NTT domain
 *              representation and multiplication of resulting polynomial
@@ -157,7 +187,7 @@ void poly_invntt_tomont(poly *a) {
 *              - const poly *a: pointer to first input polynomial
 *              - const poly *b: pointer to second input polynomial
 **************************************************/
-void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b) {
+void poly_pointwise(poly *c, const poly *a, const poly *b) {
   DBENCH_START();
 
   ntt_lite_pwm((uint32_t*)c->coeffs, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
@@ -166,7 +196,7 @@ void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b) {
 }
 
 /*************************************************
-* Name:        poly_pointwise_acc_montgomery
+* Name:        poly_pointwise_acc
 *
 * Description: Pointwise multiplication of polynomials in NTT domain
 *              representation, multiplication of resulting polynomial
@@ -176,12 +206,12 @@ void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b) {
 *              - const poly *a: pointer to first input polynomial
 *              - const poly *b: pointer to second input polynomial
 **************************************************/
-void poly_pointwise_acc_montgomery(poly *c, const poly *a, const poly *b) {
+void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
   DBENCH_START();
   //ask tolun
-  uint32_t temp[N]; 
-  ntt_lite_pwm(temp, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
-  ntt_lite_add((uint32_t*)c->coeffs, (uint32_t*)c->coeffs, temp);
+  //uint32_t temp[N]; remove temp
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
+  ntt_lite_add((uint32_t*)c->coeffs, NTT_LITE_INPUT_DIS,(uint32_t*)c->coeffs);
 
   DBENCH_STOP(*tmul);
 }
