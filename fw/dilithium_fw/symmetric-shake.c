@@ -30,3 +30,9 @@ void dilithium_shake256_stream_init(const uint8_t seed[CRHBYTES], uint16_t nonce
     keccak_finish((uint32_t*)&t);
 }
 
+
+void dilithium_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
+    keccak_squeeze((uint32_t*) dst, NULL, num_blocks*(SHAKE128_RATE >> 2));
+}
+
+

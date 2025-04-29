@@ -326,26 +326,26 @@ int poly_chknorm(const poly *a, int32_t B) {
 **************************************************/
 #define POLY_UNIFORM_NBLOCKS ((768 + STREAM128_BLOCKBYTES - 1)/STREAM128_BLOCKBYTES)
 void poly_uniform(poly *a,
-                  const uint8_t seed[SEEDBYTES],
-                  uint16_t nonce)
+  const uint8_t seed[SEEDBYTES],
+  uint16_t nonce)
 {
   unsigned int i, ctr, off;
-  uint8_t buf[SHAKE128_RATE];  // SHAKE128 rate
-  uint8_t extseed[SEEDBYTES + 2];
+  unsigned int buflen = POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES;
+  uint8_t buf[POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES + 2];
 
-  for (i = 0; i < SEEDBYTES; ++i)
-    extseed[i] = seed[i];
-  extseed[SEEDBYTES] = nonce & 0xFF;
-  extseed[SEEDBYTES+1] = nonce >> 8;
+  stream128_init(seed, nonce);
+  stream128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS);
 
-  keccak_init(SHAKE128_RATE >> 3, KECCAK_MASK_DIS);
-  keccak_absorb((uint32_t*)extseed, NULL, (SEEDBYTES + 2 + 3) >> 2);  // Round up to multiple of 4 bytes
-  keccak_finish(KECCAK_NULL_PAD_WORD);
+  ctr = asm_rej_uniform(a->coeffs, N, buf, buflen);
 
-  ctr = 0;
-  while (ctr < N) {
-    keccak_squeeze((uint32_t*)buf, NULL, (SHAKE128_RATE) >> 2);
-    ctr += asm_rej_uniform(a->coeffs + ctr, N - ctr, buf, SHAKE128_RATE);
+  while(ctr < N) {
+    off = buflen % 3;
+    for(i = 0; i < off; ++i)
+      buf[i] = buf[buflen - off + i];
+
+    stream128_squeezeblocks(buf + off, 1);
+    buflen = STREAM128_BLOCKBYTES + off;
+    ctr += asm_rej_uniform(a->coeffs + ctr, N - ctr, buf, buflen);
   }
 }
 

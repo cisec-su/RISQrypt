@@ -28,9 +28,9 @@ void dilithium_shake256_stream_init(const uint8_t seed[CRHBYTES], uint16_t nonce
 #define stream256_init(SEED, NONCE) dilithium_shake256_stream_init(SEED, NONCE)
 
 #define stream128_squeezeblocks(OUT, OUTBLOCKS) \
-        keccak_squeeze((uint32_t*)OUT, NULL, (OUTBLOCKS)*(SHAKE128_RATE/4))
+        dilithium_shake128_squeezeblocks(OUT, OUTBLOCKS)
 
 #define stream256_squeezeblocks(OUT, OUTBLOCKS) \
-        keccak_squeeze((uint32_t*)OUT, NULL, (OUTBLOCKS)*(SHAKE256_RATE/4))
+        dilithium_shake256_squeezeblocks(OUT, OUTBLOCKS)
 
 #endif
