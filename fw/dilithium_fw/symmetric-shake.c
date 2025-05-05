@@ -35,4 +35,8 @@ void dilithium_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
     keccak_squeeze((uint32_t*) dst, NULL, num_blocks*(SHAKE128_RATE >> 2));
 }
 
+void dilithium_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
+    keccak_squeeze((uint32_t*) dst, NULL, num_blocks*(SHAKE256_RATE >> 2));
+}
+
 
