@@ -2,7 +2,6 @@
 #include "params.h"
 #include "polyvec.h"
 #include "poly.h"
-#include "ntt_lite.h"
 
 /*************************************************
 * Name:        expand_mat
@@ -23,11 +22,11 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]) {
       poly_uniform(&mat[i].vec[j], rho, (i << 8) + j);
 }
 
-void polyvec_matrix_pointwise_montgomery(polyveck *t, const polyvecl mat[K], const polyvecl *v) {
+void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K], const polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
+    polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
 }
 
 /**************************************************************/
@@ -86,9 +85,7 @@ void polyvecl_add(polyvecl *w, const polyvecl *u, const polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    ntt_lite_add((uint32_t*)w->vec[i].coeffs,
-                 (uint32_t*)u->vec[i].coeffs,
-                 (uint32_t*)v->vec[i].coeffs);
+    poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
 }
 
 /*************************************************
@@ -103,27 +100,25 @@ void polyvecl_ntt(polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    ntt_lite_forward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+    poly_ntt(&v->vec[i]);
 }
 
-void polyvecl_invntt_tomont(polyvecl *v) {
+void polyvecl_invntt(polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    ntt_lite_backward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+    poly_invntt(&v->vec[i]);
 }
 
-void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a, const polyvecl *v) {
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
-    ntt_lite_pwm((uint32_t*)r->vec[i].coeffs,
-                 (uint32_t*)a->coeffs,
-                 (uint32_t*)v->vec[i].coeffs);
+    poly_pointwise(&r->vec[i], a, &v->vec[i]);
 }
 
 /*************************************************
-* Name:        polyvecl_pointwise_acc_montgomery
+* Name:        polyvecl_pointwise_acc
 *
 * Description: Pointwise multiply vectors of polynomials of length L, multiply
 *              resulting vector by 2^{-32} and add (accumulate) polynomials
@@ -133,22 +128,15 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a, const polyve
 *              - const polyvecl *u: pointer to first input vector
 *              - const polyvecl *v: pointer to second input vector
 **************************************************/
-void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u, const polyvecl *v) {
-  ntt_lite_pwm((uint32_t*)w->coeffs, 
-              (uint32_t*)u->vec[0].coeffs, 
-              (uint32_t*)v->vec[0].coeffs);
-  
+void polyvecl_pointwise_acc(poly *w,
+                                       const polyvecl *u,
+                                       const polyvecl *v)
+{
   unsigned int i;
-  poly tmp;
-  // We already calculate 0th index at the first, prevent double evaluation by starting i index from 1 not 0
-  // May check again YS
+
+  poly_pointwise(w, &u->vec[0], &v->vec[0]);
   for(i = 1; i < L; ++i) {
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, //(uint32_t*)tmp.coeffs,
-                (uint32_t*)u->vec[i].coeffs,
-                (uint32_t*)v->vec[i].coeffs);
-    ntt_lite_add((uint32_t*)w->coeffs,
-                NTT_LITE_INPUT_DIS, //instead of going into the main memory use internal memory
-                (uint32_t*)w->coeffs);
+    poly_pointwise_acc(w, &u->vec[i], &v->vec[i]);
   }
 }
 
@@ -246,9 +234,7 @@ void polyveck_add(polyveck *w, const polyveck *u, const polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    ntt_lite_add((uint32_t*)w->vec[i].coeffs,
-                 (uint32_t*)u->vec[i].coeffs,
-                 (uint32_t*)v->vec[i].coeffs);
+    poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
 }
 
 /*************************************************
@@ -266,9 +252,7 @@ void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    ntt_lite_sub((uint32_t*)w->vec[i].coeffs,
-                 (uint32_t*)u->vec[i].coeffs,
-                 (uint32_t*)v->vec[i].coeffs);
+    poly_sub(&w->vec[i], &u->vec[i], &v->vec[i]);
 }
 
 /*************************************************
@@ -298,11 +282,11 @@ void polyveck_ntt(polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    ntt_lite_forward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+    poly_ntt(&v->vec[i]);
 }
 
 /*************************************************
-* Name:        polyveck_invntt_tomont
+* Name:        polyveck_invntt
 *
 * Description: Inverse NTT and multiplication by 2^{32} of polynomials
 *              in vector of length K. Input coefficients need to be less
@@ -310,20 +294,18 @@ void polyveck_ntt(polyveck *v) {
 *
 * Arguments:   - polyveck *v: pointer to input/output vector
 **************************************************/
-void polyveck_invntt_tomont(polyveck *v) {
+void polyveck_invntt(polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    ntt_lite_backward_ntt((uint32_t*)v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+    poly_invntt(&v->vec[i]);
 }
 
-void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a, const polyveck *v) {
+void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v) {
   unsigned int i;
 
   for(i = 0; i < K; ++i)
-    ntt_lite_pwm((uint32_t*)r->vec[i].coeffs,
-                (uint32_t*)a->coeffs,
-                (uint32_t*)v->vec[i].coeffs);
+    poly_pointwise(&r->vec[i], a, &v->vec[i]);
 }
 
 

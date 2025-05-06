@@ -13,11 +13,7 @@
 typedef void stream128_state;
 typedef void stream256_state;
 
-typedef struct {
-        // Empty struct because keccak HW handles everything
-        int dummy;
-      } shake256incctx;
-      
+
 #define dilithium_shake128_stream_init DILITHIUM_NAMESPACE(dilithium_shake128_stream_init)
 void dilithium_shake128_stream_init(const uint8_t seed[SEEDBYTES], uint16_t nonce);
 
