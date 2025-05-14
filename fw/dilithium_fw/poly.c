@@ -38,7 +38,7 @@ void poly_init_q() {
   const uint32_t q = DILITHIUM_Q;
   const uint32_t mu[2] = {0x801C0601, 0x00000200}; 
   const uint32_t inv2 = 0x3ff001;
-  ntt_lite_load_q(q, mu, 8, 23, inv2, NTT_LITE_MODE_SINGLE);
+  ntt_lite_load_q(q, mu, 8, 23, inv2, NTT_LITE_MODE_SINGLE); // since we are working 32 bit
 }
 // q: 8380417, logn: 8, logq:23, mu: {0x801c0601, 0x200} 2**64/q, NTT_LITE_MODE_SINGLE, inv2: 0x3ff001 2^-1 % q
 void poly_init_ntt() {

@@ -7,7 +7,8 @@
 #include "randombytes.h"
 #include "keccak.h"
 #include "symmetric.h"
-
+// testbed main.c comparison with python code
+// generate sign and message compare it with this YS
 /*************************************************
 * Name:        crypto_sign_keypair
 *
