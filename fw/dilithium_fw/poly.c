@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "params.h"
 #include "poly.h"
 #include "vector.h"
@@ -33,6 +34,9 @@ const uint32_t psi_inv[128] = {
 	0x320, 0x14, 0x7f7, 0xb59, 0x2cc, 0xbc6, 0x7d8, 0x998, 0x564, 0x6a3, 0x790, 0x4f2, 0x620, 0x2c1, 0xaee, 0x4e6, 0x926, 0xe1, 0x1d4, 0x760, 0x575, 0x8ea, 0xa38, 0x3e6, 0x8a1, 0xce5, 0x70e, 0xa1f, 0x3e3, 0x1b9, 0xc6d, 0xb3a, 0x41b, 0x6ee, 0x82c, 0xbbd, 0x39c, 0x164, 0x155, 0x850, 0xa02, 0x767, 0xa32, 0xc1f, 0x4ed, 0x3b3, 0x1f9, 0x2c3, 0xa6d, 0x670, 0xe8, 0xbc5, 0x198, 0x2a4, 0xbbc, 0x27d, 0x20e, 0x881, 0x42a, 0x993, 0x26, 0x5db, 0x5f0, 0x8cc, 0x4c6, 0xc5, 0x8e2, 0x47e, 0x958, 0xaa3, 0x9a4, 0xb46, 0x115, 0x8ce, 0x445, 0xb00, 0x5b7, 0xadf, 0x787, 0x7f0, 0x830, 0x568, 0x267, 0x506, 0x116, 0x5e1, 0x46d, 0x34a, 0x8ec, 0x186, 0x5c5, 0x6b7, 0x286, 0x884, 0x9e9, 0x540, 0xc7b, 0x1f0, 0x512, 0x857, 0x1be, 0x87f, 0x4ab, 0x141, 0x3a6, 0xb25, 0x2e5, 0x302, 0x10e, 0x347, 0x32d, 0x70c, 0x9d, 0x8cb, 0xb87, 0x60c, 0x18, 0x7ce, 0x3c0, 0xadb, 0x889, 0x517, 0x34e, 0x154, 0x55d, 0x11c, 0x678, 0x1
 	};
 
+static inline void caddq(int16_t *a) {
+    *a += (*a >> 15) & DILITHIUM_Q;
+}
 
 void poly_init_q() {
   const uint32_t q = DILITHIUM_Q;
@@ -57,7 +61,7 @@ void poly_init_invntt() {
 *
 * Arguments:   - poly *a: pointer to input/output polynomial
 **************************************************/
-void poly_reduce(poly *a) {
+/*void poly_reduce(poly *a) {
   asm_reduce32(a->coeffs);
 }
 
@@ -70,7 +74,9 @@ void poly_reduce(poly *a) {
 * Arguments:   - poly *a: pointer to input/output polynomial
 **************************************************/
 void poly_caddq(poly *a) {
-  asm_caddq(a->coeffs);
+    for (int i = 0; i < N; i++) {  // N polynom length
+        caddq(&a->coeffs[i]);  // for all coeffs call caddq
+    }
 }
 
 #if 0
@@ -190,7 +196,7 @@ void poly_invntt(poly *a) {
 void poly_pointwise(poly *c, const poly *a, const poly *b) {
   DBENCH_START();
 
-  ntt_lite_pwm((uint32_t*)c->coeffs, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
+  ntt_lite_pwm((uint32_t*)c->coeffs, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
   
   DBENCH_STOP(*tmul);
 }
@@ -210,7 +216,7 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
   DBENCH_START();
   //ask tolun
   //uint32_t temp[N]; remove temp
-  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t)a->coeffs, (uint32_t)b->coeffs);
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
   ntt_lite_add((uint32_t*)c->coeffs, NTT_LITE_INPUT_DIS,(uint32_t*)c->coeffs);
 
   DBENCH_STOP(*tmul);
@@ -344,6 +350,42 @@ int poly_chknorm(const poly *a, int32_t B) {
 }
 
 /*************************************************
+* Name:        rej_uniform
+*
+* Description: Sample uniformly random coefficients in [0, Q-1] by
+*              performing rejection sampling on array of random bytes.
+*
+* Arguments:   - int32_t *a: pointer to output array (allocated)
+*              - unsigned int len: number of coefficients to be sampled
+*              - const uint8_t *buf: array of random bytes
+*              - unsigned int buflen: length of array of random bytes
+*
+* Returns number of sampled coefficients. Can be smaller than len if not enough
+* random bytes were given.
+**************************************************/
+static unsigned int rej_uniform(int32_t *a,
+                                unsigned int len,
+                                const uint8_t *buf,
+                                unsigned int buflen)
+{
+  unsigned int ctr, pos;
+  uint32_t t;
+
+  ctr = pos = 0;
+  while(ctr < len && pos + 3 <= buflen) {
+    t  = buf[pos++];
+    t |= (uint32_t)buf[pos++] << 8;
+    t |= (uint32_t)buf[pos++] << 16;
+    t &= 0x7FFFFF;
+
+    if(t < Q)
+      a[ctr++] = t;
+  }
+
+  return ctr;
+}
+
+/*************************************************
 * Name:        poly_uniform
 *
 * Description: Sample polynomial with uniformly random coefficients
@@ -366,7 +408,7 @@ void poly_uniform(poly *a,
   stream128_init(seed, nonce);
   stream128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS);
 
-  ctr = asm_rej_uniform(a->coeffs, N, buf, buflen);
+  ctr = rej_uniform(a->coeffs, N, buf, buflen);
 
   while(ctr < N) {
     off = buflen % 3;
@@ -375,7 +417,7 @@ void poly_uniform(poly *a,
 
     stream128_squeezeblocks(buf + off, 1);
     buflen = STREAM128_BLOCKBYTES + off;
-    ctr += asm_rej_uniform(a->coeffs + ctr, N - ctr, buf, buflen);
+    ctr += rej_uniform(a->coeffs + ctr, N - ctr, buf, buflen);
   }
 }
 
@@ -450,6 +492,7 @@ void poly_uniform_eta(poly *a,
   unsigned int ctr;
   uint8_t buf[SHAKE256_RATE]; // I dont need to calc uniform_eta_nblocks since I use it as much as I need in HW.
   uint8_t extseed[CRHBYTES + 2];
+  volatile uint32_t t;
 
   for (unsigned int i = 0; i < CRHBYTES; ++i)
     extseed[i] = seed[i];
@@ -458,7 +501,9 @@ void poly_uniform_eta(poly *a,
 
   keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
   keccak_absorb((uint32_t*)extseed, NULL, (CRHBYTES + 2 + 3) >> 2);
-  keccak_finish(KECCAK_NULL_PAD_WORD);
+  
+  t = SHAKE_PAD;
+  keccak_finish((uint32_t*) &t);
 
   ctr = 0;
   while (ctr < N) {
@@ -484,6 +529,7 @@ void poly_uniform_gamma1(poly *a,
                          uint16_t nonce) {
   uint8_t buf[POLYZ_PACKEDBYTES]; // I dont need to calc uniform_eta_nblocks since I use it as much as I need in HW.
   uint8_t extseed[CRHBYTES + 2];
+  volatile uint32_t t;
 
   for (unsigned int i = 0; i < CRHBYTES; ++i)
     extseed[i] = seed[i];
@@ -492,7 +538,8 @@ void poly_uniform_gamma1(poly *a,
 
   keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
   keccak_absorb((uint32_t*)extseed, NULL, (CRHBYTES + 2 + 3) >> 2);
-  keccak_finish(KECCAK_NULL_PAD_WORD);
+  t = SHAKE_PAD;
+  keccak_finish((uint32_t*) &t);
   keccak_squeeze((uint32_t*)buf, NULL, (POLYZ_PACKEDBYTES + 3) >> 2);
   polyz_unpack(a, buf);
 }
@@ -511,11 +558,12 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
   unsigned int i, b, pos;
   uint64_t signs;
   uint8_t buf[SHAKE256_RATE];
+  volatile uint32_t t;
 
   keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
   keccak_absorb((uint32_t*)seed, NULL, (SEEDBYTES + 3) >> 2); // SEEDBYTES + padding
-  keccak_finish(KECCAK_NULL_PAD_WORD);
-
+  t = SHAKE_PAD;
+  keccak_finish((uint32_t*) &t);
   keccak_squeeze((uint32_t*)buf, NULL, (SHAKE256_RATE) >> 2);
 
   signs = 0;
