@@ -2,6 +2,8 @@
 #define SYMMETRIC_H
 
 #include <stdint.h>
+#include <stddef.h>
+
 #include "params.h"
 
 #define SHAKE128_RATE 168
@@ -25,8 +27,17 @@ void dilithium_shake256_stream_init(const uint8_t seed[CRHBYTES], uint16_t nonce
 
 #define stream128_squeezeblocks(OUT, OUTBLOCKS) \
         dilithium_shake128_squeezeblocks(OUT, OUTBLOCKS)
+void dilithium_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
 
 #define stream256_squeezeblocks(OUT, OUTBLOCKS) \
         dilithium_shake256_squeezeblocks(OUT, OUTBLOCKS)
+void dilithium_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
+
+void dilithium_shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen);
+void dilithium_shake256_challenge(uint8_t *out, const uint8_t *mu, const uint8_t *w1packed);
+void dilithium_shake256_mu_crh(uint8_t *mu, const uint8_t *pk, const uint8_t *m, size_t mlen);
+void dilithium_shake256_dualinput(uint8_t *out, size_t outlen,
+    const uint8_t *in1, size_t in1len,
+    const uint8_t *in2, size_t in2len);
 
 #endif
