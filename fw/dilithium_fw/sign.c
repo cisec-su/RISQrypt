@@ -137,7 +137,7 @@ rej:
 
   /* Compute z, reject if it reveals secret */
   polyvecl_pointwise_poly(&z, &cp, &s1);
-  polyvecl_invntt(&z); // ASK TOLUN ASAP
+  polyvecl_invntt(&z); // ASK TOLUN ASAP, github ref impl changed as k to l as soln.
   polyvecl_add(&z, &z, &y);
   polyvecl_reduce(&z);
   if(polyvecl_chknorm(&z, GAMMA1 - BETA))
