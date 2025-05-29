@@ -8,14 +8,9 @@ int x2x_set_modulus(uint32_t *modulus, uint32_t modulus_type, uint32_t dual_mode
     uint32_t dual_flag;
 
     if (dual_mode == X2X_DUAL_MODE_EN) {
-        if (modulus_type == X2X_CTRL_DATA_TYPE_PRIME) {
-            return -1;
-        }
-        else {
-            dual_flag = X2X_CTRL_DUAL_MODE_EN_S;
-        }
+        dual_flag = X2X_CTRL_DUAL_MODE_EN_V;
     } else if (dual_mode == X2X_DUAL_MODE_DIS) {
-        dual_flag = X2X_CTRL_DUAL_MODE_EN_S;
+        dual_flag = 0;
     } else {
         return -1;
     }
@@ -68,7 +63,7 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     X2X_REGS->dout_addr[0] = (uint32_t) dst_0;
     X2X_REGS->dout_addr[1] = (uint32_t) dst_1;
 
-    X2X_REGS->ctrl = X2X_CTRL_START_V | conv_mode | mask;
+    X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | mask;
 
     while ((X2X_REGS->ctrl & X2X_CTRL_DONE_V) == 0);
 
