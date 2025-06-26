@@ -103,7 +103,7 @@ MaskConversion_HALFCYCLE_STREAM #(
     // x2x <- ctrl
     .conversion_mode        (x2x_conv_mode),
     .data_type_mode         (x2x_data_type),
-    .dual_mode              (x2x_dual_mode),
+    .dual_mode              (x2x_dual_mode & !x2x_data_type),
     // x2x <-> fsm
     .valid_data             (x2x_valid_data),
     .ready_data             (x2x_ready_data),
@@ -141,6 +141,7 @@ x2x_acc_fsm #(
     .ctrl_start_RNG  (start_RNG        ),
     .ctrl_mask_mode(mask_mode),
     .ctrl_dual_mode(x2x_dual_mode),
+    .ctrl_data_type(x2x_data_type),
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
     .mem_re          (mem_re           ),
