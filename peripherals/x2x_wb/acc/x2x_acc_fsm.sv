@@ -25,7 +25,9 @@ module x2x_acc_fsm
         input                   ctrl_start_RNG             ,
         input ctrl_mask_mode,
         input ctrl_dual_mode,
-        input ctrl_data_type,
+        input ctrl_conv_mode, // 0 -> A2B, 1 -> B2A
+        input ctrl_arith_mode, // 0 -> unsigned 1 -> signed
+        input ctrl_data_type, // 0 -> power-of-two, 1 -> prime
         // fsm <-> dma        
         output reg [      31:0] mem_addr                   ,
         output reg              mem_re                     ,
@@ -255,19 +257,50 @@ always @(*) begin
     begin
         if(dualprime && dualprime_msh)
         begin
-            x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
-            x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+            if(!ctrl_conv_mode & !ctrl_arith_mode & ctrl_data_type) // A2B Unsigned
+            begin
+                if(shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] > 13'h0680) // HARDCODED FOR KYBER, TODO: PARAMETRIC
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] + 13'h012ff;
+                else
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
+                    
+                if(shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] > 13'h0680)
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] + 13'h012ff;
+                else 
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+            end
+            else 
+            begin
+                x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
+                x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+            end
         end
         else
         begin
-            x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
-            x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];
+            if(!ctrl_conv_mode & !ctrl_arith_mode  & ctrl_data_type)
+            begin
+                if(shares[0][ctr_block_r][PARAM_WIDTH-1:0] > 13'h0680)
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0] + 13'h012ff;
+                else
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
+                    
+                if(shares[1][ctr_block_r][PARAM_WIDTH-1:0] > 13'h0680)
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0] + 13'h012ff;
+                else
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];
+            end
+            else
+            begin
+                x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
+                x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];
+            end
         end
         if(ctrl_dual_mode && !ctrl_data_type)
         begin
             x2x_original_data[1][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
             x2x_original_data[1][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
         end
+        
         x2x_valid_data = 1;
         x2x_ready_result = 1;
         if(x2x_ready_data)
@@ -444,38 +477,6 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-/*
-for(genvar i = 0; i < SHARES ; i = i + 1) begin
-    for(genvar j = 0; j < BURST_LEN ; j = j + 1) begin
-        always @(posedge clk) begin
-            if (!rst_n)
-                shares[i][j] <= 0;
-            else if (write_s0 && (ctr_block_w - 1) == j)
-                shares[0][j] <= mem_i_data;
-            else if (write_s1 && (ctr_block_w - 1)  == j)
-            begin
-                if(!ctrl_mask_mode)
-                    shares[1][j] <= mem_i_data;
-                else
-                    shares[1][j] <= 0;
-            end
-            else if (x2x_valid_result)
-            begin
-                if(!ctrl_dual_mode)
-                begin
-                    shares[0][ctr_block_w] <= {{(32-PARAM_WIDTH){1'b0}},x2x_converted_data[0][0]};
-                    shares[1][ctr_block_w] <= {{(32-PARAM_WIDTH){1'b0}},x2x_converted_data[0][1]};
-                end
-                else
-                begin
-                    shares[0][ctr_block_w] <= {{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[1][0],{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[0][0]};
-                    shares[1][ctr_block_w] <= {{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[1][1],{(16-PARAM_WIDTH){1'b0}},x2x_converted_data[0][1]};
-                end
-            end    
-        end
-    end
-end
-*/
 
 always @(posedge clk) begin
     if (!rst_n) 
@@ -528,14 +529,18 @@ end
 
 for(genvar j = 0; j < RND_SHARES ; j = j + 1) begin
     always @(*) begin
-            x2x_fresh_rnd_shares[j] = stream_out[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)];   
+            //x2x_fresh_rnd_shares[j] = (stream_out[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & 13'h03FF);   
+            if((stream_out[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & 13'h0fff) > 13'h0d00)
+                x2x_fresh_rnd_shares[j] = (stream_out[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & 13'h0fff) - 13'h0d01;
+            else
+                x2x_fresh_rnd_shares[j] = (stream_out[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & 13'h0fff);
     end
 end
 
 for(genvar j = 0; j < RND_SHARES_8bit ; j = j + 1) begin
     always @(*) begin
         if (!rst_n)
-            x2x_fresh_rnd_shares_8bit[j] <= stream_out[(8*(j+1)-1):(8*j)];     
+            x2x_fresh_rnd_shares_8bit[j] = stream_out[(8*(j+1)-1):(8*j)];     
     end
 end
 endmodule

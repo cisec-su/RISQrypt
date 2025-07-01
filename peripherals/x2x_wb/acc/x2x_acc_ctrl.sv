@@ -15,10 +15,11 @@ module x2x_acc_ctrl
         output reg [      31:0]  rdata                 ,     // Read data      
         // ctrl reg fields                    
         output reg               start                 ,     // (Write/Self-Clear)
-        output reg               conv_mode             ,     // (Write)
-        output reg               data_type             ,     // (Read/Write)
-        output reg               dual_mode             ,     // (Read/Write)
-        output reg               mask_mode             ,     // (Write)
+        output reg               conv_mode             ,     // 0 -> A2B, 1 -> B2A
+        output reg               data_type             ,     // 0 -> power-of-two, 1 -> prime
+        output reg               dual_mode             ,     // 0 -> single input, 2 -> dual input
+        output reg               mask_mode             ,     // 1 -> mask input
+        output reg               arith_mode            ,     // 0 -> unsigned 1 -> signed
         
         // data address registers
         output reg [      31:0]  din_addr  [0:SHARES-1],     // (Write)
@@ -129,6 +130,15 @@ always @(posedge clk or negedge rst_n) begin
     else if (we && (addr_offset == CTRL_ADDR)) begin
         mask_mode <= wdata[CTRL_MASK_DATA_BIT];
     end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        arith_mode <= 1'd0;
+    end
+    /*else if (we && (addr_offset == CTRL_ADDR)) begin
+        mask_mode <= wdata[CTRL_MASK_DATA_BIT];
+    end*/
 end
 
 

@@ -41,7 +41,7 @@ if __name__ == "__main__":
             "-p", "--port",
             type=str,
             required=False,
-            default='/dev/ttyUSB1',
+            default='COM4',
             help="Serial Port"
         )
     parser.add_argument(
@@ -55,7 +55,7 @@ if __name__ == "__main__":
             "-f", "--file",
             type=str,
             required=False,
-            default='../examples/uart_example/uart_example.bin',
+            default='C:\\Users\\cisec\\Downloads\\x2x_example.bin',
             help="File to send"
         )
     parser.add_argument(

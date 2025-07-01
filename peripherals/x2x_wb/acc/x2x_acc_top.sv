@@ -68,6 +68,7 @@ wire [63:0] seed;
 wire start_RNG;
 wire busy, done;
 wire mask_mode;
+wire arith_mode;
 
 // fsm <-> dma
 wire [31:0] mem_addr;
@@ -140,6 +141,8 @@ x2x_acc_fsm #(
     .ctrl_seed  (seed        ),
     .ctrl_start_RNG  (start_RNG        ),
     .ctrl_mask_mode(mask_mode),
+    .ctrl_arith_mode(arith_mode),
+    .ctrl_conv_mode(x2x_conv_mode),
     .ctrl_dual_mode(x2x_dual_mode),
     .ctrl_data_type(x2x_data_type),
     // fsm <-> dma
@@ -240,6 +243,7 @@ x2x_acc_ctrl #(
     // ctrl <-> fsm
     .start     (start),
     .mask_mode     (mask_mode),
+    .arith_mode    (arith_mode),
     .din_addr  (din_addr  ),
     .dout_addr (dout_addr ),
     .data_len  (data_len  ),
