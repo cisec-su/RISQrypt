@@ -134,9 +134,7 @@ int crypto_sign_signature(uint8_t *sig,
   randombytes(rhoprime, CRHBYTES);
 #else
   /* Compute rhoprime = SHAKE256(key) */
-  
   dilithium_shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
-
 #endif
 
   poly_init_ntt();
@@ -298,6 +296,8 @@ int crypto_sign_verify(const uint8_t *sig,
   if(siglen != CRYPTO_BYTES)
     return -1;
 
+  poly_init_q();
+
   unpack_pk(rho, &t1, pk);
   if(unpack_sig(c, &z, &h, sig))
     return -1;
@@ -305,27 +305,33 @@ int crypto_sign_verify(const uint8_t *sig,
     return -1;
 
   /* Compute CRH(h(rho, t1), msg) */
-  //edit here HAL
   dilithium_shake256_mu_crh(mu, pk, m, mlen);
 
   /* Matrix-vector multiplication; compute Az - c2^dt1 */
   poly_challenge(&cp, c);
   polyvec_matrix_expand(mat, rho);
 
-  polyvecl_ntt(&z);
-  polyvec_matrix_pointwise(&w1, mat, &z);
+  poly_init_ntt();
 
+  polyvecl_caddq(&z);
+  polyvecl_ntt(&z);
+
+  poly_caddq(&cp);
   poly_ntt(&cp);
+
   polyveck_shiftl(&t1);
   polyveck_ntt(&t1);
+
+  polyvec_matrix_pointwise(&w1, mat, &z);
+
   polyveck_pointwise_poly(&t1, &cp, &t1);
 
   polyveck_sub(&w1, &w1, &t1);
-  polyveck_reduce(&w1);
+
+  poly_init_invntt();
   polyveck_invntt(&w1);
 
   /* Reconstruct w1 */
-  polyveck_caddq(&w1);
   polyveck_use_hint(&w1, &w1, &h);
   polyveck_pack_w1(buf, &w1);
 
