@@ -2,12 +2,14 @@
 #include "rng.h"
 #include "masked.h"
 #include "ntt_lite.h"
+#include "x2x.h"
 #include "masked_gadgets.h"
+#include "util.h"
 
 
 
 
-void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p) {
+void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p) { //TODO
     unsigned int i,j;
     uint16_t t, k;
 
@@ -48,10 +50,17 @@ void masked_gadgets_A2B_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a, uin
 
 
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {
-    unsigned int i,j;
+    unsigned int volatile i,j;
     uint16_t t, k;
+    
+    unsigned int len = 8;
+          
+    /*uart_transmit_string("IN0\n\n", 5);
+    print_u32_arr((uint32_t*)&(a->share[0].coeffs[0]),len);
+    uart_transmit_string("IN1\n\n", 5);
+    print_u32_arr((uint32_t*)&(a->share[1].coeffs[0]),len);*/
 
-    for(j = 0; j < KYBER_N; j++) {
+    /*for(j = 0; j < KYBER_N; j++) {
         t = 0;
         k = 0;
         for(i = 0; i < MASKING_N - 1; i++) {
@@ -67,6 +76,22 @@ void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {
         if (r->share[MASKING_N - 1].coeffs[j] < 0) {
             r->share[MASKING_N - 1].coeffs[j] += KYBER_Q;
         }
+    }*/
+    uint32_t modulus = 3329;
+    
+    x2x_set_modulus(&modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN);
+    
+    x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
+    
+    /*uart_transmit_string("OUT0\n\n", 6);
+    print_u32_arr((uint32_t*)&(r->share[0].coeffs[0]),len);
+    uart_transmit_string("OUT1\n\n", 6);
+    print_u32_arr((uint32_t*)&(r->share[1].coeffs[0]),len);*/
+
+    i = 0;
+    while(i < 0x1)
+    {
+        i=i+1;
     }
 }
 

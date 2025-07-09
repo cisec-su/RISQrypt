@@ -22,6 +22,7 @@ module x2x_acc_fsm
         input      [      31:0] ctrl_dout_addr [0:SHARES-1],
         input      [  LOGL-1:0] ctrl_data_len              ,
         input      [      63:0] ctrl_seed             , 
+        input      [31:0] modulus,
         input                   ctrl_start_RNG             ,
         input ctrl_mask_mode,
         input ctrl_dual_mode,
@@ -67,7 +68,6 @@ localparam LOGN = $rtoi($ceil($clog2(N + 1)));
 localparam RATE_SHIFT = $rtoi($ceil($clog2(64 / B)));
 
 
-
 localparam ST_IDLE                       = 4'd0;
 localparam ST_FETCH_DATA_0_0             = 4'd1;
 localparam ST_FETCH_DATA_0_1             = 4'd2;
@@ -107,8 +107,15 @@ reg [31:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
 reg write_s0, write_s1;
 
 reg dualprime_msh, dualprime_comp;
+
 wire dualprime;
 assign dualprime = ctrl_dual_mode & ctrl_data_type;
+
+wire [PARAM_WIDTH-1:0] modulus_half;
+assign modulus_half = modulus >> 1;
+ 
+wire [PARAM_WIDTH-1:0] modulus_complement;
+assign modulus_complement = (13'h1FFF ^ modulus) + 1;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -259,13 +266,13 @@ always @(*) begin
         begin
             if(!ctrl_conv_mode & !ctrl_arith_mode & ctrl_data_type) // A2B Unsigned
             begin
-                if(shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] > 13'h0680) // HARDCODED FOR KYBER, TODO: PARAMETRIC
-                    x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] + 13'h012ff;
+                if(shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] > modulus_half) // HARDCODED FOR KYBER, TODO: PARAMETRIC
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] + modulus_complement;
                 else
                     x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
                     
-                if(shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] > 13'h0680)
-                    x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] + 13'h012ff;
+                if(shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] > modulus_half)
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] + modulus_complement;
                 else 
                     x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
             end
@@ -279,13 +286,13 @@ always @(*) begin
         begin
             if(!ctrl_conv_mode & !ctrl_arith_mode  & ctrl_data_type)
             begin
-                if(shares[0][ctr_block_r][PARAM_WIDTH-1:0] > 13'h0680)
-                    x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0] + 13'h012ff;
+                if(shares[0][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half)
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0] + modulus_complement;
                 else
                     x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
                     
-                if(shares[1][ctr_block_r][PARAM_WIDTH-1:0] > 13'h0680)
-                    x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0] + 13'h012ff;
+                if(shares[1][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half)
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0] + modulus_complement;
                 else
                     x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];
             end

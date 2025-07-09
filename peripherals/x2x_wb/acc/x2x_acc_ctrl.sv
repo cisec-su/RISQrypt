@@ -27,6 +27,7 @@ module x2x_acc_ctrl
         output reg [  LOGL-1:0]  data_len              ,     // (Write)
         output reg [      63:0]  seed                  ,     // (Write)
         output reg               start_RNG             ,     // (Write/Self-Clear)
+        output reg [31:0]        modulus               ,
 
         input                    busy                  ,     // Busy status input
         input                    done                        // Done status input
@@ -51,18 +52,16 @@ localparam CTRL_CONV_MODE_BIT = 2;
 localparam CTRL_DATA_TYPE_BIT = 3;   //readback
 localparam CTRL_DUAL_MODE_BIT = 4;   //readback
 localparam CTRL_MASK_DATA_BIT = 5; 
-localparam CTRL_WORD_SIZE_BIT = 6; // 0-->32-bit // 1--> 2*16 //readback
+//localparam CTRL_WORD_SIZE_BIT = 6; // 0-->32-bit // 1--> 2*16 //readback
+///10-6
+localparam CTRL_SEED_IP_BIT   = 29;
 localparam CTRL_BUSY_BIT     = 30;
 localparam CTRL_DONE_BIT     = 31;
 
 wire [31:0] addr_offset;
 reg done_q;
 
-reg [31:0] modulus;
-
-
 assign addr_offset = addr - BASE_ADDR;
-
 
 // DONE flag (Clear on Read)
 always @(posedge clk or negedge rst_n) begin
