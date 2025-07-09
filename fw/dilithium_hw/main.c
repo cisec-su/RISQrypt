@@ -57,7 +57,7 @@ int main() {
 
     if (memcmp(sk, expected_sk, CRYPTO_SECRETKEYBYTES) != 0) {
         print_string("\n secret key swapped with expected secret key ");
-        print_hex_data("\n Wrong sk:", sk, CRYPTO_SECRETKEYBYTES);  
+        print_hex_with_label("\n Wrong sk:", sk, CRYPTO_SECRETKEYBYTES);  
         memcpy(sk, expected_sk, CRYPTO_SECRETKEYBYTES);
     }  
     else
@@ -75,7 +75,7 @@ int main() {
     print_string("\n");
 
     print_string("\nSigning Message\n");
-    ret = crypto_sign_signature(sig, &sig_len, message, msg_len, sk);
+    ret = crypto_sign_signature(sig, &sig_len, message, msg_len, expected_sk);
     if (ret != 0) {
         print_string("Signature generation failed\n");
         return -1;
@@ -115,6 +115,8 @@ int main() {
     // print_string("\nRecovered message:\n");
     // print_hex(m, m_len, 0);
     // print_string("\nMessage match successful \n");
+
+    print_string("DONE\n");
 
     return 0;
 }

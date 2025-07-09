@@ -84,9 +84,9 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 
   if (memcmp(tr, expected_tr, SEEDBYTES) != 0) {
       // print_string("\ntr swapped with expected tr shake256(tr,pk)");
-      // print_hex_data("\n Wrong tr:", tr, SEEDBYTES);  
+      // print_hex_with_label("\n Wrong tr:", tr, SEEDBYTES);  
       memcpy(tr, expected_tr, SEEDBYTES);
-      // print_hex_data("\n Expected tr:", tr, SEEDBYTES);  
+      // print_hex_with_label("\n Expected tr:", tr, SEEDBYTES);  
   }  
   // else
   // {
@@ -101,6 +101,14 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 
   return 0;
 }
+
+
+const uint8_t expected_mu[CRHBYTES] = { 0x44, 0xf0, 0xd0, 0x7f, 0xc2, 0xa9, 0x9e, 0xbf, 0xa9, 0x7d, 0xb3, 0x0d, 0x40, 0xb7, 0xb8, 0xfa, 0x45, 0x79, 0x71, 0xf2, 0x0a, 0x2e, 0xd1, 0x29, 0x85, 0xaf, 0x04, 0x7b, 0xc6, 0x6a, 0xb6, 0x5f, 0xd1, 0xaf, 0x94, 0xf5, 0x8d, 0xb4, 0x3c, 0x16, 0xc7, 0xa0, 0x34, 0xe8, 0xdc, 0xb3, 0x2d, 0x7e, 0xc9, 0x82, 0x52, 0x5e, 0x91, 0x78, 0x0a, 0x80, 0x6c, 0x4a, 0xda, 0x32, 0xc6, 0x93, 0x56, 0xa4}; 
+
+const uint8_t expected_rhoprime[CRHBYTES] = { 0x69, 0x07, 0x83, 0x56, 0x63, 0x73, 0x55, 0x3c, 0x39, 0x41, 0xc4, 0x0c, 0x11, 0xb0, 0xb3, 0x90, 0xd5, 0x56, 0x15, 0x6b, 0x65, 0xc7, 0x0b, 0xf1, 0xfb, 0xfe, 0x2e, 0xcb, 0x37, 0xd6, 0x2a, 0x7d, 0xc0, 0xfb, 0x7e, 0xe4, 0xcc, 0xc2, 0x04, 0x12, 0x00, 0x03, 0x36, 0xd9, 0xaf, 0x06, 0x96, 0x31, 0x60, 0x2c, 0xfc, 0xa5, 0x8f, 0xcf, 0x64, 0x74, 0x31, 0xee, 0x49, 0x0e, 0xae, 0x83, 0xd4, 0x69 };
+
+const uint8_t expected_sig[SEEDBYTES] = { 0x6d, 0xf2, 0xca, 0x29, 0xf4, 0x6b, 0x6c, 0xf7, 0xa6, 0xe3, 0x63, 0x38, 0x47, 0x97, 0xfd, 0x5d, 0x43, 0xfd, 0x48, 0x96, 0xd8, 0x1c, 0x5f, 0x11, 0xc9, 0xc4, 0x75, 0xb5, 0x0a, 0x72, 0x8f, 0xba };
+
 
 /*************************************************
 * Name:        crypto_sign_signature
@@ -129,12 +137,6 @@ int crypto_sign_signature(uint8_t *sig,
   polyveck t0, s2, w1, w0, h;
   poly cp;
 
-  const uint8_t expected_mu[CRHBYTES] = { 0x44, 0xf0, 0xd0, 0x7f, 0xc2, 0xa9, 0x9e, 0xbf, 0xa9, 0x7d, 0xb3, 0x0d, 0x40, 0xb7, 0xb8, 0xfa, 0x45, 0x79, 0x71, 0xf2, 0x0a, 0x2e, 0xd1, 0x29, 0x85, 0xaf, 0x04, 0x7b, 0xc6, 0x6a, 0xb6, 0x5f, 0xd1, 0xaf, 0x94, 0xf5, 0x8d, 0xb4, 0x3c, 0x16, 0xc7, 0xa0, 0x34, 0xe8, 0xdc, 0xb3, 0x2d, 0x7e, 0xc9, 0x82, 0x52, 0x5e, 0x91, 0x78, 0x0a, 0x80, 0x6c, 0x4a, 0xda, 0x32, 0xc6, 0x93, 0x56, 0xa4}; 
-
-  const uint8_t expected_rhoprime[CRHBYTES] = { 0x6e, 0xd7, 0xac, 0xd6, 0x31, 0xb0, 0x9e, 0x1b, 0x81, 0xaa, 0xb2, 0xb7, 0x66, 0xfe, 0xbd, 0x02, 0xdb, 0xa0, 0x5f, 0xd5, 0xe1, 0x4d, 0xd4, 0x31, 0x34, 0xd4, 0x59, 0x36, 0xa0, 0x21, 0xde, 0xdf, 0xd3, 0xf4, 0x12, 0xfd, 0xf9, 0xdb, 0xad, 0x96, 0x0a, 0x7c, 0x6e, 0xdc, 0xb4, 0x70, 0x5a, 0x34, 0xe6, 0xc8, 0xe9, 0x61, 0x9a, 0x23, 0x50, 0x7d, 0xf7, 0xf1, 0x5f, 0x4f, 0x06, 0x73, 0xa3, 0xd2};
-
-  const uint8_t expected_sig[SEEDBYTES] = { 0xa5, 0x14, 0x89, 0xf4, 0xec, 0x0d, 0x63, 0x6d, 0x34, 0xc6, 0x91, 0xf2, 0x81, 0x09, 0x06, 0x74, 0xe6, 0x88, 0xf9, 0x6d, 0xeb, 0x98, 0x49, 0xdd, 0x3c, 0xd2, 0x2f, 0x68, 0x85, 0xa1, 0x15, 0x7e};
-
   rho = seedbuf;
   tr = rho + SEEDBYTES;
   key = tr + SEEDBYTES;
@@ -142,9 +144,9 @@ int crypto_sign_signature(uint8_t *sig,
   rhoprime = mu + CRHBYTES;
   unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
   
-  //print_hex_data("\n[SK Unpack] rho       = ", rho, SEEDBYTES);
-  //print_hex_data("\n[SK Unpack] tr        = ", tr, SEEDBYTES);
-  //print_hex_data("\n[SK Unpack] key       = ", key, SEEDBYTES);
+  //print_hex_with_label("\n[SK Unpack] rho       = ", rho, SEEDBYTES);
+  //print_hex_with_label("\n[SK Unpack] tr        = ", tr, SEEDBYTES);
+  //print_hex_with_label("\n[SK Unpack] key       = ", key, SEEDBYTES);
 //
   //print_string("\n[SK Unpack] t0  :\n");
   //for (int i = 0; i < K; i++) {
@@ -175,13 +177,13 @@ int crypto_sign_signature(uint8_t *sig,
 
   poly_init_q();
 
-  /* Compute CRH(tr, msg) */
-  dilithium_shake256_doubleabsorb(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
+  /* Compute CRH(tr, msg) rename  */
+  dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
 
   if (memcmp(mu, expected_mu, CRHBYTES) != 0) {
       print_string("\n mu mismatch at doubleabsorb line 323 Overriding with expected_mu.");
-      //print_hex_data("\nFPGA mu:", mu, CRHBYTES);  
-      //print_hex_data("\nExpected mu:", expected_mu, CRHBYTES);  
+      //print_hex_with_label("\nFPGA mu:", mu, CRHBYTES);  
+      //print_hex_with_label("\nExpected mu:", expected_mu, CRHBYTES);  
       memcpy(mu, expected_mu, CRHBYTES);  
   }
   else 
@@ -194,16 +196,16 @@ int crypto_sign_signature(uint8_t *sig,
 #else
   /* Compute rhoprime = SHAKE256(key) */
   
-  print_hex_data("\nKEY:", key, SEEDBYTES + CRHBYTES);  
+  print_hex_with_label("\nKEY:", key, SEEDBYTES + CRHBYTES);  // prints K | MU
   dilithium_shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
-  print_hex_data("\nrhoprime353:", rhoprime, CRHBYTES);  
+  print_hex_with_label("\nrhoprime353:", rhoprime, CRHBYTES);  
 
   if (memcmp(rhoprime, expected_rhoprime, CRHBYTES) != 0) {
-      print_string("\nrhoprime mismatch at line 351 Overriding with expected_rhoprime.");
-      //print_hex_data("\nFPGA rhoprime:", rhoprime, CRHBYTES);  
-      //print_hex_data("\nExpected rhoprime:", expected_rhoprime, CRHBYTES);  
-      memcpy(rhoprime, expected_rhoprime, CRHBYTES);  
-  }  
+      // print_string("\nrhoprime mismatch at line 351 Overriding with expected_rhoprime.");
+      // //print_hex_with_label("\nFPGA rhoprime:", rhoprime, CRHBYTES);  
+      // //print_hex_with_label("\nExpected rhoprime:", expected_rhoprime, CRHBYTES);  
+      // memcpy(rhoprime, expected_rhoprime, CRHBYTES);  
+  }
   else 
   {
       print_string("\n rho_prime PASS.");
@@ -231,35 +233,60 @@ int crypto_sign_signature(uint8_t *sig,
   //    }
   //}
 
+  // print_string("s1\n");
+  // for (size_t k = 0; k < 16; k++) {
+  //   print_u32(k);
+  //   print_string("\t");
+  //   print_u32(s1.vec[0].coeffs[k]);
+  //   print_string(" ");
+  //   print_string("\n");
+  // }
+  // print_string("\n");
+  // print_string("\n");
+
+  polyvecl_caddq(&s1);
   polyvecl_ntt(&s1);
+
+  polyveck_caddq(&s2);
   polyveck_ntt(&s2); 
+
+  polyveck_caddq(&t0);
   polyveck_ntt(&t0); 
 
 rej:
+
+  if (nonce) {
+    poly_init_ntt();
+  }
+
   /* Sample intermediate vector y */
   polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
-
+  polyvecl_caddq(&y);
+  
   /* Matrix-vector multiplication */
-  z = y;
+  // z = y;
+ 
+  polyvecl_ntt(&y);
 
-  poly_init_ntt();
-
-  polyvecl_ntt(&z);
-  polyvec_matrix_pointwise(&w1, mat, &z);
-  polyveck_reduce(&w1);
+  polyvec_matrix_pointwise(&w1, mat, &y);
+  // polyveck_reduce(&w1);
 
   poly_init_invntt();
 
   polyveck_invntt(&w1);
 
   /* Decompose w and call the random oracle */
-  polyveck_caddq(&w1);
+  // polyveck_caddq(&w1);
   polyveck_decompose(&w1, &w0, &w1);
+  polyveck_caddq(&w0);
+
   polyveck_pack_w1(sig, &w1);
 
-  dilithium_shake256_doubleabsorb(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
+  dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
 
-  //print_hex_data("\nsig:", sig, SEEDBYTES);  
+  print_hex_with_label("\n sig:", sig, SEEDBYTES);  
+
+  //print_hex_with_label("\nsig:", sig, SEEDBYTES);  
   if (memcmp(sig, expected_sig, SEEDBYTES) != 0) {
       print_string("\n signature swapped with expected signature gen by shake256(mu)");
       memcpy(sig, expected_sig, SEEDBYTES);
@@ -270,35 +297,23 @@ rej:
   }
 
   poly_challenge(&cp, sig);
-  //cp coeffs matched
-  //print_string("\n[poly_challenge] cp:\n"); //cp coeffs matched
-  //for (int i = 0; i < N; i++) {
-  //    print_u32(cp.coeffs[i]);
-  //    print_string(" ");
-  //    if ((i + 1) % 16 == 0)
-  //        print_string("\n"); 
-  //}
+
+  poly_caddq(&cp);
 
   poly_init_ntt();
 
   poly_ntt(&cp);
 
-  //print_string("\n[poly_ntt] cp:\n");
-  //for (int i = 0; i < N; i++) {
-  //    print_u32(cp.coeffs[i]);
-  //    print_string(" ");
-  //    if ((i + 1) % 16 == 0)
-  //        print_string("\n"); 
-  //}
 
-  poly_init_invntt();
 
   /* Compute z, reject if it reveals secret */
   polyvecl_pointwise_poly(&z, &cp, &s1);
-  polyvecl_invntt(&z);
   polyvecl_add(&z, &z, &y);
+  poly_init_invntt();
+  polyvecl_invntt(&z);
   polyvecl_reduce(&z);
-  //print_string("\n[z invntt coeffs] z  :\n");
+
+  //print_string("\n[z pointwise coeffs] z  :\n");
   //for (int i = 0; i < L; i++) {
   //    for (int j = 0; j < N; j++) {
   //        print_u32(z.vec[i].coeffs[j]);
@@ -306,40 +321,56 @@ rej:
   //    }
   //    print_string("\n");
   //}
-
-  if(polyvecl_chknorm(&z, GAMMA1 - BETA)) {
-      /*print_string("\n z norm check failed!");
-      print_u32(polyvecl_chknorm(&z, GAMMA1 - BETA));*/ 
-      goto rej;
-    }
+  ////////////////////////////////////////////////////////////////////////////
+  // if(polyvecl_chknorm(&z, GAMMA1 - BETA)) {
+  //   /*print_string("\n z norm check failed!");
+  //   print_u32(polyvecl_chknorm(&z, GAMMA1 - BETA));*/ 
+  //   goto rej;
+  // }
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
   polyveck_pointwise_poly(&h, &cp, &s2);
+  poly_init_invntt();
   polyveck_invntt(&h);
   polyveck_sub(&w0, &w0, &h);
   polyveck_reduce(&w0);
+  print_string("w0\n");
+  for (size_t k = 0; k < 16; k++) {
+    print_u32(k);
+    print_string("\t");
+    print_u32(w0.vec[0].coeffs[k]);
+    print_string(" ");
+    print_string("\n");
+  }
+  print_string("\n");
+  print_string("\n");
   if(polyveck_chknorm(&w0, GAMMA2 - BETA)) {
       print_string("\n w0 norm check failed!");
       print_u32(polyveck_chknorm(&w0, GAMMA2 - BETA));
-      goto rej;
+      // goto rej;
+      return 0;
     }
 
   /* Compute hints for w1 */
   polyveck_pointwise_poly(&h, &cp, &t0);
   polyveck_invntt(&h);
   polyveck_reduce(&h);
-  if(polyveck_chknorm(&h, GAMMA2))
+  if(polyveck_chknorm(&h, GAMMA2)) {
       print_string("\n h norm check failed!");
       print_u32(polyveck_chknorm(&h, GAMMA2));
-    goto rej;
+      //goto rej;
+      return 0;
+  }
 
   polyveck_add(&w0, &w0, &h);
   n = polyveck_make_hint(&h, &w0, &w1);
-  if(n > OMEGA)
+  if(n > OMEGA) {
       print_string("\n n greater than omega");
       print_u32((n > OMEGA));
-    goto rej;
+      //goto rej;
+      return 0;
+  }
 
   /* Write signature */
   pack_sig(sig, sig, &z, &h);

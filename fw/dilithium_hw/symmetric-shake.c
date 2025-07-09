@@ -77,7 +77,7 @@ void dilithium_shake256_mu_crh(uint8_t *mu, const uint8_t *pk, const uint8_t *m,
     keccak_squeeze((uint32_t*)mu, NULL, (CRHBYTES) >> 2);
 }
 
-void dilithium_shake256_doubleabsorb(uint8_t *out, size_t outlen, const uint8_t *in1, size_t in1len, const uint8_t *in2, size_t in2len) {
+void dilithium_shake256_absorb_double(uint8_t *out, size_t outlen, const uint8_t *in1, size_t in1len, const uint8_t *in2, size_t in2len) {
     volatile uint32_t t;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
     keccak_absorb((uint32_t*)in1, NULL, (in1len) >> 2);

@@ -47,8 +47,8 @@ void print_u32(uint32_t num) {
     print_hex((const uint8_t*) &num, sizeof(uint32_t), 1);
 }
 
-// Helper function to print hex data with a label rename as hex_label
-void print_hex_data(const char *label, const uint8_t *data, size_t len) {
+
+void print_hex_with_label(const char *label, const uint8_t *data, size_t len) {
     print_string(label);
     print_hex(data, len, 0);
 }
