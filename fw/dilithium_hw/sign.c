@@ -58,15 +58,11 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   polyvecl_caddq(&s1hat);
 
   poly_init_ntt();
-
   polyvecl_ntt(&s1hat);
-
 
   polyvec_matrix_pointwise(&t1, mat, &s1hat); // mat and s1hat is equal in python and fpga
 
-
   poly_init_invntt();
-
   polyveck_invntt(&t1);
 
   /* Add error vector s2 */
@@ -82,21 +78,6 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
   dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 
-  if (memcmp(tr, expected_tr, SEEDBYTES) != 0) {
-      // print_string("\ntr swapped with expected tr shake256(tr,pk)");
-      // print_hex_with_label("\n Wrong tr:", tr, SEEDBYTES);  
-      memcpy(tr, expected_tr, SEEDBYTES);
-      // print_hex_with_label("\n Expected tr:", tr, SEEDBYTES);  
-  }  
-  // else
-  // {
-  //     print_string("\n tr PASS ");
-  // }
-  
-  //print_string("\ntr: ");
-  //print_hex(tr, SEEDBYTES, 0);  // SEEDBYTES = 32
-  //print_string("\n");
-  
   pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
 
   return 0;
@@ -144,105 +125,24 @@ int crypto_sign_signature(uint8_t *sig,
   rhoprime = mu + CRHBYTES;
   unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
   
-  //print_hex_with_label("\n[SK Unpack] rho       = ", rho, SEEDBYTES);
-  //print_hex_with_label("\n[SK Unpack] tr        = ", tr, SEEDBYTES);
-  //print_hex_with_label("\n[SK Unpack] key       = ", key, SEEDBYTES);
-//
-  //print_string("\n[SK Unpack] t0  :\n");
-  //for (int i = 0; i < K; i++) {
-  //    for (int j = 0; j < N; j++) {
-  //        print_u32(t0.vec[i].coeffs[j]);
-  //        print_string(" ");
-  //    }
-  //    print_string("\n");
-  //}
-//
-  //print_string("\n[SK Unpack] s1  :\n");
-  //for (int i = 0; i < L; i++) {
-  //    for (int j = 0; j < N; j++) {
-  //        print_u32(s1.vec[i].coeffs[j]);
-  //        print_string(" ");
-  //    }
-  //    print_string("\n");
-  //}
-//
-  //print_string("\n[SK Unpack] s2  :\n");
-  //for (int i = 0; i < K; i++) {
-  //    for (int j = 0; j < N; j++) {
-  //        print_u32(s2.vec[i].coeffs[j]);
-  //        print_string(" ");
-  //    }
-  //    print_string("\n");
-  //}
-
   poly_init_q();
 
   /* Compute CRH(tr, msg) rename  */
   dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
-
-  if (memcmp(mu, expected_mu, CRHBYTES) != 0) {
-      print_string("\n mu mismatch at doubleabsorb line 323 Overriding with expected_mu.");
-      //print_hex_with_label("\nFPGA mu:", mu, CRHBYTES);  
-      //print_hex_with_label("\nExpected mu:", expected_mu, CRHBYTES);  
-      memcpy(mu, expected_mu, CRHBYTES);  
-  }
-  else 
-  {
-      print_string("\n mu PASS.");
-  }
 
 #ifdef DILITHIUM_RANDOMIZED_SIGNING
   randombytes(rhoprime, CRHBYTES);
 #else
   /* Compute rhoprime = SHAKE256(key) */
   
-  print_hex_with_label("\nKEY:", key, SEEDBYTES + CRHBYTES);  // prints K | MU
   dilithium_shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
-  print_hex_with_label("\nrhoprime353:", rhoprime, CRHBYTES);  
 
-  if (memcmp(rhoprime, expected_rhoprime, CRHBYTES) != 0) {
-      // print_string("\nrhoprime mismatch at line 351 Overriding with expected_rhoprime.");
-      // //print_hex_with_label("\nFPGA rhoprime:", rhoprime, CRHBYTES);  
-      // //print_hex_with_label("\nExpected rhoprime:", expected_rhoprime, CRHBYTES);  
-      // memcpy(rhoprime, expected_rhoprime, CRHBYTES);  
-  }
-  else 
-  {
-      print_string("\n rho_prime PASS.");
-  }
 #endif
 
   poly_init_ntt();
 
   /* Expand matrix and transform vectors */
   polyvec_matrix_expand(mat, rho);
-  //same with python
-  //for (size_t i = 0; i < K; i++) {
-  //    for (size_t j = 0; j < L; j++) {
-  //        print_string("\n A_hat mat[");
-  //        print_u32(i);
-  //        print_string(",");
-  //        print_u32(j);
-  //        print_string("]: ");
-  //
-  //        for (size_t k = 0; k < N; k++) {
-  //            print_u32(mat[i].vec[j].coeffs[k]);
-  //            print_string(" ");
-  //        }
-  //        print_string("\n");
-  //    }
-  //}
-
-  // print_string("s1\n");
-  // for (size_t k = 0; k < 16; k++) {
-  //   print_u32(k);
-  //   print_string("\t");
-  //   print_u32(s1.vec[0].coeffs[k]);
-  //   print_string(" ");
-  //   print_string("\n");
-  // }
-  // print_string("\n");
-  // print_string("\n");
 
   polyvecl_caddq(&s1);
   polyvecl_ntt(&s1);
@@ -254,7 +154,6 @@ int crypto_sign_signature(uint8_t *sig,
   polyveck_ntt(&t0); 
 
 rej:
-
   if (nonce) {
     poly_init_ntt();
   }
@@ -263,38 +162,22 @@ rej:
   polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
   polyvecl_caddq(&y);
   
-  /* Matrix-vector multiplication */
-  // z = y;
- 
+  /* Matrix-vector multiplication */ 
   polyvecl_ntt(&y);
 
   polyvec_matrix_pointwise(&w1, mat, &y);
-  // polyveck_reduce(&w1);
 
   poly_init_invntt();
 
   polyveck_invntt(&w1);
 
   /* Decompose w and call the random oracle */
-  // polyveck_caddq(&w1);
   polyveck_decompose(&w1, &w0, &w1);
   polyveck_caddq(&w0);
 
   polyveck_pack_w1(sig, &w1);
 
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
-
-  print_hex_with_label("\n sig:", sig, SEEDBYTES);  
-
-  //print_hex_with_label("\nsig:", sig, SEEDBYTES);  
-  if (memcmp(sig, expected_sig, SEEDBYTES) != 0) {
-      print_string("\n signature swapped with expected signature gen by shake256(mu)");
-      memcpy(sig, expected_sig, SEEDBYTES);
-  }  
-  else
-  {
-      print_string("\n signature PASS ");
-  }
 
   poly_challenge(&cp, sig);
 
@@ -313,20 +196,9 @@ rej:
   polyvecl_invntt(&z);
   polyvecl_reduce(&z);
 
-  //print_string("\n[z pointwise coeffs] z  :\n");
-  //for (int i = 0; i < L; i++) {
-  //    for (int j = 0; j < N; j++) {
-  //        print_u32(z.vec[i].coeffs[j]);
-  //        print_string(" ");
-  //    }
-  //    print_string("\n");
-  //}
-  ////////////////////////////////////////////////////////////////////////////
-  // if(polyvecl_chknorm(&z, GAMMA1 - BETA)) {
-  //   /*print_string("\n z norm check failed!");
-  //   print_u32(polyvecl_chknorm(&z, GAMMA1 - BETA));*/ 
-  //   goto rej;
-  // }
+  if(polyvecl_chknorm(&z, GAMMA1 - BETA)) {
+    goto rej;
+  }
 
   /* Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
@@ -335,49 +207,31 @@ rej:
   polyveck_invntt(&h);
   polyveck_sub(&w0, &w0, &h);
   polyveck_reduce(&w0);
-  print_string("w0\n");
-  for (size_t k = 0; k < 16; k++) {
-    print_u32(k);
-    print_string("\t");
-    print_u32(w0.vec[0].coeffs[k]);
-    print_string(" ");
-    print_string("\n");
-  }
-  print_string("\n");
-  print_string("\n");
+
   if(polyveck_chknorm(&w0, GAMMA2 - BETA)) {
-      print_string("\n w0 norm check failed!");
-      print_u32(polyveck_chknorm(&w0, GAMMA2 - BETA));
-      // goto rej;
-      return 0;
-    }
+    goto rej;
+  }
 
   /* Compute hints for w1 */
   polyveck_pointwise_poly(&h, &cp, &t0);
+  poly_init_invntt();
   polyveck_invntt(&h);
   polyveck_reduce(&h);
   if(polyveck_chknorm(&h, GAMMA2)) {
-      print_string("\n h norm check failed!");
-      print_u32(polyveck_chknorm(&h, GAMMA2));
-      //goto rej;
-      return 0;
+      goto rej;
   }
 
   polyveck_add(&w0, &w0, &h);
+  polyveck_reduce(&w0);  
   n = polyveck_make_hint(&h, &w0, &w1);
   if(n > OMEGA) {
-      print_string("\n n greater than omega");
-      print_u32((n > OMEGA));
-      //goto rej;
-      return 0;
+      goto rej;
   }
 
   /* Write signature */
   pack_sig(sig, sig, &z, &h);
   *siglen = CRYPTO_BYTES;
-  print_string("\n Signature: ");
-  print_hex(sig, *siglen, 0);
-  print_string("\n");
+
   return 0;
 }
 
