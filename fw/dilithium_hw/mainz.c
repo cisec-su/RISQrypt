@@ -11,11 +11,7 @@
 #include "randombytes.h"
 #include "symmetric.h"
 
-// Helper function to print hex data with a label
-void print_hex_data(const char *label, const uint8_t *data, size_t len) {
-    print_string(label);
-    print_hex(data, len, 0);
-}
+
 
 int main() {
     uint8_t pk[CRYPTO_PUBLICKEYBYTES];
@@ -26,17 +22,23 @@ int main() {
     size_t sig_len;
     int ret;
 
+    print_string("\n NTT core init\n");
+    poly_init_q();
+    poly_init_ntt();
+    poly_init_invntt();
+    print_string("\n NTT core init done\n");
+
     print_string("\n Dilithium key generation \n");
     ret = crypto_sign_keypair(pk, sk);
     if (ret != 0) {
         print_string("Key generation failed\n");
         return -1;
     }
-    print_string("Public Key: ");
+    print_string("\n Public Key: ");
     print_hex(pk, CRYPTO_PUBLICKEYBYTES, 0);
     print_string("\n");
 
-    print_string("Secret Key: ");
+    print_string("\n Secret Key: ");
     print_hex(sk, CRYPTO_SECRETKEYBYTES, 0);
     print_string("\n");
 
@@ -46,7 +48,7 @@ int main() {
         print_string("Signature generation failed\n");
         return -1;
     }
-    print_string("Signature: ");
+    print_string("\n Signature: ");
     print_hex(sig, sig_len, 0);
     print_string("\n");
 

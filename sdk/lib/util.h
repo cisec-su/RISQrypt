@@ -17,5 +17,6 @@ void print_u32(uint32_t num);
 
 void print_u32_arr(uint32_t *ptr, size_t len);
 
+void print_hex_data(const char *label, const uint8_t *data, size_t len);
 
 #endif

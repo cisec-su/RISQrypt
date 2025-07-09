@@ -55,6 +55,8 @@ void polyveck_uniform_eta(polyveck *v, const uint8_t seed[CRHBYTES], uint16_t no
 void polyveck_reduce(polyveck *v);
 #define polyveck_caddq DILITHIUM_NAMESPACE(polyveck_caddq)
 void polyveck_caddq(polyveck *v);
+#define polyvecl_caddq DILITHIUM_NAMESPACE(polyvecl_caddq)
+void polyvecl_caddq(polyvecl *v);
 #define polyveck_freeze DILITHIUM_NAMESPACE(polyveck_freeze)
 void polyveck_freeze(polyveck *v);
 

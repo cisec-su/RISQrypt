@@ -203,6 +203,20 @@ void polyveck_caddq(polyveck *v) {
     poly_caddq(&v->vec[i]);
 }
 
+/*************************************************
+* Name:        polyvecl_caddq
+*
+* Description: For all coefficients of polynomials in vector of length L
+*              add Q if coefficient is negative.
+*
+* Arguments:   - polyvecl *v: pointer to input/output vector
+**************************************************/
+void polyvecl_caddq(polyvecl *v) {
+  unsigned int i;
+
+  for(i = 0; i < L; ++i)
+    poly_caddq(&v->vec[i]);
+}
 #if 0
 /*************************************************
 * Name:        polyveck_freeze

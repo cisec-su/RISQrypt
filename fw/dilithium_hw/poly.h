@@ -80,4 +80,13 @@ void polyz_unpack(poly *r, const uint8_t *a);
 #define polyw1_pack DILITHIUM_NAMESPACE(polyw1_pack)
 void polyw1_pack(uint8_t *r, const poly *a);
 
+#define poly_init_q DILITHIUM_NAMESPACE(poly_init_q)
+void poly_init_q(void);
+
+#define poly_init_ntt DILITHIUM_NAMESPACE(poly_init_ntt)
+void poly_init_ntt(void);
+
+#define poly_init_invntt DILITHIUM_NAMESPACE(poly_init_invntt)
+void poly_init_invntt(void);
+
 #endif
