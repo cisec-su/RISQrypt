@@ -51,9 +51,25 @@ typedef struct
 #define X2X_CTRL_DUAL_MODE_EN_M   ((uint32_t) 0x1)
 #define X2X_CTRL_DUAL_MODE_EN_V   (X2X_CTRL_DUAL_MODE_EN_M << X2X_CTRL_DUAL_MODE_EN_S)
 
-#define X2X_CTRL_SRC_MASK_S       ((uint32_t) 5)
-#define X2X_CTRL_SRC_MASK_M       ((uint32_t) 0x1)
-#define X2X_CTRL_SRC_MASK_V       (X2X_CTRL_SRC_MASK_M << X2X_CTRL_SRC_MASK_S)
+#define X2X_CTRL_SRC_SHARE_S      ((uint32_t) 5)
+#define X2X_CTRL_SRC_SHARE_M      ((uint32_t) 0x1)
+#define X2X_CTRL_SRC_SHARE_V      (X2X_CTRL_SRC_SHARE_M << X2X_CTRL_SRC_SHARE_S)
+
+#define X2X_CTRL_LOG_MODULUS_S    ((uint32_t) 6)
+#define X2X_CTRL_LOG_MODULUS_M    ((uint32_t) 0x1F)
+#define X2X_CTRL_LOG_MODULUS_V    (X2X_CTRL_LOG_MODULUS_M << X2X_CTRL_LOG_MODULUS_S)
+
+#define X2X_CTRL_B2A_BIT_EN_S     ((uint32_t) 11)
+#define X2X_CTRL_B2A_BIT_EN_M     ((uint32_t) 0x1)
+#define X2X_CTRL_B2A_BIT_EN_V     (X2X_CTRL_B2A_BIT_EN_M << X2X_CTRL_B2A_BIT_EN_S)
+
+#define X2X_CTRL_REJS_DIS_S       ((uint32_t) 12)
+#define X2X_CTRL_REJS_DIS_M       ((uint32_t) 0x1)
+#define X2X_CTRL_REJS_DIS_V       (X2X_CTRL_REJS_DIS_M << X2X_CTRL_REJS_DIS_S)
+
+#define X2X_CTRL_SEED_BUSY_S      ((uint32_t) 29)
+#define X2X_CTRL_SEED_BUSY_M      ((uint32_t) 0x1)
+#define X2X_CTRL_SEED_BUSY_V      (X2X_CTRL_SEED_BUSY_M << X2X_CTRL_SEED_BUSY_S)
 
 #define X2X_CTRL_BUSY_S           ((uint32_t) 30)
 #define X2X_CTRL_BUSY_M           ((uint32_t) 0x1)
