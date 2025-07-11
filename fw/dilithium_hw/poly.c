@@ -142,6 +142,12 @@ void poly_invntt(poly *a) {
   ntt_lite_backward_ntt((uint32_t*)a->coeffs, (uint32_t*)a->coeffs);
 }
 
+
+void poly_invntt_sub(poly *a, poly *b) {
+  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, a->coeffs);
+  ntt_lite_sub_rev(a->coeffs, NTT_LITE_INPUT_DIS, b->coeffs);
+}
+
 /*************************************************
 * Name:        poly_pointwise
 *
@@ -280,11 +286,9 @@ int poly_chknorm(const poly *a, int32_t B) {
      the probability for each coefficient is independent of secret
      data but we must not leak the sign of the centralized representative. */
   for(i = 0; i < N; ++i) {
-    /* Absolute value */
-    t = a->coeffs[i] >> 31;
-    t = a->coeffs[i] - (t & 2*a->coeffs[i]);
+    t = a->coeffs[i] + B;
 
-    if(t >= B) {
+    if(((uint32_t)t) >= (2*B)) {
       return 1;
     }
   }

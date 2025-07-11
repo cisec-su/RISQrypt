@@ -161,11 +161,19 @@ rej:
   polyveck_invntt(&w1);
 
   /* Decompose w and call the random oracle */
+  // uint32_t time;
+  // timer_start();
+
   polyveck_decompose(&w1, &w0, &w1);
+  // time = timer_read();
+  // print_string("Time: ");
+  // print_u32(time);
+  // print_string("\n");
+
+
   polyveck_caddq(&w0);
 
   polyveck_pack_w1(sig, &w1);
-
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
 
   poly_challenge(&cp, sig);
@@ -192,11 +200,10 @@ rej:
    * do not reveal secret information */
   polyveck_pointwise_poly(&h, &cp, &s2);
   poly_init_invntt();
-  polyveck_invntt(&h);
-  polyveck_sub(&w0, &w0, &h);
-  polyveck_reduce(&w0);
+  polyveck_invntt_sub(&h, &w0);
+  polyveck_reduce(&h);
 
-  if(polyveck_chknorm(&w0, GAMMA2 - BETA)) {
+  if(polyveck_chknorm(&h, GAMMA2 - BETA)) {
     goto rej;
   }
 
@@ -209,7 +216,6 @@ rej:
       goto rej;
   }
 
-  polyveck_add(&w0, &w0, &h);
   polyveck_reduce(&w0);  
   n = polyveck_make_hint(&h, &w0, &w1);
   if(n > OMEGA) {

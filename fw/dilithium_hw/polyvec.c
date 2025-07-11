@@ -2,6 +2,7 @@
 #include "params.h"
 #include "polyvec.h"
 #include "poly.h"
+#include "ntt_lite.h"
 
 /*************************************************
 * Name:        expand_mat
@@ -112,9 +113,16 @@ void polyvecl_invntt(polyvecl *v) {
 
 void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v) {
   unsigned int i;
+  const uint32_t *rhs;
 
-  for(i = 0; i < L; ++i)
-    poly_pointwise(&r->vec[i], a, &v->vec[i]);
+  for(i = 0; i < L; ++i) {
+    if (i == 0) {
+      rhs = a->coeffs;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_pwm((uint32_t*) &r->vec[i].coeffs, (uint32_t*) &v->vec[i].coeffs, rhs);     
+  }
 }
 
 /*************************************************
@@ -315,11 +323,34 @@ void polyveck_invntt(polyveck *v) {
     poly_invntt(&v->vec[i]);
 }
 
-void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v) {
+
+void polyveck_invntt_sub(polyveck *v, polyveck *u) {
   unsigned int i;
 
-  for(i = 0; i < K; ++i)
-    poly_pointwise(&r->vec[i], a, &v->vec[i]);
+  for(i = 0; i < (K - 1); ++i) {
+    poly_invntt(&v->vec[i]);
+  }
+
+  poly_invntt_sub(&v->vec[K - 1], &u->vec[K - 1]);
+  
+  for(i = 0; i < (K - 1); ++i) {
+    poly_sub(&v->vec[i], &v->vec[i], &u->vec[i]);
+  }
+}
+
+
+void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v) {
+  unsigned int i;
+  const uint32_t *rhs;
+
+  for(i = 0; i < K; ++i) {
+    if (i == 0) {
+      rhs = a->coeffs;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_pwm((uint32_t*) &r->vec[i].coeffs, (uint32_t*) &v->vec[i].coeffs, rhs);     
+  }
 }
 
 
