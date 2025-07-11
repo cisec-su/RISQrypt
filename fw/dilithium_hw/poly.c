@@ -520,24 +520,6 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
 }
 
 
-static const uint32_t pack_eta_c[N] = {ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
-                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA};
-
-
 /*************************************************
 * Name:        polyeta_pack
 *
@@ -548,7 +530,8 @@ static const uint32_t pack_eta_c[N] = {ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, E
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyeta_pack(uint8_t *r, const poly *a) {
-  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, pack_eta_c, a->coeffs);
+  const uint32_t eta_c = ETA;
+  ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs, &eta_c);
   ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_ETA);
 }
 
@@ -561,9 +544,9 @@ void polyeta_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyeta_unpack(poly *r, const uint8_t *a) {
-  poly temp;
-  ntt_lite_decode(temp.coeffs, (uint32_t*) a, LOG_ETA);
-  ntt_lite_sub(r->coeffs, pack_eta_c, temp.coeffs);
+  const uint32_t eta_c = ETA;
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, LOG_ETA);
+  ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS, &eta_c);
 }
 
 /*************************************************
@@ -593,23 +576,6 @@ void polyt1_unpack(poly *r, const uint8_t *a) {
   ntt_lite_decode((uint32_t*) r, (uint32_t*) a, (POLYT1_PACKEDBYTES << 3) / N);
 }
 
-static const uint32_t pack_t0_c[N] = {1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
-                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1)};
-
 
 void poly_init_pack() {
   const uint32_t q = 0;
@@ -628,7 +594,8 @@ void poly_init_pack() {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyt0_pack(uint8_t *r, const poly *a) {
-  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, pack_t0_c, a->coeffs);
+  const uint32_t t0_c = 1 << (D - 1);
+  ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs, &t0_c);
   ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, D);
 }
 
@@ -641,28 +608,10 @@ void polyt0_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyt0_unpack(poly *r, const uint8_t *a) {
-  poly temp;
-  ntt_lite_decode(temp.coeffs, (uint32_t*) a, D);
-  ntt_lite_sub(r->coeffs, pack_t0_c, temp.coeffs);
+  const uint32_t t0_c = 1 << (D - 1);
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, D);
+  ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS, &t0_c);
 }
-
-
-static const uint32_t pack_z_c[N] = {GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
-                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1};
 
 
 /*************************************************
@@ -676,7 +625,8 @@ static const uint32_t pack_z_c[N] = {GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAM
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyz_pack(uint8_t *r, const poly *a) {
-  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, pack_z_c, a->coeffs);
+  const uint32_t gamma1 = GAMMA1;
+  ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs, &gamma1);
   ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_GAMMA1);
 }
 
@@ -690,9 +640,9 @@ void polyz_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyz_unpack(poly *r, const uint8_t *a) {
-  poly temp;
-  ntt_lite_decode(temp.coeffs, (uint32_t*) a, LOG_GAMMA1);
-  ntt_lite_sub(r->coeffs, pack_z_c, temp.coeffs);
+  const uint32_t gamma1 = GAMMA1;
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, LOG_GAMMA1);
+  ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS, &gamma1);
 }
 
 /*************************************************

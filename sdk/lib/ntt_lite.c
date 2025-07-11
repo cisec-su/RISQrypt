@@ -67,17 +67,22 @@ int ntt_lite_set_mode(uint32_t mode) {
 }
 
 
-int ntt_lite_load_twiddle(const uint32_t *psi) {
+static int ntt_lite_load_twiddle_core(const uint32_t *psi, uint32_t rhs_const) {
 
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
         return -1;
     }
 
     NTT_LITE_REGS->din_addr = (uint32_t) psi;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | rhs_const;
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     return 0;
+}
+
+
+int ntt_lite_load_twiddle(const uint32_t *psi) {
+    return ntt_lite_load_twiddle_core(psi, 0);
 }
 
 
@@ -128,7 +133,7 @@ int ntt_lite_backward_ntt(uint32_t *dst, const uint32_t *src) {
 }
 
 
-static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs, uint32_t op) {
+static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs, uint32_t op, uint32_t rhs_const, uint32_t op_switch) {
     
     uint32_t cmd;
     uint32_t out_dis;
@@ -138,7 +143,7 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
     }
 
     if (rhs != NTT_LITE_INPUT_DIS) {
-        ntt_lite_load_twiddle(rhs);
+        ntt_lite_load_twiddle_core(rhs, rhs_const);
     }
 
     if (lhs == NTT_LITE_INPUT_DIS) {
@@ -156,7 +161,7 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
     }
 
     NTT_LITE_REGS->stride = 1;
-    NTT_LITE_REGS->ctrl |= cmd | op | out_dis;
+    NTT_LITE_REGS->ctrl |= cmd | op | out_dis | rhs_const | op_switch;
 
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
@@ -165,24 +170,48 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
 
 
 int ntt_lite_pwm(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
-    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_PWM);
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_PWM, 0, 0);
+}
+
+
+int ntt_lite_mul_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_PWM, NTT_LITE_CTRL_RHS_CONST_EN_V, 0);
 }
 
 
 int ntt_lite_add(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
-    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_ADD);
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_ADD, 0, 0);
+}
+
+
+int ntt_lite_add_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_ADD, NTT_LITE_CTRL_RHS_CONST_EN_V, 0);
 }
 
 
 int ntt_lite_sub(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
-    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SUB);
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SUB, 0, 0);
+}
+
+
+int ntt_lite_sub_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SUB, NTT_LITE_CTRL_RHS_CONST_EN_V, 0);
+}
+
+
+int ntt_lite_sub_rev(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SUB, 0, NTT_LITE_CTRL_OP_SWITCH_EN_V);
+}
+
+
+int ntt_lite_sub_rev_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SUB, NTT_LITE_CTRL_RHS_CONST_EN_V, NTT_LITE_CTRL_OP_SWITCH_EN_V);
 }
 
 
 int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
-    return ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM);
+    return ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM, 0, 0);
 }
-
 
 
 int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
