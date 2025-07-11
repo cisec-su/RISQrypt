@@ -1,7 +1,7 @@
 # Vivado TCL Script for automatic FPGA bitstream upload.
 # Yusuf Sur
 
-set bitstream_file "/home/cisec/yusuf/Hornet-FHE-vivado/Hornet-FHE-vivado.runs/impl_1/fpga_top.bit"
+set bitstream_file "./Hornet-FHE-vivado/Hornet-FHE-vivado.runs/impl_1/fpga_top.bit"
 
 open_hw_manager
 connect_hw_server
