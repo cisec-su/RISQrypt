@@ -36,7 +36,7 @@ int32_t power2round(int32_t *a0, int32_t a)  {
 *
 * Returns a1.
 **************************************************/
-int32_t decompose(int32_t *a0, int32_t a) {
+static int32_t decompose_core(int32_t *a0, int32_t a, int central) {
   int32_t a1;
 
   a1  = (a + 127) >> 7;
@@ -49,9 +49,17 @@ int32_t decompose(int32_t *a0, int32_t a) {
 #endif
 
   *a0  = a - a1*2*GAMMA2;
-  *a0 -= (((Q-1)/2 - *a0) >> 31) & Q;
+  if (central) {
+    *a0 -= (((Q-1)/2 - *a0) >> 31) & Q;
+  }
   return a1;
 }
+
+
+int32_t decompose(int32_t *a0, int32_t a) {
+  return decompose_core(a0, a, 0);
+}
+
 
 /*************************************************
 * Name:        make_hint
@@ -84,7 +92,7 @@ unsigned int make_hint(int32_t a0, int32_t a1) {
 int32_t use_hint(int32_t a, unsigned int hint) {
   int32_t a0, a1;
 
-  a1 = decompose(&a0, a);
+  a1 = decompose_core(&a0, a, 1);
   if(hint == 0)
     return a1;
 

@@ -114,12 +114,10 @@ int crypto_sign_signature(uint8_t *sig,
   mu = key + SEEDBYTES;
   rhoprime = mu + CRHBYTES;
 
-  poly_init_pack();
+  poly_init_q();
   
   unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
   
-  poly_set_q();
-
   /* Compute CRH(tr, msg) rename  */
   dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
 
@@ -130,18 +128,13 @@ int crypto_sign_signature(uint8_t *sig,
   dilithium_shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
 #endif
 
-  poly_init_ntt();
 
   /* Expand matrix and transform vectors */
   polyvec_matrix_expand(mat, rho);
 
-  polyvecl_caddq(&s1);
+  poly_init_ntt();
   polyvecl_ntt(&s1);
-
-  polyveck_caddq(&s2);
   polyveck_ntt(&s2); 
-
-  polyveck_caddq(&t0);
   polyveck_ntt(&t0); 
 
 rej:
@@ -171,14 +164,12 @@ rej:
   // print_string("\n");
 
 
-  polyveck_caddq(&w0);
+  // polyveck_caddq(&w0);
 
   polyveck_pack_w1(sig, &w1);
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
 
   poly_challenge(&cp, sig);
-
-  poly_caddq(&cp);
 
   poly_init_ntt();
 

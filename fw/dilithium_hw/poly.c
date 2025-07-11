@@ -479,9 +479,7 @@ void poly_uniform_gamma1(poly *a,
   t = (SHAKE_PAD << 16) | ((uint32_t) nonce);
   keccak_finish((uint32_t*) &t);
   keccak_squeeze((uint32_t*)buf, NULL, (POLYZ_PACKEDBYTES) >> 2);
-  poly_set_pack();
   polyz_unpack(a, buf);
-  poly_set_q();
 }
 
 /*************************************************
@@ -524,7 +522,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
     } while(b > i);
 
     c->coeffs[i] = c->coeffs[b];
-    c->coeffs[b] = 1 - 2*(signs & 1);
+    c->coeffs[b] = 1 + ((Q - 2) & (-(signs & 1)));
     signs >>= 1;
   }
 }
