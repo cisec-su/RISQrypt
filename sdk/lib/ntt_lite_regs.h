@@ -55,7 +55,7 @@ typedef struct
 #define NTT_LITE_CTRL_OP_SWITCH_EN_V       (NTT_LITE_CTRL_OP_SWITCH_EN_M << NTT_LITE_CTRL_OP_SWITCH_EN_S)
 
 #define NTT_LITE_CTRL_K_S                  ((uint32_t) 13  )
-#define NTT_LITE_CTRL_K_M                  ((uint32_t) 0x7F)
+#define NTT_LITE_CTRL_K_M                  ((uint32_t) 0x1F)
 #define NTT_LITE_CTRL_K_V                  (NTT_LITE_CTRL_K_M << NTT_LITE_CTRL_K_M)
 
 #define NTT_LITE_CTRL_MODE_S               ((uint32_t) 19  )
@@ -66,7 +66,7 @@ typedef struct
 #define NTT_LITE_CTRL_MODE_POLY            (((uint32_t) 0x3) << NTT_LITE_CTRL_MODE_S)
 
 #define NTT_LITE_CTRL_D_S                  ((uint32_t) 21  )
-#define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x3F)
+#define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x1F)
 #define NTT_LITE_CTRL_D_V                  (NTT_LITE_CTRL_D_M << NTT_LITE_CTRL_D_S)
 
 #define NTT_LITE_CTRL_RHS_CONST_EN_S       ((uint32_t) 27 )

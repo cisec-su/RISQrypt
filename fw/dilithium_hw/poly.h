@@ -83,6 +83,9 @@ void polyw1_pack(uint8_t *r, const poly *a);
 #define poly_init_q DILITHIUM_NAMESPACE(poly_init_q)
 void poly_init_q(void);
 
+#define poly_set_q DILITHIUM_NAMESPACE(poly_set_q)
+void poly_set_q(void);
+
 #define poly_init_ntt DILITHIUM_NAMESPACE(poly_init_ntt)
 void poly_init_ntt(void);
 
@@ -91,5 +94,8 @@ void poly_init_invntt(void);
 
 #define poly_init_pack DILITHIUM_NAMESPACE(poly_init_pack)
 void poly_init_pack(void);
+
+#define poly_set_pack DILITHIUM_NAMESPACE(poly_set_pack)
+void poly_set_pack(void);
 
 #endif

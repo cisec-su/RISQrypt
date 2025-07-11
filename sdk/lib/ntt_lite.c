@@ -299,7 +299,7 @@ int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d) {
 }
 
 
-static int ntt_lite_decompress_core(uint32_t *dst, const uint32_t *src, uint32_t d, unsigned int round) {
+static int ntt_lite_decompress_core(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t round) {
 
     uint32_t cmd;
     uint32_t out_dis;
@@ -325,24 +325,18 @@ static int ntt_lite_decompress_core(uint32_t *dst, const uint32_t *src, uint32_t
         NTT_LITE_REGS->dout_addr = (uint32_t) dst;
     }
 
-    if (round) {
-        round_dis = 0;
-    } else {
-        round_dis = NTT_LITE_CTRL_ROUND_DIS_V;
-    }
 
     NTT_LITE_REGS->stride = 1;
-    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_DECOMPRESS | (d << NTT_LITE_CTRL_D_S) | out_dis | round_dis;
+    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_DECOMPRESS | (d << NTT_LITE_CTRL_D_S) | out_dis | round;
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 }
 
 
 int ntt_lite_decompress(uint32_t *dst, const uint32_t *src, uint32_t d) {
-    return ntt_lite_decompress_core(dst, src, d, 1);
+    return ntt_lite_decompress_core(dst, src, d, 0);
 }
 
 
-
 int ntt_lite_decompress_floor(uint32_t *dst, const uint32_t *src, uint32_t d) {
-    return ntt_lite_decompress_core(dst, src, d, 0);
+    return ntt_lite_decompress_core(dst, src, d, NTT_LITE_CTRL_ROUND_DIS_V);
 }
