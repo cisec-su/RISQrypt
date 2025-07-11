@@ -15,6 +15,8 @@
 
 int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t logq, uint32_t inv2, uint32_t mode);
 
+int ntt_lite_set_q(uint32_t q);
+
 int ntt_lite_set_mode(uint32_t mode);
 
 int ntt_lite_load_twiddle(const uint32_t *psi);

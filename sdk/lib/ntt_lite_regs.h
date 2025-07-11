@@ -66,7 +66,7 @@ typedef struct
 #define NTT_LITE_CTRL_MODE_POLY            (((uint32_t) 0x3) << NTT_LITE_CTRL_MODE_S)
 
 #define NTT_LITE_CTRL_D_S                  ((uint32_t) 21  )
-#define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x7F)
+#define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x3F)
 #define NTT_LITE_CTRL_D_V                  (NTT_LITE_CTRL_D_M << NTT_LITE_CTRL_D_S)
 
 #define NTT_LITE_CTRL_RHS_CONST_EN_S       ((uint32_t) 27 )

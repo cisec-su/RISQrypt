@@ -43,6 +43,18 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, u
 }
 
 
+int ntt_lite_set_q(uint32_t q) {
+
+    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+        return -1;
+    }
+
+    NTT_LITE_REGS->q = q;
+
+    return 0;
+}
+
+
 int ntt_lite_set_mode(uint32_t mode) {
 
     uint32_t mode_int;

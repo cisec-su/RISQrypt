@@ -73,7 +73,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
   dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 
-  poly_init_pack();
+  poly_set_pack();
 
   pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
 
@@ -118,7 +118,7 @@ int crypto_sign_signature(uint8_t *sig,
   
   unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
   
-  poly_init_q();
+  poly_set_q();
 
   /* Compute CRH(tr, msg) rename  */
   dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
@@ -216,7 +216,7 @@ rej:
       goto rej;
   }
 
-  poly_init_pack();
+  poly_set_pack();
 
   /* Write signature */
   pack_sig(sig, sig, &z, &h);
@@ -296,7 +296,7 @@ int crypto_sign_verify(const uint8_t *sig,
   if(polyvecl_chknorm(&z, GAMMA1 - BETA))
     return -1;
 
-  poly_init_q();
+  poly_set_q();
 
   /* Compute CRH(h(rho, t1), msg) */
   dilithium_shake256_mu_crh(mu, pk, m, mlen);
