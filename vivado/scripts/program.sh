@@ -1,24 +1,24 @@
 #!/bin/bash
 # Yusuf Sur
 # Created on: 11/07/2025
+# -g generate bitstream and program FPGA
+# -p program FPGA only
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo "Pick your choice:"
-echo "0: Only program FPGA"
-echo "1: Generate bitstream and program FPGA (must if first run)"
-read -p "Your choice: " choice
-
-if [ "$choice" == "0" ]; then
-    vivado -mode batch -source "$SCRIPT_DIR/program.tcl"
-
-elif [ "$choice" == "1" ]; then
-    vivado -mode batch -source "./Hornet-FHE-vivado.tcl"
-    vivado -mode batch -source "$SCRIPT_DIR/program.tcl"
-
-else
-    echo "Wrong choice. Abort"
-    exit 1
-fi
+case "$1" in
+    -g)
+        vivado -mode batch -source "$SCRIPT_DIR/build.tcl"
+        vivado -mode batch -source "$SCRIPT_DIR/program.tcl"
+        ;;
+    -p)
+        vivado -mode batch -source "$SCRIPT_DIR/program.tcl"
+        ;;
+    *)
+        echo "Usage: $0 -g   (generate bitstream + program)"
+        echo "       $0 -p   (program FPGA only)"
+        exit 1
+        ;;
+esac
 
 rm -f "$SCRIPT_DIR"/*.jou "$SCRIPT_DIR"/*.log

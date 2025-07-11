@@ -37,95 +37,106 @@
 #    (Please see the '$orig_proj_dir', 'source_proj_dir' and '$origin_dir' variable setting below at the start of the script)
 #
 #*****************************************************************************************
+# Set the reference directory for source file relative paths (by default the value is script directory path)
+set origin_dir "."
+set source_proj_dir "/home/cisec/yusuf/Hornet-FHE"
 
 # Check file required for this script exists
 proc checkRequiredFiles { origin_dir} {
   set status true
   set files [list \
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/ALU.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MULDIV_ctrl.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MULDIV_in.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MULDIV_top.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MUL_DIV_out.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite.vh"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/butterfly.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/control_unit.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/core.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/core_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/csr_unit.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/divider_32.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/forwarding_unit.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/hazard_detection_unit.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/imm_decoder.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_dma.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_chi_iota.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_control.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_pi.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_rhopi.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_roundconstant.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_sbox.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_state.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_theta.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_top.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/load_store_unit.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/loader_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/memory_2rw_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/memory_2rw_wb_dma.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/mtime_registers_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/multiplier_32.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_dma.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_fsm.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_top.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_ctrl.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/shiftreg.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/timer_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/uart_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/addsub_dual.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/asr.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/intmul_karatsuba_dual.svh"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/mac_std_dual_32x34.svh"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/barrett.svh"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/barrett.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/barrett_correction.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/encode.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/intmul_karatsuba_dual.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_buffer.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_ctrl.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc.vh"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_fsm.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_top.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/lsb_dual.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/mac_std_dual_32x34.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modadd.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modmul.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modmul_inv2.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modsub.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/msb_dual.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_coeff_ram.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_coeff_ram_double.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_twiddle_ram.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/processor/fpga_uart/fpga_top.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/csa/csa_2.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/csa/csa_tree.sv"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/debug_interface_wb.v"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/sdk/rom/bootloader/bootloader.mem"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/sdk/rom/reset_handler/reset_handler.mem"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/sdk/examples/timer_example/timer_example.mem"]"\
- "[file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/fw/kyber_hw/kyber_hw.mem"]"\
- "[file normalize "$source_proj_dir/sources_1/ip/clk_wiz_0/clk_wiz_0.xci"]"\
- "[file normalize "$source_proj_dir/constrs_1/imports/fpga_uart/nexys_a7.xdc"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/processor/fpga_uart/fpga_top_tb.v"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/sdk/examples/ntt_example/ntt_example.mem"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/bu/asr_tb.sv"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/bu/encode_tb.sv"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/bu/mac_std_dual_32x34_tb.sv"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modadd_tb.sv"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modmul_tb.sv"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modsub_tb.sv"]"\
- "[file normalize "$source_proj_dir/sim_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_tb.v"]"\
+  "[file normalize "$source_proj_dir/core/muldiv/MULDIV_ctrl.v"]"\
+  "[file normalize "$source_proj_dir/core/muldiv/MULDIV_in.v"]"\
+  "[file normalize "$source_proj_dir/core/muldiv/MULDIV_top.v"]"\
+  "[file normalize "$source_proj_dir/core/muldiv/MUL_DIV_out.v"]"\
+  "[file normalize "$source_proj_dir/core/muldiv/multiplier_32.v"]"\
+
+  "[file normalize "$source_proj_dir/core/ALU.v"]"\
+  "[file normalize "$source_proj_dir/core/control_unit.v"]"\
+  "[file normalize "$source_proj_dir/core/core.v"]"\
+  "[file normalize "$source_proj_dir/core/core_wb.v"]"\
+  "[file normalize "$source_proj_dir/core/csr_unit.v"]"\
+  "[file normalize "$source_proj_dir/core/muldiv/divider_32.v"]"\
+  "[file normalize "$source_proj_dir/core/forwarding_unit.v"]"\
+  "[file normalize "$source_proj_dir/core/hazard_detection_unit.v"]"\
+  "[file normalize "$source_proj_dir/core/imm_decoder.v"]"\
+  "[file normalize "$source_proj_dir/core/load_store_unit.v"]"\
+
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_dma.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_chi_iota.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_control.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_pi.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_rhopi.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_roundconstant.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_sbox.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_state.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_theta.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_top.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_buffer.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_ctrl.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc.vh"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_fsm.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_top.sv"]"\
+
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_dma.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_fsm.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_top.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_ctrl.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/shiftreg.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite.vh"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/butterfly.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/addsub_dual.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/asr.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/intmul_karatsuba_dual.svh"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/mac_std_dual_32x34.svh"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/barrett.svh"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/barrett.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/barrett_correction.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/encode.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/intmul_karatsuba_dual.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/lsb_dual.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/mac_std_dual_32x34.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modadd.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modmul.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modmul_inv2.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modsub.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/msb_dual.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_coeff_ram.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_coeff_ram_double.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_twiddle_ram.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/csa/csa_tree.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/csa/csa_2.sv"]"\
+
+  "[file normalize "$source_proj_dir/peripherals/loader_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/memory_2rw_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/memory_2rw_wb_dma.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/mtime_registers_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/debug_interface_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/timer_wb.v"]"\
+  "[file normalize "$source_proj_dir/peripherals/uart_wb.v"]"\
+
+  "[file normalize "$source_proj_dir/processor/fpga_uart/fpga_top.v"]"\
+  "[file normalize "$source_proj_dir/sdk/rom/bootloader/bootloader.mem"]"\
+  "[file normalize "$source_proj_dir/sdk/rom/reset_handler/reset_handler.mem"]"\
+  "[file normalize "$source_proj_dir/sdk/examples/timer_example/timer_example.mem"]"\
+  "[file normalize "$source_proj_dir/fw/kyber_hw/kyber_hw.mem"]"\
+
+  "[file normalize "$source_proj_dir/vivado/hornet_fhe.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci"]"\
+
+  "[file normalize "$source_proj_dir/processor/fpga_uart/nexys_a7.xdc"]"\
+
+  "[file normalize "$source_proj_dir/processor/fpga_uart/fpga_top_tb.v"]"\
+  "[file normalize "$source_proj_dir/sdk/examples/ntt_example/ntt_example.mem"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/asr_tb.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/encode_tb.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/mac_std_dual_32x34_tb.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modadd_tb.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modmul_tb.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/bu/modsub_tb.sv"]"\
+  "[file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_tb.v"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
@@ -136,9 +147,10 @@ proc checkRequiredFiles { origin_dir} {
 
   return $status
 }
+
 # Set the reference directory for source file relative paths (by default the value is script directory path)
 set origin_dir "."
-set source_proj_dir "/home/cisec/yusuf/Hornet-FHE-vivado/Hornet-FHE-vivado.srcs"
+set source_proj_dir "/home/cisec/yusuf/Hornet-FHE"
 
 # Use origin directory path location variable, if specified in the tcl shell
 if { [info exists ::origin_dir_loc] } {
@@ -304,83 +316,87 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
   create_fileset -srcset sources_1
 }
 
+# Set the reference directory for source file relative paths (by default the value is script directory path)
+set origin_dir "."
+set source_proj_dir "/home/cisec/yusuf/Hornet-FHE"
+
 # Set 'sources_1' fileset object
 set obj [get_filesets sources_1]
 # Import local files from the original project
 set files [list \
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/ALU.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MULDIV_ctrl.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MULDIV_in.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MULDIV_top.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/MUL_DIV_out.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite.vh"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/butterfly.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/control_unit.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/core.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/core_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/csr_unit.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/divider_32.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/forwarding_unit.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/hazard_detection_unit.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/imm_decoder.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_dma.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_chi_iota.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_control.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_pi.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_rhopi.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_roundconstant.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_sbox.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_state.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_theta.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/keccak/keccak_top.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/load_store_unit.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/loader_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/memory_2rw_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/memory_2rw_wb_dma.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/mtime_registers_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/core/muldiv/multiplier_32.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_dma.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_fsm.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_top.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_acc_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_ctrl.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/shiftreg.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/timer_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/uart_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/addsub_dual.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/asr.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/intmul_karatsuba_dual.svh"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/mac_std_dual_32x34.svh"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/barrett.svh"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/barrett.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/barrett_correction.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/encode.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/intmul_karatsuba_dual.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_buffer.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_ctrl.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc.vh"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_fsm.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/keccak/src/acc/keccak_acc_top.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/lsb_dual.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/mac_std_dual_32x34.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modadd.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modmul.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modmul_inv2.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/modsub.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/msb_dual.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_coeff_ram.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_coeff_ram_double.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/ntt_lite_twiddle_ram.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/processor/fpga_uart/fpga_top.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/csa/csa_2.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/ntt/src/bu/csa/csa_tree.sv"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/peripherals/debug_interface_wb.v"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/sdk/rom/bootloader/bootloader.mem"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/sdk/rom/reset_handler/reset_handler.mem"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/sdk/examples/timer_example/timer_example.mem"]\
- [file normalize "$source_proj_dir/sources_1/imports/Hornet-FHE/fw/kyber_hw/kyber_hw.mem"]\
+ [file normalize "$source_proj_dir/core/ALU.v"]\
+ [file normalize "$source_proj_dir/core/muldiv/MULDIV_ctrl.v"]\
+ [file normalize "$source_proj_dir/core/muldiv/MULDIV_in.v"]\
+ [file normalize "$source_proj_dir/core/muldiv/MULDIV_top.v"]\
+ [file normalize "$source_proj_dir/core/muldiv/MUL_DIV_out.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite.vh"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/butterfly.v"]\
+ [file normalize "$source_proj_dir/core/control_unit.v"]\
+ [file normalize "$source_proj_dir/core/core.v"]\
+ [file normalize "$source_proj_dir/core/core_wb.v"]\
+ [file normalize "$source_proj_dir/core/csr_unit.v"]\
+ [file normalize "$source_proj_dir/core/muldiv/divider_32.v"]\
+ [file normalize "$source_proj_dir/core/forwarding_unit.v"]\
+ [file normalize "$source_proj_dir/core/hazard_detection_unit.v"]\
+ [file normalize "$source_proj_dir/core/imm_decoder.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_dma.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_wb.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_chi_iota.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_control.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_pi.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_rhopi.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_roundconstant.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_sbox.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_state.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_theta.v"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/keccak/keccak_top.v"]\
+ [file normalize "$source_proj_dir/core/load_store_unit.v"]\
+ [file normalize "$source_proj_dir/peripherals/loader_wb.v"]\
+ [file normalize "$source_proj_dir/peripherals/memory_2rw_wb.v"]\
+ [file normalize "$source_proj_dir/peripherals/memory_2rw_wb_dma.v"]\
+ [file normalize "$source_proj_dir/peripherals/mtime_registers_wb.v"]\
+ [file normalize "$source_proj_dir/core/muldiv/multiplier_32.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_dma.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_fsm.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_top.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_acc_wb.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_ctrl.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/shiftreg.v"]\
+ [file normalize "$source_proj_dir/peripherals/timer_wb.v"]\
+ [file normalize "$source_proj_dir/peripherals/uart_wb.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/addsub_dual.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/asr.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/intmul_karatsuba_dual.svh"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/mac_std_dual_32x34.svh"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/barrett.svh"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/barrett.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/barrett_correction.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/encode.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/intmul_karatsuba_dual.sv"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_buffer.sv"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_ctrl.sv"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc.vh"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_fsm.sv"]\
+ [file normalize "$source_proj_dir/peripherals/keccak/src/acc/keccak_acc_top.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/lsb_dual.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/mac_std_dual_32x34.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/modadd.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/modmul.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/modmul_inv2.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/modsub.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/msb_dual.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_coeff_ram.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_coeff_ram_double.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/ntt_lite_twiddle_ram.sv"]\
+ [file normalize "$source_proj_dir/processor/fpga_uart/fpga_top.v"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/csa/csa_2.sv"]\
+ [file normalize "$source_proj_dir/peripherals/ntt/src/bu/csa/csa_tree.sv"]\
+ [file normalize "$source_proj_dir/peripherals/debug_interface_wb.v"]\
+ [file normalize "$source_proj_dir/sdk/rom/bootloader/bootloader.mem"]\
+ [file normalize "$source_proj_dir/sdk/rom/reset_handler/reset_handler.mem"]\
+ [file normalize "$source_proj_dir/sdk/examples/timer_example/timer_example.mem"]\
+ [file normalize "$source_proj_dir/fw/kyber_hw/kyber_hw.mem"]\
 ]
 set imported_files ""
 foreach f $files {
