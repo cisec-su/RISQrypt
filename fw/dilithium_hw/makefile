@@ -10,7 +10,7 @@ SRC += polyvec.c
 SRC += randombytes.c
 SRC += rounding.c
 SRC += sign.c
-SRC += symmetric-shake.c
+SRC += symmetric.c
 SRC += fips202.c
 SRC += reduce.c
 

@@ -9,21 +9,6 @@
 #include "reduce.h"
 #include "util.h"
 
-#ifdef DBENCH
-#include "test/cpucycles.h"
-extern const uint64_t timing_overhead;
-extern uint64_t *tred, *tadd, *tmul, *tround, *tsample, *tpack;
-#define DBENCH_START() uint64_t time = cpucycles()
-#define DBENCH_STOP(t) t += cpucycles() - time - timing_overhead
-#else
-#define DBENCH_START()
-#define DBENCH_STOP(t)
-#endif
-
-#define DILITHIUM_Q 8380417
-
-//add poly_init_q here to load ntt params check mail sent by tolun
-// poly_init_ntt poly_init_invntt funs as well to kick start ntt
 
 
 const int32_t psi[N] = { 
@@ -31,18 +16,21 @@ const int32_t psi[N] = {
 };
 
 const uint32_t psi_inv[N] = {
-0x5b3100, 0x233d4c, 0x23354d, 0x186ccb, 0x17ffe7, 0x160047, 0x186ceb, 0x49411d, 0x7b9f38, 0x479b5c, 0x2336bf, 0x6fa00f, 0x6b6929, 0x24e916, 0x44872a, 0x2e8396, 0x2a74b5, 0x1b5a25, 0x4e722, 0x74bb0a, 0x2d3711, 0x32dbc5, 0x18a072, 0xa3140, 0x7ab68a, 0x433fe7, 0x1ae3ad, 0x4cb6bc, 0x6b8e18, 0x5eefa7, 0x59a6b7, 0x71b249, 0x2668eb, 0x71bb4a, 0x699e14, 0x2268ca, 0x7ba065, 0x6784f0, 0x161ad1, 0x5e12f3, 0xd197e, 0x4eb4dc, 0x633686, 0x1b4561, 0x63cc0, 0x3283c7, 0x25e1f2, 0x6f6cf8, 0x672407, 0x5e9997, 0x302176, 0x1ac066, 0x77846b, 0x38da0a, 0x7cde2f, 0x37169f, 0x23ac05, 0x6fd7b0, 0x17bbd1, 0x1b5cc7, 0x2b0761, 0x679772, 0x64646c, 0x32a0c3, 0x11109b, 0x4e9a67, 0x5d1242, 0x51e614, 0x3838f5, 0x28054, 0x7d36bb, 0x4370ce, 0x44ebee, 0x6e3abe, 0x5a64c9, 0x153352, 0x6b673e, 0x551d66, 0x7586b1, 0x6621ac, 0x698d85, 0x494bd3, 0x621bf1, 0x7b22cb, 0x68b65b, 0x2d289b, 0xa0d97, 0x51f568, 0x9eb18, 0x5fd9c2, 0x654ed2, 0x5123c4, 0x522e19, 0x324bed, 0x539d9b, 0x2713d4, 0x18cbf5, 0x3e2439, 0x32b0c4, 0x1864a0, 0x70b58e, 0x5a8d40, 0x5fb98d, 0x596078, 0x6d168b, 0x7e9495, 0x4440b2, 0x1699ac, 0x771c24, 0x3c4154, 0x743780, 0x6026bd, 0x87706, 0x56b3b3, 0x2a7d33, 0x5d0c97, 0x7117b0, 0x7066d6, 0x6cbba7, 0x21746, 0x17d090, 0x58868c, 0x5ff55b, 0x228c89, 0x540b69, 0x3630a4, 0x287e08, 0x59495, 0x77d47a, 0x45e71a, 0x7160f7, 0x5cba92, 0x5e42ab, 0x24ff12, 0x423fcf, 0x42ef02, 0x698d0e, 0xd1927, 0x16ff8a, 0x50ab60, 0x2df1ce, 0x680ae8, 0x10abbe, 0xb8d54, 0x7ece17, 0x65b3ef, 0x795009, 0x4397b, 0x3c0f88, 0x86af8, 0x682e76, 0x45d0c5, 0x7bb6d1, 0x7e3c51, 0x663696, 0x28e4cc, 0x4a64cb, 0x400734, 0x2175e9, 0x59a49d, 0x76ff5a, 0x7066fe, 0x732b6e, 0x32ca52, 0xc5355, 0x2c5667, 0x219165, 0x1eb0ef, 0x3a37fc, 0x204986, 0x53df3b, 0x68e997, 0x6bac24, 0x294fa, 0x172547, 0xdff0f, 0x587a2, 0x490017, 0x3c0ff5, 0x4a9104, 0x2cee22, 0x70a962, 0x4b34bd, 0x54de3a, 0x3be8ca, 0x48efef, 0x3b7700, 0x4f7448, 0x121d81, 0x6fd01e, 0xc629d, 0x508fcb, 0x462f25, 0xe57a3, 0x70514d, 0x5a6d63, 0x610cff, 0xea9e5, 0x37ffa, 0x50dcf2, 0x49ef1b, 0x7b3246, 0xa5646, 0x6cb3c4, 0x409e6b, 0x3edafb, 0x29101b, 0x400841, 0x764e6a, 0x6bb5ef, 0x677e73, 0x5d3908, 0x367a4d, 0x2e6b6f, 0x634928, 0x1843d4, 0x20c54, 0x1b8e33, 0x2db8e4, 0xd2d38, 0x6f24ec, 0xd8616, 0x1fa22c, 0x52aba9, 0x1e927, 0x7b05e7, 0x1b178f, 0x1cc13a, 0x6b70fe, 0x1a0544, 0x4ccb51, 0x5c9eb5, 0x1e3068, 0x73b136, 0x4f0a35, 0x52a941, 0x383c96, 0x39a97a, 0x3652, 0x1c5ba9, 0x58ffda, 0x517527, 0x5e2005, 0x1e40bd, 0x3b1401, 0x7f35ad, 0x36eaef, 0x6ab8c5, 0x7386, 0x4d8502, 0x6b93e5, 0xb1b89, 0x543a63, 0xec41e, 0x3fec94, 0x0};
+   0x5b3100, 0x233d4c, 0x23354d, 0x186ccb, 0x17ffe7, 0x160047, 0x186ceb, 0x49411d, 0x7b9f38, 0x479b5c, 0x2336bf, 0x6fa00f, 0x6b6929, 0x24e916, 0x44872a, 0x2e8396, 0x2a74b5, 0x1b5a25, 0x4e722, 0x74bb0a, 0x2d3711, 0x32dbc5, 0x18a072, 0xa3140, 0x7ab68a, 0x433fe7, 0x1ae3ad, 0x4cb6bc, 0x6b8e18, 0x5eefa7, 0x59a6b7, 0x71b249, 0x2668eb, 0x71bb4a, 0x699e14, 0x2268ca, 0x7ba065, 0x6784f0, 0x161ad1, 0x5e12f3, 0xd197e, 0x4eb4dc, 0x633686, 0x1b4561, 0x63cc0, 0x3283c7, 0x25e1f2, 0x6f6cf8, 0x672407, 0x5e9997, 0x302176, 0x1ac066, 0x77846b, 0x38da0a, 0x7cde2f, 0x37169f, 0x23ac05, 0x6fd7b0, 0x17bbd1, 0x1b5cc7, 0x2b0761, 0x679772, 0x64646c, 0x32a0c3, 0x11109b, 0x4e9a67, 0x5d1242, 0x51e614, 0x3838f5, 0x28054, 0x7d36bb, 0x4370ce, 0x44ebee, 0x6e3abe, 0x5a64c9, 0x153352, 0x6b673e, 0x551d66, 0x7586b1, 0x6621ac, 0x698d85, 0x494bd3, 0x621bf1, 0x7b22cb, 0x68b65b, 0x2d289b, 0xa0d97, 0x51f568, 0x9eb18, 0x5fd9c2, 0x654ed2, 0x5123c4, 0x522e19, 0x324bed, 0x539d9b, 0x2713d4, 0x18cbf5, 0x3e2439, 0x32b0c4, 0x1864a0, 0x70b58e, 0x5a8d40, 0x5fb98d, 0x596078, 0x6d168b, 0x7e9495, 0x4440b2, 0x1699ac, 0x771c24, 0x3c4154, 0x743780, 0x6026bd, 0x87706, 0x56b3b3, 0x2a7d33, 0x5d0c97, 0x7117b0, 0x7066d6, 0x6cbba7, 0x21746, 0x17d090, 0x58868c, 0x5ff55b, 0x228c89, 0x540b69, 0x3630a4, 0x287e08, 0x59495, 0x77d47a, 0x45e71a, 0x7160f7, 0x5cba92, 0x5e42ab, 0x24ff12, 0x423fcf, 0x42ef02, 0x698d0e, 0xd1927, 0x16ff8a, 0x50ab60, 0x2df1ce, 0x680ae8, 0x10abbe, 0xb8d54, 0x7ece17, 0x65b3ef, 0x795009, 0x4397b, 0x3c0f88, 0x86af8, 0x682e76, 0x45d0c5, 0x7bb6d1, 0x7e3c51, 0x663696, 0x28e4cc, 0x4a64cb, 0x400734, 0x2175e9, 0x59a49d, 0x76ff5a, 0x7066fe, 0x732b6e, 0x32ca52, 0xc5355, 0x2c5667, 0x219165, 0x1eb0ef, 0x3a37fc, 0x204986, 0x53df3b, 0x68e997, 0x6bac24, 0x294fa, 0x172547, 0xdff0f, 0x587a2, 0x490017, 0x3c0ff5, 0x4a9104, 0x2cee22, 0x70a962, 0x4b34bd, 0x54de3a, 0x3be8ca, 0x48efef, 0x3b7700, 0x4f7448, 0x121d81, 0x6fd01e, 0xc629d, 0x508fcb, 0x462f25, 0xe57a3, 0x70514d, 0x5a6d63, 0x610cff, 0xea9e5, 0x37ffa, 0x50dcf2, 0x49ef1b, 0x7b3246, 0xa5646, 0x6cb3c4, 0x409e6b, 0x3edafb, 0x29101b, 0x400841, 0x764e6a, 0x6bb5ef, 0x677e73, 0x5d3908, 0x367a4d, 0x2e6b6f, 0x634928, 0x1843d4, 0x20c54, 0x1b8e33, 0x2db8e4, 0xd2d38, 0x6f24ec, 0xd8616, 0x1fa22c, 0x52aba9, 0x1e927, 0x7b05e7, 0x1b178f, 0x1cc13a, 0x6b70fe, 0x1a0544, 0x4ccb51, 0x5c9eb5, 0x1e3068, 0x73b136, 0x4f0a35, 0x52a941, 0x383c96, 0x39a97a, 0x3652, 0x1c5ba9, 0x58ffda, 0x517527, 0x5e2005, 0x1e40bd, 0x3b1401, 0x7f35ad, 0x36eaef, 0x6ab8c5, 0x7386, 0x4d8502, 0x6b93e5, 0xb1b89, 0x543a63, 0xec41e, 0x3fec94, 0x0
+};
 
 void poly_init_q() {
-  const uint32_t q = DILITHIUM_Q;
+  const uint32_t q = Q;
   const uint32_t mu[2] = {0x801C0601, 0x00000200}; 
   const uint32_t inv2 = 0x3ff001;
   ntt_lite_load_q(q, mu, 8, 23, inv2, NTT_LITE_MODE_SINGLE); // since we are working 32 bit
 }
-// q: 8380417, logn: 8, logq:23, mu: {0x801c0601, 0x200} 2**64/q, NTT_LITE_MODE_SINGLE, inv2: 0x3ff001 2^-1 % q
+
+
 void poly_init_ntt() {
 	ntt_lite_load_twiddle((uint32_t*) psi);
 }
+
 
 void poly_init_invntt() {
 	ntt_lite_load_twiddle((uint32_t*) psi_inv);
@@ -77,19 +65,6 @@ void poly_caddq(poly *a) {
     }
 }
 
-#if 0
-/*************************************************
-* Name:        poly_freeze
-*
-* Description: Inplace reduction of all coefficients of polynomial to
-*              standard representatives.
-*
-* Arguments:   - poly *a: pointer to input/output polynomial
-**************************************************/
-void poly_freeze(poly *a) {
-    asm_freeze(a->coeffs);
-}
-#endif
 
 /*************************************************
 * Name:        poly_add
@@ -207,11 +182,8 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
 void poly_power2round(poly *a1, poly *a0, const poly *a) {
   unsigned int i;
   
-
   for(i = 0; i < N; ++i)
     a1->coeffs[i] = power2round(&a0->coeffs[i], a->coeffs[i]);
-
-  DBENCH_STOP(*tround);
 }
 
 /*************************************************
@@ -234,7 +206,6 @@ void poly_decompose(poly *a1, poly *a0, const poly *a) {
   for(i = 0; i < N; ++i)
     a1->coeffs[i] = decompose(&a0->coeffs[i], a->coeffs[i]);
 
-  DBENCH_STOP(*tround);
 }
 
 /*************************************************
@@ -259,7 +230,6 @@ unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1) {
     s += h->coeffs[i];
   }
 
-  DBENCH_STOP(*tround);
   return s;
 }
 
@@ -279,7 +249,6 @@ void poly_use_hint(poly *b, const poly *a, const poly *h) {
   for(i = 0; i < N; ++i)
     b->coeffs[i] = use_hint(a->coeffs[i], h->coeffs[i]);
 
-  DBENCH_STOP(*tround);
 }
 
 /*************************************************
@@ -310,12 +279,10 @@ int poly_chknorm(const poly *a, int32_t B) {
     t = a->coeffs[i] - (t & 2*a->coeffs[i]);
 
     if(t >= B) {
-      DBENCH_STOP(*tsample);
       return 1;
     }
   }
 
-  DBENCH_STOP(*tsample);
   return 0;
 }
 
@@ -436,7 +403,6 @@ static unsigned int rej_eta(int32_t *a,
 #endif
   }
 
-  DBENCH_STOP(*tsample);
   return ctr;
 }
 
@@ -468,29 +434,12 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
     extseed[CRHBYTES + 1] = nonce >> 8;
 
     dilithium_shake256_stream_init(extseed, nonce); 
-
-    //print_string("[FPGA] NONCE = 0x");
-    //print_u32(nonce);
-    //print_string("\n");
-
-    //print_string("[FPGA] extseed: ");
-    //print_hex(extseed, CRHBYTES + 2, 0);
-    //print_string("\n");
-
     dilithium_shake256_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS);
-    //print_string("[FPGA] SHAKE256 First Block:\n");
-    //print_hex(buf, POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE, 0);
-    //print_string("\n");
+
     ctr = rej_eta(a->coeffs, N, buf, sizeof(buf));
 
     while (ctr < N) {
         dilithium_shake256_squeezeblocks(buf, 1);
-        //print_string("Entering rej_eta ctr < N loop\n");
-
-        //print_string("[FPGA] SHAKE256 First Block:\n");
-        //print_hex(buf, POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE, 0);
-        //print_string("\n");
-
         ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, SHAKE256_RATE);
     }
 }
@@ -510,7 +459,7 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
 void poly_uniform_gamma1(poly *a,
                          const uint8_t seed[CRHBYTES],
                          uint16_t nonce) {
-  uint8_t buf[POLYZ_PACKEDBYTES]; // I dont need to calc uniform_eta_nblocks since I use it as much as I need in HW.
+  uint8_t buf[POLYZ_PACKEDBYTES];
   volatile uint32_t t;
 
  
@@ -520,7 +469,9 @@ void poly_uniform_gamma1(poly *a,
   t = (SHAKE_PAD << 16) | ((uint32_t) nonce);
   keccak_finish((uint32_t*) &t);
   keccak_squeeze((uint32_t*)buf, NULL, (POLYZ_PACKEDBYTES) >> 2);
+  poly_init_pack();
   polyz_unpack(a, buf);
+  poly_init_q();
 }
 
 /*************************************************
@@ -567,7 +518,25 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
     signs >>= 1;
   }
 }
-// no more hw acceleratable func after this line only bit shift pack funcs
+
+
+static const uint32_t pack_eta_c[N] = {ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA,
+                                       ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA, ETA};
+
 
 /*************************************************
 * Name:        polyeta_pack
@@ -579,34 +548,8 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyeta_pack(uint8_t *r, const poly *a) {
-  unsigned int i;
-  uint8_t t[8];
-  
-
-#if ETA == 2
-  for(i = 0; i < N/8; ++i) {
-    t[0] = ETA - a->coeffs[8*i+0];
-    t[1] = ETA - a->coeffs[8*i+1];
-    t[2] = ETA - a->coeffs[8*i+2];
-    t[3] = ETA - a->coeffs[8*i+3];
-    t[4] = ETA - a->coeffs[8*i+4];
-    t[5] = ETA - a->coeffs[8*i+5];
-    t[6] = ETA - a->coeffs[8*i+6];
-    t[7] = ETA - a->coeffs[8*i+7];
-
-    r[3*i+0]  = (t[0] >> 0) | (t[1] << 3) | (t[2] << 6);
-    r[3*i+1]  = (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
-    r[3*i+2]  = (t[5] >> 1) | (t[6] << 2) | (t[7] << 5);
-  }
-#elif ETA == 4
-  for(i = 0; i < N/2; ++i) {
-    t[0] = ETA - a->coeffs[2*i+0];
-    t[1] = ETA - a->coeffs[2*i+1];
-    r[i] = t[0] | (t[1] << 4);
-  }
-#endif
-
-  DBENCH_STOP(*tpack);
+  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, pack_eta_c, a->coeffs);
+  ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_ETA);
 }
 
 /*************************************************
@@ -618,39 +561,9 @@ void polyeta_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyeta_unpack(poly *r, const uint8_t *a) {
-  unsigned int i;
-  
-
-#if ETA == 2
-  for(i = 0; i < N/8; ++i) {
-    r->coeffs[8*i+0] =  (a[3*i+0] >> 0) & 7;
-    r->coeffs[8*i+1] =  (a[3*i+0] >> 3) & 7;
-    r->coeffs[8*i+2] = ((a[3*i+0] >> 6) | (a[3*i+1] << 2)) & 7;
-    r->coeffs[8*i+3] =  (a[3*i+1] >> 1) & 7;
-    r->coeffs[8*i+4] =  (a[3*i+1] >> 4) & 7;
-    r->coeffs[8*i+5] = ((a[3*i+1] >> 7) | (a[3*i+2] << 1)) & 7;
-    r->coeffs[8*i+6] =  (a[3*i+2] >> 2) & 7;
-    r->coeffs[8*i+7] =  (a[3*i+2] >> 5) & 7;
-
-    r->coeffs[8*i+0] = ETA - r->coeffs[8*i+0];
-    r->coeffs[8*i+1] = ETA - r->coeffs[8*i+1];
-    r->coeffs[8*i+2] = ETA - r->coeffs[8*i+2];
-    r->coeffs[8*i+3] = ETA - r->coeffs[8*i+3];
-    r->coeffs[8*i+4] = ETA - r->coeffs[8*i+4];
-    r->coeffs[8*i+5] = ETA - r->coeffs[8*i+5];
-    r->coeffs[8*i+6] = ETA - r->coeffs[8*i+6];
-    r->coeffs[8*i+7] = ETA - r->coeffs[8*i+7];
-  }
-#elif ETA == 4
-  for(i = 0; i < N/2; ++i) {
-    r->coeffs[2*i+0] = a[i] & 0x0F;
-    r->coeffs[2*i+1] = a[i] >> 4;
-    r->coeffs[2*i+0] = ETA - r->coeffs[2*i+0];
-    r->coeffs[2*i+1] = ETA - r->coeffs[2*i+1];
-  }
-#endif
-
-  DBENCH_STOP(*tpack);
+  poly temp;
+  ntt_lite_decode(temp.coeffs, (uint32_t*) a, LOG_ETA);
+  ntt_lite_sub(r->coeffs, pack_eta_c, temp.coeffs);
 }
 
 /*************************************************
@@ -664,18 +577,7 @@ void polyeta_unpack(poly *r, const uint8_t *a) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyt1_pack(uint8_t *r, const poly *a) {
-  unsigned int i;
-  
-
-  for(i = 0; i < N/4; ++i) {
-    r[5*i+0] = (a->coeffs[4*i+0] >> 0);
-    r[5*i+1] = (a->coeffs[4*i+0] >> 8) | (a->coeffs[4*i+1] << 2);
-    r[5*i+2] = (a->coeffs[4*i+1] >> 6) | (a->coeffs[4*i+2] << 4);
-    r[5*i+3] = (a->coeffs[4*i+2] >> 4) | (a->coeffs[4*i+3] << 6);
-    r[5*i+4] = (a->coeffs[4*i+3] >> 2);
-  }
-
-  DBENCH_STOP(*tpack);
+  ntt_lite_encode((uint32_t*) r, (uint32_t*) a, (POLYT1_PACKEDBYTES << 3) / N);
 }
 
 /*************************************************
@@ -688,17 +590,32 @@ void polyt1_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyt1_unpack(poly *r, const uint8_t *a) {
-  unsigned int i;
-  
+  ntt_lite_decode((uint32_t*) r, (uint32_t*) a, (POLYT1_PACKEDBYTES << 3) / N);
+}
 
-  for(i = 0; i < N/4; ++i) {
-    r->coeffs[4*i+0] = ((a[5*i+0] >> 0) | ((uint32_t)a[5*i+1] << 8)) & 0x3FF;
-    r->coeffs[4*i+1] = ((a[5*i+1] >> 2) | ((uint32_t)a[5*i+2] << 6)) & 0x3FF;
-    r->coeffs[4*i+2] = ((a[5*i+2] >> 4) | ((uint32_t)a[5*i+3] << 4)) & 0x3FF;
-    r->coeffs[4*i+3] = ((a[5*i+3] >> 6) | ((uint32_t)a[5*i+4] << 2)) & 0x3FF;
-  }
+static const uint32_t pack_t0_c[N] = {1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1),
+                                      1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1), 1 << (D - 1)};
 
-  DBENCH_STOP(*tpack);
+
+void poly_init_pack() {
+  const uint32_t q = 0;
+  const uint32_t mu[2]; 
+  const uint32_t inv2 = 0x3ff001;
+  ntt_lite_load_q(q, mu, 8, 23, inv2, NTT_LITE_MODE_SINGLE); // since we are working 32 bit
 }
 
 /*************************************************
@@ -711,43 +628,8 @@ void polyt1_unpack(poly *r, const uint8_t *a) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyt0_pack(uint8_t *r, const poly *a) {
-  unsigned int i;
-  uint32_t t[8];
-  
-
-  for(i = 0; i < N/8; ++i) {
-    t[0] = (1 << (D-1)) - a->coeffs[8*i+0];
-    t[1] = (1 << (D-1)) - a->coeffs[8*i+1];
-    t[2] = (1 << (D-1)) - a->coeffs[8*i+2];
-    t[3] = (1 << (D-1)) - a->coeffs[8*i+3];
-    t[4] = (1 << (D-1)) - a->coeffs[8*i+4];
-    t[5] = (1 << (D-1)) - a->coeffs[8*i+5];
-    t[6] = (1 << (D-1)) - a->coeffs[8*i+6];
-    t[7] = (1 << (D-1)) - a->coeffs[8*i+7];
-
-    r[13*i+ 0]  =  t[0];
-    r[13*i+ 1]  =  t[0] >>  8;
-    r[13*i+ 1] |=  t[1] <<  5;
-    r[13*i+ 2]  =  t[1] >>  3;
-    r[13*i+ 3]  =  t[1] >> 11;
-    r[13*i+ 3] |=  t[2] <<  2;
-    r[13*i+ 4]  =  t[2] >>  6;
-    r[13*i+ 4] |=  t[3] <<  7;
-    r[13*i+ 5]  =  t[3] >>  1;
-    r[13*i+ 6]  =  t[3] >>  9;
-    r[13*i+ 6] |=  t[4] <<  4;
-    r[13*i+ 7]  =  t[4] >>  4;
-    r[13*i+ 8]  =  t[4] >> 12;
-    r[13*i+ 8] |=  t[5] <<  1;
-    r[13*i+ 9]  =  t[5] >>  7;
-    r[13*i+ 9] |=  t[6] <<  6;
-    r[13*i+10]  =  t[6] >>  2;
-    r[13*i+11]  =  t[6] >> 10;
-    r[13*i+11] |=  t[7] <<  3;
-    r[13*i+12]  =  t[7] >>  5;
-  }
-
-  DBENCH_STOP(*tpack);
+  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, pack_t0_c, a->coeffs);
+  ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, D);
 }
 
 /*************************************************
@@ -759,58 +641,29 @@ void polyt0_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyt0_unpack(poly *r, const uint8_t *a) {
-  unsigned int i;
-  
-
-  for(i = 0; i < N/8; ++i) {
-    r->coeffs[8*i+0]  = a[13*i+0];
-    r->coeffs[8*i+0] |= (uint32_t)a[13*i+1] << 8;
-    r->coeffs[8*i+0] &= 0x1FFF;
-
-    r->coeffs[8*i+1]  = a[13*i+1] >> 5;
-    r->coeffs[8*i+1] |= (uint32_t)a[13*i+2] << 3;
-    r->coeffs[8*i+1] |= (uint32_t)a[13*i+3] << 11;
-    r->coeffs[8*i+1] &= 0x1FFF;
-
-    r->coeffs[8*i+2]  = a[13*i+3] >> 2;
-    r->coeffs[8*i+2] |= (uint32_t)a[13*i+4] << 6;
-    r->coeffs[8*i+2] &= 0x1FFF;
-
-    r->coeffs[8*i+3]  = a[13*i+4] >> 7;
-    r->coeffs[8*i+3] |= (uint32_t)a[13*i+5] << 1;
-    r->coeffs[8*i+3] |= (uint32_t)a[13*i+6] << 9;
-    r->coeffs[8*i+3] &= 0x1FFF;
-
-    r->coeffs[8*i+4]  = a[13*i+6] >> 4;
-    r->coeffs[8*i+4] |= (uint32_t)a[13*i+7] << 4;
-    r->coeffs[8*i+4] |= (uint32_t)a[13*i+8] << 12;
-    r->coeffs[8*i+4] &= 0x1FFF;
-
-    r->coeffs[8*i+5]  = a[13*i+8] >> 1;
-    r->coeffs[8*i+5] |= (uint32_t)a[13*i+9] << 7;
-    r->coeffs[8*i+5] &= 0x1FFF;
-
-    r->coeffs[8*i+6]  = a[13*i+9] >> 6;
-    r->coeffs[8*i+6] |= (uint32_t)a[13*i+10] << 2;
-    r->coeffs[8*i+6] |= (uint32_t)a[13*i+11] << 10;
-    r->coeffs[8*i+6] &= 0x1FFF;
-
-    r->coeffs[8*i+7]  = a[13*i+11] >> 3;
-    r->coeffs[8*i+7] |= (uint32_t)a[13*i+12] << 5;
-    r->coeffs[8*i+7] &= 0x1FFF;
-
-    r->coeffs[8*i+0] = (1 << (D-1)) - r->coeffs[8*i+0];
-    r->coeffs[8*i+1] = (1 << (D-1)) - r->coeffs[8*i+1];
-    r->coeffs[8*i+2] = (1 << (D-1)) - r->coeffs[8*i+2];
-    r->coeffs[8*i+3] = (1 << (D-1)) - r->coeffs[8*i+3];
-    r->coeffs[8*i+4] = (1 << (D-1)) - r->coeffs[8*i+4];
-    r->coeffs[8*i+5] = (1 << (D-1)) - r->coeffs[8*i+5];
-    r->coeffs[8*i+6] = (1 << (D-1)) - r->coeffs[8*i+6];
-    r->coeffs[8*i+7] = (1 << (D-1)) - r->coeffs[8*i+7];
-  }
-
-  DBENCH_STOP(*tpack);
+  poly temp;
+  ntt_lite_decode(temp.coeffs, (uint32_t*) a, D);
+  ntt_lite_sub(r->coeffs, pack_t0_c, temp.coeffs);
 }
+
+
+static const uint32_t pack_z_c[N] = {GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1,
+                                     GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1, GAMMA1};
+
 
 /*************************************************
 * Name:        polyz_pack
@@ -823,45 +676,8 @@ void polyt0_unpack(poly *r, const uint8_t *a) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyz_pack(uint8_t *r, const poly *a) {
-  unsigned int i;
-  uint32_t t[4];
-  
-
-#if GAMMA1 == (1 << 17)
-  for(i = 0; i < N/4; ++i) {
-    t[0] = GAMMA1 - a->coeffs[4*i+0];
-    t[1] = GAMMA1 - a->coeffs[4*i+1];
-    t[2] = GAMMA1 - a->coeffs[4*i+2];
-    t[3] = GAMMA1 - a->coeffs[4*i+3];
-
-    r[9*i+0]  = t[0];
-    r[9*i+1]  = t[0] >> 8;
-    r[9*i+2]  = t[0] >> 16;
-    r[9*i+2] |= t[1] << 2;
-    r[9*i+3]  = t[1] >> 6;
-    r[9*i+4]  = t[1] >> 14;
-    r[9*i+4] |= t[2] << 4;
-    r[9*i+5]  = t[2] >> 4;
-    r[9*i+6]  = t[2] >> 12;
-    r[9*i+6] |= t[3] << 6;
-    r[9*i+7]  = t[3] >> 2;
-    r[9*i+8]  = t[3] >> 10;
-  }
-#elif GAMMA1 == (1 << 19)
-  for(i = 0; i < N/2; ++i) {
-    t[0] = GAMMA1 - a->coeffs[2*i+0];
-    t[1] = GAMMA1 - a->coeffs[2*i+1];
-
-    r[5*i+0]  = t[0];
-    r[5*i+1]  = t[0] >> 8;
-    r[5*i+2]  = t[0] >> 16;
-    r[5*i+2] |= t[1] << 4;
-    r[5*i+3]  = t[1] >> 4;
-    r[5*i+4]  = t[1] >> 12;
-  }
-#endif
-
-  DBENCH_STOP(*tpack);
+  ntt_lite_sub(NTT_LITE_OUTPUT_DIS, pack_z_c, a->coeffs);
+  ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_GAMMA1);
 }
 
 /*************************************************
@@ -874,54 +690,9 @@ void polyz_pack(uint8_t *r, const poly *a) {
 *              - const uint8_t *a: byte array with bit-packed polynomial
 **************************************************/
 void polyz_unpack(poly *r, const uint8_t *a) {
-  unsigned int i;
-  
-
-#if GAMMA1 == (1 << 17)
-  for(i = 0; i < N/4; ++i) {
-    r->coeffs[4*i+0]  = a[9*i+0];
-    r->coeffs[4*i+0] |= (uint32_t)a[9*i+1] << 8;
-    r->coeffs[4*i+0] |= (uint32_t)a[9*i+2] << 16;
-    r->coeffs[4*i+0] &= 0x3FFFF;
-
-    r->coeffs[4*i+1]  = a[9*i+2] >> 2;
-    r->coeffs[4*i+1] |= (uint32_t)a[9*i+3] << 6;
-    r->coeffs[4*i+1] |= (uint32_t)a[9*i+4] << 14;
-    r->coeffs[4*i+1] &= 0x3FFFF;
-
-    r->coeffs[4*i+2]  = a[9*i+4] >> 4;
-    r->coeffs[4*i+2] |= (uint32_t)a[9*i+5] << 4;
-    r->coeffs[4*i+2] |= (uint32_t)a[9*i+6] << 12;
-    r->coeffs[4*i+2] &= 0x3FFFF;
-
-    r->coeffs[4*i+3]  = a[9*i+6] >> 6;
-    r->coeffs[4*i+3] |= (uint32_t)a[9*i+7] << 2;
-    r->coeffs[4*i+3] |= (uint32_t)a[9*i+8] << 10;
-    r->coeffs[4*i+3] &= 0x3FFFF;
-
-    r->coeffs[4*i+0] = GAMMA1 - r->coeffs[4*i+0];
-    r->coeffs[4*i+1] = GAMMA1 - r->coeffs[4*i+1];
-    r->coeffs[4*i+2] = GAMMA1 - r->coeffs[4*i+2];
-    r->coeffs[4*i+3] = GAMMA1 - r->coeffs[4*i+3];
-  }
-#elif GAMMA1 == (1 << 19)
-  for(i = 0; i < N/2; ++i) {
-    r->coeffs[2*i+0]  = a[5*i+0];
-    r->coeffs[2*i+0] |= (uint32_t)a[5*i+1] << 8;
-    r->coeffs[2*i+0] |= (uint32_t)a[5*i+2] << 16;
-    r->coeffs[2*i+0] &= 0xFFFFF;
-
-    r->coeffs[2*i+1]  = a[5*i+2] >> 4;
-    r->coeffs[2*i+1] |= (uint32_t)a[5*i+3] << 4;
-    r->coeffs[2*i+1] |= (uint32_t)a[5*i+4] << 12;
-    r->coeffs[2*i+0] &= 0xFFFFF;
-
-    r->coeffs[2*i+0] = GAMMA1 - r->coeffs[2*i+0];
-    r->coeffs[2*i+1] = GAMMA1 - r->coeffs[2*i+1];
-  }
-#endif
-
-  DBENCH_STOP(*tpack);
+  poly temp;
+  ntt_lite_decode(temp.coeffs, (uint32_t*) a, LOG_GAMMA1);
+  ntt_lite_sub(r->coeffs, pack_z_c, temp.coeffs);
 }
 
 /*************************************************
@@ -935,22 +706,5 @@ void polyz_unpack(poly *r, const uint8_t *a) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void polyw1_pack(uint8_t *r, const poly *a) {
-  unsigned int i;
-  
-
-#if GAMMA2 == (Q-1)/88
-  for(i = 0; i < N/4; ++i) {
-    r[3*i+0]  = a->coeffs[4*i+0];
-    r[3*i+0] |= a->coeffs[4*i+1] << 6;
-    r[3*i+1]  = a->coeffs[4*i+1] >> 2;
-    r[3*i+1] |= a->coeffs[4*i+2] << 4;
-    r[3*i+2]  = a->coeffs[4*i+2] >> 4;
-    r[3*i+2] |= a->coeffs[4*i+3] << 2;
-  }
-#elif GAMMA2 == (Q-1)/32
-  for(i = 0; i < N/2; ++i)
-    r[i] = a->coeffs[2*i+0] | (a->coeffs[2*i+1] << 4);
-#endif
-
-  DBENCH_STOP(*tpack);
+  ntt_lite_encode((uint32_t*) r, a->coeffs, LOG_GAMMA2);
 }

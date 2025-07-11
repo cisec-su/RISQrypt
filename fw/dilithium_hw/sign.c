@@ -78,6 +78,8 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
   dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 
+  poly_init_pack();
+
   pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
 
   return 0;
@@ -123,6 +125,9 @@ int crypto_sign_signature(uint8_t *sig,
   key = tr + SEEDBYTES;
   mu = key + SEEDBYTES;
   rhoprime = mu + CRHBYTES;
+
+  poly_init_pack();
+  
   unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
   
   poly_init_q();
@@ -152,15 +157,13 @@ int crypto_sign_signature(uint8_t *sig,
   polyveck_ntt(&t0); 
 
 rej:
-  if (nonce) {
-    poly_init_ntt();
-  }
 
   /* Sample intermediate vector y */
   polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
   polyvecl_caddq(&y);
-  
+
   /* Matrix-vector multiplication */ 
+  poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
   polyvecl_ntt(&y);
 
   polyvec_matrix_pointwise(&w1, mat, &y);
@@ -225,6 +228,8 @@ rej:
   if(n > OMEGA) {
       goto rej;
   }
+
+  poly_init_pack();
 
   /* Write signature */
   pack_sig(sig, sig, &z, &h);
@@ -296,13 +301,15 @@ int crypto_sign_verify(const uint8_t *sig,
   if(siglen != CRYPTO_BYTES)
     return -1;
 
-  poly_init_q();
+  poly_init_pack();
 
   unpack_pk(rho, &t1, pk);
   if(unpack_sig(c, &z, &h, sig))
     return -1;
   if(polyvecl_chknorm(&z, GAMMA1 - BETA))
     return -1;
+
+  poly_init_q();
 
   /* Compute CRH(h(rho, t1), msg) */
   dilithium_shake256_mu_crh(mu, pk, m, mlen);
