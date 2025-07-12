@@ -188,7 +188,7 @@ int dilithium_simple() {
         return -1;
     }
 
-    if (memcmp(sig, sig_, CRYPTO_PUBLICKEYBYTES) != 0) {
+    if (memcmp(sig, sig_, CRYPTO_BYTES) != 0) {
         print_string("SIGN FAIL\n");
     }
     else

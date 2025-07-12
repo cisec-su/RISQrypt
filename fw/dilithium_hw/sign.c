@@ -81,6 +81,20 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 }
 
 
+void print_coeffs(poly *a, const char *name) {
+  unsigned int i;
+  print_string(name);
+  print_string(" coefficients:\n");
+  for(i = 0; i < 8; ++i) {
+    print_u32(i);
+    print_string(":\t");
+    print_u32(a->coeffs[i]);
+    print_string("\n");
+  }
+  print_string("\n");
+}
+
+
 /*************************************************
 * Name:        crypto_sign_signature
 *
@@ -107,6 +121,7 @@ int crypto_sign_signature(uint8_t *sig,
   polyvecl mat[K], s1, y, z;
   polyveck t0, s2, w1, w0, h;
   poly cp;
+  int flag;
 
   rho = seedbuf;
   tr = rho + SEEDBYTES;
@@ -138,10 +153,8 @@ int crypto_sign_signature(uint8_t *sig,
   polyveck_ntt(&t0); 
 
 rej:
-
   /* Sample intermediate vector y */
   polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
-  polyvecl_caddq(&y);
 
   /* Matrix-vector multiplication */ 
   poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
@@ -150,21 +163,12 @@ rej:
   polyvec_matrix_pointwise(&w1, mat, &y);
 
   poly_init_invntt();
-
   polyveck_invntt(&w1);
 
   /* Decompose w and call the random oracle */
-  // uint32_t time;
-  // timer_start();
-
   polyveck_decompose(&w1, &w0, &w1);
-  // time = timer_read();
-  // print_string("Time: ");
-  // print_u32(time);
-  // print_string("\n");
 
-
-  // polyveck_caddq(&w0);
+  polyveck_caddq(&w0);
 
   polyveck_pack_w1(sig, &w1);
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
@@ -175,45 +179,40 @@ rej:
 
   poly_ntt(&cp);
 
-
   /* Compute z, reject if it reveals secret */
   polyvecl_pointwise_poly(&z, &cp, &s1);
   polyvecl_add(&z, &z, &y);
   poly_init_invntt();
-  polyvecl_invntt(&z);
-  polyvecl_reduce(&z);
 
-  if(polyvecl_chknorm(&z, GAMMA1 - BETA)) {
+  flag = polyvecl_invntt_check_norm(&z, GAMMA1 - BETA);
+
+  if(flag) {
     goto rej;
   }
 
-  /* Check that subtracting cs2 does not change high bits of w and low bits
+  /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
   polyveck_pointwise_poly(&h, &cp, &s2);
   poly_init_invntt();
-  polyveck_invntt_sub(&h, &w0);
-  polyveck_reduce(&h);
-
-  if(polyveck_chknorm(&h, GAMMA2 - BETA)) {
+  polyveck_invntt_sub(&w0, &w0, &h);
+  if(polyveck_check_norm(&w0, GAMMA2 - BETA)) {
     goto rej;
   }
 
   /* Compute hints for w1 */
   polyveck_pointwise_poly(&h, &cp, &t0);
   poly_init_invntt();
-  polyveck_invntt(&h);
-  polyveck_reduce(&h);
-  if(polyveck_chknorm(&h, GAMMA2)) {
+  flag = polyveck_invntt_check_norm(&h, GAMMA2);
+  if(flag) {
       goto rej;
   }
 
+  polyveck_add(&w0, &w0, &h);
   polyveck_reduce(&w0);  
   n = polyveck_make_hint(&h, &w0, &w1);
   if(n > OMEGA) {
       goto rej;
   }
-
-  poly_set_pack();
 
   /* Write signature */
   pack_sig(sig, sig, &z, &h);

@@ -143,8 +143,8 @@ void poly_invntt(poly *a) {
 }
 
 
-void poly_invntt_sub(poly *a, poly *b) {
-  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, a->coeffs);
+void poly_invntt_sub(poly *a, poly *b, poly *c) {
+  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, c->coeffs);
   ntt_lite_sub_rev(a->coeffs, NTT_LITE_INPUT_DIS, b->coeffs);
 }
 
@@ -295,6 +295,28 @@ int poly_chknorm(const poly *a, int32_t B) {
 
   return 0;
 }
+
+
+
+int poly_chknorm_shifted(const poly *a, int32_t B) {
+  unsigned int i;
+  int32_t t;
+  
+  if(B > (Q-1)/8)
+    return 1;
+
+  /* It is ok to leak which coefficient violates the bound since
+     the probability for each coefficient is independent of secret
+     data but we must not leak the sign of the centralized representative. */
+  for(i = 0; i < N; ++i) {
+    if(((uint32_t) a->coeffs[i]) >= (2*B)) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 
 /*************************************************
 * Name:        rej_uniform

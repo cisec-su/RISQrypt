@@ -99,7 +99,7 @@ void poly_init_pack(void);
 void poly_set_pack(void);
 
 #define poly_invntt_sub DILITHIUM_NAMESPACE(poly_invntt_sub)
-void poly_invntt_sub(poly *a, poly *b);
+void poly_invntt_sub(poly *a, poly *b, poly *c);
 
 
 #endif

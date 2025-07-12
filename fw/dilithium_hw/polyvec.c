@@ -104,12 +104,35 @@ void polyvecl_ntt(polyvecl *v) {
     poly_ntt(&v->vec[i]);
 }
 
+
 void polyvecl_invntt(polyvecl *v) {
   unsigned int i;
 
   for(i = 0; i < L; ++i)
     poly_invntt(&v->vec[i]);
 }
+
+
+int polyvecl_invntt_check_norm(polyvecl *v, uint32_t B) {
+  unsigned int i;
+  uint32_t *rhs;
+  poly temp;
+
+  for(i = 0; i < L; ++i) {
+    if (i == 0) {
+      rhs = &B;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_backward_ntt((uint32_t*) v->vec[i].coeffs, (uint32_t*) v->vec[i].coeffs);
+    ntt_lite_add_const((uint32_t*) temp.coeffs, NTT_LITE_INPUT_DIS, rhs);
+    if (poly_chknorm_shifted(&temp, B)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 
 void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v) {
   unsigned int i;
@@ -169,6 +192,18 @@ int polyvecl_chknorm(const polyvecl *v, int32_t bound)  {
 
   return 0;
 }
+
+
+int polyvecl_chknorm_shifted(const polyvecl *v, int32_t bound)  {
+  unsigned int i;
+
+  for(i = 0; i < L; ++i)
+    if(poly_chknorm_shifted(&v->vec[i], bound))
+      return 1;
+
+  return 0;
+}
+
 
 /**************************************************************/
 /************ Vectors of polynomials of length K **************/
@@ -324,18 +359,75 @@ void polyveck_invntt(polyveck *v) {
 }
 
 
-void polyveck_invntt_sub(polyveck *v, polyveck *u) {
+void polyveck_invntt_sub(polyveck *r, polyveck *v, polyveck *u) {
   unsigned int i;
 
   for(i = 0; i < (K - 1); ++i) {
-    poly_invntt(&v->vec[i]);
+    poly_invntt(&u->vec[i]);
   }
 
-  poly_invntt_sub(&v->vec[K - 1], &u->vec[K - 1]);
+  poly_invntt_sub(&r->vec[K - 1], &v->vec[K - 1], &u->vec[K - 1]);
   
   for(i = 0; i < (K - 1); ++i) {
-    poly_sub(&v->vec[i], &v->vec[i], &u->vec[i]);
+    poly_sub(&r->vec[i], &v->vec[i], &u->vec[i]);
   }
+}
+
+
+void polyveck_invntt_add_const(polyveck *r, polyveck *v, uint32_t c) {
+  unsigned int i;
+  uint32_t *rhs;
+
+  for(i = 0; i < K; ++i) {
+    if (i == 0) {
+      rhs = &c;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_backward_ntt((uint32_t*) v->vec[i].coeffs, (uint32_t*) v->vec[i].coeffs);
+    ntt_lite_add_const((uint32_t*) r->vec[i].coeffs, NTT_LITE_INPUT_DIS, rhs);
+  }
+}
+
+
+int polyveck_invntt_check_norm(polyveck *v, uint32_t B) {
+  unsigned int i;
+  uint32_t *rhs;
+  poly temp;
+
+  for(i = 0; i < K; ++i) {
+    if (i == 0) {
+      rhs = &B;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_backward_ntt((uint32_t*) v->vec[i].coeffs, (uint32_t*) v->vec[i].coeffs);
+    ntt_lite_add_const((uint32_t*) temp.coeffs, NTT_LITE_INPUT_DIS, rhs);
+    if (poly_chknorm_shifted(&temp, B)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+
+int polyveck_check_norm(polyveck *v, uint32_t B) {
+  unsigned int i;
+  uint32_t *rhs;
+  poly temp;
+
+  for(i = 0; i < K; ++i) {
+    if (i == 0) {
+      rhs = &B;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_add_const((uint32_t*) temp.coeffs, (uint32_t*) v->vec[i].coeffs, rhs);
+    if (poly_chknorm_shifted(&temp, B)) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 
@@ -375,6 +467,18 @@ int polyveck_chknorm(const polyveck *v, int32_t bound) {
 
   return 0;
 }
+
+
+int polyveck_chknorm_shifted(const polyveck *v, int32_t bound) {
+  unsigned int i;
+
+  for(i = 0; i < K; ++i)
+    if(poly_chknorm_shifted(&v->vec[i], bound))
+      return 1;
+
+  return 0;
+}
+
 
 /*************************************************
 * Name:        polyveck_power2round
