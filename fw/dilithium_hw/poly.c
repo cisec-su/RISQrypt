@@ -271,12 +271,7 @@ void poly_power2round(poly *a1, poly *a0, const poly *a) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void poly_decompose(poly *a1, poly *a0, const poly *a) {
-  unsigned int i;
-  
-
-  for(i = 0; i < N; ++i)
-    a1->coeffs[i] = decompose(&a0->coeffs[i], a->coeffs[i]);
-
+  ntt_lite_decompose((uint32_t*) a1->coeffs, (uint32_t*) a0->coeffs, (uint32_t*) a->coeffs);
 }
 
 /*************************************************

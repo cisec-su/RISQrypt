@@ -2,7 +2,7 @@
 // Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
-// Date        : Fri Jan 24 13:32:26 2025
+// Date        : Sat Jul 12 22:42:38 2025
 // Host        : toluntosun-Ubuntu running 64-bit Ubuntu 23.10
 // Command     : write_verilog -force -mode funcsim
 //               /home/toluntosun/Desktop/RISQrypt/HORNET_FHE/Hornet-FHE/vivado/hornet_fhe.gen/sources_1/ip/clk_wiz_0/clk_wiz_0_sim_netlist.v
@@ -91,12 +91,12 @@ module clk_wiz_0_clk_wiz
   (* BOX_TYPE = "PRIMITIVE" *) 
   MMCME2_ADV #(
     .BANDWIDTH("OPTIMIZED"),
-    .CLKFBOUT_MULT_F(10.000000),
+    .CLKFBOUT_MULT_F(9.125000),
     .CLKFBOUT_PHASE(0.000000),
     .CLKFBOUT_USE_FINE_PS("FALSE"),
     .CLKIN1_PERIOD(10.000000),
     .CLKIN2_PERIOD(0.000000),
-    .CLKOUT0_DIVIDE_F(20.000000),
+    .CLKOUT0_DIVIDE_F(36.500000),
     .CLKOUT0_DUTY_CYCLE(0.500000),
     .CLKOUT0_PHASE(0.000000),
     .CLKOUT0_USE_FINE_PS("FALSE"),

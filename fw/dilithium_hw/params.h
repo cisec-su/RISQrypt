@@ -22,7 +22,7 @@
 #define BETA 78
 #define LOG_GAMMA1 18
 #define LOG_GAMMA2 6
-#define GAMMA2 ((Q-1)/88)
+#define GAMMA2_D 88
 #define OMEGA 80
 #define CRYPTO_ALGNAME "Dilithium2"
 
@@ -35,7 +35,7 @@
 #define BETA 196
 #define LOG_GAMMA1 20
 #define LOG_GAMMA2 4
-#define GAMMA2 ((Q-1)/32)
+#define GAMMA2_D 32
 #define OMEGA 55
 #define CRYPTO_ALGNAME "Dilithium3"
 
@@ -48,13 +48,14 @@
 #define BETA 120
 #define LOG_GAMMA1 18
 #define LOG_GAMMA2 6
-#define GAMMA2 ((Q-1)/32)
+#define GAMMA2_D 32
 #define OMEGA 75
 #define CRYPTO_ALGNAME "Dilithium5"
 
 #endif
 
 #define GAMMA1 (1 << (LOG_GAMMA1 - 1))
+#define GAMMA2 ((Q-1)/GAMMA2_D)
 
 #define POLYT1_PACKEDBYTES  320
 #define POLYT0_PACKEDBYTES  416

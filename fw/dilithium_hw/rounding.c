@@ -73,7 +73,7 @@ int32_t decompose(int32_t *a0, int32_t a) {
 * Returns 1 if overflow.
 **************************************************/
 unsigned int make_hint(int32_t a0, int32_t a1) {
-  if(a0 > GAMMA2 || a0 < -GAMMA2 || (a0 == -GAMMA2 && a1 != 0))
+  if(((a0 > GAMMA2) && (a0 < (Q-GAMMA2))) || (a0 == (Q-GAMMA2) && a1 != 0))
     return 1;
 
   return 0;

@@ -15,7 +15,7 @@ typedef struct
     IO ctrl;       // BASE_ADDR + 0x00000000
     I  din_addr;   // BASE_ADDR + 0x00000004
     IO dout_addr;  // BASE_ADDR + 0x00000008
-    IO stride;     // BASE_ADDR + 0x0000000C
+    IO bound;      // BASE_ADDR + 0x0000000C
     IO q;          // BASE_ADDR + 0x00000010
     IO mu[2];      // BASE_ADDR + 0x00000014
     IO inv2;       // BASE_ADDR + 0x0000001C
@@ -31,6 +31,7 @@ typedef struct
 #define NTT_LITE_CTRL_CMD_START            (((uint32_t) 0x2) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_LOAD_TWIDDLE     (((uint32_t) 0x3) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_LOAD_POLY        (((uint32_t) 0x4) << NTT_LITE_CTRL_CMD_S)
+#define NTT_LITE_CTRL_CMD_READ_TWIDDLE     (((uint32_t) 0x5) << NTT_LITE_CTRL_CMD_S)
 
 #define NTT_LITE_CTRL_LOGN_S               ((uint32_t) 4  )
 #define NTT_LITE_CTRL_LOGN_M               ((uint32_t) 0xF)
@@ -49,6 +50,7 @@ typedef struct
 #define NTT_LITE_CTRL_OP_ENCODE            (((uint32_t) 0x7) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_DECODE            (((uint32_t) 0x8) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_SUM               (((uint32_t) 0x9) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_DECOMPOSE         (((uint32_t) 0xA) << NTT_LITE_CTRL_OP_S)
 
 #define NTT_LITE_CTRL_OP_SWITCH_EN_S       ((uint32_t) 12 )
 #define NTT_LITE_CTRL_OP_SWITCH_EN_M       ((uint32_t) 0x1)

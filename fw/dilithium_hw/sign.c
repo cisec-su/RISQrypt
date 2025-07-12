@@ -170,7 +170,7 @@ rej:
   /* Decompose w and call the random oracle */
   polyveck_decompose(&w1, &w0, &w1);
 
-  polyveck_caddq(&w0);
+  // polyveck_caddq(&w0);
 
   polyveck_pack_w1(sig, &w1);
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
@@ -217,7 +217,6 @@ rej:
   }
 
   polyveck_add(&w0, &w0, &h);
-  polyveck_reduce(&w0);  
   n = polyveck_make_hint(&h, &w0, &w1);
   if(n > OMEGA) {
       goto rej;
