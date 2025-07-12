@@ -41,7 +41,7 @@ if __name__ == "__main__":
             "-p", "--port",
             type=str,
             required=False,
-            default='/dev/ttyUSB1',
+            default='/dev/ttyUSB2',
             help="Serial Port"
         )
     parser.add_argument(

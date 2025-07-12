@@ -42,6 +42,10 @@ void poly_use_hint(poly *b, const poly *a, const poly *h);
 
 #define poly_chknorm DILITHIUM_NAMESPACE(poly_chknorm)
 int poly_chknorm(const poly *a, int32_t B);
+
+#define poly_chknorm_shifted DILITHIUM_NAMESPACE(poly_chknorm_shifted)
+int poly_chknorm_shifted(const poly *a, int32_t B);
+
 #define poly_uniform DILITHIUM_NAMESPACE(poly_uniform)
 void poly_uniform(poly *a,
                   const uint8_t seed[SEEDBYTES],
@@ -100,6 +104,12 @@ void poly_set_pack(void);
 
 #define poly_invntt_sub DILITHIUM_NAMESPACE(poly_invntt_sub)
 void poly_invntt_sub(poly *a, poly *b, poly *c);
+
+#define poly_invntt_sub_add_constant DILITHIUM_NAMESPACE(poly_invntt_sub_add_constant)
+int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B);
+
+#define poly_pointwise_invntt_sub_chknorm DILITHIUM_NAMESPACE(poly_pointwise_invntt_sub_chknorm)
+int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B);
 
 
 #endif

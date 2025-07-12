@@ -113,7 +113,7 @@ void polyvecl_invntt(polyvecl *v) {
 }
 
 
-int polyvecl_invntt_check_norm(polyvecl *v, uint32_t B) {
+int polyvecl_invntt_chknorm(polyvecl *v, uint32_t B) {
   unsigned int i;
   uint32_t *rhs;
   poly temp;
@@ -147,6 +147,19 @@ void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v) {
     ntt_lite_pwm((uint32_t*) &r->vec[i].coeffs, (uint32_t*) &v->vec[i].coeffs, rhs);     
   }
 }
+
+
+int polyvecl_pointwise_add_invntt_chknorm(polyvecl *r, const polyvecl *v, const poly *c, const polyvecl *u, uint32_t B) {
+  unsigned int i;
+
+  for(i = 0; i < L; ++i) {
+    if (poly_pointwise_add_invntt_chknorm(&r->vec[i], &v->vec[i], c, &u->vec[i], B)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 
 /*************************************************
 * Name:        polyvecl_pointwise_acc
@@ -260,22 +273,7 @@ void polyvecl_caddq(polyvecl *v) {
   for(i = 0; i < L; ++i)
     poly_caddq(&v->vec[i]);
 }
-#if 0
-/*************************************************
-* Name:        polyveck_freeze
-*
-* Description: Reduce coefficients of polynomials in vector of length K
-*              to standard representatives.
-*
-* Arguments:   - polyveck *v: pointer to input/output vector
-**************************************************/
-void polyveck_freeze(polyveck *v)  {
-  unsigned int i;
 
-  for(i = 0; i < K; ++i)
-    poly_freeze(&v->vec[i]);
-}
-#endif
 
 /*************************************************
 * Name:        polyveck_add
@@ -390,7 +388,7 @@ void polyveck_invntt_add_const(polyveck *r, polyveck *v, uint32_t c) {
 }
 
 
-int polyveck_invntt_check_norm(polyveck *v, uint32_t B) {
+int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
   unsigned int i;
   uint32_t *rhs;
   poly temp;
@@ -411,19 +409,11 @@ int polyveck_invntt_check_norm(polyveck *v, uint32_t B) {
 }
 
 
-int polyveck_check_norm(polyveck *v, uint32_t B) {
+int polyveck_pointwise_invntt_sub_chknorm(polyveck *r, const polyveck *v, const poly *c, const polyveck *u, uint32_t B) {
   unsigned int i;
-  uint32_t *rhs;
-  poly temp;
 
   for(i = 0; i < K; ++i) {
-    if (i == 0) {
-      rhs = &B;
-    } else {
-      rhs = NTT_LITE_INPUT_DIS;
-    }
-    ntt_lite_add_const((uint32_t*) temp.coeffs, (uint32_t*) v->vec[i].coeffs, rhs);
-    if (poly_chknorm_shifted(&temp, B)) {
+    if (poly_pointwise_invntt_sub_chknorm(&r->vec[i], &v->vec[i], c, &u->vec[i], B)) {
       return 1;
     }
   }
@@ -458,13 +448,22 @@ void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v) {
 * Returns 0 if norm of all polynomials are strictly smaller than B <= (Q-1)/8
 * and 1 otherwise.
 **************************************************/
-int polyveck_chknorm(const polyveck *v, int32_t bound) {
+int polyveck_chknorm(const polyveck *v, uint32_t B) {
   unsigned int i;
+  uint32_t *rhs;
+  poly temp;
 
-  for(i = 0; i < K; ++i)
-    if(poly_chknorm(&v->vec[i], bound))
+  for(i = 0; i < K; ++i) {
+    if (i == 0) {
+      rhs = &B;
+    } else {
+      rhs = NTT_LITE_INPUT_DIS;
+    }
+    ntt_lite_add_const((uint32_t*) temp.coeffs, (uint32_t*) v->vec[i].coeffs, rhs);
+    if (poly_chknorm_shifted(&temp, B)) {
       return 1;
-
+    }
+  }
   return 0;
 }
 

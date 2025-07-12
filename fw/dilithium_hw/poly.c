@@ -148,6 +148,65 @@ void poly_invntt_sub(poly *a, poly *b, poly *c) {
   ntt_lite_sub_rev(a->coeffs, NTT_LITE_INPUT_DIS, b->coeffs);
 }
 
+
+void poly_invntt_sub_add_constant(poly *a, poly *b, poly *c, uint32_t d) {
+  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, c->coeffs);
+  ntt_lite_sub_rev(b->coeffs, NTT_LITE_INPUT_DIS, b->coeffs);
+  ntt_lite_add_const((uint32_t*)a->coeffs, NTT_LITE_INPUT_DIS, &d);
+}
+
+
+int poly_invntt_chknorm(poly *a, uint32_t B, poly *temp) {
+  unsigned int i;
+  uint32_t *rhs = &B;
+
+  ntt_lite_backward_ntt((uint32_t*) a->coeffs, (uint32_t*) a->coeffs);
+  ntt_lite_add_const((uint32_t*) temp->coeffs, NTT_LITE_INPUT_DIS, rhs);
+  if (poly_chknorm_shifted(temp, B)) {
+    return 1;
+  }
+  return 0;
+}
+
+
+int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B) {
+  unsigned int i;
+  poly temp;
+  uint32_t *rhs = &B;
+
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->coeffs, (uint32_t*) &c->coeffs);
+  ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
+  poly_init_invntt();
+  ntt_lite_backward_ntt((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS);
+  ntt_lite_add_const((uint32_t*) temp.coeffs, NTT_LITE_INPUT_DIS, rhs);
+  if (poly_chknorm_shifted(&temp, B)) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+
+int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B) {
+  unsigned int i;
+  poly temp;
+  uint32_t *rhs = &B;
+
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->coeffs, (uint32_t*) &c->coeffs);
+  poly_init_invntt();
+  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+  ntt_lite_sub_rev((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
+  ntt_lite_add_const((uint32_t*) temp.coeffs, NTT_LITE_INPUT_DIS, rhs);
+  if (poly_chknorm_shifted(&temp, B)) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+
 /*************************************************
 * Name:        poly_pointwise
 *

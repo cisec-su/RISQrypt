@@ -231,9 +231,44 @@ int dilithium_simple() {
 }
 
 
+int dilithium_mean_sign() {
+    size_t sig_len;
+    unsigned int time;
+    unsigned int log_test_num = 4;
+    unsigned int test_num = 1 << log_test_num;
+    int ret = 0;
+
+
+
+    print_string("\nDilithium Sign\n");
+
+    timer_start();
+
+    for (int i = 0; i < 10; i++) {
+        msg[0] += 1;
+        ret += crypto_sign_signature(sig_, &sig_len, msg, sizeof(msg), sk);
+        if (ret != 0) {
+            break;
+        }
+    }    
+    time = timer_read();
+    if (ret != 0) {
+        print_string("Signature generation failed at some point\n");
+        return -1;
+    }
+    print_string("Mean Signature Time: ");
+    print_u32(time >> log_test_num);
+    print_string("\n");
+
+    return 0;
+}
+
+
+
 int main() {
 
     dilithium_simple();
+    dilithium_mean_sign();
 
     print_string("DONE\n");
 

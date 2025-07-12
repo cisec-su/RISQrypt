@@ -9,6 +9,8 @@
 #include "symmetric.h"
 #include "util.h"
 
+#define Z_CHECK_ITERATIVE
+#define W0CS2_CHECK_ITERATIVE
 
 /*************************************************
 * Name:        crypto_sign_keypair
@@ -180,29 +182,36 @@ rej:
   poly_ntt(&cp);
 
   /* Compute z, reject if it reveals secret */
+#ifdef Z_CHECK_ITERATIVE
+  flag = polyvecl_pointwise_add_invntt_chknorm(&z, &s1, &cp, &y, GAMMA1 - BETA);
+#else
   polyvecl_pointwise_poly(&z, &cp, &s1);
   polyvecl_add(&z, &z, &y);
   poly_init_invntt();
-
-  flag = polyvecl_invntt_check_norm(&z, GAMMA1 - BETA);
-
+  flag = polyvecl_invntt_chknorm(&z, GAMMA1 - BETA);
+#endif
   if(flag) {
     goto rej;
   }
 
   /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
    * do not reveal secret information */
+#ifdef W0CS2_CHECK_ITERATIVE
+  flag = polyveck_pointwise_invntt_sub_chknorm(&w0, &s2, &cp, &w0, GAMMA2 - BETA);
+#else
   polyveck_pointwise_poly(&h, &cp, &s2);
   poly_init_invntt();
   polyveck_invntt_sub(&w0, &w0, &h);
-  if(polyveck_check_norm(&w0, GAMMA2 - BETA)) {
-    goto rej;
+  flag = polyveck_chknorm(&w0, GAMMA2 - BETA);
+#endif
+  if(flag) {
+     goto rej;
   }
 
   /* Compute hints for w1 */
   polyveck_pointwise_poly(&h, &cp, &t0);
   poly_init_invntt();
-  flag = polyveck_invntt_check_norm(&h, GAMMA2);
+  flag = polyveck_invntt_chknorm(&h, GAMMA2);
   if(flag) {
       goto rej;
   }
