@@ -234,7 +234,7 @@ int dilithium_simple() {
 int dilithium_mean_sign() {
     size_t sig_len;
     unsigned int time;
-    unsigned int log_test_num = 4;
+    unsigned int log_test_num = 7;
     unsigned int test_num = 1 << log_test_num;
     int ret = 0;
 
@@ -244,7 +244,7 @@ int dilithium_mean_sign() {
 
     timer_start();
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < test_num; i++) {
         msg[0] += 1;
         ret += crypto_sign_signature(sig_, &sig_len, msg, sizeof(msg), sk);
         if (ret != 0) {

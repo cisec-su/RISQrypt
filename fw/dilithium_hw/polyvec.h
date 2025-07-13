@@ -79,12 +79,13 @@ int polyveck_chknorm(const polyveck *v, uint32_t B);
 
 #define polyveck_power2round DILITHIUM_NAMESPACE(polyveck_power2round)
 void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v);
+
 #define polyveck_decompose DILITHIUM_NAMESPACE(polyveck_decompose)
 void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v);
+
 #define polyveck_make_hint DILITHIUM_NAMESPACE(polyveck_make_hint)
-unsigned int polyveck_make_hint(polyveck *h,
-                                const polyveck *v0,
-                                const polyveck *v1);
+unsigned int polyveck_make_hint(polyveck *h, const polyveck *v0, const polyveck *v1);
+
 #define polyveck_use_hint DILITHIUM_NAMESPACE(polyveck_use_hint)
 void polyveck_use_hint(polyveck *w, const polyveck *v, const polyveck *h);
 
@@ -111,5 +112,8 @@ int polyveck_pointwise_invntt_sub_chknorm(polyveck *r, const polyveck *v, const 
 
 #define polyvecl_invntt_chknorm DILITHIUM_NAMESPACE(polyvecl_invntt_chknorm)
 int polyvecl_pointwise_add_invntt_chknorm(polyvecl *r, const polyvecl *v, const poly *c, const polyvecl *u, uint32_t B);
+
+#define polyveck_invntt_add_const DILITHIUM_NAMESPACE(polyveck_invntt_add_const)
+unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyveck *v1, const polyveck *u);
 
 #endif

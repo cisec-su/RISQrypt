@@ -51,6 +51,8 @@ typedef struct
 #define NTT_LITE_CTRL_OP_DECODE            (((uint32_t) 0x8) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_SUM               (((uint32_t) 0x9) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_DECOMPOSE         (((uint32_t) 0xA) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_CHKNORM           (((uint32_t) 0xB) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_MAKEHINT          (((uint32_t) 0xC) << NTT_LITE_CTRL_OP_S)
 
 #define NTT_LITE_CTRL_OP_SWITCH_EN_S       ((uint32_t) 12 )
 #define NTT_LITE_CTRL_OP_SWITCH_EN_M       ((uint32_t) 0x1)
@@ -70,6 +72,10 @@ typedef struct
 #define NTT_LITE_CTRL_D_S                  ((uint32_t) 21  )
 #define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x1F)
 #define NTT_LITE_CTRL_D_V                  (NTT_LITE_CTRL_D_M << NTT_LITE_CTRL_D_S)
+
+#define NTT_LITE_CTRL_CHKNORM_S            ((uint32_t) 26 )
+#define NTT_LITE_CTRL_CHKNORM_M            ((uint32_t) 0x1)
+#define NTT_LITE_CTRL_CHKNORM_V            (NTT_LITE_CTRL_CHKNORM_M << NTT_LITE_CTRL_CHKNORM_S)
 
 #define NTT_LITE_CTRL_RHS_CONST_EN_S       ((uint32_t) 27 )
 #define NTT_LITE_CTRL_RHS_CONST_EN_M       ((uint32_t) 0x1)

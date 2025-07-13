@@ -4,6 +4,10 @@
 #include "poly.h"
 #include "ntt_lite.h"
 
+
+#define INV2 0x3ff001
+
+
 /*************************************************
 * Name:        expand_mat
 *
@@ -151,6 +155,7 @@ void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v) {
 
 int polyvecl_pointwise_add_invntt_chknorm(polyvecl *r, const polyvecl *v, const poly *c, const polyvecl *u, uint32_t B) {
   unsigned int i;
+  ntt_lite_set_bound(B);
 
   for(i = 0; i < L; ++i) {
     if (poly_pointwise_add_invntt_chknorm(&r->vec[i], &v->vec[i], c, &u->vec[i], B)) {
@@ -390,18 +395,14 @@ void polyveck_invntt_add_const(polyveck *r, polyveck *v, uint32_t c) {
 
 int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
   unsigned int i;
-  uint32_t *rhs;
-  poly temp;
+  int flag;
+
+  ntt_lite_set_bound(B);
 
   for(i = 0; i < K; ++i) {
-    if (i == 0) {
-      rhs = &B;
-    } else {
-      rhs = NTT_LITE_INPUT_DIS;
-    }
-    ntt_lite_backward_ntt((uint32_t*) v->vec[i].coeffs, (uint32_t*) v->vec[i].coeffs);
-    ntt_lite_add_const((uint32_t*) temp.coeffs, NTT_LITE_INPUT_DIS, rhs);
-    if (poly_chknorm_shifted(&temp, B)) {
+    poly_invntt(&v->vec[i]);
+    flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+    if (flag) {
       return 1;
     }
   }
@@ -411,6 +412,8 @@ int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
 
 int polyveck_pointwise_invntt_sub_chknorm(polyveck *r, const polyveck *v, const poly *c, const polyveck *u, uint32_t B) {
   unsigned int i;
+
+  ntt_lite_set_bound(B);
 
   for(i = 0; i < K; ++i) {
     if (poly_pointwise_invntt_sub_chknorm(&r->vec[i], &v->vec[i], c, &u->vec[i], B)) {
@@ -551,6 +554,32 @@ unsigned int polyveck_make_hint(polyveck *h,
 
   return s;
 }
+
+
+unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyveck *v1, const polyveck *u)
+{
+  unsigned int i, s = 0;
+  unsigned int j;
+
+  ntt_lite_set_bound(GAMMA2);
+  ntt_lite_set_inv2(Q - GAMMA2);
+
+
+  for(i = 0; i < K; ++i) {
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) v0->vec[i].coeffs, (uint32_t*) u->vec[i].coeffs);
+    ntt_lite_make_hint((uint32_t*) &h->vec[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) v1->vec[i].coeffs);
+    for (j = 0; j < N; j++) {
+      s += h->vec[i].coeffs[j];
+    }
+    if (s > OMEGA) {
+      break;
+    }
+  }
+
+  ntt_lite_set_inv2(INV2);
+  return s;
+}
+
 
 /*************************************************
 * Name:        polyveck_use_hint

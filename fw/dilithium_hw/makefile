@@ -17,6 +17,6 @@ SRC += reduce.c
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
 # Optimization level
-OPTIMIZATION = -O3 # Default is -O0
+OPTIMIZATION = -O1 # Default is -O0
 
 include $(TOOLCHAIN_DIR)/makefile

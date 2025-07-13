@@ -30,6 +30,9 @@ wire [31:0] mux1_o_IF, mux2_o_IF, mux3_o_IF, mux4_o_IF; //mux outputs
 wire [31:0] pc_i; //pc input
 reg  [31:0] pc_o; //pc output
 
+wire debug_pc; //debug pc output
+assign debug_pc = pc_i == 0; //for debugging purposes, this can be connected to a debug interface
+
 wire stall_IF; //stalls the IF stage when it is high.
 //pipeline registers
 reg [31:0] IFID_preg_instr;

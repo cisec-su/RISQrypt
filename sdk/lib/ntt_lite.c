@@ -385,3 +385,38 @@ int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src) {
     return 0;
 }    
 
+
+int ntt_lite_chknorm(const uint32_t *src) {
+    
+    uint32_t cmd;
+    uint32_t status;
+
+    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+        return -1;
+    }
+
+    if (src == NTT_LITE_INPUT_DIS) {
+        cmd = NTT_LITE_CTRL_CMD_START;
+    } else {
+        cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
+        NTT_LITE_REGS->din_addr = (uint32_t) src;
+    }
+
+    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_CHKNORM;
+
+    do {
+        status = NTT_LITE_REGS->ctrl;
+    } while(!(status & NTT_LITE_CTRL_DONE_V));
+
+    if (status & NTT_LITE_CTRL_CHKNORM_V) {
+        return NTT_LITE_CHKNORM_FAIL;
+    } else {
+        return NTT_LITE_CHKNORM_SUCC;
+    }
+}
+
+
+
+int ntt_lite_make_hint(uint32_t *dst, const uint32_t *src_0, const uint32_t *src_1) {
+    return ntt_lite_pointwise_op(dst, src_0, src_1, NTT_LITE_CTRL_OP_MAKEHINT, 0, 0);
+}

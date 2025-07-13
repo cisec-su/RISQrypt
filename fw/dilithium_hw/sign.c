@@ -170,8 +170,6 @@ rej:
   /* Decompose w and call the random oracle */
   polyveck_decompose(&w1, &w0, &w1);
 
-  // polyveck_caddq(&w0);
-
   polyveck_pack_w1(sig, &w1);
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
 
@@ -216,10 +214,9 @@ rej:
       goto rej;
   }
 
-  polyveck_add(&w0, &w0, &h);
-  n = polyveck_make_hint(&h, &w0, &w1);
+  n = polyveck_add_make_hint(&h, &w0, &w1, &h);
   if(n > OMEGA) {
-      goto rej;
+      goto rej; // if this is rare, we can merge with packing
   }
 
   /* Write signature */
