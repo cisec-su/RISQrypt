@@ -30,7 +30,7 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
     
     X2X_REGS->ctrl |= X2X_CTRL_RESET_V;
 
-    while ((X2X_REGS->ctrl & X2X_CTRL_DONE_V) == 0);
+    //while ((X2X_REGS->ctrl & X2X_CTRL_DONE_V) == 0);
 
 
     if (modulus_type == X2X_MODULUS_POW2) {

@@ -66,10 +66,14 @@ wire [31:0] dout_addr [0:SHARES-1];
 wire [LOGL-1:0] data_len;
 wire [63:0] seed;
 wire [31:0] modulus;
-wire start_RNG;
+wire load_seed;
 wire busy, done;
-wire mask_mode;
-wire arith_mode;
+wire share_mode;
+//wire arith_mode;
+wire one_bit_mode;
+wire [4:0] log_modulus;
+wire rej_samp;
+wire seed_ip;
 
 // fsm <-> dma
 wire [31:0] mem_addr;
@@ -135,18 +139,22 @@ x2x_acc_fsm #(
     .ctrl_start      (start            ),
     .ctrl_cmd        (cmd              ),
     .ctrl_busy       (busy             ),
+    .ctrl_seed_ip    (seed_ip             ),////////
     .ctrl_done       (done             ),
     .ctrl_din_addr   (din_addr         ),
     .ctrl_dout_addr  (dout_addr        ),
     .ctrl_data_len   (data_len         ),
     .ctrl_seed  (seed        ),
     .modulus (modulus),
-    .ctrl_start_RNG  (start_RNG        ),
-    .ctrl_mask_mode(mask_mode),
+    .ctrl_load_seed  (load_seed        ),
+    .ctrl_share_mode(share_mode),
     .ctrl_arith_mode(arith_mode),
     .ctrl_conv_mode(x2x_conv_mode),
     .ctrl_dual_mode(x2x_dual_mode),
     .ctrl_data_type(x2x_data_type),
+    .ctrl_one_bit_mode(one_bit_mode),///////////
+    .log_modulus(log_modulus),  ///////////
+    .ctrl_rej_samp(rej_samp),////////// 
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
     .mem_re          (mem_re           ),
@@ -244,15 +252,20 @@ x2x_acc_ctrl #(
     .dual_mode (x2x_dual_mode),
     // ctrl <-> fsm
     .start     (start),
-    .mask_mode     (mask_mode),
+    .share_mode     (share_mode),//////mask
     .arith_mode    (arith_mode),
+    .one_bit_mode(one_bit_mode),///////////
+    .log_modulus(log_modulus),  ///////////
+    .rej_samp(rej_samp),//////////   
+        
     .din_addr  (din_addr  ),
     .dout_addr (dout_addr ),
     .data_len  (data_len  ),
     .seed (seed ),
     .modulus (modulus),
-    .start_RNG (start_RNG ),
+    .load_seed (load_seed ),
     .busy      (busy      ),
+    .seed_ip   (seed_ip),//////
     .done      (done      )
 );
 

@@ -23,8 +23,8 @@ begin
     begin
         if (rising_edge(clk)) then
             if (rst = '0') then
-                --state(0)    <= (others => '0');
-            --elsif (load = '1') then
+                state(0)    <= (others => '0');
+            elsif (load = '1') then
                 state(0)    <= "111" & x"0000000000000000000000000000" & iv & x"000" & '0' & key;
             else 
                 state(0)    <= state(output_bits);

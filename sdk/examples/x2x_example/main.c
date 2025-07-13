@@ -25,12 +25,18 @@ uint32_t share_B_d_1[128];
 uint32_t share_A_d_0[128];
 uint32_t share_A_d_1[128];
 
-void test_BMask_single_q()
+uint32_t share_B_s_0_1bit[] = {0x7490945, 0x20802a2, 0x5ad0c5a, 0xb6d01fc, 0x56e01be, 0x30f0795, 0xc330465, 0x19a07fb};
+uint32_t share_B_s_1_1bit[] = {0x7640431, 0x5c09c7, 0xd290b44, 0xe4f0f5d, 0xd8b05f8, 0x1300fb0, 0xcc10611, 0xeae0421};
+
+
+void test_B_share_single_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS);
-    x2x_b_mask(share_B_s_1, share_B_s_0, unmasked_data_s_q, len);
-    uart_transmit_string("B MASK SINGLE PRIME\n\n", 21);
+    uint32_t log_modulus_q = 12;
+
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_b_share(share_B_s_1, share_B_s_0, unmasked_data_s_q, len);
+    uart_transmit_string("B SHARE SINGLE PRIME\n\n", 22);
     int test = 1;
     for (unsigned int i = 0; i < len; i++)
     {   
@@ -56,7 +62,8 @@ void test_BMask_single_q()
 void test_B2A_single_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
     x2x_b2a(share_A_s_1, share_A_s_0, share_B_s_1, share_B_s_0, len);
     uart_transmit_string("B2A SINGLE PRIME\n\n", 18);
     int test = 1;
@@ -82,11 +89,12 @@ void test_B2A_single_q()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_AMask_single_q()
+void test_A_share_single_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS);
-    x2x_a_mask(share_A_s_1, share_A_s_0, unmasked_data_s_q, len);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_a_share(share_A_s_1, share_A_s_0, unmasked_data_s_q, len);
     uart_transmit_string("A MASK SINGLE PRIME\n\n", 21);
     int test = 1;
     for (unsigned int i = 0; i < len; i++)
@@ -113,14 +121,15 @@ void test_AMask_single_q()
 void test_A2B_single_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
     x2x_a2b(share_B_s_1, share_B_s_0, share_A_s_1, share_A_s_0, len);
     uart_transmit_string("A2B SINGLE PRIME\n\n", 18);
     int test = 1;
     for (unsigned int i = 0; i < len; i++)
     {   
         uint32_t s_in = unmasked_data_s_q[i];
-        if((s_in) != ((share_B_s_0[i]^share_B_s_1[i]) ))
+        if((s_in) != ((share_B_s_0[i]^share_B_s_1[i]) % modulus_q ))
         {
             uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
             print_u32(i);uart_transmit_string("\n\n", 2);
@@ -139,11 +148,12 @@ void test_A2B_single_q()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_BMask_dual_q()
+void test_B_share_dual_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN);
-    x2x_b_mask(share_B_d_1, share_B_d_0, unmasked_data_d_q, len_d);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_b_share(share_B_d_1, share_B_d_0, unmasked_data_d_q, len_d);
     uart_transmit_string("B MASK DUAL PRIME\n\n", 19);
     int test = 1;
     for (unsigned int i = 0; i < len_d; i++)
@@ -186,7 +196,8 @@ void test_BMask_dual_q()
 void test_B2A_dual_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
     x2x_b2a(share_A_d_1, share_A_d_0, share_B_d_1, share_B_d_0, len_d);
     uart_transmit_string("B2A DUAL PRIME\n\n", 16);
     int test = 1;
@@ -230,11 +241,12 @@ void test_B2A_dual_q()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_AMask_dual_q()
+void test_A_share_dual_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN);
-    x2x_a_mask(share_A_d_1, share_A_d_0, unmasked_data_d_q, len_d);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_a_share(share_A_d_1, share_A_d_0, unmasked_data_d_q, len_d);
     uart_transmit_string("A MASK DUAL PRIME\n\n", 19);
     int test = 1;
     for (unsigned int i = 0; i < len_d; i++)
@@ -277,7 +289,8 @@ void test_AMask_dual_q()
 void test_A2B_dual_q()
 {
     uint32_t modulus_q = 0xd01;
-    x2x_set_modulus(&modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
     x2x_a2b(share_B_d_1, share_B_d_0, share_A_d_1, share_A_d_0, len_d);
     uart_transmit_string("A2B DUAL PRIME\n\n", 16);
     int test = 1;
@@ -286,7 +299,7 @@ void test_A2B_dual_q()
         uint32_t s_in = unmasked_data_d_q[i] & 0xffff;
         uint32_t s_out0 = share_B_d_0[i] & 0xffff;
         uint32_t s_out1 = share_B_d_1[i] & 0xffff;
-        if(s_in != ((s_out0^s_out1) ))
+        if(s_in != ((s_out0^s_out1)%modulus_q ))
         {
             uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
             print_u32(i);uart_transmit_string("\n\n", 2);
@@ -302,7 +315,7 @@ void test_A2B_dual_q()
         s_in = unmasked_data_d_q[i] >> 16;
         s_out0 = share_B_d_0[i] >> 16;
         s_out1 = share_B_d_1[i] >> 16;
-        if(s_in != ((s_out0^s_out1) ))
+        if(s_in != ((s_out0^s_out1)%modulus_q ))
         {
             uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
             print_u32(unmasked_data_d_q[i]);uart_transmit_string("\n", 1);
@@ -321,11 +334,12 @@ void test_A2B_dual_q()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_BMask_single_2()
+void test_B_share_single_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS);
-    x2x_b_mask(share_B_s_1, share_B_s_0, unmasked_data_s_2, len);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_b_share(share_B_s_1, share_B_s_0, unmasked_data_s_2, len);
     uart_transmit_string("B MASK SINGLE POW 2\n\n", 21);
     int test = 1;
     for (unsigned int i = 0; i < len; i++)
@@ -352,7 +366,8 @@ void test_BMask_single_2()
 void test_B2A_single_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
     x2x_b2a(share_A_s_1, share_A_s_0, share_B_s_1, share_B_s_0, len);
     uart_transmit_string("B2A SINGLE POW 2\n\n", 18);
     int test = 1;
@@ -378,11 +393,12 @@ void test_B2A_single_2()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_AMask_single_2()
+void test_A_share_single_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS);
-    x2x_a_mask(share_A_s_1, share_A_s_0, unmasked_data_s_2, len);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_a_share(share_A_s_1, share_A_s_0, unmasked_data_s_2, len);
     uart_transmit_string("A MASK SINGLE POW 2\n\n", 21);
     int test = 1;
     for (unsigned int i = 0; i < len; i++)
@@ -409,7 +425,8 @@ void test_AMask_single_2()
 void test_A2B_single_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
     x2x_a2b(share_B_s_1, share_B_s_0, share_A_s_1, share_A_s_0, len);
     uart_transmit_string("A2B SINGLE POW 2\n\n", 18);
     int test = 1;
@@ -435,11 +452,12 @@ void test_A2B_single_2()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_BMask_dual_2()
+void test_B_share_dual_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN);
-    x2x_b_mask(share_B_d_1, share_B_d_0, unmasked_data_d_2, len_d);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_b_share(share_B_d_1, share_B_d_0, unmasked_data_d_2, len_d);
     uart_transmit_string("B MASK DUAL POW 2\n\n", 19);
     int test = 1;
     for (unsigned int i = 0; i < len_d; i++)
@@ -482,7 +500,8 @@ void test_BMask_dual_2()
 void test_B2A_dual_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
     x2x_b2a(share_A_d_1, share_A_d_0, share_B_d_1, share_B_d_0, len_d);
     uart_transmit_string("B2A DUAL POW 2\n\n", 16);
     int test = 1;
@@ -526,11 +545,12 @@ void test_B2A_dual_2()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
-void test_AMask_dual_2()
+void test_A_share_dual_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN);
-    x2x_a_mask(share_A_d_1, share_A_d_0, unmasked_data_d_2, len_d);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_a_share(share_A_d_1, share_A_d_0, unmasked_data_d_2, len_d);
     uart_transmit_string("A MASK DUAL POW 2\n\n", 19);
     int test = 1;
     for (unsigned int i = 0; i < len_d; i++)
@@ -573,7 +593,8 @@ void test_AMask_dual_2()
 void test_A2B_dual_2()
 {
     uint32_t modulus_2 = 0x1000;
-    x2x_set_modulus(&modulus_2, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN);
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
     x2x_a2b(share_B_d_1, share_B_d_0, share_A_d_1, share_A_d_0, len_d);
     uart_transmit_string("A2B DUAL POW 2\n\n", 16);
     int test = 1;
@@ -617,43 +638,215 @@ void test_A2B_dual_2()
         uart_transmit_string("FAIL\n\n", 6); 
 }
 
+void test_B2A_single_q_1bit()
+{
+    uint32_t modulus_q = 0xd01;
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_b2a_1bit(share_A_s_1, share_A_s_0, share_B_s_1_1bit, share_B_s_0_1bit, len);
+    uart_transmit_string("B2A SINGLE PRIME 1BIT\n\n", 23);
+    int test = 1;
+    for (unsigned int i = 0; i < len; i++)
+    {   
+        
+        uint32_t s_in_0 = (share_B_s_0_1bit[i>>5]>>(i%32))&0x1;
+        uint32_t s_in_1 = (share_B_s_1_1bit[i>>5]>>(i%32))&0x1;
+        if((s_in_0 ^ s_in_1) != ((share_A_s_0[i]+share_A_s_1[i]) % modulus_q))
+        {
+            uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
+            print_u32(i);uart_transmit_string("\n\n", 2);
+            print_u32(share_B_s_0_1bit[i>>5]);uart_transmit_string("\n", 1);
+            print_u32(share_B_s_1_1bit[i>>5]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_0[i]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_1[i]);uart_transmit_string("\n", 1);
+            uart_transmit_string("WRONG\n\n",7);
+            test = 0;
+        }
+    }
+    if(test == 1)
+        uart_transmit_string("PASS\n\n", 6); 
+    else
+        uart_transmit_string("FAIL\n\n", 6); 
+}
+
+void test_B2A_dual_q_1bit()
+{
+    uint32_t modulus_q = 0xd01;
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_q, log_modulus_q, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_b2a_1bit(share_A_s_1, share_A_s_0, share_B_s_1_1bit, share_B_s_0_1bit, len_d);
+    uart_transmit_string("B2A DUAL PRIME 1BIT\n\n", 21);
+    int test = 1;
+    for (unsigned int i = 0; i < len_d; i++)
+    {   
+        
+        uint32_t s_in_0 = (share_B_s_0_1bit[(i>>4)]>>((2*i)%32))&0x1;
+        uint32_t s_in_1 = (share_B_s_1_1bit[(i>>4)]>>((2*i)%32))&0x1;
+        uint32_t s_out0 = share_A_s_0[i] & 0xffff;
+        uint32_t s_out1 = share_A_s_1[i] & 0xffff;
+        if((s_in_0 ^ s_in_1) != ((s_out0 + s_out1) % modulus_q))
+        {
+            uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
+            print_u32(i);uart_transmit_string("\n\n", 2);
+            print_u32(share_B_s_0_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_B_s_1_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_0[i]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_1[i]);uart_transmit_string("\n", 1);
+            print_u32(s_in_0);uart_transmit_string("\n", 1);
+            print_u32(s_in_1);uart_transmit_string("\n", 1);
+            print_u32(s_out0);uart_transmit_string("\n", 1);
+            print_u32(s_out1);uart_transmit_string("\n", 1);
+            uart_transmit_string("WRONG\n\n",7);
+            test = 0;
+        }
+
+        s_in_0 = (share_B_s_0_1bit[(i>>4)]>>(((2*i)%32)+1))&0x1;
+        s_in_1 = (share_B_s_1_1bit[(i>>4)]>>(((2*i)%32)+1))&0x1;
+        s_out0 = share_A_s_0[i] >> 16;
+        s_out1 = share_A_s_1[i] >> 16;
+        if((s_in_0 ^ s_in_1) != ((s_out0 + s_out1) % modulus_q))
+        {
+            uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
+            print_u32(i);uart_transmit_string("\n\n", 2);
+            print_u32(share_B_s_0_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_B_s_1_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_0[i]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_1[i]);uart_transmit_string("\n", 1);
+            uart_transmit_string("WRONG\n\n",7);
+            test = 0;
+        }
+    }
+    if(test == 1)
+        uart_transmit_string("PASS\n\n", 6); 
+    else
+        uart_transmit_string("FAIL\n\n", 6); 
+}
+
+void test_B2A_single_2_1bit()
+{
+    uint32_t modulus_2 = 0x1000;
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_b2a_1bit(share_A_s_1, share_A_s_0, share_B_s_1_1bit, share_B_s_0_1bit, len);
+    uart_transmit_string("B2A SINGLE POW 2 1BIT\n\n", 23);
+    int test = 1;
+    for (unsigned int i = 0; i < len; i++)
+    {   
+        
+        uint32_t s_in_0 = (share_B_s_0_1bit[i>>5]>>(i%32))&0x1;
+        uint32_t s_in_1 = (share_B_s_1_1bit[i>>5]>>(i%32))&0x1;
+        if((s_in_0 ^ s_in_1) != ((share_A_s_0[i]+share_A_s_1[i]) % modulus_2))
+        {
+            uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
+            print_u32(i);uart_transmit_string("\n\n", 2);
+            print_u32(share_B_s_0_1bit[i>>5]);uart_transmit_string("\n", 1);
+            print_u32(share_B_s_1_1bit[i>>5]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_0[i]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_1[i]);uart_transmit_string("\n", 1);
+            uart_transmit_string("WRONG\n\n",7);
+            test = 0;
+        }
+    }
+    if(test == 1)
+        uart_transmit_string("PASS\n\n", 6); 
+    else
+        uart_transmit_string("FAIL\n\n", 6); 
+}
+
+void test_B2A_dual_2_1bit()
+{
+    uint32_t modulus_2 = 0x1000;
+    uint32_t log_modulus_q = 12;
+    x2x_set_modulus(modulus_2, log_modulus_q, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_b2a_1bit(share_A_s_1, share_A_s_0, share_B_s_1_1bit, share_B_s_0_1bit, len_d);
+    uart_transmit_string("B2A DUAL POW 2 1BIT\n\n", 21);
+    int test = 1;
+    for (unsigned int i = 0; i < len_d; i++)
+    {   
+        
+        uint32_t s_in_0 = (share_B_s_0_1bit[(i>>4)]>>((2*i)%32))&0x1;
+        uint32_t s_in_1 = (share_B_s_1_1bit[(i>>4)]>>((2*i)%32))&0x1;
+        uint32_t s_out0 = share_A_s_0[i] & 0xffff;
+        uint32_t s_out1 = share_A_s_1[i] & 0xffff;
+        if((s_in_0 ^ s_in_1) != ((s_out0 + s_out1) % modulus_2))
+        {
+            uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
+            print_u32(i);uart_transmit_string("\n\n", 2);
+            print_u32(share_B_s_0_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_B_s_1_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_0[i]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_1[i]);uart_transmit_string("\n", 1);
+            uart_transmit_string("WRONG\n\n",7);
+            test = 0;
+        }
+
+        s_in_0 = (share_B_s_0_1bit[(i>>4)]>>(((2*i)%32)+1))&0x1;
+        s_in_1 = (share_B_s_1_1bit[(i>>4)]>>(((2*i)%32)+1))&0x1;
+        s_out0 = share_A_s_0[i] >> 16;
+        s_out1 = share_A_s_1[i] >> 16;
+        if((s_in_0 ^ s_in_1) != ((s_out0 + s_out1) % modulus_2))
+        {
+            uart_transmit_string("\n\n", 2);uart_transmit_string("*****\n", 6);
+            print_u32(i);uart_transmit_string("\n\n", 2);
+            print_u32(share_B_s_0_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_B_s_1_1bit[i>>4]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_0[i]);uart_transmit_string("\n", 1);
+            print_u32(share_A_s_1[i]);uart_transmit_string("\n", 1);
+            uart_transmit_string("WRONG\n\n",7);
+            test = 0;
+        }
+    }
+    if(test == 1)
+        uart_transmit_string("PASS\n\n", 6); 
+    else
+        uart_transmit_string("FAIL\n\n", 6); 
+}
+
 int main() {
     uint32_t seed[] = {1, 1};
     x2x_seed(seed);
-    
+  
     //TEST 1 0 --> B --> A (SINGLE-2)
-    test_BMask_single_2();
+    test_B_share_single_2();
     test_B2A_single_2();
 
     //TEST 2 0 --> A --> B (SINGLE-2)
-    test_AMask_single_2();
+    test_A_share_single_2();
     test_A2B_single_2();
     
     //TEST 3 0 --> B --> A (DUAL-2)
-    test_BMask_dual_2();
+    test_B_share_dual_2();
     test_B2A_dual_2();
     
     //TEST 4 0 --> A --> B (DUAL-2)
-    test_AMask_dual_2();
+    test_A_share_dual_2();
     test_A2B_dual_2();
     
     //TEST 5 0 --> B --> A (SINGLE-q)
-    test_BMask_single_q();
+    test_B_share_single_q();
     test_B2A_single_q();
-
+    
     //TEST 6 0 --> A --> B (SINGLE-q)
-    test_AMask_single_q();
+    test_A_share_single_q();
     test_A2B_single_q();
     
     //TEST 7 0 --> B --> A (DUAL-q)
-    test_BMask_dual_q();
+    test_B_share_dual_q();
     test_B2A_dual_q();
     
     //TEST 8 0 --> A --> B (DUAL-q)
-    test_AMask_dual_q();
+    test_A_share_dual_q();
     test_A2B_dual_q();
-    
-    
 
+    //TEST 9 B --> A (SINGLE-q 1bit)
+    test_B2A_single_q_1bit();
+
+    //TEST 10 B --> A (DUAL-q 1bit)
+    test_B2A_dual_q_1bit();
+    
+    test_B2A_single_2_1bit();
+    test_B2A_dual_2_1bit();
+
+    
     return 0;
 }

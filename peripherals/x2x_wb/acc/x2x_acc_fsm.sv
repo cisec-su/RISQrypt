@@ -17,18 +17,22 @@ module x2x_acc_fsm
         input                   ctrl_start                 ,
         input      [       3:0] ctrl_cmd                   ,
         output reg              ctrl_busy                  ,
+        output reg ctrl_seed_ip ,//////
         output reg              ctrl_done                  ,
         input      [      31:0] ctrl_din_addr  [0:SHARES-1],
         input      [      31:0] ctrl_dout_addr [0:SHARES-1],
         input      [  LOGL-1:0] ctrl_data_len              ,
         input      [      63:0] ctrl_seed             , 
         input      [31:0] modulus,
-        input                   ctrl_start_RNG             ,
-        input ctrl_mask_mode,
+        input                   ctrl_load_seed             ,
+        input ctrl_share_mode,
         input ctrl_dual_mode,
         input ctrl_conv_mode, // 0 -> A2B, 1 -> B2A
-        input ctrl_arith_mode, // 0 -> unsigned 1 -> signed
         input ctrl_data_type, // 0 -> power-of-two, 1 -> prime
+        input ctrl_arith_mode, // 0 -> unsigned 1 -> signed
+        input ctrl_one_bit_mode,///////////
+        input [4:0] log_modulus,  ///////////
+        input ctrl_rej_samp,////////// 
         // fsm <-> dma        
         output reg [      31:0] mem_addr                   ,
         output reg              mem_re                     ,
@@ -55,7 +59,7 @@ wire [255:0] stream_out;
 Trivium RNG (
     .clk(clk),
     .rst(rst_n),
-    .load(ctrl_start_RNG),
+    .load(ctrl_load_seed),
     .key(80'd0),
     .iv({16'd0, ctrl_seed}),
     //.iv({48'd0, 32'd1}),
@@ -82,8 +86,10 @@ localparam ST_PUT_DATA_1                 = 4'd10;
 localparam ST_DONE                       = 4'd11;
 
 
-localparam ST_INIT                        = 4'd14;
+localparam ST_TRIVIUM                        = 4'd14;
 localparam ST_RESET                       = 4'd15;
+
+localparam TRIVIUM_INIT_CC                = 12'd30;
 
 localparam WORD_PAD                       = 32-PARAM_WIDTH;
 localparam HALF_PAD                       = 32-PARAM_WIDTH;
@@ -101,7 +107,7 @@ reg ctr_block_w_rst, ctr_block_w_inc;
 reg [LOGL-1:0] ctr_iter;
 reg ctr_iter_rst, ctr_iter_inc;
 
-reg [4:0] ctr_init;
+reg [11:0] ctr_trivium;
 
 reg [31:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
 reg write_s0, write_s1;
@@ -128,7 +134,8 @@ end
 always @(*) begin
     fsm_next_state = fsm_state;
     // ctrl
-    ctrl_busy = (fsm_state != ST_IDLE);//1'b0;
+    ctrl_busy = (fsm_state != ST_IDLE)&&(fsm_state != ST_TRIVIUM)&&(fsm_state != ST_RESET);
+    ctrl_seed_ip = (fsm_state == ST_TRIVIUM);
     ctrl_done = 1'b0;
     // mem
     mem_addr = 32'd0;
@@ -158,25 +165,36 @@ always @(*) begin
     dualprime_comp = 0;
     
     case(fsm_state)
-    ST_INIT:
-    begin
-        if(ctr_init == 30)
-            fsm_next_state = ST_IDLE;
-    end
+    
     ST_IDLE:
     begin
-       ctrl_done = 1;
+       //ctrl_done = 1'b1;
        if(ctrl_start)
-           fsm_next_state = ST_FETCH_DATA_0_0;     
+           fsm_next_state = ST_FETCH_DATA_0_0;
+       else if(ctrl_load_seed)
+           fsm_next_state = ST_TRIVIUM;     
+    end
+    ST_TRIVIUM:
+    begin
+        if(ctr_trivium == TRIVIUM_INIT_CC)
+            fsm_next_state = ST_IDLE;
     end
     ST_FETCH_DATA_0_0:
     begin
        if(mem_i_ready)
        begin
-           fsm_next_state = ST_FETCH_DATA_0_1;
-           mem_addr = ctrl_din_addr[0] + (ctr_array << 2) + (ctr_block_w << 2);
-           mem_re = 1;      
-           ctr_block_w_inc = 1;
+            fsm_next_state = ST_FETCH_DATA_0_1;
+            if(ctrl_one_bit_mode)
+            begin
+                if(ctrl_dual_mode)
+                    mem_addr = ctrl_din_addr[0] + (ctr_iter & 32'hFFFFFFFC);
+                else
+                    mem_addr = ctrl_din_addr[0] + ((ctr_iter & 32'hFFFFFFF8)>>1);
+            end
+            else
+                mem_addr = ctrl_din_addr[0] + ((ctr_array + ctr_block_w) << 2);
+            mem_re = 1;      
+            ctr_block_w_inc = 1;
        end
     end
     ST_FETCH_DATA_0_1:
@@ -188,9 +206,17 @@ always @(*) begin
             begin
                 fsm_next_state = ST_FETCH_DATA_0_2;
             end
-            ctr_block_w_inc = 1;
-            mem_addr = ctrl_din_addr[0] + (ctr_array << 2) + (ctr_block_w << 2);
-            mem_re = 1;      
+            if(ctrl_one_bit_mode)
+            begin
+                if(ctrl_dual_mode)
+                    mem_addr = ctrl_din_addr[0] + (ctr_iter & 32'hFFFFFFFC);
+                else
+                    mem_addr = ctrl_din_addr[0] + ((ctr_iter & 32'hFFFFFFF8)>>1);
+            end
+            else
+                mem_addr = ctrl_din_addr[0] + ((ctr_array + ctr_block_w) << 2);
+            mem_re = 1;  
+            ctr_block_w_inc = 1;    
             
         end
     end
@@ -202,7 +228,7 @@ always @(*) begin
     end
     ST_FETCH_DATA_1_0:
     begin
-       if(ctrl_mask_mode)
+       if(ctrl_share_mode)
        begin
             fsm_next_state = ST_FETCH_DATA_1_1;
             ctr_block_w_inc = 1;
@@ -212,15 +238,23 @@ always @(*) begin
            if(mem_i_ready)
            begin
                fsm_next_state = ST_FETCH_DATA_1_1;
-               mem_addr = ctrl_din_addr[1] + (ctr_array << 2) + (ctr_block_w << 2);
-               mem_re = !ctrl_mask_mode; 
+               if(ctrl_one_bit_mode)
+                begin
+                    if(ctrl_dual_mode)
+                        mem_addr = ctrl_din_addr[1] + (ctr_iter & 32'hFFFFFFFC);
+                    else
+                        mem_addr = ctrl_din_addr[1] + ((ctr_iter & 32'hFFFFFFF8)>>1);
+                    end
+                else
+                    mem_addr = ctrl_din_addr[1] + ((ctr_array + ctr_block_w) << 2);
+               mem_re = !ctrl_share_mode; 
                ctr_block_w_inc = 1;   
            end
        end
     end
     ST_FETCH_DATA_1_1:
     begin
-        if(ctrl_mask_mode)
+        if(ctrl_share_mode)
         begin
             write_s1 = 1;
             if(ctr_block_w == (BURST_LEN - 1))
@@ -232,10 +266,18 @@ always @(*) begin
         else
         begin
             write_s1 = mem_i_valid;
-            mem_re = !ctrl_mask_mode;  
+            mem_re = !ctrl_share_mode;  
             if(mem_i_ready)
             begin
-                mem_addr = ctrl_din_addr[1] + (ctr_array << 2)  + (ctr_block_w << 2);
+                if(ctrl_one_bit_mode)
+                begin
+                    if(ctrl_dual_mode)
+                        mem_addr = ctrl_din_addr[1] + (ctr_iter & 32'hFFFFFFFC);
+                    else
+                        mem_addr = ctrl_din_addr[1] + ((ctr_iter & 32'hFFFFFFF8)>>1);
+                end
+                else
+                    mem_addr = ctrl_din_addr[1] + ((ctr_array + ctr_block_w) << 2);
                 
                 if(ctr_block_w == (BURST_LEN - 1))
                 begin
@@ -252,7 +294,7 @@ always @(*) begin
     end
     ST_FETCH_DATA_1_2:
     begin
-        if(ctrl_mask_mode)
+        if(ctrl_share_mode)
             write_s1 = 1;
         else
             write_s1 = mem_i_valid;
@@ -465,14 +507,15 @@ end
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        ctr_init <= 0;
+        ctr_trivium <= 0;
     end
-    else if (ctrl_start_RNG) begin
-        ctr_init <= ctr_init + 1;
+    else if (fsm_state == ST_TRIVIUM) begin
+        ctr_trivium <= ctr_trivium + 1;
     end
-    else if (ctr_iter != 0) begin
-        ctr_init <= ctr_init + 1;
+    else begin
+        ctr_trivium <= 0;
     end
+    
 end
 
 always @(posedge clk or negedge rst_n) begin
@@ -495,11 +538,27 @@ always @(posedge clk) begin
     else 
     begin
         if (write_s0 && (ctr_block_w - 1) < BURST_LEN)
-            shares[0][ctr_block_w - 1] <= mem_i_data;
-
+        begin
+            if(ctrl_one_bit_mode)
+            begin
+                if(ctrl_dual_mode)
+                    shares[0][ctr_block_w - 1] <= {15'd0,mem_i_data[((ctr_array[3:0] + ctr_block_w - 1) << 1) + 1],15'd0,mem_i_data[((ctr_array[3:0] + ctr_block_w - 1) << 1)]};
+                else
+                    shares[0][ctr_block_w - 1] <= {31'd0,mem_i_data[ctr_array[4:0] + ctr_block_w - 1]};
+            end
+            else
+                shares[0][ctr_block_w - 1] <= mem_i_data;
+        end
         else if (write_s1 && (ctr_block_w - 1) < BURST_LEN) 
         begin
-            if (!ctrl_mask_mode)
+            if(ctrl_one_bit_mode)
+            begin
+                if(ctrl_dual_mode)
+                    shares[1][ctr_block_w - 1] <= {15'd0,mem_i_data[((ctr_array[3:0] + ctr_block_w - 1) << 1) + 1],15'd0,mem_i_data[((ctr_array[3:0] + ctr_block_w - 1) << 1)]};
+                else
+                    shares[1][ctr_block_w - 1] <= {31'd0,mem_i_data[ctr_array[4:0] + ctr_block_w - 1]};
+            end
+            else if (!ctrl_share_mode)
                 shares[1][ctr_block_w - 1] <= mem_i_data;
             else
                 shares[1][ctr_block_w - 1] <= 0;
@@ -546,7 +605,6 @@ end
 
 for(genvar j = 0; j < RND_SHARES_8bit ; j = j + 1) begin
     always @(*) begin
-        if (!rst_n)
             x2x_fresh_rnd_shares_8bit[j] = stream_out[(8*(j+1)-1):(8*j)];     
     end
 end

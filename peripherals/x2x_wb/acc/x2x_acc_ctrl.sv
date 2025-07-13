@@ -2,7 +2,7 @@ module x2x_acc_ctrl
    #(
         parameter SHARES    = 2           ,
         parameter LOGL      = 10          ,
-        parameter BASE_ADDR = 32'h1004_0050
+        parameter BASE_ADDR = 32'h1004_0060
     )
     (    
         input                    clk                   ,
@@ -18,18 +18,22 @@ module x2x_acc_ctrl
         output reg               conv_mode             ,     // 0 -> A2B, 1 -> B2A
         output reg               data_type             ,     // 0 -> power-of-two, 1 -> prime
         output reg               dual_mode             ,     // 0 -> single input, 2 -> dual input
-        output reg               mask_mode             ,     // 1 -> mask input
+        output reg               share_mode             ,     // 1 -> mask input
         output reg               arith_mode            ,     // 0 -> unsigned 1 -> signed
+        output reg               one_bit_mode,
+        output reg [4:0]         log_modulus,  
+        output reg               rej_samp,
         
         // data address registers
         output reg [      31:0]  din_addr  [0:SHARES-1],     // (Write)
         output reg [      31:0]  dout_addr [0:SHARES-1],     // (Write)
         output reg [  LOGL-1:0]  data_len              ,     // (Write)
         output reg [      63:0]  seed                  ,     // (Write)
-        output reg               start_RNG             ,     // (Write/Self-Clear)
+        output reg               load_seed             ,     // (Write/Self-Clear)
         output reg [31:0]        modulus               ,
 
         input                    busy                  ,     // Busy status input
+        input                    seed_ip               ,
         input                    done                        // Done status input
     );
 
@@ -46,17 +50,19 @@ localparam DOUT_PTR_ADDR_START = 12'h0034;   // Offset for first share dout_addr
 localparam DOUT_PTR_ADDR_END   = DOUT_PTR_ADDR_START + ((SHARES - 1) << 2);      // Offset for last share dout_addr register
 
 // Bit-fields for ctrl register
-localparam CTRL_START_BIT     = 0;
-localparam CTRL_RESET_BIT     = 1;
-localparam CTRL_CONV_MODE_BIT = 2;
-localparam CTRL_DATA_TYPE_BIT = 3;   //readback
-localparam CTRL_DUAL_MODE_BIT = 4;   //readback
-localparam CTRL_MASK_DATA_BIT = 5; 
-//localparam CTRL_WORD_SIZE_BIT = 6; // 0-->32-bit // 1--> 2*16 //readback
-///10-6
-localparam CTRL_SEED_IP_BIT   = 29;
-localparam CTRL_BUSY_BIT     = 30;
-localparam CTRL_DONE_BIT     = 31;
+localparam CTRL_START_BIT      = 0;
+localparam CTRL_RESET_BIT      = 1;
+localparam CTRL_CONV_MODE_BIT  = 2;
+localparam CTRL_DATA_TYPE_BIT  = 3;   //readback
+localparam CTRL_DUAL_MODE_BIT  = 4;   //readback
+localparam CTRL_SHARE_MODE_BIT = 5; 
+localparam CTRL_MOD_SIZE_LSB   = 6; 
+localparam CTRL_MOD_SIZE_MSB   = 10;
+localparam CTRL_ONE_BIT_MODE   = 11; 
+localparam CTRL_REJ_SAMP_BIT   = 12;
+localparam CTRL_SEED_IP_BIT    = 29;
+localparam CTRL_BUSY_BIT       = 30;
+localparam CTRL_DONE_BIT       = 31;
 
 wire [31:0] addr_offset;
 reg done_q;
@@ -124,20 +130,48 @@ end
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        mask_mode <= 1'd0;
+        share_mode <= 1'd0;
     end
     else if (we && (addr_offset == CTRL_ADDR)) begin
-        mask_mode <= wdata[CTRL_MASK_DATA_BIT];
+        share_mode <= wdata[CTRL_SHARE_MODE_BIT];
     end
 end
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
+        one_bit_mode <= 1'd0;
+    end
+    else if (we && (addr_offset == CTRL_ADDR)) begin
+        one_bit_mode <= wdata[CTRL_ONE_BIT_MODE];
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        rej_samp <= 1'd0;
+    end
+    else if (we && (addr_offset == CTRL_ADDR)) begin
+        rej_samp <= wdata[CTRL_REJ_SAMP_BIT];
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        log_modulus <= 5'd0;
+    end
+    else if (we && (addr_offset == CTRL_ADDR)) begin
+        log_modulus <= wdata[CTRL_MOD_SIZE_MSB:CTRL_MOD_SIZE_LSB];
+    end
+end
+
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
         arith_mode <= 1'd0;
     end
-    /*else if (we && (addr_offset == CTRL_ADDR)) begin
-        mask_mode <= wdata[CTRL_MASK_DATA_BIT];
-    end*/
+    //else if (we && (addr_offset == CTRL_ADDR)) begin
+        //mask_mode <= wdata[CTRL_MASK_DATA_BIT];
+    //end
 end
 
 
@@ -186,13 +220,13 @@ end
 // START RNG (Self-Clear)
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        start_RNG <= 1'd0;
+        load_seed <= 1'd0;
     end
     else if (we && (addr_offset == SEED_ADDR_HIGH)) begin
-        start_RNG <= 1;
+        load_seed <= 1;
     end
     else begin
-        start_RNG <= 1'd0;
+        load_seed <= 1'd0;
     end
 end
 
@@ -222,6 +256,8 @@ always @(posedge clk or negedge rst_n) begin
                     rdata[CTRL_DATA_TYPE_BIT]             <= data_type;
                     rdata[CTRL_DUAL_MODE_BIT]             <= dual_mode;
                     rdata[CTRL_BUSY_BIT     ]             <= busy;
+                    rdata[CTRL_SEED_IP_BIT  ]             <= seed_ip;
+                    rdata[CTRL_MOD_SIZE_MSB:CTRL_MOD_SIZE_LSB] <= log_modulus;
                     rdata[CTRL_DONE_BIT     ]             <= done_q | done;
 
                 end
