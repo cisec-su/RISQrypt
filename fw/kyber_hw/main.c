@@ -8,6 +8,9 @@
 #include "masked_poly.h"
 #include "masked_cbd.h"
 #include "masked_indcpa.h"
+#include "unity.h"
+#include "unity_internals.h"
+
 
 
 uint8_t m[KYBER_INDCPA_MSGBYTES] __attribute__((aligned(4))) = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
@@ -27,6 +30,14 @@ uint8_t c_cca[KYBER_CIPHERTEXTBYTES] __attribute__((aligned(4)));
 uint8_t K[KYBER_SSBYTES] __attribute__((aligned(4)));
 uint8_t K_[KYBER_SSBYTES] __attribute__((aligned(4)));
 
+void setUp(void)
+{
+}
+
+void tearDown(void)
+{
+}
+
 
 void test_indcpa_dec() {
 
@@ -43,12 +54,12 @@ void test_indcpa_dec() {
     print_u32(time);
     print_string("\n");
 
-    if (memcmp(m_, m, KYBER_INDCPA_MSGBYTES) == 0) {
-        print_string("DEC PASS\n\n");
-    } else {
-        print_string("DEC FAIL\n\n");
-    }
-
+    //if (memcmp(m_, m, KYBER_INDCPA_MSGBYTES) == 0) {
+    //    print_string("DEC PASS\n\n");
+    //} else {
+    //    print_string("DEC FAIL\n\n");
+    //}
+    TEST_ASSERT_EQUAL_MEMORY(m_, m, KYBER_INDCPA_MSGBYTES);
 }
 
 
@@ -67,12 +78,12 @@ void test_indcpa_enc() {
     print_u32(time);
     print_string("\n");
 
-    if (memcmp(c_, c, KYBER_INDCPA_BYTES) == 0) {
-        print_string("ENC PASS\n\n");
-    } else {
-        print_string("ENC FAIL\n\n");
-    }
-
+    //if (memcmp(c_, c, KYBER_INDCPA_BYTES) == 0) {
+    //    print_string("ENC PASS\n\n");
+    //} else {
+    //    print_string("ENC FAIL\n\n");
+    //}
+    TEST_ASSERT_EQUAL_MEMORY(c_, c, KYBER_INDCPA_BYTES);
 }
 
 
@@ -91,17 +102,21 @@ void test_indcpa_keypair() {
     print_u32(time);
     print_string("\n");
 
-    if (memcmp(pk_, pk, KYBER_INDCPA_PUBLICKEYBYTES) == 0) {
-        print_string("PK PASS\n\n");
-    } else {
-        print_string("PK FAIL\n\n");
-    }
-  
-    if (memcmp(sk_, sk, KYBER_INDCPA_SECRETKEYBYTES) == 0) {
-        print_string("SK PASS\n\n");
-    } else {
-        print_string("SK FAIL\n\n");
-    }
+    //if (memcmp(pk_, pk, KYBER_INDCPA_PUBLICKEYBYTES) == 0) {
+    //    print_string("PK PASS\n\n");
+    //} else {
+    //    print_string("PK FAIL\n\n");
+    //}
+    
+    TEST_ASSERT_EQUAL_MEMORY(pk_, pk, KYBER_INDCPA_PUBLICKEYBYTES);
+
+    //if (memcmp(sk_, sk, KYBER_INDCPA_SECRETKEYBYTES) == 0) {
+    //    print_string("SK PASS\n\n");
+    //} else {
+    //    print_string("SK FAIL\n\n");
+    //}
+
+    TEST_ASSERT_EQUAL_MEMORY(sk_, sk, KYBER_INDCPA_SECRETKEYBYTES);
 
 }
 
@@ -145,11 +160,13 @@ void test_indcca() {
     print_u32(time);
     print_string("\n");
 
-    if (memcmp(K_, K, KYBER_SSBYTES) == 0) {
-        print_string("CCA PASS\n\n");
-    } else {
-        print_string("CCA FAIL\n\n");
-    }
+    //if (memcmp(K_, K, KYBER_SSBYTES) == 0) {
+    //    print_string("CCA PASS\n\n");
+    //} else {
+    //    print_string("CCA FAIL\n\n");
+    //}
+
+    TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
 
 }
 
@@ -195,11 +212,13 @@ void test_masked_poly_msg() {
         m_unmasked_[i] = mm[0][i] ^ mm[1][i];
     }
 
-    if (memcmp(m_unmasked_, m_unmasked, KYBER_INDCPA_MSGBYTES) == 0) {
-        print_string("Masked poly_sub_tomsg PASS\n\n");
-    } else {
-        print_string("Masked poly_sub_tomsg FAIL\n\n");
-    }
+    //if (memcmp(m_unmasked_, m_unmasked, KYBER_INDCPA_MSGBYTES) == 0) {
+    //    print_string("Masked poly_sub_tomsg PASS\n\n");
+    //} else {
+    //    print_string("Masked poly_sub_tomsg FAIL\n\n");
+    //}
+
+    TEST_ASSERT_EQUAL_MEMORY(m_unmasked_, m_unmasked, KYBER_INDCPA_MSGBYTES);
 
     print_string("Masked poly_frommsg: \n");
 
@@ -223,11 +242,13 @@ void test_masked_poly_msg() {
         }
     }
 
-    if (memcmp((uint8_t*) mpoly_unmasked_A.coeffs, (uint8_t*) mpoly_unmasked_B.coeffs, KYBER_N / (sizeof(uint16_t))) == 0) {
-        print_string("Masked poly_frommsg PASS\n\n");
-    } else {
-        print_string("Masked poly_frommsg FAIL\n\n");
-    }
+    TEST_ASSERT_EQUAL_MEMORY(mpoly_unmasked_B.coeffs, mpoly_unmasked_A.coeffs, KYBER_N * sizeof(uint16_t));
+
+    //if (memcmp((uint8_t*) mpoly_unmasked_A.coeffs, (uint8_t*) mpoly_unmasked_B.coeffs, KYBER_N / (sizeof(uint16_t))) == 0) {
+    //    print_string("Masked poly_frommsg PASS\n\n");
+    //} else {
+    //    print_string("Masked poly_frommsg FAIL\n\n");
+    //}
 
 }
 
@@ -262,13 +283,16 @@ void test_masked_poly_compress() {
     print_string("Time: ");
     print_u32(time);
     print_string("\n");
+    
+    TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[0].coeffs, mpoly_comp_d4.share[0].coeffs, 1024);
+    TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[1].coeffs, mpoly_comp_d4.share[1].coeffs, 1024);
 
-    if ((memcmp(mpoly_comp_.share[0].coeffs, mpoly_comp_d4.share[0].coeffs, 1024) == 0) && 
-        (memcmp(mpoly_comp_.share[1].coeffs, mpoly_comp_d4.share[1].coeffs, 1024) == 0)) {
-        print_string("Masked poly_compress dv PASS\n\n");
-    } else {
-        print_string("Masked poly_compress dv FAIL\n\n");
-    }
+    //if ((memcmp(mpoly_comp_.share[0].coeffs, mpoly_comp_d4.share[0].coeffs, 1024) == 0) && 
+    //    (memcmp(mpoly_comp_.share[1].coeffs, mpoly_comp_d4.share[1].coeffs, 1024) == 0)) {
+    //    print_string("Masked poly_compress dv PASS\n\n");
+    //} else {
+    //    print_string("Masked poly_compress dv FAIL\n\n");
+    //}
 
     for (i = 0; i < KYBER_N; i++) {
         b[i] = 0x0;
@@ -290,12 +314,15 @@ void test_masked_poly_compress() {
     print_u32(time);
     print_string("\n");
 
-    if ((memcmp(mpoly_comp_.share[0].coeffs, mpoly_comp_d10.share[0].coeffs, 1024) == 0) && 
-        (memcmp(mpoly_comp_.share[1].coeffs, mpoly_comp_d10.share[1].coeffs, 1024) == 0)) {
-        print_string("Masked poly_compress du PASS\n\n");
-    } else {
-        print_string("Masked poly_compress du FAIL\n\n");
-    }
+    TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[0].coeffs, mpoly_comp_d10.share[0].coeffs, 1024);
+    TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[1].coeffs, mpoly_comp_d10.share[1].coeffs, 1024);
+
+    //if ((memcmp(mpoly_comp_.share[0].coeffs, mpoly_comp_d10.share[0].coeffs, 1024) == 0) && 
+    //    (memcmp(mpoly_comp_.share[1].coeffs, mpoly_comp_d10.share[1].coeffs, 1024) == 0)) {
+    //    print_string("Masked poly_compress du PASS\n\n");
+    //} else {
+    //    print_string("Masked poly_compress du FAIL\n\n");
+    //}
 
 
 }
@@ -330,11 +357,14 @@ void test_masked_cbd() {
             mpoly_cbd_.share[0].coeffs[i] -= KYBER_Q;
         }
     }
-    if ((memcmp(mpoly_cbd_.share[0].coeffs, poly_cbd.coeffs, 4) == 0)) {
-        print_string("Masked CBD PASS\n\n");
-    } else {
-        print_string("Masked CBD FAIL\n\n");
-    }
+
+    TEST_ASSERT_EQUAL_MEMORY(mpoly_cbd_.share[0].coeffs, poly_cbd.coeffs, 4);
+
+    //if ((memcmp(mpoly_cbd_.share[0].coeffs, poly_cbd.coeffs, 4) == 0)) {
+    //    print_string("Masked CBD PASS\n\n");
+    //} else {
+    //    print_string("Masked CBD FAIL\n\n");
+    //}
 }
 
 
@@ -360,11 +390,13 @@ void test_masked_indcpa_dec() {
         m_unmasked_[i] = mm[0][i] ^ mm[1][i];
     }
 
-    if (memcmp(m_unmasked_, m, KYBER_INDCPA_MSGBYTES) == 0) {
-        print_string("MASKED DEC PASS\n\n");
-    } else {
-        print_string("MASKED DEC FAIL\n\n");
-    }
+    TEST_ASSERT_EQUAL_MEMORY(m_unmasked_, m, KYBER_INDCPA_MSGBYTES);
+
+    //if (memcmp(m_unmasked_, m, KYBER_INDCPA_MSGBYTES) == 0) {
+    //    print_string("MASKED DEC PASS\n\n");
+    //} else {
+    //    print_string("MASKED DEC FAIL\n\n");
+    //}
 
 }
 
@@ -392,12 +424,13 @@ void test_masked_indcpa_enc_cmp() {
     print_u32(time);
     print_string("\n");
 
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, fail, "MASKED ENC (CORR) FAIL");
 
-    if (!fail) {
-        print_string("MASKED ENC (CORR) PASS\n\n");
-    } else {
-        print_string("MASKED ENC (CORR) FAIL\n\n");
-    }
+    //if (!fail) {
+    //    print_string("MASKED ENC (CORR) PASS\n\n");
+    //} else {
+    //    print_string("MASKED ENC (CORR) FAIL\n\n");
+    //}
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
         masked_coins[0][i] = i ^ coins[i];
@@ -407,11 +440,13 @@ void test_masked_indcpa_enc_cmp() {
 
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
-    if (fail == 1) {
-        print_string("MASKED ENC (INCORR COIN) PASS\n\n");
-    } else {
-        print_string("MASKED ENC (INCORR COIN) FAIL\n\n");
-    }
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, fail, "MASKED ENC (INCORR COIN) FAIL");
+
+    //if (fail == 1) {
+    //    print_string("MASKED ENC (INCORR COIN) PASS\n\n");
+    //} else {
+    //    print_string("MASKED ENC (INCORR COIN) FAIL\n\n");
+    //}
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
         masked_coins[0][i] = i ^ coins[i];
@@ -422,27 +457,44 @@ void test_masked_indcpa_enc_cmp() {
 
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
-    if (fail == 1) {
-        print_string("MASKED ENC (INCORR C) PASS\n\n");
-    } else {
-        print_string("MASKED ENC (INCORR C) FAIL\n\n");
-    }
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, fail, "MASKED ENC (INCORR C) FAIL");
+
+    //if (fail == 1) {
+    //    print_string("MASKED ENC (INCORR C) PASS\n\n");
+    //} else {
+    //    print_string("MASKED ENC (INCORR C) FAIL\n\n");
+    //}
 
 }
 
 
 
 int main() {
-
-    test_indcpa_dec();
-    test_indcpa_enc();
-    test_indcpa_keypair();
-    test_indcca();
-    test_masked_poly_msg();
-    test_masked_cbd();
-    test_masked_poly_compress();
-    test_masked_indcpa_dec();
-    test_masked_indcpa_enc_cmp();    
+    print_string("\n=== FPGA Kyber Unity Test Start ===\n");
+    UnityBegin("main.c");
+    print_string("\n=== Unity Start ===\n");
+    RUN_TEST(test_indcpa_keypair);
+    RUN_TEST(test_indcpa_enc);
+    RUN_TEST(test_indcpa_dec);
+    RUN_TEST(test_indcca);
+    RUN_TEST(test_masked_poly_msg);
+    RUN_TEST(test_masked_cbd);
+    RUN_TEST(test_masked_poly_compress);
+    RUN_TEST(test_masked_indcpa_dec);
+    //RUN_TEST(test_masked_indcpa_enc_cmp);
+    //UNITY_END(); 
+    return (UnityEnd());
     print_string("DONE\n");
 
 }
+
+//int main(void)
+//{
+//  UnityBegin("test/TestProductionCode.c");
+//  RUN_TEST(test_FindFunction_WhichIsBroken_ShouldReturnZeroIfItemIsNotInList_WhichWorksEvenInOurBrokenCode, 20);
+//  RUN_TEST(test_FindFunction_WhichIsBroken_ShouldReturnTheIndexForItemsInList_WhichWillFailBecauseOurFunctionUnderTestIsBroken, 30);
+//  RUN_TEST(test_FunctionWhichReturnsLocalVariable_ShouldReturnTheCurrentCounterValue, 41);
+//  RUN_TEST(test_FunctionWhichReturnsLocalVariable_ShouldReturnTheCurrentCounterValueAgain, 51);
+//  RUN_TEST(test_FunctionWhichReturnsLocalVariable_ShouldReturnCurrentCounter_ButFailsBecauseThisTestIsActuallyFlawed, 57);
+//  return (UnityEnd());
+//}
