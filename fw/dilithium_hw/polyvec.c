@@ -506,9 +506,9 @@ void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
   unsigned int i;
   uint32_t mu[2] = {0, 1 << (32 - D)};
 
-  ntt_lite_set_bound(0xFFFFFFFF);
+  ntt_lite_set_inv2(0xFFFFFFFF);
   ntt_lite_set_mu(mu, NTT_LITE_MODE_SINGLE);
-  ntt_lite_set_inv2(1 << D);
+  ntt_lite_set_bound(1 << D);
 
   for(i = 0; i < K; ++i)
     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
@@ -535,9 +535,9 @@ void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v) {
   unsigned int i;
   uint32_t mu[2] = {0x02008020, 0x2008};
 
-  ntt_lite_set_bound(GAMMA2_D >> 1);
+  ntt_lite_set_inv2(GAMMA2_D >> 1);
   ntt_lite_set_mu(mu, NTT_LITE_MODE_SINGLE);
-  ntt_lite_set_inv2(GAMMA2 << 1);
+  ntt_lite_set_bound(GAMMA2 << 1);
 
   for(i = 0; i < K; ++i)
     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
