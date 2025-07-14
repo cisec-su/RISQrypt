@@ -17,6 +17,9 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
              const polyvecl *s1,
              const polyveck *s2);
 
+#define pack_sk_s1 DILITHIUM_NAMESPACE(pack_sk_s1)
+void pack_sk_s1(uint8_t sk[CRYPTO_SECRETKEYBYTES], const polyvecl *s1);
+
 #define pack_sig DILITHIUM_NAMESPACE(pack_sig)
 void pack_sig(uint8_t sig[CRYPTO_BYTES], const uint8_t c[SEEDBYTES], const polyvecl *z, const polyveck *h);
 

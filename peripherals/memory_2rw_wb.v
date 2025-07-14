@@ -91,7 +91,6 @@ generate
         initial $readmemh("reset_handler.mem",mem, ROM_START >> 2,       (ROM_START >> 2) + 7);
         initial $readmemh("bootloader.mem"   ,mem,(ROM_START >> 2) + 8,   RAM_DEPTH - 1      );
         // for simulation comment out below
-        // initial $readmemh("bootloader.mem"   ,mem,(ROM_START >> 2) + 8,   (4'h1000 >> 2) - 1      );
         // initial $readmemh("dilithium_hw.mem",mem,ROM_START >> 2,RAM_DEPTH-1);
     end
 endgenerate

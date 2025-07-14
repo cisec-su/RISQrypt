@@ -29,7 +29,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   uint8_t tr[SEEDBYTES];
   const uint8_t *rho, *rhoprime, *key;
   polyvecl mat[K];
-  polyvecl s1, s1hat;
+  polyvecl s1;
   polyveck s2, t1, t0;
 
   poly_init_q();
@@ -51,13 +51,12 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   polyvecl_uniform_eta(&s1, rhoprime, 0);
   polyveck_uniform_eta(&s2, rhoprime, L);
 
-  s1hat = s1;
-  polyvecl_caddq(&s1hat);
+  pack_sk_s1(sk, &s1);
 
   poly_init_ntt();
-  polyvecl_ntt(&s1hat);
+  polyvecl_ntt(&s1);
 
-  polyvec_matrix_pointwise(&t1, mat, &s1hat); // mat and s1hat is equal in python and fpga
+  polyvec_matrix_pointwise(&t1, mat, &s1);
 
   poly_init_invntt();
   polyveck_invntt(&t1);
@@ -66,8 +65,6 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   polyveck_add(&t1, &t1, &s2);
 
   /* Extract t1 and write public key */
-  polyveck_caddq(&t1);
-
   polyveck_power2round(&t1, &t0, &t1);
 
   pack_pk(pk, rho, &t1);
@@ -75,9 +72,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
   /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
   dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 
-  poly_set_pack();
-
-  pack_sk(sk, rho, tr, key, &t0, &s1, &s2);
+  pack_sk(sk, rho, tr, key, &t0, NULL, &s2);
 
   return 0;
 }

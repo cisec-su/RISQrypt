@@ -496,11 +496,24 @@ int polyveck_chknorm_shifted(const polyveck *v, int32_t bound) {
 *                              coefficients a0
 *              - const polyveck *v: pointer to input vector
 **************************************************/
+// void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
+//   unsigned int i;
+
+//   for(i = 0; i < K; ++i)
+//     poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+// }
 void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
   unsigned int i;
+  uint32_t mu[2] = {0, 1 << (32 - D)};
+
+  ntt_lite_set_bound(0xFFFFFFFF);
+  ntt_lite_set_mu(mu, NTT_LITE_MODE_SINGLE);
+  ntt_lite_set_inv2(1 << D);
 
   for(i = 0; i < K; ++i)
-    poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+    poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+
+  poly_init_q();
 }
 
 /*************************************************

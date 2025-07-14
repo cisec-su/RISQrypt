@@ -166,6 +166,14 @@ int dilithium_simple() {
     {
         print_string("SK PASS\n");
     }
+    for (int i = 0; i < CRYPTO_SECRETKEYBYTES; i++) {
+        if (sk_[i] != sk[i]) {
+            print_string("SK MISMATCH at index ");
+            print_u32(i);
+            print_string("\n");
+            return -1;
+        }
+    }
 
 
     print_string("\nMessage bytes (hex): ");

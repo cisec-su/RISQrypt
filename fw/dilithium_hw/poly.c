@@ -475,17 +475,17 @@ static unsigned int rej_eta(int32_t *a,
 #if ETA == 2
     if(t0 < 15) {
       t0 = t0 - (205*t0 >> 10)*5;
-      a[ctr++] = 2 - t0;
+      a[ctr++] = caddq(2 - t0);
     }
     if(t1 < 15 && ctr < len) {
       t1 = t1 - (205*t1 >> 10)*5;
-      a[ctr++] = 2 - t1;
+      a[ctr++] = caddq(2 - t1);
     }
 #elif ETA == 4
     if(t0 < 9)
-      a[ctr++] = 4 - t0;
+      a[ctr++] = caddq(4 - t0);
     if(t1 < 9 && ctr < len)
-      a[ctr++] = 4 - t1;
+      a[ctr++] = caddq(4 - t1);
 #endif
   }
 

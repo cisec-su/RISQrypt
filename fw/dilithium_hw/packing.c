@@ -82,11 +82,11 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
 
   for(i = 0; i < SEEDBYTES; ++i)
     sk[i] = tr[i];
-  sk += SEEDBYTES;
+  sk += SEEDBYTES + L*POLYETA_PACKEDBYTES;
 
-  for(i = 0; i < L; ++i)
-    polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s1->vec[i]);
-  sk += L*POLYETA_PACKEDBYTES;
+  // for(i = 0; i < L; ++i)
+  //   polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s1->vec[i]);
+  // sk += L*POLYETA_PACKEDBYTES;
 
   for(i = 0; i < K; ++i)
     polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s2->vec[i]);
@@ -94,6 +94,16 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
 
   for(i = 0; i < K; ++i)
     polyt0_pack(sk + i*POLYT0_PACKEDBYTES, &t0->vec[i]);
+}
+
+
+void pack_sk_s1(uint8_t sk[CRYPTO_SECRETKEYBYTES], const polyvecl *s1)
+{
+  unsigned int i;
+  sk += 3*SEEDBYTES;
+
+  for(i = 0; i < L; ++i)
+    polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s1->vec[i]);
 }
 
 /*************************************************
