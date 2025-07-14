@@ -483,8 +483,8 @@ int main() {
     RUN_TEST(test_masked_indcpa_dec);
     //RUN_TEST(test_masked_indcpa_enc_cmp);
     //UNITY_END(); 
-    return (UnityEnd());
     print_string("DONE\n");
+    return (UnityEnd());
 
 }
 
