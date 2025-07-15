@@ -118,19 +118,23 @@ int ntt_lite_set_mode(uint32_t mode) {
 
 static int ntt_lite_load_twiddle_core(const uint32_t *psi, uint32_t rhs_const) {
 
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
-        return -1;
+    if (rhs_const) {
+        NTT_LITE_REGS->bound = *psi;
     }
-
-    NTT_LITE_REGS->din_addr = (uint32_t) psi;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | rhs_const;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    else {
+        NTT_LITE_REGS->din_addr = (uint32_t) psi;
+        NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE;
+        while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    }
 
     return 0;
 }
 
 
 int ntt_lite_load_twiddle(const uint32_t *psi) {
+    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+        return -1;
+    }
     return ntt_lite_load_twiddle_core(psi, 0);
 }
 
