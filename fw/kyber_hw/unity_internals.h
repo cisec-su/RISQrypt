@@ -4,7 +4,7 @@
     Copyright (c) 2007-25 Mike Karlesky, Mark VanderVoord, & Greg Williams
     SPDX-License-Identifier: MIT
 ========================================================================= */
-
+#include <util.h>
 #ifndef UNITY_INTERNALS_H
 #define UNITY_INTERNALS_H
 
@@ -184,7 +184,7 @@
 /* Auto-detect 64 Bit Support */
 #ifndef UNITY_SUPPORT_64
   #if UNITY_LONG_WIDTH == 64 || UNITY_POINTER_WIDTH == 64
-    #define UNITY_SUPPORT_64
+    //#define UNITY_SUPPORT_64
   #endif
 #endif
 
@@ -326,8 +326,11 @@ typedef UNITY_FLOAT_TYPE UNITY_FLOAT;
  *-------------------------------------------------------*/
 #ifndef UNITY_OUTPUT_CHAR
   /* Default to using putchar, which is defined in stdio.h */
-  #include <stdio.h>
-  #define UNITY_OUTPUT_CHAR(a) (void)putchar(a)
+  #include <uart.h>
+  #define UNITY_OUTPUT_CHAR(c) do { \
+      char _ch = (char)(c);         \
+      uart_transmit_string(&_ch, 1); \
+  } while(0)
 #else
   /* If defined as something else, make sure we declare it here so it's ready for use */
   #ifdef UNITY_OUTPUT_CHAR_HEADER_DECLARATION
@@ -861,6 +864,7 @@ extern const char UnityStrErrShorthand[];
 /*-------------------------------------------------------
  * Test Running Macros
  *-------------------------------------------------------*/
+#define UNITY_EXCLUDE_SETJMP_H
 
 #ifdef UNITY_TEST_PROTECT
 #define TEST_PROTECT() UNITY_TEST_PROTECT()
@@ -871,6 +875,8 @@ extern const char UnityStrErrShorthand[];
 #define TEST_PROTECT() 1
 #endif
 #endif
+
+#define UNITY_EXCLUDE_SETJMP_H
 
 #ifdef UNITY_TEST_ABORT
 #define TEST_ABORT() UNITY_TEST_ABORT()
