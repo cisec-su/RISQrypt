@@ -470,8 +470,8 @@ void test_masked_indcpa_enc_cmp() {
 
 
 int main() {
-    print_string("\n=== FPGA Kyber Unity Test Start ===\n");
-    UnityBegin("main.c");
+    UnityPrint("\n FPGA Kyber Unity Test Start n");
+    UnityBegin("main.c");   
     print_string("\n=== Unity Start ===\n");
     RUN_TEST(test_indcpa_keypair);
     RUN_TEST(test_indcpa_enc);
@@ -481,20 +481,8 @@ int main() {
     RUN_TEST(test_masked_cbd);
     RUN_TEST(test_masked_poly_compress);
     RUN_TEST(test_masked_indcpa_dec);
-    //RUN_TEST(test_masked_indcpa_enc_cmp);
-    //UNITY_END(); 
-    print_string("DONE\n");
+    RUN_TEST(test_masked_indcpa_enc_cmp);
+    UnityPrint("DONE\n");
     return (UnityEnd());
 
 }
-
-//int main(void)
-//{
-//  UnityBegin("test/TestProductionCode.c");
-//  RUN_TEST(test_FindFunction_WhichIsBroken_ShouldReturnZeroIfItemIsNotInList_WhichWorksEvenInOurBrokenCode, 20);
-//  RUN_TEST(test_FindFunction_WhichIsBroken_ShouldReturnTheIndexForItemsInList_WhichWillFailBecauseOurFunctionUnderTestIsBroken, 30);
-//  RUN_TEST(test_FunctionWhichReturnsLocalVariable_ShouldReturnTheCurrentCounterValue, 41);
-//  RUN_TEST(test_FunctionWhichReturnsLocalVariable_ShouldReturnTheCurrentCounterValueAgain, 51);
-//  RUN_TEST(test_FunctionWhichReturnsLocalVariable_ShouldReturnCurrentCounter_ButFailsBecauseThisTestIsActuallyFlawed, 57);
-//  return (UnityEnd());
-//}
