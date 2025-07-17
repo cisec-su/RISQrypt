@@ -470,7 +470,7 @@ void test_masked_indcpa_enc_cmp() {
 
 
 int main() {
-    UnityPrint("\n FPGA Kyber Unity Test Start n");
+    UnityPrint("\n FPGA Kyber Unity Test Start ");
     UnityBegin("main.c");   
     print_string("\n=== Unity Start ===\n");
     RUN_TEST(test_indcpa_keypair);

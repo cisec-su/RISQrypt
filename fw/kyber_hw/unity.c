@@ -7,6 +7,10 @@
 
 #include "unity.h"
 
+#ifndef UNITY_PROGMEM
+#define UNITY_PROGMEM __attribute__((section(".data")))
+#endif
+
 /* If omitted from header, declare overrideable prototypes here so they're ready for use */
 #ifdef UNITY_OMIT_OUTPUT_CHAR_HEADER_DECLARATION
 void UNITY_OUTPUT_CHAR(int);
@@ -20,59 +24,59 @@ void UNITY_OUTPUT_CHAR(int);
 struct UNITY_STORAGE_T Unity;
 
 #ifdef UNITY_OUTPUT_COLOR
-const char  UnityStrOk[]                            = "\033[42mOK\033[0m";
-const char  UnityStrPass[]                          = "\033[42mPASS\033[0m";
-const char  UnityStrFail[]                          = "\033[41mFAIL\033[0m";
-const char  UnityStrIgnore[]                        = "\033[43mIGNORE\033[0m";
+const char UNITY_PROGMEM UnityStrOk[]                            = "\033[42mOK\033[0m";
+const char UNITY_PROGMEM UnityStrPass[]                          = "\033[42mPASS\033[0m";
+const char UNITY_PROGMEM UnityStrFail[]                          = "\033[41mFAIL\033[0m";
+const char UNITY_PROGMEM UnityStrIgnore[]                        = "\033[43mIGNORE\033[0m";
 #else
-const char  UnityStrOk[]                            = "OK";
-const char  UnityStrPass[]                          = "PASS";
-const char  UnityStrFail[]                          = "FAIL";
-const char  UnityStrIgnore[]                        = "IGNORE";
+const char UNITY_PROGMEM UnityStrOk[]                            = "OK";
+const char UNITY_PROGMEM UnityStrPass[]                          = "PASS";
+const char UNITY_PROGMEM UnityStrFail[]                          = "FAIL";
+const char UNITY_PROGMEM UnityStrIgnore[]                        = "IGNORE";
 #endif
-static const char  UnityStrNull[]                   = "NULL";
-static const char  UnityStrSpacer[]                 = ". ";
-static const char  UnityStrExpected[]               = " Expected ";
-static const char  UnityStrWas[]                    = " Was ";
-static const char  UnityStrGt[]                     = " to be greater than ";
-static const char  UnityStrLt[]                     = " to be less than ";
-static const char  UnityStrOrEqual[]                = "or equal to ";
-static const char  UnityStrNotEqual[]               = " to be not equal to ";
-static const char  UnityStrElement[]                = " Element ";
-static const char  UnityStrByte[]                   = " Byte ";
-static const char  UnityStrMemory[]                 = " Memory Mismatch.";
-static const char  UnityStrDelta[]                  = " Values Not Within Delta ";
-static const char  UnityStrPointless[]              = " You Asked Me To Compare Nothing, Which Was Pointless.";
-static const char  UnityStrNullPointerForExpected[] = " Expected pointer to be NULL";
-static const char  UnityStrNullPointerForActual[]   = " Actual pointer was NULL";
+static const char UNITY_PROGMEM UnityStrNull[]                   = "NULL";
+static const char UNITY_PROGMEM UnityStrSpacer[]                 = ". ";
+static const char UNITY_PROGMEM UnityStrExpected[]               = " Expected ";
+static const char UNITY_PROGMEM UnityStrWas[]                    = " Was ";
+static const char UNITY_PROGMEM UnityStrGt[]                     = " to be greater than ";
+static const char UNITY_PROGMEM UnityStrLt[]                     = " to be less than ";
+static const char UNITY_PROGMEM UnityStrOrEqual[]                = "or equal to ";
+static const char UNITY_PROGMEM UnityStrNotEqual[]               = " to be not equal to ";
+static const char UNITY_PROGMEM UnityStrElement[]                = " Element ";
+static const char UNITY_PROGMEM UnityStrByte[]                   = " Byte ";
+static const char UNITY_PROGMEM UnityStrMemory[]                 = " Memory Mismatch.";
+static const char UNITY_PROGMEM UnityStrDelta[]                  = " Values Not Within Delta ";
+static const char UNITY_PROGMEM UnityStrPointless[]              = " You Asked Me To Compare Nothing, Which Was Pointless.";
+static const char UNITY_PROGMEM UnityStrNullPointerForExpected[] = " Expected pointer to be NULL";
+static const char UNITY_PROGMEM UnityStrNullPointerForActual[]   = " Actual pointer was NULL";
 #ifndef UNITY_EXCLUDE_FLOAT
-static const char  UnityStrNot[]                    = "Not ";
-static const char  UnityStrInf[]                    = "Infinity";
-static const char  UnityStrNegInf[]                 = "Negative Infinity";
-static const char  UnityStrNaN[]                    = "NaN";
-static const char  UnityStrDet[]                    = "Determinate";
-static const char  UnityStrInvalidFloatTrait[]      = "Invalid Float Trait";
+static const char UNITY_PROGMEM UnityStrNot[]                    = "Not ";
+static const char UNITY_PROGMEM UnityStrInf[]                    = "Infinity";
+static const char UNITY_PROGMEM UnityStrNegInf[]                 = "Negative Infinity";
+static const char UNITY_PROGMEM UnityStrNaN[]                    = "NaN";
+static const char UNITY_PROGMEM UnityStrDet[]                    = "Determinate";
+static const char UNITY_PROGMEM UnityStrInvalidFloatTrait[]      = "Invalid Float Trait";
 #endif
-const char  UnityStrErrShorthand[]                  = "Unity Shorthand Support Disabled";
-const char  UnityStrErrFloat[]                      = "Unity Floating Point Disabled";
-const char  UnityStrErrDouble[]                     = "Unity Double Precision Disabled";
-const char  UnityStrErr64[]                         = "Unity 64-bit Support Disabled";
-const char  UnityStrErrDetailStack[]                = "Unity Detail Stack Support Disabled";
-static const char  UnityStrBreaker[]                = "-----------------------";
-static const char  UnityStrResultsTests[]           = " Tests ";
-static const char  UnityStrResultsFailures[]        = " Failures ";
-static const char  UnityStrResultsIgnored[]         = " Ignored ";
+const char UNITY_PROGMEM UnityStrErrShorthand[]                  = "Unity Shorthand Support Disabled";
+const char UNITY_PROGMEM UnityStrErrFloat[]                      = "Unity Floating Point Disabled";
+const char UNITY_PROGMEM UnityStrErrDouble[]                     = "Unity Double Precision Disabled";
+const char UNITY_PROGMEM UnityStrErr64[]                         = "Unity 64-bit Support Disabled";
+const char UNITY_PROGMEM UnityStrErrDetailStack[]                = "Unity Detail Stack Support Disabled";
+static const char UNITY_PROGMEM UnityStrBreaker[]                = "-----------------------";
+static const char UNITY_PROGMEM UnityStrResultsTests[]           = " Tests ";
+static const char UNITY_PROGMEM UnityStrResultsFailures[]        = " Failures ";
+static const char UNITY_PROGMEM UnityStrResultsIgnored[]         = " Ignored ";
 #ifndef UNITY_EXCLUDE_DETAILS
 #ifdef UNITY_DETAIL_STACK_SIZE
-static const char*  UnityStrDetailLabels[] = UNITY_DETAIL_LABEL_NAMES;
-static const UNITY_COUNTER_TYPE  UnityStrDetailLabelsCount = sizeof(UnityStrDetailLabels) / sizeof(const char*);
-static const char  UnityStrErrDetailStackEmpty[]           = " Detail Stack Empty";
-static const char  UnityStrErrDetailStackFull[]            = " Detail Stack Full";
-static const char  UnityStrErrDetailStackLabel[]           = " Detail Label Outside Of UNITY_DETAIL_LABEL_NAMES: ";
-static const char  UnityStrErrDetailStackPop[]             = " Detail Pop With Unexpected Arguments";
+static const char* UNITY_PROGMEM UnityStrDetailLabels[] = UNITY_DETAIL_LABEL_NAMES;
+static const UNITY_COUNTER_TYPE UNITY_PROGMEM UnityStrDetailLabelsCount = sizeof(UnityStrDetailLabels) / sizeof(const char*);
+static const char UNITY_PROGMEM UnityStrErrDetailStackEmpty[]           = " Detail Stack Empty";
+static const char UNITY_PROGMEM UnityStrErrDetailStackFull[]            = " Detail Stack Full";
+static const char UNITY_PROGMEM UnityStrErrDetailStackLabel[]           = " Detail Label Outside Of UNITY_DETAIL_LABEL_NAMES: ";
+static const char UNITY_PROGMEM UnityStrErrDetailStackPop[]             = " Detail Pop With Unexpected Arguments";
 #else
-static const char  UnityStrDetail1Name[]            = UNITY_DETAIL1_NAME " ";
-static const char  UnityStrDetail2Name[]            = " " UNITY_DETAIL2_NAME " ";
+static const char UNITY_PROGMEM UnityStrDetail1Name[]            = UNITY_DETAIL1_NAME " ";
+static const char UNITY_PROGMEM UnityStrDetail2Name[]            = " " UNITY_DETAIL2_NAME " ";
 #endif
 #endif
 /*-----------------------------------------------
@@ -545,19 +549,15 @@ void UnityConcludeTest(void)
     if (Unity.CurrentTestIgnored)
     {
         Unity.TestIgnores++;
-        UnityPrint("ignore");
     }
     else if (!Unity.CurrentTestFailed)
     {
         UnityTestResultsBegin(Unity.TestFile, Unity.CurrentTestLineNumber);
         UnityPrint(UnityStrPass);
-        UnityPrint("pass");
-        UnityPrintNumber(57);
     }
     else
     {
         Unity.TestFailures++;
-        UnityPrint("fail");
     }
 
     Unity.CurrentTestFailed = 0;
@@ -2300,6 +2300,7 @@ void UnityBegin(const char* filename)
 /*-----------------------------------------------*/
 int UnityEnd(void)
 {
+    UnityPrint("\n[UnityEnd] start function\n");
     UNITY_PRINT_EOL();
     UnityPrint(UnityStrBreaker);
     UNITY_PRINT_EOL();
@@ -2309,6 +2310,7 @@ int UnityEnd(void)
     UnityPrint(UnityStrResultsFailures);
     UnityPrintNumber((UNITY_INT)(Unity.TestIgnores));
     UnityPrint(UnityStrResultsIgnored);
+    UnityPrint("\n[UnityEnd] Reached end of function\n");
     UNITY_PRINT_EOL();
     if (Unity.TestFailures == 0U)
     {
