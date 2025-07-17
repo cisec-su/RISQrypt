@@ -291,7 +291,9 @@ int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d) {
         return -1;
     }
 
-    ntt_lite_load_twiddle(src);
+    NTT_LITE_REGS->din_addr = (uint32_t) src;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | NTT_LITE_CTRL_OP_SWITCH_EN_V | (d << NTT_LITE_CTRL_D_S);
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START | NTT_LITE_CTRL_OP_DECODE | (d << NTT_LITE_CTRL_D_S);
