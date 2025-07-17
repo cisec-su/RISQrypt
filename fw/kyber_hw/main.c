@@ -482,5 +482,4 @@ int main() {
     RUN_TEST(test_masked_indcpa_dec);
     RUN_TEST(test_masked_indcpa_enc_cmp);
     UnityEnd();
-    print_string("\n --- Unity Test Finished --- \n");
 }

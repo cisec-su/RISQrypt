@@ -29,7 +29,7 @@ const char UNITY_PROGMEM UnityStrPass[]                          = "\033[42mPASS
 const char UNITY_PROGMEM UnityStrFail[]                          = "\033[41mFAIL\033[0m";
 const char UNITY_PROGMEM UnityStrIgnore[]                        = "\033[43mIGNORE\033[0m";
 #else
-const char UNITY_PROGMEM UnityStrOk[]                            = "OK";
+const char UNITY_PROGMEM UnityStrOk[]                            = "ALL TESTS ARE PASSED, Test Finished";
 const char UNITY_PROGMEM UnityStrPass[]                          = "PASS";
 const char UNITY_PROGMEM UnityStrFail[]                          = "FAIL";
 const char UNITY_PROGMEM UnityStrIgnore[]                        = "IGNORE";
