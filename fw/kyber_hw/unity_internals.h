@@ -8,6 +8,8 @@
 #ifndef UNITY_INTERNALS_H
 #define UNITY_INTERNALS_H
 
+#define UNITY_INCLUDE_CONFIG_H 
+
 #ifdef UNITY_INCLUDE_CONFIG_H
 #include "unity_config.h"
 #endif
@@ -864,7 +866,6 @@ extern const char UnityStrErrShorthand[];
 /*-------------------------------------------------------
  * Test Running Macros
  *-------------------------------------------------------*/
-#define UNITY_EXCLUDE_SETJMP_H
 
 #ifdef UNITY_TEST_PROTECT
 #define TEST_PROTECT() UNITY_TEST_PROTECT()
@@ -875,8 +876,6 @@ extern const char UnityStrErrShorthand[];
 #define TEST_PROTECT() 1
 #endif
 #endif
-
-#define UNITY_EXCLUDE_SETJMP_H
 
 #ifdef UNITY_TEST_ABORT
 #define TEST_ABORT() UNITY_TEST_ABORT()

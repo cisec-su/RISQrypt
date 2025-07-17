@@ -481,5 +481,5 @@ int main() {
     RUN_TEST(test_masked_poly_compress);
     RUN_TEST(test_masked_indcpa_dec);
     RUN_TEST(test_masked_indcpa_enc_cmp);
-    UnityEnd();
+    return(UnityEnd());
 }
