@@ -116,6 +116,16 @@ int ntt_lite_set_mode(uint32_t mode) {
 }
 
 
+static int ntt_lite_load_twiddle_core_op(const uint32_t *psi, uint32_t op, uint32_t op_switch) {
+
+    NTT_LITE_REGS->din_addr = (uint32_t) psi;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | op | op_switch;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    return 0;
+}
+
+
 static int ntt_lite_load_twiddle_core(const uint32_t *psi, uint32_t rhs_const) {
 
     if (rhs_const) {
@@ -184,8 +194,15 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
         return -1;
     }
 
+    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+
     if (rhs != NTT_LITE_INPUT_DIS) {
-        ntt_lite_load_twiddle_core(rhs, rhs_const);
+        if (!rhs_const && (lhs == NTT_LITE_INPUT_DIS) && ((op == NTT_LITE_CTRL_OP_ADD) || (op == NTT_LITE_CTRL_OP_SUB) || (op == NTT_LITE_CTRL_OP_PWM))) {
+            return ntt_lite_load_twiddle_core_op(rhs, op, op_switch);
+        }
+        else {
+            ntt_lite_load_twiddle_core(rhs, rhs_const);
+        }
     }
 
     if (lhs == NTT_LITE_INPUT_DIS) {
@@ -194,8 +211,6 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
         cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
         NTT_LITE_REGS->din_addr = (uint32_t) lhs;
     }
-
-    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
 
     NTT_LITE_REGS->ctrl |= cmd | op | rhs_const | op_switch;
 

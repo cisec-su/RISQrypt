@@ -135,7 +135,7 @@ int dilithium_simple() {
     int ret;
 
 
-    print_string("\nDilithium Key Generation\n");
+    // print_string("\nDilithium Key Generation\n");
 
     timer_start();
 
