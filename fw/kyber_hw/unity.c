@@ -2300,7 +2300,6 @@ void UnityBegin(const char* filename)
 /*-----------------------------------------------*/
 int UnityEnd(void)
 {
-    UnityPrint("\n[UnityEnd] start function\n");
     UNITY_PRINT_EOL();
     UnityPrint(UnityStrBreaker);
     UNITY_PRINT_EOL();
@@ -2310,7 +2309,6 @@ int UnityEnd(void)
     UnityPrint(UnityStrResultsFailures);
     UnityPrintNumber((UNITY_INT)(Unity.TestIgnores));
     UnityPrint(UnityStrResultsIgnored);
-    UnityPrint("\n[UnityEnd] Reached end of function\n");
     UNITY_PRINT_EOL();
     if (Unity.TestFailures == 0U)
     {

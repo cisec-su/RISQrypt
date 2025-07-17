@@ -470,9 +470,8 @@ void test_masked_indcpa_enc_cmp() {
 
 
 int main() {
-    UnityPrint("\n FPGA Kyber Unity Test Start ");
     UnityBegin("main.c");   
-    print_string("\n=== Unity Start ===\n");
+    print_string("\n --- Kyber Unity Test Start --- n");
     RUN_TEST(test_indcpa_keypair);
     RUN_TEST(test_indcpa_enc);
     RUN_TEST(test_indcpa_dec);
@@ -482,7 +481,6 @@ int main() {
     RUN_TEST(test_masked_poly_compress);
     RUN_TEST(test_masked_indcpa_dec);
     RUN_TEST(test_masked_indcpa_enc_cmp);
-    UnityPrint("DONE\n");
-    return (UnityEnd());
-
+    UnityEnd();
+    print_string("\n --- Unity Test Finished --- \n");
 }
