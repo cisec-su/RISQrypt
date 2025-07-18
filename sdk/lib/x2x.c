@@ -62,7 +62,7 @@ int x2x_seed(uint32_t *seed)
 }
 
 
-static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t share, uint32_t b2a_1bit)
+static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t share, uint32_t b2a_1bit, uint32_t log_stride)
 {
     if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
         return -1;
@@ -78,7 +78,7 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     X2X_REGS->dout_addr[0] = (uint32_t) dst_0;
     X2X_REGS->dout_addr[1] = (uint32_t) dst_1;
 
-    X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | share | b2a_1bit;
+    X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | share | b2a_1bit | log_stride;
 
     while (!(X2X_REGS->ctrl & X2X_CTRL_DONE_V));
 
@@ -88,28 +88,28 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
 
 int x2x_a2b(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_A2B, 0, 0);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_A2B, 0, 0, 0);
 }
 
 
 int x2x_b2a(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, 0);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, 0, 0);
 }
 
-int x2x_b2a_1bit(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
+int x2x_b2a_1bit(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, uint32_t log_stride, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, X2X_CTRL_B2A_BIT_EN_V);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, X2X_CTRL_B2A_BIT_EN_V, (log_stride << X2X_CTRL_LOG_STRIDE_S));
 }
 
 
 int x2x_b_share(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_SHARE_V, 0);
+    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_SHARE_V, 0, 0);
 }
 
 
 int x2x_a_share(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_B2A, X2X_CTRL_SRC_SHARE_V, 0);
+    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_B2A, X2X_CTRL_SRC_SHARE_V, 0, 0);
 }

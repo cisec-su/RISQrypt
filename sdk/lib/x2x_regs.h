@@ -67,6 +67,10 @@ typedef struct
 #define X2X_CTRL_REJS_DIS_M       ((uint32_t) 0x1)
 #define X2X_CTRL_REJS_DIS_V       (X2X_CTRL_REJS_DIS_M << X2X_CTRL_REJS_DIS_S)
 
+#define X2X_CTRL_LOG_STRIDE_S     ((uint32_t) 13)
+#define X2X_CTRL_LOG_STRIDE_M     ((uint32_t) 0x7)
+#define X2X_CTRL_LOG_STRIDE_V     (X2X_CTRL_LOG_STRIDE_M << X2X_CTRL_LOG_STRIDE_S)
+
 #define X2X_CTRL_SEED_BUSY_S      ((uint32_t) 29)
 #define X2X_CTRL_SEED_BUSY_M      ((uint32_t) 0x1)
 #define X2X_CTRL_SEED_BUSY_V      (X2X_CTRL_SEED_BUSY_M << X2X_CTRL_SEED_BUSY_S)
