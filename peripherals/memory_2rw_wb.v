@@ -89,7 +89,7 @@ reg [DATA_WIDTH-1:0] mem [0:RAM_DEPTH-1];
 generate
     if (FPGA_READMEM) begin
         initial $readmemh("reset_handler.mem",mem, ROM_START >> 2,       (ROM_START >> 2) + 7);
-		
+
 		// for implementation comment out below
         initial $readmemh("bootloader.mem"   ,mem,(ROM_START >> 2) + 8,   RAM_DEPTH - 1      );
 		

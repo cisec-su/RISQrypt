@@ -22,6 +22,7 @@ module x2x_acc_ctrl
         output reg               arith_mode            ,     // 0 -> unsigned 1 -> signed
         output reg               one_bit_mode,
         output reg [4:0]         log_modulus,  
+        output reg [2:0]         log_stride, 
         output reg               rej_samp,
         
         // data address registers
@@ -58,6 +59,8 @@ localparam CTRL_DUAL_MODE_BIT  = 4;   //readback
 localparam CTRL_SHARE_MODE_BIT = 5; 
 localparam CTRL_MOD_SIZE_LSB   = 6; 
 localparam CTRL_MOD_SIZE_MSB   = 10;
+localparam CTRL_LOG_STRIDE_LSB = 13; 
+localparam CTRL_LOG_STRIDE_MSB = 15;
 localparam CTRL_ONE_BIT_MODE   = 11; 
 localparam CTRL_REJ_SAMP_BIT   = 12;
 localparam CTRL_SEED_IP_BIT    = 29;
@@ -157,10 +160,19 @@ end
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        log_modulus <= 5'd0;
+        log_modulus <= 0;
     end
     else if (we && (addr_offset == CTRL_ADDR)) begin
         log_modulus <= wdata[CTRL_MOD_SIZE_MSB:CTRL_MOD_SIZE_LSB];
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        log_stride <= 0;
+    end
+    else if (we && (addr_offset == CTRL_ADDR)) begin
+        log_stride <= wdata[CTRL_LOG_STRIDE_MSB:CTRL_LOG_STRIDE_LSB];
     end
 end
 

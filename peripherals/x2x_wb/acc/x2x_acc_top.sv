@@ -72,6 +72,7 @@ wire share_mode;
 //wire arith_mode;
 wire one_bit_mode;
 wire [4:0] log_modulus;
+wire [2:0] log_stride;
 wire rej_samp;
 wire seed_ip;
 
@@ -154,6 +155,7 @@ x2x_acc_fsm #(
     .ctrl_data_type(x2x_data_type),
     .ctrl_one_bit_mode(one_bit_mode),///////////
     .log_modulus(log_modulus),  ///////////
+    .log_stride(log_stride),  ///////////
     .ctrl_rej_samp(rej_samp),////////// 
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
@@ -256,6 +258,7 @@ x2x_acc_ctrl #(
     .arith_mode    (arith_mode),
     .one_bit_mode(one_bit_mode),///////////
     .log_modulus(log_modulus),  ///////////
+    .log_stride(log_stride),  ///////////
     .rej_samp(rej_samp),//////////   
         
     .din_addr  (din_addr  ),
