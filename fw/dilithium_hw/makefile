@@ -13,6 +13,13 @@ SRC += sign.c
 SRC += symmetric.c
 SRC += fips202.c
 SRC += reduce.c
+SRC += masked.c
+SRC += masked_sign.c
+SRC += masked_poly.c
+SRC += masked_polyvec.c
+SRC += masked_gadgets.c
+SRC += masked_packing.c
+SRC += masked_symmetric.c
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
