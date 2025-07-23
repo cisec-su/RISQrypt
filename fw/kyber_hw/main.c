@@ -10,6 +10,7 @@
 #include "masked_indcpa.h"
 #include "unity.h"
 #include "unity_internals.h"
+#include "benchmark.h"
 
 
 
@@ -39,132 +40,72 @@ void tearDown(void)
 }
 
 
-void test_indcpa_dec() {
+void TEST_NAME(INDCPA_DEC)() {
 
-    unsigned int time;
+    BENCH_INIT() 
 
-    print_string("Kyber CPA_PKE Dec: \n");
-
-    timer_start();
+    BENCH_START() 
 
     indcpa_dec(m_, c, sk);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(INDCPA_DEC)
 
-    //if (memcmp(m_, m, KYBER_INDCPA_MSGBYTES) == 0) {
-    //    print_string("DEC PASS\n\n");
-    //} else {
-    //    print_string("DEC FAIL\n\n");
-    //}
     TEST_ASSERT_EQUAL_MEMORY(m_, m, KYBER_INDCPA_MSGBYTES);
 }
 
 
-void test_indcpa_enc() {
+void TEST_NAME(INDCPA_ENC)() {
 
-    unsigned int time;
+    BENCH_INIT() 
 
-    print_string("Kyber CPA_PKE Enc: \n");
-
-    timer_start();
+    BENCH_START() 
 
     indcpa_enc(c_, m, pk, coins);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(INDCPA_ENC)
 
-    //if (memcmp(c_, c, KYBER_INDCPA_BYTES) == 0) {
-    //    print_string("ENC PASS\n\n");
-    //} else {
-    //    print_string("ENC FAIL\n\n");
-    //}
     TEST_ASSERT_EQUAL_MEMORY(c_, c, KYBER_INDCPA_BYTES);
 }
 
 
-void test_indcpa_keypair() {
+void TEST_NAME(INDCPA_KEYPAIR)() {
 
-    unsigned int time;
+    BENCH_INIT() 
 
-    print_string("Kyber CPA_PKE Keygen: \n");
-
-    timer_start();
+    BENCH_START();
 
     indcpa_keypair(pk_, sk_);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(INDCPA_KEYPAIR)
 
-    //if (memcmp(pk_, pk, KYBER_INDCPA_PUBLICKEYBYTES) == 0) {
-    //    print_string("PK PASS\n\n");
-    //} else {
-    //    print_string("PK FAIL\n\n");
-    //}
-    
     TEST_ASSERT_EQUAL_MEMORY(pk_, pk, KYBER_INDCPA_PUBLICKEYBYTES);
-
-    //if (memcmp(sk_, sk, KYBER_INDCPA_SECRETKEYBYTES) == 0) {
-    //    print_string("SK PASS\n\n");
-    //} else {
-    //    print_string("SK FAIL\n\n");
-    //}
-
     TEST_ASSERT_EQUAL_MEMORY(sk_, sk, KYBER_INDCPA_SECRETKEYBYTES);
 
 }
 
 
-void test_indcca() {
+void TEST_NAME(INDCCA)() {
 
-    unsigned int time;
+    BENCH_INIT() 
 
-    print_string("Kyber CCA_PKE Keygen: \n");
-
-    timer_start();
+    BENCH_START()
 
     crypto_kem_keypair(pk_cca, sk_cca);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(CRYPTO_KEM_KEYPAIR)
 
-
-    print_string("Kyber CCA_PKE Enc: \n");
-
-    timer_start();
+    BENCH_START()
 
     crypto_kem_enc(c_cca, K, pk_cca);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(CRYPTO_KEM_ENC)
 
 
-    print_string("Kyber CCA_PKE Dec: \n");
-
-    timer_start();
+    BENCH_START()
 
     crypto_kem_dec(K_, c_cca, sk_cca);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
-
-    //if (memcmp(K_, K, KYBER_SSBYTES) == 0) {
-    //    print_string("CCA PASS\n\n");
-    //} else {
-    //    print_string("CCA FAIL\n\n");
-    //}
+    BENCH_END(CRYPTO_KEM_DEC)
 
     TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
 
@@ -182,12 +123,10 @@ uint8_t m_unmasked[KYBER_INDCPA_MSGBYTES] __attribute__((aligned(4))) = {0x13, 0
 uint8_t m_unmasked_[KYBER_INDCPA_MSGBYTES];
 
 
-void test_masked_poly_msg() {
+void TEST_NAME(MASKED_POLY_MSG)() {
 
-    unsigned int time;
+    BENCH_INIT() 
     unsigned int i, j;
-
-    print_string("Kyber masked poly_sub_tomsg: \n");
 
     poly_init_q();
 
@@ -198,38 +137,25 @@ void test_masked_poly_msg() {
         a.coeffs[i] = 0x0;
     }
 
-    timer_start();
+    BENCH_START()
 
     masked_poly_sub_tomsg(mm, &a, &mpoly_0);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(MASKED_POLY_SUB_TOMSG)
 
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
         m_unmasked_[i] = mm[0][i] ^ mm[1][i];
     }
 
-    //if (memcmp(m_unmasked_, m_unmasked, KYBER_INDCPA_MSGBYTES) == 0) {
-    //    print_string("Masked poly_sub_tomsg PASS\n\n");
-    //} else {
-    //    print_string("Masked poly_sub_tomsg FAIL\n\n");
-    //}
-
     TEST_ASSERT_EQUAL_MEMORY(m_unmasked_, m_unmasked, KYBER_INDCPA_MSGBYTES);
 
-    print_string("Masked poly_frommsg: \n");
-
-    timer_start();
+    BENCH_START()
 
     masked_poly_frommsg(&mpoly_, mm);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(MASKED_POLY_SUB_FROMSG)
+
 
     for (i = 0; i < KYBER_N; i++) {
         mpoly_unmasked_A.coeffs[i] = (((m_unmasked[i >> 3]) >> (i & 0x7)) & 1) * 1665;
@@ -244,12 +170,6 @@ void test_masked_poly_msg() {
 
     TEST_ASSERT_EQUAL_MEMORY(mpoly_unmasked_B.coeffs, mpoly_unmasked_A.coeffs, KYBER_N * sizeof(uint16_t));
 
-    //if (memcmp((uint8_t*) mpoly_unmasked_A.coeffs, (uint8_t*) mpoly_unmasked_B.coeffs, KYBER_N / (sizeof(uint16_t))) == 0) {
-    //    print_string("Masked poly_frommsg PASS\n\n");
-    //} else {
-    //    print_string("Masked poly_frommsg FAIL\n\n");
-    //}
-
 }
 
 masked_poly mpoly_d4 __attribute__((aligned(4))) = {0x0629, 0x06ba, 0x0424, 0x07c6, 0x0c8a, 0x07a0, 0x0955, 0x0813, 0x0482, 0x0c17, 0x09e4, 0x0402, 0x0b48, 0x09a1, 0x04f6, 0x0bad, 0x0af1, 0x078d, 0x019c, 0x06f2, 0x09c6, 0x0345, 0x07a1, 0x0857, 0x00ff, 0x08c7, 0x017e, 0x0661, 0x0c8f, 0x0a01, 0x09ca, 0x0554, 0x0baf, 0x0b42, 0x030e, 0x038c, 0x0cda, 0x0cd9, 0x072a, 0x0149, 0x0820, 0x01be, 0x08d1, 0x0b4e, 0x08c2, 0x08a5, 0x0cca, 0x08c1, 0x049a, 0x0177, 0x0cc4, 0x0512, 0x03df, 0x02f1, 0x02fc, 0x09cd, 0x0429, 0x011a, 0x0adc, 0x0215, 0x009e, 0x0b30, 0x0aef, 0x0b48, 0x0468, 0x0cfc, 0x0371, 0x096f, 0x0946, 0x0735, 0x0a90, 0x0b34, 0x05b7, 0x0530, 0x01d8, 0x0964, 0x055d, 0x03e3, 0x0bb4, 0x01df, 0x0387, 0x0cb6, 0x0552, 0x00fe, 0x0c87, 0x0b29, 0x00b9, 0x0a25, 0x09a2, 0x012f, 0x01fd, 0x0304, 0x0937, 0x0642, 0x05ec, 0x0095, 0x0058, 0x02f5, 0x01fb, 0x035e, 0x0ccf, 0x0ade, 0x08b5, 0x09ed, 0x0428, 0x0388, 0x0a59, 0x059a, 0x02e2, 0x080e, 0x00a1, 0x019d, 0x0642, 0x0429, 0x0bb4, 0x091d, 0x0b29, 0x0341, 0x00ed, 0x0ad1, 0x0297, 0x0878, 0x01e0, 0x0713, 0x02cc, 0x078b, 0x068e, 0x0823, 0x0a62, 0x0637, 0x0403, 0x08f8, 0x0032, 0x0bdd, 0x055f, 0x00bb, 0x047e, 0x03d7, 0x07b5, 0x09c3, 0x0ac6, 0x0971, 0x09ef, 0x0b73, 0x0635, 0x06a1, 0x014a, 0x0983, 0x0b2d, 0x028f, 0x0391, 0x072b, 0x0b5d, 0x0917, 0x0081, 0x0b3a, 0x06b1, 0x0a98, 0x00bf, 0x0720, 0x0425, 0x0285, 0x0870, 0x08fb, 0x0c16, 0x009f, 0x0537, 0x0778, 0x0cf1, 0x06a4, 0x08c6, 0x0155, 0x0216, 0x066d, 0x06ae, 0x000d, 0x003a, 0x0c13, 0x0acf, 0x09cb, 0x030c, 0x09bb, 0x032d, 0x047a, 0x02ea, 0x079c, 0x0a0a, 0x0059, 0x073f, 0x0cad, 0x041a, 0x0a75, 0x0a69, 0x058d, 0x0278, 0x004c, 0x00a6, 0x0ae5, 0x08ef, 0x05de, 0x00ac, 0x0b38, 0x0a7c, 0x0b65, 0x0756, 0x06f7, 0x089b, 0x0353, 0x0964, 0x0024, 0x026a, 0x0555, 0x0ca2, 0x0b7e, 0x0569, 0x09ed, 0x00a8, 0x029f, 0x0955, 0x05c6, 0x08c6, 0x04b1, 0x07a6, 0x03d5, 0x04ed, 0x085e, 0x0122, 0x0673, 0x04c9, 0x01bd, 0x08f9, 0x0795, 0x0cc4, 0x057f, 0x07aa, 0x0b31, 0x06d3, 0x04d4, 0x0bc1, 0x027d, 0x0a07, 0x0602, 0x0a38, 0x010d, 0x015a, 0x0bff, 0x00fa, 0x0020, 0x064d, 0x084d, 0x072d, 0x0c9c, 0x0b6e, 0x0379, 0x0156, 0x0385, 0x0c20, 0x00a5, 0x082e, 0x067a, 0x04da, 0x05ba, 0x037e, 0x023a, 0x023c, 0x0184, 0x0cca, 0x0885, 0x0cf6, 0x0259, 0x0194, 0x012e, 0x0548, 0x08f4, 0x05a9, 0x050f, 0x0a3f, 0x08d7, 0x0715, 0x042a, 0x0ce1, 0x0039, 0x0b83, 0x0b5d, 0x0ab0, 0x0004, 0x07e5, 0x03e7, 0x0534, 0x0101, 0x0914, 0x03d1, 0x0247, 0x08b0, 0x0175, 0x051e, 0x07d4, 0x04d2, 0x04a8, 0x01ff, 0x0552, 0x0340, 0x09a6, 0x0966, 0x071e, 0x098a, 0x0628, 0x0935, 0x04a5, 0x0307, 0x0087, 0x0a81, 0x079f, 0x016f, 0x0c1f, 0x0264, 0x0148, 0x08a6, 0x0642, 0x0864, 0x0859, 0x03c4, 0x0adf, 0x06b5, 0x0467, 0x07e1, 0x0a42, 0x0cb1, 0x0151, 0x09cd, 0x07c8, 0x0a15, 0x030b, 0x0042, 0x0456, 0x0b49, 0x05f3, 0x02ba, 0x06d1, 0x019c, 0x0257, 0x0380, 0x092e, 0x088c, 0x0ae3, 0x006d, 0x0a28, 0x09b3, 0x01ea, 0x0176, 0x01db, 0x09b0, 0x031d, 0x0b7d, 0x07aa, 0x0ba2, 0x00fa, 0x005d, 0x06cf, 0x019f, 0x011e, 0x0126, 0x04d1, 0x06fa, 0x00fa, 0x0779, 0x098b, 0x0b30, 0x0330, 0x05bc, 0x0786, 0x02b5, 0x0ac3, 0x0c47, 0x0c9e, 0x0288, 0x057a, 0x0402, 0x098c, 0x0aa6, 0x0036, 0x0ae6, 0x091b, 0x04fb, 0x05b6, 0x0a85, 0x0274, 0x0b0d, 0x0753, 0x0143, 0x0bd3, 0x08b5, 0x0228, 0x0c31, 0x05a2, 0x049b, 0x05bf, 0x0a23, 0x021e, 0x04f6, 0x0bf9, 0x0a69, 0x0006, 0x0313, 0x0559, 0x03d4, 0x0a32, 0x060e, 0x0ac7, 0x06a1, 0x066f, 0x0914, 0x0c5a, 0x0b58, 0x02a6, 0x0105, 0x0b39, 0x0724, 0x07cb, 0x09a9, 0x0000, 0x07e9, 0x04fe, 0x00cc, 0x0cff, 0x0302, 0x0a21, 0x0b9b, 0x003c, 0x0adb, 0x050f, 0x036a, 0x0b7a, 0x0009, 0x0874, 0x0190, 0x01e7, 0x0a63, 0x04d6, 0x0b04, 0x019a, 0x0658, 0x014d, 0x0465, 0x0ccc, 0x01da, 0x0222, 0x0855, 0x0a51, 0x01d7, 0x0474, 0x00ad, 0x034a, 0x0427, 0x0509, 0x0914, 0x0bfc, 0x09b8, 0x07e9, 0x0a4e, 0x0a3e, 0x05f5, 0x02da, 0x0602, 0x04a8, 0x0237, 0x0457, 0x0566, 0x05e0, 0x017f, 0x0c78, 0x0092, 0x0450, 0x0264, 0x04a1, 0x0651, 0x0213, 0x01d6, 0x0bb0, 0x00c5, 0x02df, 0x0ba8, 0x04d7, 0x0541, 0x06a2, 0x0197, 0x07b2, 0x0564, 0x0cff, 0x01fd, 0x01db, 0x07f6, 0x009a, 0x055c, 0x0afe, 0x02aa, 0x0908, 0x0ce5, 0x0164, 0x0cec, 0x032b, 0x0389, 0x0628, 0x0191, 0x08e7, 0x04a3, 0x07d1, 0x095b, 0x0ade, 0x06c4, 0x05e4, 0x042c};
@@ -260,14 +180,12 @@ uint8_t b[320];
 
 
 
-void test_masked_poly_compress() {
+void TEST_NAME(MASKED_POLY_COMPRESS)() {
 
-    unsigned int time;
+    BENCH_INIT() 
     unsigned int i;
     const poly *mpoly_ptr_src[MASKING_N];
     poly_u32 *mpoly_ptr_dst[MASKING_N];
-
-    print_string("Kyber Masked poly_compress: \n");
 
     for (i = 0; i < 320; i++) {
         b[i] = 0x0;
@@ -275,24 +193,14 @@ void test_masked_poly_compress() {
 
     poly_init_q();
 
-    timer_start();
+    BENCH_START() 
 
     masked_poly_sub_compress(&mpoly_comp_, &mpoly, b);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
-    
+    BENCH_END(MASKED_POLY_COMPRESS)
+
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[0].coeffs, mpoly_comp_d4.share[0].coeffs, 1024);
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[1].coeffs, mpoly_comp_d4.share[1].coeffs, 1024);
-
-    //if ((memcmp(mpoly_comp_.share[0].coeffs, mpoly_comp_d4.share[0].coeffs, 1024) == 0) && 
-    //    (memcmp(mpoly_comp_.share[1].coeffs, mpoly_comp_d4.share[1].coeffs, 1024) == 0)) {
-    //    print_string("Masked poly_compress dv PASS\n\n");
-    //} else {
-    //    print_string("Masked poly_compress dv FAIL\n\n");
-    //}
 
     for (i = 0; i < KYBER_N; i++) {
         b[i] = 0x0;
@@ -305,25 +213,14 @@ void test_masked_poly_compress() {
         mpoly_ptr_src[i] = &(mpoly.share[i]);
     }
 
-    timer_start();
+    BENCH_START() 
 
     masked_poly_sub_compress_du(mpoly_ptr_dst, mpoly_ptr_src, b);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(MASKED_POLY_COMPRESS_DU)
 
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[0].coeffs, mpoly_comp_d10.share[0].coeffs, 1024);
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[1].coeffs, mpoly_comp_d10.share[1].coeffs, 1024);
-
-    //if ((memcmp(mpoly_comp_.share[0].coeffs, mpoly_comp_d10.share[0].coeffs, 1024) == 0) && 
-    //    (memcmp(mpoly_comp_.share[1].coeffs, mpoly_comp_d10.share[1].coeffs, 1024) == 0)) {
-    //    print_string("Masked poly_compress du PASS\n\n");
-    //} else {
-    //    print_string("Masked poly_compress du FAIL\n\n");
-    //}
-
 
 }
 
@@ -334,22 +231,17 @@ const masked_poly mpoly_cbd __attribute__((aligned(4)));
 const poly poly_cbd __attribute__((aligned(4))) = {0x0000, 0x0cff, 0x0001, 0x0d00, 0x0d00, 0x0001, 0x0d00, 0x0d00, 0x0d00, 0x0000, 0x0000, 0x0cff, 0x0001, 0x0000, 0x0d00, 0x0000, 0x0001, 0x0001, 0x0000, 0x0000, 0x0001, 0x0d00, 0x0000, 0x0000, 0x0001, 0x0d00, 0x0000, 0x0002, 0x0000, 0x0d00, 0x0001, 0x0d00, 0x0d00, 0x0000, 0x0001, 0x0002, 0x0000, 0x0001, 0x0000, 0x0000, 0x0001, 0x0000, 0x0002, 0x0002, 0x0000, 0x0001, 0x0d00, 0x0d00, 0x0001, 0x0000, 0x0d00, 0x0000, 0x0d00, 0x0000, 0x0001, 0x0d00, 0x0000, 0x0d00, 0x0000, 0x0001, 0x0001, 0x0000, 0x0000, 0x0001, 0x0cff, 0x0cff, 0x0000, 0x0000, 0x0cff, 0x0000, 0x0000, 0x0000, 0x0cff, 0x0001, 0x0000, 0x0000, 0x0000, 0x0001, 0x0001, 0x0000, 0x0001, 0x0001, 0x0000, 0x0001, 0x0d00, 0x0d00, 0x0000, 0x0d00, 0x0d00, 0x0001, 0x0000, 0x0001, 0x0002, 0x0000, 0x0000, 0x0000, 0x0001, 0x0002, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x0000, 0x0000, 0x0d00, 0x0000, 0x0002, 0x0000, 0x0002, 0x0d00, 0x0d00, 0x0001, 0x0000, 0x0cff, 0x0001, 0x0000, 0x0001, 0x0001, 0x0d00, 0x0000, 0x0d00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0000, 0x0d00, 0x0002, 0x0000, 0x0002, 0x0001, 0x0d00, 0x0001, 0x0001, 0x0d00, 0x0cff, 0x0d00, 0x0002, 0x0001, 0x0000, 0x0001, 0x0d00, 0x0cff, 0x0d00, 0x0d00, 0x0d00, 0x0001, 0x0d00, 0x0000, 0x0000, 0x0d00, 0x0cff, 0x0d00, 0x0000, 0x0d00, 0x0cff, 0x0000, 0x0000, 0x0001, 0x0000, 0x0001, 0x0000, 0x0000, 0x0001, 0x0002, 0x0000, 0x0000, 0x0001, 0x0000, 0x0001, 0x0000, 0x0cff, 0x0001, 0x0d00, 0x0000, 0x0000, 0x0d00, 0x0001, 0x0002, 0x0000, 0x0001, 0x0d00, 0x0001, 0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0d00, 0x0000, 0x0001, 0x0002, 0x0002, 0x0000, 0x0d00, 0x0000, 0x0001, 0x0001, 0x0001, 0x0000, 0x0001, 0x0d00, 0x0000, 0x0000, 0x0002, 0x0000, 0x0000, 0x0d00, 0x0002, 0x0d00, 0x0cff, 0x0d00, 0x0001, 0x0d00, 0x0001, 0x0001, 0x0002, 0x0001, 0x0001, 0x0001, 0x0000, 0x0002, 0x0000, 0x0d00, 0x0000, 0x0000, 0x0002, 0x0000, 0x0000, 0x0001, 0x0000, 0x0000, 0x0001, 0x0001, 0x0000, 0x0000, 0x0d00, 0x0002, 0x0002, 0x0000, 0x0d00, 0x0002, 0x0001, 0x0001, 0x0001, 0x0d00, 0x0001, 0x0000, 0x0000, 0x0002, 0x0001};
 masked_poly mpoly_cbd_ __attribute__((aligned(4)));
 
-void test_masked_cbd() {
+void  TEST_NAME(MASKED_CBD)() {
  
-    unsigned int time;
+    BENCH_INIT() 
     unsigned int i;
-
-    print_string("Kyber masked CBD: \n");
 
     poly_init_q();
 
-    timer_start();
+    BENCH_START() 
     masked_cbd_eta2(&mpoly_cbd_, buf);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(MASKED_CBD)
 
     for (i = 0; i < KYBER_N; i++) {
         mpoly_cbd_.share[0].coeffs[i] = mpoly_cbd_.share[0].coeffs[i] + mpoly_cbd_.share[1].coeffs[i];
@@ -360,31 +252,20 @@ void test_masked_cbd() {
 
     TEST_ASSERT_EQUAL_MEMORY(mpoly_cbd_.share[0].coeffs, poly_cbd.coeffs, 4);
 
-    //if ((memcmp(mpoly_cbd_.share[0].coeffs, poly_cbd.coeffs, 4) == 0)) {
-    //    print_string("Masked CBD PASS\n\n");
-    //} else {
-    //    print_string("Masked CBD FAIL\n\n");
-    //}
 }
 
 
 
-void test_masked_indcpa_dec() {
+void TEST_NAME(MASKED_INDCPA_DEC)() {
 
-    unsigned int time;
+    BENCH_INIT() 
     unsigned int i;
 
-    print_string("Kyber masked CPA_PKE Dec: \n");
-
-    timer_start();
+    BENCH_START() 
 
     masked_indcpa_dec(mm, c, sk);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
-
+    BENCH_END(MASKED_INDCPA_DEC)
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
         m_unmasked_[i] = mm[0][i] ^ mm[1][i];
@@ -392,45 +273,29 @@ void test_masked_indcpa_dec() {
 
     TEST_ASSERT_EQUAL_MEMORY(m_unmasked_, m, KYBER_INDCPA_MSGBYTES);
 
-    //if (memcmp(m_unmasked_, m, KYBER_INDCPA_MSGBYTES) == 0) {
-    //    print_string("MASKED DEC PASS\n\n");
-    //} else {
-    //    print_string("MASKED DEC FAIL\n\n");
-    //}
-
 }
 
 masked_sym masked_coins __attribute__((aligned(4)));
 
-void test_masked_indcpa_enc_cmp() {
+void TEST_NAME(MASKED_INDCPA_ENC_CMP)() {
 
-    unsigned int time;
+    BENCH_INIT()
     unsigned int i;
     int fail;
 
-    print_string("Kyber masked CPA_PKE Enc Comp: \n");
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
         masked_coins[0][i] = i ^ coins[i];
         masked_coins[1][i] = i;
     }
 
-    timer_start();
+    BENCH_START()
 
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(MASKED_INDCPA_ENC_CMP)
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, fail, "MASKED ENC (CORR) FAIL");
-
-    //if (!fail) {
-    //    print_string("MASKED ENC (CORR) PASS\n\n");
-    //} else {
-    //    print_string("MASKED ENC (CORR) FAIL\n\n");
-    //}
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
         masked_coins[0][i] = i ^ coins[i];
@@ -442,11 +307,6 @@ void test_masked_indcpa_enc_cmp() {
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(1, fail, "MASKED ENC (INCORR COIN) FAIL");
 
-    //if (fail == 1) {
-    //    print_string("MASKED ENC (INCORR COIN) PASS\n\n");
-    //} else {
-    //    print_string("MASKED ENC (INCORR COIN) FAIL\n\n");
-    //}
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
         masked_coins[0][i] = i ^ coins[i];
@@ -459,27 +319,21 @@ void test_masked_indcpa_enc_cmp() {
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(1, fail, "MASKED ENC (INCORR C) FAIL");
 
-    //if (fail == 1) {
-    //    print_string("MASKED ENC (INCORR C) PASS\n\n");
-    //} else {
-    //    print_string("MASKED ENC (INCORR C) FAIL\n\n");
-    //}
-
 }
 
 
 
 int main() {
     UnityBegin("main.c");   
-    print_string("\n --- Kyber Unity Test Start --- n");
-    RUN_TEST(test_indcpa_keypair);
-    RUN_TEST(test_indcpa_enc);
-    RUN_TEST(test_indcpa_dec);
-    RUN_TEST(test_indcca);
-    RUN_TEST(test_masked_poly_msg);
-    RUN_TEST(test_masked_cbd);
-    RUN_TEST(test_masked_poly_compress);
-    RUN_TEST(test_masked_indcpa_dec);
-    RUN_TEST(test_masked_indcpa_enc_cmp);
+    print_string("\n --- Kyber Unity Test Start --- \n");
+    RUN_TEST(TEST_NAME(INDCPA_KEYPAIR));
+    RUN_TEST(TEST_NAME(INDCPA_ENC));
+    RUN_TEST(TEST_NAME(INDCPA_DEC));
+    RUN_TEST(TEST_NAME(INDCCA));
+    RUN_TEST(TEST_NAME(MASKED_POLY_MSG));
+    RUN_TEST(TEST_NAME(MASKED_CBD));
+    RUN_TEST(TEST_NAME(MASKED_POLY_COMPRESS));
+    RUN_TEST(TEST_NAME(MASKED_INDCPA_DEC));
+    RUN_TEST(TEST_NAME(MASKED_INDCPA_ENC_CMP));
     return(UnityEnd());
 }
