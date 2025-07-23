@@ -92,6 +92,20 @@ void print_coeffs(poly *a, const char *name) {
 }
 
 
+void print_all_coeffs(poly *a, const char *name) {
+  unsigned int i;
+  print_string(name);
+  print_string(" coefficients:\n");
+  for(i = 0; i < N; ++i) {
+    print_u32(i);
+    print_string(":\t");
+    print_u32(a->coeffs[i]);
+    print_string("\n");
+  }
+  print_string("\n");
+}
+
+
 /*************************************************
 * Name:        crypto_sign_signature
 *
