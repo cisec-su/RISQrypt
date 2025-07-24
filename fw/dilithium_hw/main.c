@@ -312,8 +312,8 @@ void dilithium_masked_sign() {
 
 int main() {
 
-    // dilithium_simple();
-    // dilithium_mean_sign();
+    dilithium_simple();
+    dilithium_mean_sign();
     dilithium_masked_sign();
 
     print_string("DONE\n");
