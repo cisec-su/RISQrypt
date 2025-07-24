@@ -48,7 +48,7 @@ void test_indcpa_dec() {
 
     indcpa_dec(m_, c, sk);
 
-    BENCH_END(test_indcpa_dec)
+    BENCH_END(INDCPA_DEC)
 
     TEST_ASSERT_EQUAL_MEMORY(m_, m, KYBER_INDCPA_MSGBYTES);
 }
@@ -62,7 +62,7 @@ void test_indcpa_enc() {
 
     indcpa_enc(c_, m, pk, coins);
 
-    BENCH_END(test_indcpa_enc)
+    BENCH_END(INDCPA_ENC)
 
     TEST_ASSERT_EQUAL_MEMORY(c_, c, KYBER_INDCPA_BYTES);
 }
@@ -76,7 +76,7 @@ void test_indcpa_keypair() {
 
     indcpa_keypair(pk_, sk_);
 
-    BENCH_END(test_indcpa_keypair)
+    BENCH_END(INDCPA_KEYPAIR)
 
     TEST_ASSERT_EQUAL_MEMORY(pk_, pk, KYBER_INDCPA_PUBLICKEYBYTES);
     TEST_ASSERT_EQUAL_MEMORY(sk_, sk, KYBER_INDCPA_SECRETKEYBYTES);
@@ -92,20 +92,20 @@ void test_indcca() {
 
     crypto_kem_keypair(pk_cca, sk_cca);
 
-    BENCH_END(test_crypto_kem_keypair)
+    BENCH_END(CRYPTO_KEM_KEYPAIR)
 
     BENCH_START()
 
     crypto_kem_enc(c_cca, K, pk_cca);
 
-    BENCH_END(test_crypto_kem_enc)
+    BENCH_END(CRYPTO_KEM_ENC)
 
 
     BENCH_START()
 
     crypto_kem_dec(K_, c_cca, sk_cca);
 
-    BENCH_END(test_crypto_kem_dec)
+    BENCH_END(CRYPTO_KEM_DEC)
 
     TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
 
@@ -141,7 +141,7 @@ void test_masked_poly_msg() {
 
     masked_poly_sub_tomsg(mm, &a, &mpoly_0);
 
-    BENCH_END(test_masked_poly_sub_tomsg)
+    BENCH_END(MASKED_POLY_SUB_TOMSG)
 
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
@@ -154,7 +154,7 @@ void test_masked_poly_msg() {
 
     masked_poly_frommsg(&mpoly_, mm);
 
-    BENCH_END(test_masked_poly_sub_frommsg)
+    BENCH_END(MASKED_POLY_SUB_FROMMSG)
 
 
     for (i = 0; i < KYBER_N; i++) {
@@ -197,7 +197,7 @@ void test_masked_poly_compress() {
 
     masked_poly_sub_compress(&mpoly_comp_, &mpoly, b);
 
-    BENCH_END(test_masked_poly_compress)
+    BENCH_END(MASKED_POLY_SUB_COMPRESS)
 
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[0].coeffs, mpoly_comp_d4.share[0].coeffs, 1024);
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[1].coeffs, mpoly_comp_d4.share[1].coeffs, 1024);
@@ -217,7 +217,7 @@ void test_masked_poly_compress() {
 
     masked_poly_sub_compress_du(mpoly_ptr_dst, mpoly_ptr_src, b);
 
-    BENCH_END(test_masked_poly_compress_du)
+    BENCH_END(MASKED_POLY_SUB_COMPRESS_DU)
 
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[0].coeffs, mpoly_comp_d10.share[0].coeffs, 1024);
     TEST_ASSERT_EQUAL_MEMORY(mpoly_comp_.share[1].coeffs, mpoly_comp_d10.share[1].coeffs, 1024);
@@ -241,7 +241,7 @@ void  test_masked_cbd() {
     BENCH_START() 
     masked_cbd_eta2(&mpoly_cbd_, buf);
 
-    BENCH_END(test_masked_cbd)
+    BENCH_END(MASKED_CBD)
 
     for (i = 0; i < KYBER_N; i++) {
         mpoly_cbd_.share[0].coeffs[i] = mpoly_cbd_.share[0].coeffs[i] + mpoly_cbd_.share[1].coeffs[i];
@@ -265,7 +265,7 @@ void test_masked_indcpa_dec() {
 
     masked_indcpa_dec(mm, c, sk);
 
-    BENCH_END(test_masked_indcpa_dec)
+    BENCH_END(MASKED_INDCPA_DEC)
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
         m_unmasked_[i] = mm[0][i] ^ mm[1][i];
@@ -293,7 +293,7 @@ void test_masked_indcpa_enc_cmp() {
 
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
-    BENCH_END(test_masked_indcpa_enc_cmp)
+    BENCH_END(MASKED_INDCPA_DEC_CMP)
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, fail, "MASKED ENC (CORR) FAIL");
 
