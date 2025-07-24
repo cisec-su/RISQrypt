@@ -24,5 +24,6 @@ void masked_poly_pointwise_acc(masked_poly *c, const poly *a, const masked_poly 
 
 void masked_poly_pointwise(masked_poly *c, const poly *a, const masked_poly *b);
 
+void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v);
 
 #endif

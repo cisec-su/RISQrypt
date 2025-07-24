@@ -238,3 +238,61 @@ int masked_poly_pointwise_invntt_sub_chknorm(masked_poly *r, const masked_poly *
 
     return masked_poly_chknorm(r, B);
 }
+
+// https://eprint.iacr.org/2023/896.pdf Algorithm 10-11
+void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
+#if DILITHIUM_MODE == 2
+    #error "This implementation requires DILITHIUM_MODE = 3 or 5"
+#else
+    unsigned int i, j;
+    uint32_t *lhs, *dst;
+    const uint32_t gamma = GAMMA2_D >> 1;
+    const uint32_t mu[2] = {0, 1 << 28}; // hard-coded
+    masked_poly temp;
+
+    ntt_lite_set_bound(Q - gamma);
+    for (i = 0; i < MASKING_N; i++) {
+        if (i == 0) {
+            dst = NTT_LITE_INPUT_DIS;
+        }
+        else {
+            dst = (uint32_t*) &temp.share[i].coeffs;
+        }
+        ntt_lite_mul_const(dst, (uint32_t*) &v->share[i].coeffs, NTT_LITE_INPUT_DIS);
+        if (i == 0) {
+            ntt_lite_set_bound((Q - 1) >> 1);
+            ntt_lite_add_const((uint32_t*) &temp.share[i].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+            ntt_lite_set_bound(Q - gamma);
+        }
+    }
+
+    masked_gadgets_A2B_q(&temp, &temp);
+
+    ntt_lite_set_q(gamma);
+    ntt_lite_set_mu(mu, NTT_LITE_MODE_SINGLE);
+    ntt_lite_set_bound(1);
+    for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_mul_const((uint32_t*) &temp.share[i].coeffs, (uint32_t*) &temp.share[i].coeffs, NTT_LITE_INPUT_DIS);
+    }
+
+    for (i = 0; i < N; i++) {
+        v1->coeffs[i] = temp.share[0].coeffs[i];
+        for (j = 1; j < MASKING_N; j++) {
+            v1->coeffs[i] ^= temp.share[j].coeffs[i];
+        }
+    }
+    
+    poly_init_q();
+    ntt_lite_set_bound(GAMMA2 << 1);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v1->coeffs, NTT_LITE_INPUT_DIS);
+
+    ntt_lite_sub_rev((uint32_t*) &v0->share[0].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &v->share[0].coeffs);
+    for (i = 1; i < MASKING_N; i++) {
+        for (j = 0; j < N; j++) {
+            v0->share[i].coeffs[j] = v->share[i].coeffs[j];
+        }
+    }
+
+
+#endif
+}

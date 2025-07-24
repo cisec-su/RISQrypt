@@ -105,31 +105,12 @@ void masked_polyvec_matrix_pointwise(masked_polyveck *t, const polyvecl mat[K], 
   }
 }
 
-polyveck temp, temp1;
+
 void masked_polyveck_decompose(polyveck *v1, masked_polyveck *v0, const masked_polyveck *v) {
-  unsigned int i, j, t;
-  uint32_t mu[2] = {0x02008020, 0x2008};
-
-  for(i = 0; i < K; ++i) {
-    for (j = 0; j < MASKING_N; ++j) {
-      for (t = 0; t < N; ++t) {
-        if (j == 0) {
-          temp.vec[i].coeffs[t] = v->vec[i].share[j].coeffs[t];
-        }
-        else {
-          temp.vec[i].coeffs[t] = (temp.vec[i].coeffs[t] + v->vec[i].share[j].coeffs[t]) % Q;
-        }
-      }
-    }
-    ntt_lite_set_inv2(GAMMA2_D >> 1);
-    ntt_lite_set_mu(mu, NTT_LITE_MODE_SINGLE);
-    ntt_lite_set_bound(GAMMA2 << 1);
-
-    poly_decompose(&v1->vec[i], &temp1.vec[i], &temp.vec[i]);
-    poly_init_q();
-    masked_poly_mask(&v0->vec[i], &temp1.vec[i]);
+  unsigned int i;
+  for (i = 0; i < K; i++) {
+    masked_poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
   }
-
 }
 
 

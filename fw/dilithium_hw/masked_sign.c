@@ -94,19 +94,17 @@ int masked_crypto_sign_signature(uint8_t *sig,
   masked_crh rhoprime;
   uint16_t nonce = 0;
   polyvecl mat[K];//, s1, y, z;
-  polyveck t0, h;//, s2, w1, w0, h;
+  polyveck w1, t0, h;
   masked_polyveck s2, w, w0;
   masked_polyvecl s1, y, z;
   polyvecl *z_unmasked;
   polyveck *w0_unmasked;
-  polyveck *w1;
   poly cp;
   int flag;
   rho = seedbuf;
   tr = rho + SEEDBYTES;
   mu = tr + SEEDBYTES;
 
-  w1 = (polyveck*) &w;
   w0_unmasked = (polyveck*) &w0;
   z_unmasked = (polyvecl*) &z;
 
@@ -157,7 +155,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
 
 
 //   /* Decompose w and call the random oracle */
-  masked_polyveck_decompose(w1, &w0, &w);
+  masked_polyveck_decompose(&w1, &w0, &w);
 
   // print_coeffs(&w1.vec[0], "w1.vec intt[0]");
   // print_coeffs(&w1.vec[1], "w1.vec intt[1]");
@@ -165,7 +163,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
   // unmask_and_print_coeffs(&w0.vec[1], "w0.vec intt[1]");
 
 
-  polyveck_pack_w1(sig, w1);
+  polyveck_pack_w1(sig, &w1);
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
   // print_hex_with_label("c", sig, SEEDBYTES);
 
@@ -200,7 +198,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
   // print_string("PASSED H\n");  
   masked_polyveck_unmask(w0_unmasked, &w0);
 
-  n = polyveck_add_make_hint(&h, w0_unmasked, w1, &h);
+  n = polyveck_add_make_hint(&h, w0_unmasked, &w1, &h);
   if(n > OMEGA) {
       goto rej;
   }
