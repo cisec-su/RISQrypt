@@ -9,31 +9,14 @@
 /*----------------------------------------------------------------------------------------------------- */
 //FUNCTION LABELS
 /*----------------------------------------------------------------------------------------------------- */
-#define MASKED_INDCPA_ENC_CMP   masked_indcpa_enc_cmp   //CHECK github actions and function labeling
+#define test_masked_poly_compress_du    test_masked_poly_compress_du // belongs to masked_poly_compress
 /*----------------------------------------------------------------------------------------------------- */
-#define MASKED_INDCPA_DEC       masked_indcpa_dec
+#define test_masked_poly_sub_tomsg      test_masked_poly_sub_tomsg   
+#define test_masked_poly_sub_frommsg    test_masked_poly_sub_frommsg 
 /*----------------------------------------------------------------------------------------------------- */
-#define MASKED_CBD              masked_cbd
-/*----------------------------------------------------------------------------------------------------- */
-#define MASKED_POLY_COMPRESS    masked_poly_compress    // belongs to masked_poly_compress
-#define MASKED_POLY_COMPRESS_DU masked_poly_compress_du // belongs to masked_poly_compress
-/*----------------------------------------------------------------------------------------------------- */
-#define MASKED_POLY_MSG         masked_poly_msg 
-/*----------------------------------------------------------------------------------------------------- */
-#define MASKED_POLY_MSG         masked_poly_msg         // INDCCA consists of below
-#define MASKED_POLY_SUB_TOMSG   masked_poly_sub_tomsg   
-#define MASKED_POLY_SUB_FROMSG  masked_poly_sub_frommsg 
-/*----------------------------------------------------------------------------------------------------- */
-#define INDCCA                  indcca              // INDCCA consists of below
-#define CRYPTO_KEM_KEYPAIR      crypto_kem_keypair  
-#define CRYPTO_KEM_ENC          crypto_kem_enc      
-#define CRYPTO_KEM_DEC          crypto_kem_dec  
-/*----------------------------------------------------------------------------------------------------- */
-#define INDCPA_KEYPAIR          indcpa_keypair      
-/*----------------------------------------------------------------------------------------------------- */
-#define INDCPA_ENC              indcpa_enc      
-/*----------------------------------------------------------------------------------------------------- */
-#define INDCPA_DEC              indcpa_dec      
+#define test_crypto_kem_keypair         test_crypto_kem_keypair  
+#define test_crypto_kem_enc             test_crypto_kem_enc      
+#define test_crypto_kem_dec             test_crypto_kem_dec  
 /*----------------------------------------------------------------------------------------------------- */
 
 
