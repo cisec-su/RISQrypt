@@ -33,7 +33,9 @@ void masked_polyvecl_uniform_gamma1(masked_polyvecl *y, const masked_crh rhoprim
 
 void masked_polyvec_matrix_pointwise(masked_polyveck *t, const polyvecl mat[K], const masked_polyvecl *v);
 
+void masked_polyvecl_unmask(polyvecl *a, const masked_polyvecl *r);
 
+void masked_polyveck_unmask(polyveck *a, const masked_polyveck *r);
 
 
 #endif

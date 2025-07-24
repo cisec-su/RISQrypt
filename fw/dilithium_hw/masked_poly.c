@@ -23,6 +23,31 @@ void masked_poly_mask(masked_poly *r, const poly *a) {
 }
 
 
+void masked_poly_unmask(poly *a, const masked_poly *r) {
+    unsigned int i;
+    uint32_t *lhs;
+    uint32_t *dst;
+
+
+    for (i = 1; i < MASKING_N; i++) {
+        if (i == 1) {
+            lhs = (uint32_t*) &r->share[0].coeffs;
+        }
+        else {
+            lhs = NTT_LITE_INPUT_DIS;
+        }
+        if (i != (MASKING_N - 1)) {
+            dst = NTT_LITE_OUTPUT_DIS;
+        }
+        else {
+            dst = (uint32_t*) &a->coeffs;
+        }
+        ntt_lite_add(dst, lhs, (uint32_t*) &r->share[i].coeffs);
+    }
+}
+
+
+
 void masked_poly_ntt(masked_poly *r) {
     unsigned int i;
 
@@ -96,34 +121,30 @@ void masked_poly_pointwise(masked_poly *c, const poly *a, const masked_poly *b) 
 }
 
 
-int masked_poly_pointwise_add_invntt_chknorm(masked_poly *r, const masked_poly *v, const poly *c, const masked_poly *u, uint32_t B) {
-    masked_poly temp;
-    unsigned int i, j;
+static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
+    unsigned int i;
     int flag;
+    masked_poly temp;
     poly *ptr[MASKING_N];
     uint32_t B2 = (B << 1) - 1;
     uint32_t *dst;
 
     ntt_lite_set_bound(B - 1);
+    ntt_lite_add_const((uint32_t*) &temp.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
 
     for (i = 0; i < MASKING_N; i++) {
-
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->share[i].coeffs, (uint32_t*) &c->coeffs);
-        ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->share[i].coeffs);
-        poly_init_invntt();
-        ntt_lite_backward_ntt((uint32_t*) &r->share[i].coeffs, NTT_LITE_INPUT_DIS);
-        if (i == 0) {           
-            ntt_lite_add_const((uint32_t*) &temp.share[0].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
-            ptr[0] = &temp.share[0];
+        if (i == (MASKING_N - 1)) {
+            ptr[i] = &temp.share[MASKING_N - 1];
         }
         else {
             ptr[i] = &r->share[i];
         }
     }
+
     // unmask_and_print_coeffs(r, "z");
-    for (i = 0; i< N; i++) {
-        temp.share[1].coeffs[i] = r->share[1].coeffs[i];
-    }
+    // for (i = 0; i< N; i++) {
+    //     temp.share[1].coeffs[i] = r->share[1].coeffs[i];
+    // }
     // unmask_and_print_coeffs(&temp, "after add const");  
 
     // modulus switching from q to 2^32
@@ -168,9 +189,9 @@ int masked_poly_pointwise_add_invntt_chknorm(masked_poly *r, const masked_poly *
 
     ntt_lite_set_bound(0);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
-    print_string("flag is \n");
-    print_u32(flag);
-    print_string("\n");
+    // print_string("flag is \n");
+    // print_u32(flag);
+    // print_string("\n");
     poly_set_q(); // reset the modulus to Dilithium's Q
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
@@ -178,4 +199,42 @@ int masked_poly_pointwise_add_invntt_chknorm(masked_poly *r, const masked_poly *
     else {
         return 0;
     }
+}
+
+
+int masked_poly_pointwise_add_invntt_chknorm(masked_poly *r, const masked_poly *v, const poly *c, const masked_poly *u, uint32_t B) {
+    masked_poly temp;
+    unsigned int i, j;
+    int flag;
+    poly *ptr[MASKING_N];
+    uint32_t B2 = (B << 1) - 1;
+    uint32_t *dst;
+
+    ntt_lite_set_bound(B - 1);
+
+    for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->share[i].coeffs, (uint32_t*) &c->coeffs);
+        ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->share[i].coeffs);
+        poly_init_invntt();
+        ntt_lite_backward_ntt((uint32_t*) &r->share[i].coeffs, NTT_LITE_INPUT_DIS);
+    }
+
+    return masked_poly_chknorm(r, B);
+}
+
+
+
+int masked_poly_pointwise_invntt_sub_chknorm(masked_poly *r, const masked_poly *v, const poly *c, const masked_poly *u, uint32_t B) {
+    unsigned int i;
+    int flag;
+
+    for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->share[i].coeffs, (uint32_t*) &c->coeffs);
+        poly_init_invntt();
+        ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+        ntt_lite_sub_rev((uint32_t*) r->share[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->share[i].coeffs);
+
+    }
+
+    return masked_poly_chknorm(r, B);
 }

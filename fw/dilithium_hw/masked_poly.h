@@ -12,6 +12,8 @@ typedef struct {
 
 void masked_poly_mask(masked_poly *r, const poly *a);
 
+void masked_poly_unmask(poly *a, const masked_poly *r);
+
 void masked_poly_ntt(masked_poly *r);
 
 void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint16_t nonce);

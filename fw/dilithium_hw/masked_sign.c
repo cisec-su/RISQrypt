@@ -94,22 +94,25 @@ int masked_crypto_sign_signature(uint8_t *sig,
   masked_crh rhoprime;
   uint16_t nonce = 0;
   polyvecl mat[K];//, s1, y, z;
-  // polyveck t0, s2, w1, w0, h;
-  masked_polyveck t0, s2, w1, w0;
+  polyveck t0, h;//, s2, w1, w0, h;
+  masked_polyveck s2, w, w0;
   masked_polyvecl s1, y, z;
+  polyvecl *z_unmasked;
+  polyveck *w0_unmasked;
+  polyveck *w1;
   poly cp;
   int flag;
   rho = seedbuf;
   tr = rho + SEEDBYTES;
   mu = tr + SEEDBYTES;
+
+  w1 = (polyveck*) &w;
+  w0_unmasked = (polyveck*) &w0;
+  z_unmasked = (polyvecl*) &z;
+
   poly_init_q();
 
   masked_unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
-
-  // unmask_and_print_coeffs(&t0.vec[0], "t0.vec[0]");
-  // unmask_and_print_coeffs(&s1.vec[0], "s1.vec[0]");
-  // unmask_and_print_coeffs(&s1.vec[1], "s1.vec[1]");  
-  // unmask_and_print_coeffs(&s2.vec[0], "s2.vec[0]");
 
   /* Compute mu = CRH(tr | msg) rename  */
   dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
@@ -121,24 +124,13 @@ int masked_crypto_sign_signature(uint8_t *sig,
   dilithium_masked_shake256_absorb_double((masked_flat_ptr) rhoprime, CRHBYTES, (masked_flat_ptr) key, SEEDBYTES, mu, CRHBYTES);
 #endif
 
-  // unmask_and_print(rhoprime[0], rhoprime[1], CRHBYTES, "rhoprime");
-
-
   /* Expand matrix and transform vectors */
   polyvec_matrix_expand(mat, rho);
 
   poly_init_ntt();
   masked_polyvecl_ntt(&s1);
   masked_polyveck_ntt(&s2); 
-  masked_polyveck_ntt(&t0); 
-
-  // unmask_and_print_coeffs(&s1.vec[0], "s1.vec[0]");
-  // unmask_and_print_coeffs(&s1.vec[1], "s1.vec[1]");  
-  // unmask_and_print_coeffs(&s2.vec[0], "s2.vec[0]");
-  // unmask_and_print_coeffs(&s2.vec[1], "s2.vec[1]");  
-  // unmask_and_print_coeffs(&t0.vec[0], "t0.vec[0]");
-  // unmask_and_print_coeffs(&t0.vec[1], "t0.vec[1]");  
-
+  polyveck_ntt(&t0); 
 
   rej:
     /* Sample intermediate vector y */
@@ -151,25 +143,21 @@ int masked_crypto_sign_signature(uint8_t *sig,
   poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
   masked_polyvecl_ntt(&y);
 
-  // unmask_and_print_coeffs(&y.vec[0], "y.vec ntt[0]");
-  // unmask_and_print_coeffs(&y.vec[1], "y.vec ntt[1]");
-  // print_coeffs(&mat[0].vec[0], "mat0");
-
-  masked_polyvec_matrix_pointwise(&w1, mat, &y);
+  masked_polyvec_matrix_pointwise(&w, mat, &y);
 
   // unmask_and_print_coeffs(&w1.vec[0], "w1.vec[0]");
   // unmask_and_print_coeffs(&w1.vec[1], "w1.vec[1]");
 
 
   poly_init_invntt();
-  masked_polyveck_invntt(&w1);
+  masked_polyveck_invntt(&w);
 
   // unmask_and_print_coeffs(&w1.vec[0], "w.vec intt[0]");
   // unmask_and_print_coeffs(&w1.vec[1], "w.vec intt[1]");
 
 
 //   /* Decompose w and call the random oracle */
-  masked_polyveck_decompose(&w1, &w0, &w1);
+  masked_polyveck_decompose(w1, &w0, &w);
 
   // print_coeffs(&w1.vec[0], "w1.vec intt[0]");
   // print_coeffs(&w1.vec[1], "w1.vec intt[1]");
@@ -177,7 +165,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
   // unmask_and_print_coeffs(&w0.vec[1], "w0.vec intt[1]");
 
 
-  polyveck_pack_w1(sig, &w1);
+  polyveck_pack_w1(sig, w1);
   dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
   // print_hex_with_label("c", sig, SEEDBYTES);
 
@@ -187,46 +175,40 @@ int masked_crypto_sign_signature(uint8_t *sig,
 
   poly_ntt(&cp);
 
-  print_coeffs(&cp, "cp");
-
-
   /* Compute z, reject if it reveals secret */
   flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, &s1, &cp, &y, GAMMA1 - BETA);
-  while(1);
   if(flag) {
     goto rej;
   }
+  // print_string("PASSED Z\n");
 
-//   /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
-//    * do not reveal secret information */
-// #ifdef W0CS2_CHECK_ITERATIVE
-//   flag = polyveck_pointwise_invntt_sub_chknorm(&w0, &s2, &cp, &w0, GAMMA2 - BETA);
-// #else
-//   polyveck_pointwise_poly(&h, &cp, &s2);
-//   poly_init_invntt();
-//   polyveck_invntt_sub(&w0, &w0, &h);
-//   flag = polyveck_chknorm(&w0, GAMMA2 - BETA);
-// #endif
-//   if(flag) {
-//      goto rej;
-//   }
+  /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
+   * do not reveal secret information */
+  flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, &s2, &cp, &w0, GAMMA2 - BETA);
+  if(flag) {
+     goto rej;
+  }
+  // print_string("PASSED WO-CS2\n");  
 
-//   /* Compute hints for w1 */
-//   polyveck_pointwise_poly(&h, &cp, &t0);
-//   poly_init_invntt();
-//   flag = polyveck_invntt_chknorm(&h, GAMMA2);
-//   if(flag) {
-//       goto rej;
-//   }
+  /* Compute hints for w1 */
+  polyveck_pointwise_poly(&h, &cp, &t0);
+  poly_init_invntt();
+  flag = polyveck_invntt_chknorm(&h, GAMMA2);
+  if(flag) {
+      goto rej;
+  }
+  // print_string("PASSED H\n");  
+  masked_polyveck_unmask(w0_unmasked, &w0);
 
-//   n = polyveck_add_make_hint(&h, &w0, &w1, &h);
-//   if(n > OMEGA) {
-//       goto rej; // if this is rare, we can merge with packing
-//   }
+  n = polyveck_add_make_hint(&h, w0_unmasked, w1, &h);
+  if(n > OMEGA) {
+      goto rej;
+  }
 
-//   /* Write signature */
-//   pack_sig(sig, sig, &z, &h);
-//   *siglen = CRYPTO_BYTES;
+  masked_polyvecl_unmask(z_unmasked, &z);
+  /* Write signature */
+  pack_sig(sig, sig, z_unmasked, &h);
+  *siglen = CRYPTO_BYTES;
 
-//   return 0;
+  return 0;
 }

@@ -3,7 +3,7 @@
 void masked_unpack_sk(uint8_t *rho,
                       uint8_t *tr,
                       masked_seed key,
-                      masked_polyveck *t0,
+                      polyveck *t0,
                       masked_polyvecl *s1,
                       masked_polyveck *s2,
                       const uint8_t sk[CRYPTO_SECRETKEYBYTES])
@@ -27,5 +27,6 @@ void masked_unpack_sk(uint8_t *rho,
   masked_polyveck_eta_unpack(s2, sk);
   sk += K*POLYETA_PACKEDBYTES;
 
-  masked_polyveck_t0_unpack(t0, sk);
+  for(i=0; i < K; ++i)
+    polyt0_unpack(&t0->vec[i], sk + i*POLYT0_PACKEDBYTES);
 }

@@ -298,6 +298,14 @@ void dilithium_masked_sign() {
     print_u32(time);
     print_string("\n");
 
+    if (memcmp(sig, sig_, CRYPTO_BYTES) != 0) {
+        print_string("MASKED SIGN FAIL\n");
+    }
+    else
+    {
+        print_string("MASKED SIGN PASS\n");
+    }
+
     return;
 }
 

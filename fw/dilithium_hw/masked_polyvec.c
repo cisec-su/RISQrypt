@@ -144,3 +144,32 @@ int masked_polyvecl_pointwise_add_invntt_chknorm(masked_polyvecl *r, const maske
 }
 
 
+int masked_polyveck_pointwise_invntt_sub_chknorm(masked_polyveck *r, const masked_polyveck *v, const poly *c, const masked_polyveck *u, uint32_t B) {
+  unsigned int i;
+
+  ntt_lite_set_bound(B);
+
+  for(i = 0; i < K; ++i) {
+    if (masked_poly_pointwise_invntt_sub_chknorm(&r->vec[i], &v->vec[i], c, &u->vec[i], B)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+
+
+void masked_polyvecl_unmask(polyvecl *a, const masked_polyvecl *r) {
+  unsigned int i;
+  for (i = 0; i < L; i++) {
+    masked_poly_unmask(&a->vec[i], &r->vec[i]);
+  }
+}
+
+
+void masked_polyveck_unmask(polyveck *a, const masked_polyveck *r) {
+  unsigned int i;
+  for (i = 0; i < K; i++) {
+    masked_poly_unmask(&a->vec[i], &r->vec[i]);
+  }
+}
