@@ -10,8 +10,8 @@
 #define BENCH_INIT()        unsigned int time;
 #define BENCH_START()       timer_start();
 
-#define BENCH_END(name)     print_string(STR(name) ":\t"); \
-                            time = timer_read(); \
+#define BENCH_END(name)     time = timer_read(); \
+                            print_string(STR(name) ":\t"); \
                             print_u32_int(time); \
                             print_string(" cycles"); \
                             print_string("\n");

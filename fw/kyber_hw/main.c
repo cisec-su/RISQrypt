@@ -92,20 +92,20 @@ void test_indcca() {
 
     crypto_kem_keypair(pk_cca, sk_cca);
 
-    BENCH_END(CRYPTO_KEM_KEYPAIR)
+    BENCH_END(INDCCA_KEYPAIR)
 
     BENCH_START()
 
     crypto_kem_enc(c_cca, K, pk_cca);
 
-    BENCH_END(CRYPTO_KEM_ENC)
+    BENCH_END(INDCCA_ENC)
 
 
     BENCH_START()
 
     crypto_kem_dec(K_, c_cca, sk_cca);
 
-    BENCH_END(CRYPTO_KEM_DEC)
+    BENCH_END(INDCCA_DEC)
 
     TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
 
@@ -293,7 +293,7 @@ void test_masked_indcpa_enc_cmp() {
 
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
-    BENCH_END(MASKED_INDCPA_DEC_CMP)
+    BENCH_END(MASKED_INDCPA_ENC_CMP)
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, fail, "MASKED ENC (CORR) FAIL");
 

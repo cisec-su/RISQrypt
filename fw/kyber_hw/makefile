@@ -4,7 +4,6 @@ TOOLCHAIN_DIR = ../../sdk/toolchain
 
 LIB_DIR = ../../sdk/lib
 
-UNITY_DIR = ../common
 
 SRC =  main.c
 SRC += indcpa.c
@@ -22,6 +21,10 @@ SRC += masked_poly.c
 SRC += masked_polyvec.c
 SRC += masked_cbd.c
 SRC += masked_symmetric.c
+SRC += ../common/unity.c
+
+
+INC = ../common
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

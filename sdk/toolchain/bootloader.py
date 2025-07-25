@@ -84,7 +84,7 @@ if __name__ == "__main__":
             "-d", "--done",
             type=str,
             required=False,
-            default="DONE",
+            default="Finished",
             help="Terminator string"
         )
 
