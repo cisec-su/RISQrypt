@@ -46,21 +46,6 @@ void poly_init_invntt() {
 
 
 /*************************************************
-* Name:        poly_caddq
-*
-* Description: For all coefficients of in/out polynomial add Q if
-*              coefficient is negative.
-*
-* Arguments:   - poly *a: pointer to input/output polynomial
-**************************************************/
-void poly_caddq(poly *a) {
-    for (int i = 0; i < N; i++) {  // N polynom length
-        a->coeffs[i] = caddq(a->coeffs[i]);  // Call caddq with the value, not a pointer
-    }
-}
-
-
-/*************************************************
 * Name:        poly_add
 *
 * Description: Add polynomials. No modular reduction is performed.

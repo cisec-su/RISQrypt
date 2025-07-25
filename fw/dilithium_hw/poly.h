@@ -8,8 +8,6 @@ typedef struct {
   int32_t coeffs[N];
 } poly;
 
-#define poly_caddq DILITHIUM_NAMESPACE(poly_caddq)
-void poly_caddq(poly *a);
 
 #define poly_add DILITHIUM_NAMESPACE(poly_add)
 void poly_add(poly *c, const poly *a, const poly *b);

@@ -195,37 +195,6 @@ void polyveck_uniform_eta(polyveck *v, const uint8_t seed[CRHBYTES], uint16_t no
 
 
 /*************************************************
-* Name:        polyveck_caddq
-*
-* Description: For all coefficients of polynomials in vector of length K
-*              add Q if coefficient is negative.
-*
-* Arguments:   - polyveck *v: pointer to input/output vector
-**************************************************/
-void polyveck_caddq(polyveck *v) {
-  unsigned int i;
-
-  for(i = 0; i < K; ++i)
-    poly_caddq(&v->vec[i]);
-}
-
-/*************************************************
-* Name:        polyvecl_caddq
-*
-* Description: For all coefficients of polynomials in vector of length L
-*              add Q if coefficient is negative.
-*
-* Arguments:   - polyvecl *v: pointer to input/output vector
-**************************************************/
-void polyvecl_caddq(polyvecl *v) {
-  unsigned int i;
-
-  for(i = 0; i < L; ++i)
-    poly_caddq(&v->vec[i]);
-}
-
-
-/*************************************************
 * Name:        polyveck_add
 *
 * Description: Add vectors of polynomials of length K.

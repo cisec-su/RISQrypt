@@ -298,15 +298,13 @@ int crypto_sign_verify(const uint8_t *sig,
   if(siglen != CRYPTO_BYTES)
     return -1;
 
-  poly_init_pack();
+  poly_init_q();
 
   unpack_pk(rho, &t1, pk);
   if(unpack_sig(c, &z, &h, sig))
     return -1;
   if(polyvecl_chknorm(&z, GAMMA1 - BETA))
     return -1;
-
-  poly_set_q();
 
   /* Compute CRH(h(rho, t1), msg) */
   dilithium_shake256_mu_crh(mu, pk, m, mlen);
@@ -317,7 +315,6 @@ int crypto_sign_verify(const uint8_t *sig,
 
   poly_init_ntt();
 
-  polyvecl_caddq(&z);
   polyvecl_ntt(&z);
 
   poly_ntt(&cp);
