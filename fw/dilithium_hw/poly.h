@@ -85,12 +85,6 @@ void poly_init_ntt(void);
 #define poly_init_invntt DILITHIUM_NAMESPACE(poly_init_invntt)
 void poly_init_invntt(void);
 
-#define poly_init_pack DILITHIUM_NAMESPACE(poly_init_pack)
-void poly_init_pack(void);
-
-#define poly_set_pack DILITHIUM_NAMESPACE(poly_set_pack)
-void poly_set_pack(void);
-
 #define poly_invntt_sub DILITHIUM_NAMESPACE(poly_invntt_sub)
 void poly_invntt_sub(poly *a, poly *b, poly *c);
 

@@ -3,8 +3,6 @@
 
 
 
-
-
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {
     unsigned int i,j;
     int32_t t, k;

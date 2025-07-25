@@ -75,13 +75,13 @@ void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint1
 
     dilithium_masked_shake256_absorb_nonce((masked_flat_ptr) buf, POLYZ_PACKEDBYTES, (masked_flat_ptr) rhoprime, CRHBYTES, nonce);
 
-    for(i = 0; i < MASKING_N; ++i) {
+    for(i = 0; i < MASKING_N; i++) {
         ntt_lite_decode((uint32_t*) y->share[i].coeffs, (uint32_t*) buf[i], LOG_GAMMA1);
     }
 
     masked_gadgets_B2A_q(y, y);
     
-    for(i = 0; i < MASKING_N; ++i) {
+    for(i = 0; i < MASKING_N; i++) {
         if (i == 2) {
             rhs_ptr = NTT_LITE_INPUT_DIS;
         }

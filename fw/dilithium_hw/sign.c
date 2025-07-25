@@ -5,9 +5,7 @@
 #include "polyvec.h"
 #include "poly.h"
 #include "randombytes.h"
-#include "keccak.h"
 #include "symmetric.h"
-#include "util.h"
 
 #define Z_CHECK_ITERATIVE
 #define W0CS2_CHECK_ITERATIVE
@@ -25,84 +23,56 @@
 * Returns 0 (success)
 **************************************************/
 int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
-  uint8_t seedbuf[2*SEEDBYTES + CRHBYTES];
-  uint8_t tr[SEEDBYTES];
-  const uint8_t *rho, *rhoprime, *key;
-  polyvecl mat[K];
-  polyvecl s1;
-  polyveck s2, t1, t0;
+    uint8_t seedbuf[2*SEEDBYTES + CRHBYTES];
+    uint8_t tr[SEEDBYTES];
+    const uint8_t *rho, *rhoprime, *key;
+    polyvecl mat[K];
+    polyvecl s1;
+    polyveck s2, t1, t0;
 
-  poly_init_q();
-  
-  ///* Get randomness for rho, rhoprime and key */
-  randombytes(seedbuf, SEEDBYTES);
-  
-  /* Expand with SHAKE256 into rho, rhoprime and key */
-  dilithium_shake256(seedbuf, 2*SEEDBYTES + CRHBYTES, seedbuf, SEEDBYTES);
+    poly_init_q();
+    
+    /* Get randomness for rho, rhoprime and key */
+    randombytes(seedbuf, SEEDBYTES);
+    
+    /* Expand with SHAKE256 into rho, rhoprime and key */
+    dilithium_shake256(seedbuf, 2*SEEDBYTES + CRHBYTES, seedbuf, SEEDBYTES);
 
-  rho = seedbuf;
-  rhoprime = rho + SEEDBYTES;
-  key = rhoprime + CRHBYTES;
+    rho = seedbuf;
+    rhoprime = rho + SEEDBYTES;
+    key = rhoprime + CRHBYTES;
 
-  /* Expand matrix */
-  polyvec_matrix_expand(mat, rho);
+    /* Expand matrix */
+    polyvec_matrix_expand(mat, rho);
 
-  /* Sample short vectors s1 and s2 */
-  polyvecl_uniform_eta(&s1, rhoprime, 0);
-  polyveck_uniform_eta(&s2, rhoprime, L);
+    /* Sample short vectors s1 and s2 */
+    polyvecl_uniform_eta(&s1, rhoprime, 0);
+    polyveck_uniform_eta(&s2, rhoprime, L);
 
-  pack_sk_s1(sk, &s1);
+    pack_sk_s1(sk, &s1);
 
-  poly_init_ntt();
-  polyvecl_ntt(&s1);
+    poly_init_ntt();
+    polyvecl_ntt(&s1);
 
-  polyvec_matrix_pointwise(&t1, mat, &s1);
+    polyvec_matrix_pointwise(&t1, mat, &s1);
 
-  poly_init_invntt();
-  polyveck_invntt(&t1);
+    poly_init_invntt();
+    polyveck_invntt(&t1);
 
-  /* Add error vector s2 */
-  polyveck_add(&t1, &t1, &s2);
+    /* Add error vector s2 */
+    polyveck_add(&t1, &t1, &s2);
 
-  /* Extract t1 and write public key */
-  polyveck_power2round(&t1, &t0, &t1);
+    /* Extract t1 and write public key */
+    polyveck_power2round(&t1, &t0, &t1);
 
-  pack_pk(pk, rho, &t1);
-  
-  /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
-  dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
+    pack_pk(pk, rho, &t1);
+    
+    /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
+    dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 
-  pack_sk(sk, rho, tr, key, &t0, NULL, &s2);
+    pack_sk(sk, rho, tr, key, &t0, NULL, &s2);
 
-  return 0;
-}
-
-
-void print_coeffs(poly *a, const char *name) {
-  unsigned int i;
-  print_string(name);
-  print_string(" coefficients:\n");
-  for(i = 0; i < 8; ++i) {
-    print_u32(i);
-    print_string(":\t");
-    print_u32(a->coeffs[i]);
-    print_string("\n");
-  }
-  print_string("\n");
-}
-
-
-void print_all_coeffs(poly *a, const char *name) {
-  unsigned int i;
-  print_string(name);
-  print_string(" coefficients:\n");
-  for(i = 0; i < N; ++i) {
-    print_u32(i);
-    print_string(":\t");
-    print_u32(a->coeffs[i]);
-    print_string("\n");
-  }
-  print_string("\n");
+    return 0;
 }
 
 
@@ -125,114 +95,114 @@ int crypto_sign_signature(uint8_t *sig,
                           size_t mlen,
                           const uint8_t *sk)
 {
-  unsigned int n;
-  uint8_t seedbuf[3*SEEDBYTES + 2*CRHBYTES];
-  uint8_t *rho, *tr, *key, *mu, *rhoprime;
-  uint16_t nonce = 0;
-  polyvecl mat[K], s1, y, z;
-  polyveck t0, s2, w1, w0, h;
-  poly cp;
-  int flag;
+    unsigned int n;
+    uint8_t seedbuf[3*SEEDBYTES + 2*CRHBYTES];
+    uint8_t *rho, *tr, *key, *mu, *rhoprime;
+    uint16_t nonce = 0;
+    polyvecl mat[K], s1, y, z;
+    polyveck t0, s2, w1, w0, h;
+    poly cp;
+    int flag;
 
-  rho = seedbuf;
-  tr = rho + SEEDBYTES;
-  key = tr + SEEDBYTES;
-  mu = key + SEEDBYTES;
-  rhoprime = mu + CRHBYTES;
+    rho = seedbuf;
+    tr = rho + SEEDBYTES;
+    key = tr + SEEDBYTES;
+    mu = key + SEEDBYTES;
+    rhoprime = mu + CRHBYTES;
 
-  poly_init_q();
-  
-  unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
-  
-  /* Compute CRH(tr, msg) rename  */
-  dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
+    poly_init_q();
+    
+    unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
+    
+    /* Compute CRH(tr, msg) rename    */
+    dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
 
 #ifdef DILITHIUM_RANDOMIZED_SIGNING
-  randombytes(rhoprime, CRHBYTES);
+    randombytes(rhoprime, CRHBYTES);
 #else
-  /* Compute rhoprime = SHAKE256(key) */
-  dilithium_shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
+    /* Compute rhoprime = SHAKE256(key) */
+    dilithium_shake256(rhoprime, CRHBYTES, key, SEEDBYTES + CRHBYTES);
 #endif
 
 
-  /* Expand matrix and transform vectors */
-  polyvec_matrix_expand(mat, rho);
+    /* Expand matrix and transform vectors */
+    polyvec_matrix_expand(mat, rho);
 
-  poly_init_ntt();
-  polyvecl_ntt(&s1);
-  polyveck_ntt(&s2); 
-  polyveck_ntt(&t0); 
+    poly_init_ntt();
+    polyvecl_ntt(&s1);
+    polyveck_ntt(&s2); 
+    polyveck_ntt(&t0); 
 
 rej:
-  /* Sample intermediate vector y */
-  polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
+    /* Sample intermediate vector y */
+    polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
-  /* Matrix-vector multiplication */ 
-  poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
-  polyvecl_ntt(&y);
+    /* Matrix-vector multiplication */ 
+    poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
+    polyvecl_ntt(&y);
 
-  polyvec_matrix_pointwise(&w1, mat, &y);
+    polyvec_matrix_pointwise(&w1, mat, &y);
 
-  poly_init_invntt();
-  polyveck_invntt(&w1);
+    poly_init_invntt();
+    polyveck_invntt(&w1);
 
-  /* Decompose w and call the random oracle */
-  polyveck_decompose(&w1, &w0, &w1);
+    /* Decompose w and call the random oracle */
+    polyveck_decompose(&w1, &w0, &w1);
 
-  polyveck_pack_w1(sig, &w1);
-  dilithium_shake256_absorb_double(sig, SEEDBYTES,  mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
+    polyveck_pack_w1(sig, &w1);
+    dilithium_shake256_absorb_double(sig, SEEDBYTES,    mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
 
-  poly_challenge(&cp, sig);
+    poly_challenge(&cp, sig);
 
-  poly_init_ntt();
+    poly_init_ntt();
 
-  poly_ntt(&cp);
+    poly_ntt(&cp);
 
-  /* Compute z, reject if it reveals secret */
+    /* Compute z, reject if it reveals secret */
 #ifdef Z_CHECK_ITERATIVE
-  flag = polyvecl_pointwise_add_invntt_chknorm(&z, &s1, &cp, &y, GAMMA1 - BETA);
+    flag = polyvecl_pointwise_add_invntt_chknorm(&z, &s1, &cp, &y, GAMMA1 - BETA);
 #else
-  polyvecl_pointwise_poly(&z, &cp, &s1);
-  polyvecl_add(&z, &z, &y);
-  poly_init_invntt();
-  flag = polyvecl_invntt_chknorm(&z, GAMMA1 - BETA);
+    polyvecl_pointwise_poly(&z, &cp, &s1);
+    polyvecl_add(&z, &z, &y);
+    poly_init_invntt();
+    flag = polyvecl_invntt_chknorm(&z, GAMMA1 - BETA);
 #endif
-  if(flag) {
-    goto rej;
-  }
+    if(flag) {
+        goto rej;
+    }
 
-  /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
-   * do not reveal secret information */
+    /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
+     * do not reveal secret information */
 #ifdef W0CS2_CHECK_ITERATIVE
-  flag = polyveck_pointwise_invntt_sub_chknorm(&w0, &s2, &cp, &w0, GAMMA2 - BETA);
+    flag = polyveck_pointwise_invntt_sub_chknorm(&w0, &s2, &cp, &w0, GAMMA2 - BETA);
 #else
-  polyveck_pointwise_poly(&h, &cp, &s2);
-  poly_init_invntt();
-  polyveck_invntt_sub(&w0, &w0, &h);
-  flag = polyveck_chknorm(&w0, GAMMA2 - BETA);
+    polyveck_pointwise_poly(&h, &cp, &s2);
+    poly_init_invntt();
+    polyveck_invntt_sub(&w0, &w0, &h);
+    flag = polyveck_chknorm(&w0, GAMMA2 - BETA);
 #endif
-  if(flag) {
-     goto rej;
-  }
+    if(flag) {
+         goto rej;
+    }
 
-  /* Compute hints for w1 */
-  polyveck_pointwise_poly(&h, &cp, &t0);
-  poly_init_invntt();
-  flag = polyveck_invntt_chknorm(&h, GAMMA2);
-  if(flag) {
-      goto rej;
-  }
+    /* Compute hints for w1 */
+    polyveck_pointwise_poly(&h, &cp, &t0);
+    poly_init_invntt();
+    flag = polyveck_invntt_chknorm(&h, GAMMA2);
+    if(flag) {
+            goto rej;
+    }
 
-  n = polyveck_add_make_hint(&h, &w0, &w1, &h);
-  if(n > OMEGA) {
-      goto rej; // if this is rare, we can merge with packing
-  }
+    n = polyveck_add_make_hint(&h, &w0, &w1, &h);
+    if(n > OMEGA) {
+            goto rej; // if this is rare, we can merge with packing
+    }
 
-  /* Write signature */
-  pack_sig(sig, sig, &z, &h);
-  *siglen = CRYPTO_BYTES;
+    /* Write signature */
+    pack_sig(sig, sig, &z, &h);
+    *siglen = CRYPTO_BYTES;
 
-  return 0;
+    return 0;
 }
 
 /*************************************************
@@ -257,13 +227,13 @@ int crypto_sign(uint8_t *sm,
                 size_t mlen,
                 const uint8_t *sk)
 {
-  size_t i;
+    size_t i;
 
-  for(i = 0; i < mlen; ++i)
-    sm[CRYPTO_BYTES + mlen - 1 - i] = m[mlen - 1 - i];
-  crypto_sign_signature(sm, smlen, sm + CRYPTO_BYTES, mlen, sk);
-  *smlen += mlen;
-  return 0;
+    for(i = 0; i < mlen; ++i)
+        sm[CRYPTO_BYTES + mlen - 1 - i] = m[mlen - 1 - i];
+    crypto_sign_signature(sm, smlen, sm + CRYPTO_BYTES, mlen, sk);
+    *smlen += mlen;
+    return 0;
 }
 
 /*************************************************
@@ -285,64 +255,64 @@ int crypto_sign_verify(const uint8_t *sig,
                        size_t mlen,
                        const uint8_t *pk)
 {
-  unsigned int i;
-  uint8_t buf[K*POLYW1_PACKEDBYTES];
-  uint8_t rho[SEEDBYTES];
-  uint8_t mu[CRHBYTES];
-  uint8_t c[SEEDBYTES];
-  uint8_t c2[SEEDBYTES];
-  poly cp;
-  polyvecl mat[K], z;
-  polyveck t1, w1, h;
+    unsigned int i;
+    uint8_t buf[K*POLYW1_PACKEDBYTES];
+    uint8_t rho[SEEDBYTES];
+    uint8_t mu[CRHBYTES];
+    uint8_t c[SEEDBYTES];
+    uint8_t c2[SEEDBYTES];
+    poly cp;
+    polyvecl mat[K], z;
+    polyveck t1, w1, h;
 
-  if(siglen != CRYPTO_BYTES)
-    return -1;
+    if(siglen != CRYPTO_BYTES)
+        return -1;
 
-  poly_init_q();
+    poly_init_q();
 
-  unpack_pk(rho, &t1, pk);
-  if(unpack_sig(c, &z, &h, sig))
-    return -1;
-  if(polyvecl_chknorm(&z, GAMMA1 - BETA))
-    return -1;
+    unpack_pk(rho, &t1, pk);
+    if(unpack_sig(c, &z, &h, sig))
+        return -1;
+    if(polyvecl_chknorm(&z, GAMMA1 - BETA))
+        return -1;
 
-  /* Compute CRH(h(rho, t1), msg) */
-  dilithium_shake256_mu_crh(mu, pk, m, mlen);
+    /* Compute CRH(h(rho, t1), msg) */
+    dilithium_shake256_mu_crh(mu, pk, m, mlen);
 
-  /* Matrix-vector multiplication; compute Az - c2^dt1 */
-  poly_challenge(&cp, c);
-  polyvec_matrix_expand(mat, rho);
+    /* Matrix-vector multiplication; compute Az - c2^dt1 */
+    poly_challenge(&cp, c);
+    polyvec_matrix_expand(mat, rho);
 
-  poly_init_ntt();
+    poly_init_ntt();
 
-  polyvecl_ntt(&z);
+    polyvecl_ntt(&z);
 
-  poly_ntt(&cp);
+    poly_ntt(&cp);
 
-  polyveck_shiftl(&t1);
-  polyveck_ntt(&t1);
+    polyveck_shiftl(&t1);
+    polyveck_ntt(&t1);
 
-  polyvec_matrix_pointwise(&w1, mat, &z);
+    polyvec_matrix_pointwise(&w1, mat, &z);
 
-  polyveck_pointwise_poly(&t1, &cp, &t1);
+    polyveck_pointwise_poly(&t1, &cp, &t1);
 
-  polyveck_sub(&w1, &w1, &t1);
+    polyveck_sub(&w1, &w1, &t1);
 
-  poly_init_invntt();
-  polyveck_invntt(&w1);
+    poly_init_invntt();
+    polyveck_invntt(&w1);
 
-  /* Reconstruct w1 */
-  polyveck_use_hint(&w1, &w1, &h);
-  polyveck_pack_w1(buf, &w1);
+    /* Reconstruct w1 */
+    polyveck_use_hint(&w1, &w1, &h);
+    polyveck_pack_w1(buf, &w1);
 
-  /* Call random oracle and verify challenge */
-  dilithium_shake256_challenge(c2, mu, buf);
+    /* Call random oracle and verify challenge */
+    dilithium_shake256_challenge(c2, mu, buf);
 
-  for(i = 0; i < SEEDBYTES; ++i)
-    if(c[i] != c2[i])
-      return -1;
+    for(i = 0; i < SEEDBYTES; ++i)
+        if(c[i] != c2[i])
+            return -1;
 
-  return 0;
+    return 0;
 }
 
 /*************************************************
@@ -365,26 +335,26 @@ int crypto_sign_open(uint8_t *m,
                      size_t smlen,
                      const uint8_t *pk)
 {
-  size_t i;
+    size_t i;
 
-  if(smlen < CRYPTO_BYTES)
-    goto badsig;
+    if(smlen < CRYPTO_BYTES)
+        goto badsig;
 
-  *mlen = smlen - CRYPTO_BYTES;
-  if(crypto_sign_verify(sm, CRYPTO_BYTES, sm + CRYPTO_BYTES, *mlen, pk))
-    goto badsig;
-  else {
-    /* All good, copy msg, return 0 */
-    for(i = 0; i < *mlen; ++i)
-      m[i] = sm[CRYPTO_BYTES + i];
-    return 0;
-  }
+    *mlen = smlen - CRYPTO_BYTES;
+    if(crypto_sign_verify(sm, CRYPTO_BYTES, sm + CRYPTO_BYTES, *mlen, pk))
+        goto badsig;
+    else {
+        /* All good, copy msg, return 0 */
+        for(i = 0; i < *mlen; ++i)
+            m[i] = sm[CRYPTO_BYTES + i];
+        return 0;
+    }
 
 badsig:
-  /* Signature verification failed */
-  *mlen = -1;
-  for(i = 0; i < smlen; ++i)
-    m[i] = 0;
+    /* Signature verification failed */
+    *mlen = -1;
+    for(i = 0; i < smlen; ++i)
+        m[i] = 0;
 
-  return -1;
+    return -1;
 }
