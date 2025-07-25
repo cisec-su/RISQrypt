@@ -1,8 +1,5 @@
 #!/bin/bash
-# Yusuf Sur
-# Created on: 11/07/2025
-# -g generate bitstream and program FPGA
-# -p program FPGA only
+
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
