@@ -18,6 +18,11 @@ SRC += masked_polyvec.c
 SRC += masked_gadgets.c
 SRC += masked_packing.c
 SRC += masked_symmetric.c
+SRC += ../common/unity.c
+
+
+INC = ../common
+
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 

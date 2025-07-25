@@ -9,6 +9,9 @@
 #include "symmetric.h"
 #include "timer.h"
 #include "masked_sign.h"
+#include "unity.h"
+#include "unity_internals.h"
+#include "benchmark.h"
 
 
 uint8_t pk_[CRYPTO_PUBLICKEYBYTES];
@@ -129,131 +132,74 @@ const uint8_t sig[] = {0xaa, 0xb5, 0x7d, 0x52, 0x30, 0x65, 0xb5, 0x59, 0xba, 0x3
                         0x45, 0x56, 0x59, 0x8a, 0x8f, 0xfb, 0x05, 0x08, 0x7b, 0x93, 0xb4, 0xec, 0xf9, 0x39, 0x8d, 0x9a, 0xa8, 0xe8, 0x09, 0x1c, 0x49, 0x6c, 0x7a, 0x7d, 0x97, 0xae, 0x0a, 0x0c, 0x1b, 0x2c, 0x45, 0xa9,
                         0x09, 0x22, 0x51, 0x93, 0xe3, 0xed, 0xf7, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x0d, 0x12, 0x1a, 0x20, 0x27};
 
+
+void setUp(void)
+{
+}
+
+void tearDown(void)
+{
+}
+
+
 void dilithium_simple() {
     size_t sig_len;
-    unsigned int time;
-
     int ret;
 
+    BENCH_INIT() 
 
-    print_string("\nDilithium Key Generation\n");
-
-    timer_start();
+    BENCH_START() 
 
     ret = crypto_sign_keypair(pk_, sk_);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(SIGN_KEYPAIR)
 
-    if (ret != 0) {
-        print_string("Key generation failed\n");
-        return;
-    }
+    TEST_ASSERT_EQUAL_INT(0, ret);
 
-    if (memcmp(pk, pk_, CRYPTO_PUBLICKEYBYTES) != 0) {
-        print_string("PK FAIL\n");
-    }
-    else
-    {
-        print_string("PK PASS\n");
-    }
+    TEST_ASSERT_EQUAL_MEMORY(pk, pk_, CRYPTO_PUBLICKEYBYTES);
 
-    if (memcmp(sk, sk_, CRYPTO_SECRETKEYBYTES) != 0) {
-        print_string("SK FAIL\n");
-    }  
-    else
-    {
-        print_string("SK PASS\n");
-    }
-    for (int i = 0; i < CRYPTO_SECRETKEYBYTES; i++) {
-        if (sk_[i] != sk[i]) {
-            print_string("SK MISMATCH at index ");
-            print_u32(i);
-            print_string("\n");
-            return;
-        }
-    }
+    TEST_ASSERT_EQUAL_MEMORY(sk, sk_, CRYPTO_SECRETKEYBYTES);
 
 
-    print_string("\nMessage bytes (hex): ");
-    print_hex(msg, sizeof(msg), 0);
-    print_string("\n");
-
-    print_string("\nDilithium Sign\n");
-
-    timer_start();
+    BENCH_START() 
 
     ret = crypto_sign_signature(sig_, &sig_len, msg, sizeof(msg), sk);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(SIGN_SIGNATURE)
 
-    if (ret != 0) {
-        print_string("Signature generation failed\n");
-        return;
-    }
+    TEST_ASSERT_EQUAL_INT(0, ret);
 
-    if (memcmp(sig, sig_, CRYPTO_BYTES) != 0) {
-        print_string("SIGN FAIL\n");
-    }
-    else
-    {
-        print_string("SIGN PASS\n");
-    }
+    TEST_ASSERT_EQUAL_MEMORY(sig, sig_, CRYPTO_BYTES);
 
-    print_string("\nDilithium Verify\n");
 
-    timer_start();
+    BENCH_START() 
 
     ret = crypto_sign_verify(sig, CRYPTO_BYTES, msg, sizeof(msg), pk);
 
-    time = timer_read();
-    print_string("Time: ");
-    print_u32(time);
-    print_string("\n");
+    BENCH_END(SIGN_VERIFY)
 
-    if (ret != 0) {
-        print_string("CORRECT MSG VERIF FAIL\n");
-    }
-    else
-    {
-        print_string("CORRECT MSG VERIF PASS\n");
-    }
+    TEST_ASSERT_EQUAL_INT(0, ret);
 
     msg[0] = msg[0] + 1; // Corrupt the message
 
 
     ret = crypto_sign_verify(sig, CRYPTO_BYTES, msg, sizeof(msg), pk);
-    if (ret != 0) {
-        print_string("FALSE MSG VERIF PASS\n");
-    }
-    else
-    {
-        print_string("FALSE MSG VERIF FAIL\n");
-    }
-    msg[0] = msg[0] - 1; // Corrupt the message
 
-    return;
+    TEST_ASSERT_EQUAL_INT(-1, ret);
+
+    msg[0] = msg[0] - 1; // Fix the message
 }
 
 
 void dilithium_mean_sign() {
     size_t sig_len;
-    unsigned int time;
     unsigned int log_test_num = 7;
     unsigned int test_num = 1 << log_test_num;
     int ret = 0;
     
+    BENCH_INIT() 
 
-
-
-    print_string("\nDilithium Sign\n");
-
-    timer_start();
+    BENCH_START() 
 
     for (int i = 0; i < test_num; i++) {
         msg[0] += 1;
@@ -261,62 +207,39 @@ void dilithium_mean_sign() {
         if (ret != 0) {
             break;
         }
-    }    
-    time = timer_read();
-    if (ret != 0) {
-        print_string("Signature generation failed at some point\n");
-        return;
     }
-    print_string("Mean Signature Time: ");
-    print_u32(time >> log_test_num);
-    print_string("\n");
+
+    BENCH_END_SHIFT(SIGN_SIGNATURE_MEAN, log_test_num)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
 
     msg[0] = msg[0] - test_num;
-
-    return;
 }
 
 
 void dilithium_masked_sign() {
     size_t sig_len;
-    unsigned int time;
     int ret = 0;
 
+    BENCH_INIT() 
 
-
-    print_string("\nDilithium Masked Sign\n");
-
-    timer_start();
+    BENCH_START()
 
     ret = masked_crypto_sign_signature(sig_, &sig_len, msg, sizeof(msg), sk);
-    time = timer_read();
-    if (ret != 0) {
-        print_string("Masked Signature generation failed\n");
-        return;
-    }
-    print_string("Mean Signature Time: ");
-    print_u32(time);
-    print_string("\n");
 
-    if (memcmp(sig, sig_, CRYPTO_BYTES) != 0) {
-        print_string("MASKED SIGN FAIL\n");
-    }
-    else
-    {
-        print_string("MASKED SIGN PASS\n");
-    }
+    BENCH_END(MASKED_SIGN)
 
-    return;
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
+    TEST_ASSERT_EQUAL_MEMORY(sig, sig_, CRYPTO_BYTES);
 }
 
 
 int main() {
-
-    dilithium_simple();
-    dilithium_mean_sign();
-    dilithium_masked_sign();
-
-    print_string("DONE\n");
-
-    return 0;
+    UnityBegin("main.c");   
+    print_string("\n --- Dilithium Unity Test Start --- \n");
+    RUN_TEST(dilithium_simple);
+    RUN_TEST(dilithium_mean_sign);
+    RUN_TEST(dilithium_masked_sign);
+    return(UnityEnd());
 }
