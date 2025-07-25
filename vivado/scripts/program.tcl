@@ -1,5 +1,4 @@
 # Vivado TCL Script for automatic FPGA bitstream upload.
-# Yusuf Sur
 
 set impl_dir "../hornet_fhe.runs/impl_1"
 set bitstream_file "$impl_dir/fpga_top.bit"
