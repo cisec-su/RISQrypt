@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include "params.h"
 #include "poly.h"
-#include "rounding.h"
 #include "symmetric.h"
 #include "ntt_lite.h"
 #include "reduce.h"
@@ -230,9 +229,25 @@ void poly_decompose(poly *a1, poly *a0, const poly *a) {
 **************************************************/
 void poly_use_hint(poly *b, const poly *a, const poly *h) {
     unsigned int i;
+    poly b0;
 
-    for(i = 0; i < N; i++)
-        b->coeffs[i] = use_hint(a->coeffs[i], h->coeffs[i]);
+    ntt_lite_decompose((uint32_t*) b->coeffs, (uint32_t*) b0.coeffs, (uint32_t*) a->coeffs);
+
+    for(i = 0; i < N; i++) {
+        if(h->coeffs[i] != 0) {
+#if GAMMA2 == (Q-1)/32
+            if(b0.coeffs[i] <= (Q/2))
+                b->coeffs[i] = (b->coeffs[i] + 1) & 15;
+            else
+                b->coeffs[i] = (b->coeffs[i] - 1) & 15;
+#elif GAMMA2 == (Q-1)/88
+            if(b0.coeffs[i] <= (Q/2))
+                b->coeffs[i] = (b->coeffs[i] == 43) ? 0 : b->coeffs[i] + 1;
+            else
+                b->coeffs[i] = (b->coeffs[i] ==  0) ? 43 : b->coeffs[i] - 1;
+#endif
+        }
+    }
 }
 
 /*************************************************

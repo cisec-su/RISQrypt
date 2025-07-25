@@ -8,7 +8,6 @@ SRC += packing.c
 SRC += poly.c
 SRC += polyvec.c
 SRC += randombytes.c
-SRC += rounding.c
 SRC += sign.c
 SRC += symmetric.c
 SRC += reduce.c
