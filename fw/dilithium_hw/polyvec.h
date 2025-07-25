@@ -54,17 +54,21 @@ void polyveck_freeze(polyveck *v);
 void polyveck_add(polyveck *w, const polyveck *u, const polyveck *v);
 #define polyveck_sub DILITHIUM_NAMESPACE(polyveck_sub)
 void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v);
-#define polyveck_shiftl DILITHIUM_NAMESPACE(polyveck_shiftl)
-void polyveck_shiftl(polyveck *v);
 
 #define polyveck_ntt DILITHIUM_NAMESPACE(polyveck_ntt)
 void polyveck_ntt(polyveck *v);
+
+#define polyveck_shiftl_ntt DILITHIUM_NAMESPACE(polyveck_shiftl_ntt)
+void polyveck_shiftl_ntt(polyveck *v);
 
 #define polyveck_invntt DILITHIUM_NAMESPACE(polyveck_invntt)
 void polyveck_invntt(polyveck *v);
 
 #define polyveck_pointwise_poly DILITHIUM_NAMESPACE(polyveck_pointwise_poly)
 void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v);
+
+#define polyveck_pointwise_poly_sub DILITHIUM_NAMESPACE(polyveck_pointwise_poly_sub)
+void polyveck_pointwise_poly_sub(polyveck *r, const poly *a, const polyveck *v, const polyveck *u);
 
 #define polyveck_chknorm DILITHIUM_NAMESPACE(polyveck_chknorm)
 int polyveck_chknorm(const polyveck *v, uint32_t B);

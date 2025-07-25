@@ -226,20 +226,6 @@ void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v) {
         poly_sub(&w->vec[i], &u->vec[i], &v->vec[i]);
 }
 
-/*************************************************
-* Name:        polyveck_shiftl
-*
-* Description: Multiply vector of polynomials of Length K by 2^D without modular
-*              reduction. Assumes input coefficients to be less than 2^{31-D}.
-*
-* Arguments:   - polyveck *v: pointer to input/output vector
-**************************************************/
-void polyveck_shiftl(polyveck *v) {
-    unsigned int i;
-
-    for(i = 0; i < K; i++)
-        poly_shiftl(&v->vec[i]);
-}
 
 /*************************************************
 * Name:        polyveck_ntt
@@ -255,6 +241,17 @@ void polyveck_ntt(polyveck *v) {
     for(i = 0; i < K; i++)
         poly_ntt(&v->vec[i]);
 }
+
+
+void polyveck_shiftl_ntt(polyveck *v) {
+    unsigned int i;
+    ntt_lite_set_bound(1 << D);
+    for(i = 0; i < K; i++) {
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_forward_ntt((uint32_t*) v->vec[i].coeffs, NTT_LITE_OUTPUT_DIS);
+    }
+}
+
 
 /*************************************************
 * Name:        polyveck_invntt
@@ -330,6 +327,16 @@ void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v) {
             rhs = NTT_LITE_INPUT_DIS;
         }
         ntt_lite_pwm((uint32_t*) &r->vec[i].coeffs, (uint32_t*) &v->vec[i].coeffs, rhs);
+    }
+}
+
+
+void polyveck_pointwise_poly_sub(polyveck *r, const poly *a, const polyveck *v, const polyveck *u) {
+    unsigned int i;
+
+    for(i = 0; i < K; i++) {
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->vec[i].coeffs, (uint32_t*) &a->coeffs);
+        ntt_lite_sub_rev((uint32_t*) &r->vec[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &u->vec[i].coeffs);
     }
 }
 

@@ -13,8 +13,6 @@ typedef struct {
 void poly_add(poly *c, const poly *a, const poly *b);
 #define poly_sub DILITHIUM_NAMESPACE(poly_sub)
 void poly_sub(poly *c, const poly *a, const poly *b);
-#define poly_shiftl DILITHIUM_NAMESPACE(poly_shiftl)
-void poly_shiftl(poly *a);
 
 #define poly_ntt DILITHIUM_NAMESPACE(poly_ntt)
 void poly_ntt(poly *a);

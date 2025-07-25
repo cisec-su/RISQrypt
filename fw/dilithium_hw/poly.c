@@ -70,24 +70,9 @@ void poly_add(poly *c, const poly *a, const poly *b) {
 *                               subtraced from first input polynomial
 **************************************************/
 void poly_sub(poly *c, const poly *a, const poly *b) {    
-    ntt_lite_sub((uint32_t*)c->coeffs, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
+    ntt_lite_sub((uint32_t*) c->coeffs, (uint32_t*) a->coeffs, (uint32_t*) b->coeffs);
 }
 
-
-/*************************************************
-* Name:        poly_shiftl
-*
-* Description: Multiply polynomial by 2^D without modular reduction. Assumes
-*              input coefficients to be less than 2^{31-D} in absolute value.
-*
-* Arguments:   - poly *a: pointer to input/output polynomial
-**************************************************/
-void poly_shiftl(poly *a) {
-    unsigned int i;
-
-    for(i = 0; i < N; i++)
-        a->coeffs[i] <<= D;  
-}
 
 /*************************************************
 * Name:        poly_ntt

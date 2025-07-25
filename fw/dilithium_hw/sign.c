@@ -289,14 +289,11 @@ int crypto_sign_verify(const uint8_t *sig,
 
     poly_ntt(&cp);
 
-    polyveck_shiftl(&t1);
-    polyveck_ntt(&t1);
+    polyveck_shiftl_ntt(&t1);
 
     polyvec_matrix_pointwise(&w1, mat, &z);
 
-    polyveck_pointwise_poly(&t1, &cp, &t1);
-
-    polyveck_sub(&w1, &w1, &t1);
+    polyveck_pointwise_poly_sub(&w1, &cp, &t1, &w1);
 
     poly_init_invntt();
     polyveck_invntt(&w1);
