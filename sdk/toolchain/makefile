@@ -9,18 +9,22 @@ ROM_GEN = $(PYTHON) $(TOOLCHAIN_DIR)/rom_generator.py
 
 LIB_INC = -I$(LIB_DIR)
 
+UNITY_INC = -I$(UNITY_DIR)
+
 SRC += $(TOOLCHAIN_DIR)/start.s
 SRC += $(LIB_DIR)/util.c
 SRC += $(LIB_DIR)/uart.c
 SRC += $(LIB_DIR)/timer.c
 SRC += $(LIB_DIR)/keccak.c
 SRC += $(LIB_DIR)/ntt_lite.c
+SRC += $(UNITY_DIR)/unity.c
+
 
 ifndef OPTIMIZATION
 	OPTIMIZATION = -O0
 endif
 
-_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) -march=rv32im -mabi=ilp32 -mstrict-align -T $(LINKER) -flto -ffunction-sections -fdata-sections -nostartfiles -o $(PROJ).elf
+_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) $(UNITY_INC) -march=rv32im -mabi=ilp32 -mstrict-align -T $(LINKER) -flto -ffunction-sections -fdata-sections -nostartfiles -o $(PROJ).elf
 
 
 
