@@ -169,13 +169,13 @@ void polyvecl_pointwise_acc(poly *w,
 * Returns 0 if norm of all polynomials is strictly smaller than B <= (Q-1)/8
 * and 1 otherwise.
 **************************************************/
-int polyvecl_chknorm(const polyvecl *v, int32_t bound)  {
+int polyvecl_chknorm(const polyvecl *v, int32_t B)  {
   unsigned int i;
 
-  ntt_lite_set_bound(bound);
+  ntt_lite_set_bound(B);
 
   for(i = 0; i < L; ++i)
-    if(poly_chknorm(&v->vec[i], bound))
+    if(poly_chknorm(&v->vec[i], B))
       return 1;
 
   return 0;
@@ -351,20 +351,13 @@ void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v) {
 **************************************************/
 int polyveck_chknorm(const polyveck *v, uint32_t B) {
   unsigned int i;
-  uint32_t *rhs;
-  poly temp;
 
-  for(i = 0; i < K; ++i) {
-    if (i == 0) {
-      rhs = &B;
-    } else {
-      rhs = NTT_LITE_INPUT_DIS;
-    }
-    // ntt_lite_add_const((uint32_t*) temp.coeffs, (uint32_t*) v->vec[i].coeffs, rhs);
-    // if (poly_chknorm_shifted(&temp, B)) {
-    //   return 1;
-    // }
-  }
+  ntt_lite_set_bound(B);
+
+  for(i = 0; i < K; ++i)
+    if(poly_chknorm(&v->vec[i], B))
+      return 1;
+
   return 0;
 }
 
