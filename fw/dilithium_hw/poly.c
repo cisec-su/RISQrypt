@@ -4,7 +4,6 @@
 #include "poly.h"
 #include "rounding.h"
 #include "symmetric.h"
-#include "keccak.h"
 #include "ntt_lite.h"
 #include "reduce.h"
 #include "util.h"
@@ -452,15 +451,7 @@ void poly_uniform_gamma1(poly *a,
                          const uint8_t seed[CRHBYTES],
                          uint16_t nonce) {
   uint8_t buf[POLYZ_PACKEDBYTES];
-  volatile uint32_t t;
-
- 
-  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-  
-  keccak_absorb((uint32_t*)seed, NULL, (CRHBYTES) >> 2);
-  t = (SHAKE_PAD << 16) | ((uint32_t) nonce);
-  keccak_finish((uint32_t*) &t);
-  keccak_squeeze((uint32_t*)buf, NULL, (POLYZ_PACKEDBYTES) >> 2);
+  dilithium_shake256_nonce(buf, sizeof(buf), seed, CRHBYTES, nonce);
   polyz_unpack(a, buf);
 }
 
@@ -480,11 +471,8 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
   uint8_t buf[SHAKE256_RATE];
   volatile uint32_t t;
 
-  keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-  keccak_absorb((uint32_t*)seed, NULL, (SEEDBYTES) >> 2); // SEEDBYTES + padding
-  t = SHAKE_PAD;
-  keccak_finish((uint32_t*) &t);
-  keccak_squeeze((uint32_t*)buf, NULL, (SHAKE256_RATE) >> 2);
+  dilithium_shake256_stream_init_seed(seed);
+  dilithium_shake256_squeezeblocks(buf, 1);
 
   signs = 0;
   for(i = 0; i < 8; ++i)
@@ -496,7 +484,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
   for(i = N-TAU; i < N; ++i) {
     do {
       if(pos >= SHAKE256_RATE) {
-        keccak_squeeze((uint32_t*)buf, NULL, (SHAKE256_RATE) >> 2);
+        dilithium_shake256_squeezeblocks(buf, 1);
         pos = 0;
       }
 

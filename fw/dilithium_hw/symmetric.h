@@ -22,8 +22,12 @@ void dilithium_shake128_stream_init(const uint8_t seed[SEEDBYTES], uint16_t nonc
 #define dilithium_shake256_stream_init DILITHIUM_NAMESPACE(dilithium_shake256_stream_init)
 void dilithium_shake256_stream_init(const uint8_t seed[CRHBYTES], uint16_t nonce);
 
+#define dilithium_shake256_stream_init_seed DILITHIUM_NAMESPACE(dilithium_shake256_stream_init_seed)
+void dilithium_shake256_stream_init_seed(const uint8_t seed[SEEDBYTES]);
+
 #define stream128_init(SEED, NONCE) dilithium_shake128_stream_init(SEED, NONCE)
 #define stream256_init(SEED, NONCE) dilithium_shake256_stream_init(SEED, NONCE)
+
 
 #define stream128_squeezeblocks(OUT, OUTBLOCKS) \
         dilithium_shake128_squeezeblocks(OUT, OUTBLOCKS)
@@ -33,9 +37,10 @@ void dilithium_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
         dilithium_shake256_squeezeblocks(OUT, OUTBLOCKS)
 void dilithium_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
 
-void dilithium_shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen);
-void dilithium_shake256_challenge(uint8_t *out, const uint8_t *mu, const uint8_t *w1packed);
+void dilithium_shake256(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len);
+void dilithium_shake256_nonce(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len, uint16_t nonce);
+void dilithium_shake256_challenge(uint8_t *dst, const uint8_t *mu, const uint8_t *w1packed);
 void dilithium_shake256_mu_crh(uint8_t *mu, const uint8_t *pk, const uint8_t *m, size_t mlen);
-void dilithium_shake256_absorb_double(uint8_t *out, size_t outlen, const uint8_t *in1, size_t in1len, const uint8_t *in2, size_t in2len);
+void dilithium_shake256_absorb_double(uint8_t *dst, size_t dst_len, const uint8_t *src0, size_t src0_len, const uint8_t *src1, size_t src1_len);
 
 #endif

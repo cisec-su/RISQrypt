@@ -30,6 +30,16 @@ void dilithium_shake256_stream_init(const uint8_t seed[CRHBYTES], uint16_t nonce
 }
 
 
+void dilithium_shake256_stream_init_seed(const uint8_t seed[SEEDBYTES])
+{
+    volatile uint32_t t;
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+    keccak_absorb((uint32_t*) seed, NULL, SEEDBYTES >> 2);
+    t = SHAKE_PAD;
+    keccak_finish((uint32_t*) &t);
+}
+
+
 void dilithium_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
     keccak_squeeze((uint32_t*) dst, NULL, num_blocks*(SHAKE128_RATE >> 2));
 }
@@ -38,7 +48,7 @@ void dilithium_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
     keccak_squeeze((uint32_t*) dst, NULL, num_blocks*(SHAKE256_RATE >> 2));
 }
 
-void dilithium_shake256_challenge(uint8_t *out, const uint8_t *mu, const uint8_t *w1packed) {
+void dilithium_shake256_challenge(uint8_t *dst, const uint8_t *mu, const uint8_t *w1packed) {
     volatile uint32_t t;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
     // mu || w1packed input to keccak
@@ -46,17 +56,27 @@ void dilithium_shake256_challenge(uint8_t *out, const uint8_t *mu, const uint8_t
     keccak_absorb((uint32_t*)w1packed, NULL, (K*POLYW1_PACKEDBYTES ) >> 2);
     t = SHAKE_PAD;
     keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*)out, NULL, (SEEDBYTES ) >> 2);
+    keccak_squeeze((uint32_t*)dst, NULL, (SEEDBYTES ) >> 2);
 }
 
-void dilithium_shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
+void dilithium_shake256(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len) {
     volatile uint32_t t;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-    keccak_absorb((uint32_t*)in, NULL, (inlen  ) >> 2);
+    keccak_absorb((uint32_t*)src, NULL, (src_len  ) >> 2);
     t = SHAKE_PAD;
     keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*)out, NULL, (outlen) >> 2);
+    keccak_squeeze((uint32_t*)dst, NULL, (dst_len) >> 2);
 }
+
+void dilithium_shake256_nonce(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len, uint16_t nonce) {
+    volatile uint32_t t;
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+    keccak_absorb((uint32_t*)src, NULL, (src_len) >> 2);
+    t = (SHAKE_PAD << 16) | ((uint32_t) nonce);
+    keccak_finish((uint32_t*) &t);
+    keccak_squeeze((uint32_t*)dst, NULL, (dst_len) >> 2);
+}
+
 
 void dilithium_shake256_mu_crh(uint8_t *mu, const uint8_t *pk, const uint8_t *m, size_t mlen) {
     uint8_t inner_hash[SEEDBYTES];
@@ -76,12 +96,12 @@ void dilithium_shake256_mu_crh(uint8_t *mu, const uint8_t *pk, const uint8_t *m,
     keccak_squeeze((uint32_t*)mu, NULL, (CRHBYTES) >> 2);
 }
 
-void dilithium_shake256_absorb_double(uint8_t *out, size_t outlen, const uint8_t *in1, size_t in1len, const uint8_t *in2, size_t in2len) {
+void dilithium_shake256_absorb_double(uint8_t *dst, size_t dst_len, const uint8_t *src0, size_t src0_len, const uint8_t *src1, size_t src1_len) {
     volatile uint32_t t;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-    keccak_absorb((uint32_t*)in1, NULL, (in1len) >> 2);
-    keccak_absorb((uint32_t*)in2, NULL, (in2len) >> 2);
+    keccak_absorb((uint32_t*)src0, NULL, (src0_len) >> 2);
+    keccak_absorb((uint32_t*)src1, NULL, (src1_len) >> 2);
     t = SHAKE_PAD;
     keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*)out, NULL, (outlen) >> 2);
+    keccak_squeeze((uint32_t*)dst, NULL, (dst_len) >> 2);
 }
