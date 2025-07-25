@@ -320,7 +320,6 @@ int crypto_sign_verify(const uint8_t *sig,
   polyvecl_caddq(&z);
   polyvecl_ntt(&z);
 
-  poly_caddq(&cp);
   poly_ntt(&cp);
 
   polyveck_shiftl(&t1);

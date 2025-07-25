@@ -2,25 +2,6 @@
 #include "params.h"
 #include "rounding.h"
 
-/*************************************************
-* Name:        power2round
-*
-* Description: For finite field element a, compute a0, a1 such that
-*              a mod^+ Q = a1*2^D + a0 with -2^{D-1} < a0 <= 2^{D-1}.
-*              Assumes a to be standard representative.
-*
-* Arguments:   - int32_t a: input element
-*              - int32_t *a0: pointer to output element a0
-*
-* Returns a1.
-**************************************************/
-// int32_t power2round(int32_t *a0, int32_t a)  {
-//   int32_t a1;
-
-//   a1 = (a + (1 << (D-1)) - 1) >> D;
-//   *a0 = a - (a1 << D);
-//   return a1;
-// }
 
 /*************************************************
 * Name:        decompose
@@ -55,29 +36,6 @@ static int32_t decompose_core(int32_t *a0, int32_t a, int central) {
   return a1;
 }
 
-
-int32_t decompose(int32_t *a0, int32_t a) {
-  return decompose_core(a0, a, 0);
-}
-
-
-/*************************************************
-* Name:        make_hint
-*
-* Description: Compute hint bit indicating whether the low bits of the
-*              input element overflow into the high bits.
-*
-* Arguments:   - int32_t a0: low bits of input element
-*              - int32_t a1: high bits of input element
-*
-* Returns 1 if overflow.
-**************************************************/
-// unsigned int make_hint(int32_t a0, int32_t a1) {
-//   if(((a0 > GAMMA2) && (a0 < (Q-GAMMA2))) || (a0 == (Q-GAMMA2) && a1 != 0))
-//     return 1;
-
-//   return 0;
-// }
 
 /*************************************************
 * Name:        use_hint

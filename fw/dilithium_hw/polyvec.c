@@ -52,29 +52,6 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t
     poly_uniform_gamma1(&v->vec[i], seed, L*nonce + i);
 }
 
-void polyvecl_reduce(polyvecl *v) {
-  unsigned int i;
-
-  for(i = 0; i < L; ++i)
-    poly_reduce(&v->vec[i]);
-}
-
-#if 0
-/*************************************************
-* Name:        polyvecl_freeze
-*
-* Description: Reduce coefficients of polynomials in vector of length L
-*              to standard representatives.
-*
-* Arguments:   - polyvecl *v: pointer to input/output vector
-**************************************************/
-void polyvecl_freeze(polyvecl *v) {
-  unsigned int i;
-
-  for(i = 0; i < L; ++i)
-    poly_freeze(&v->vec[i]);
-}
-#endif
 
 /*************************************************
 * Name:        polyvecl_add
@@ -119,18 +96,9 @@ void polyvecl_invntt(polyvecl *v) {
 
 int polyvecl_invntt_chknorm(polyvecl *v, uint32_t B) {
   unsigned int i;
-  uint32_t *rhs;
-  poly temp;
 
   for(i = 0; i < L; ++i) {
-    if (i == 0) {
-      rhs = &B;
-    } else {
-      rhs = NTT_LITE_INPUT_DIS;
-    }
-    ntt_lite_backward_ntt((uint32_t*) v->vec[i].coeffs, (uint32_t*) v->vec[i].coeffs);
-    ntt_lite_add_const((uint32_t*) temp.coeffs, NTT_LITE_INPUT_DIS, rhs);
-    if (poly_chknorm_shifted(&temp, B)) {
+    if (poly_invntt_chknorm(&v->vec[i], B)) {
       return 1;
     }
   }
@@ -204,19 +172,10 @@ void polyvecl_pointwise_acc(poly *w,
 int polyvecl_chknorm(const polyvecl *v, int32_t bound)  {
   unsigned int i;
 
+  ntt_lite_set_bound(bound);
+
   for(i = 0; i < L; ++i)
     if(poly_chknorm(&v->vec[i], bound))
-      return 1;
-
-  return 0;
-}
-
-
-int polyvecl_chknorm_shifted(const polyvecl *v, int32_t bound)  {
-  unsigned int i;
-
-  for(i = 0; i < L; ++i)
-    if(poly_chknorm_shifted(&v->vec[i], bound))
       return 1;
 
   return 0;
@@ -234,20 +193,6 @@ void polyveck_uniform_eta(polyveck *v, const uint8_t seed[CRHBYTES], uint16_t no
     poly_uniform_eta(&v->vec[i], seed, nonce++);
 }
 
-/*************************************************
-* Name:        polyveck_reduce
-*
-* Description: Reduce coefficients of polynomials in vector of length K
-*              to representatives in [-6283009,6283007].
-*
-* Arguments:   - polyveck *v: pointer to input/output vector
-**************************************************/
-void polyveck_reduce(polyveck *v) {
-  unsigned int i;
-
-  for(i = 0; i < K; ++i)
-    poly_reduce(&v->vec[i]);
-}
 
 /*************************************************
 * Name:        polyveck_caddq
@@ -377,22 +322,6 @@ void polyveck_invntt_sub(polyveck *r, polyveck *v, polyveck *u) {
 }
 
 
-void polyveck_invntt_add_const(polyveck *r, polyveck *v, uint32_t c) {
-  unsigned int i;
-  uint32_t *rhs;
-
-  for(i = 0; i < K; ++i) {
-    if (i == 0) {
-      rhs = &c;
-    } else {
-      rhs = NTT_LITE_INPUT_DIS;
-    }
-    ntt_lite_backward_ntt((uint32_t*) v->vec[i].coeffs, (uint32_t*) v->vec[i].coeffs);
-    ntt_lite_add_const((uint32_t*) r->vec[i].coeffs, NTT_LITE_INPUT_DIS, rhs);
-  }
-}
-
-
 int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
   unsigned int i;
   int flag;
@@ -402,7 +331,7 @@ int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
   for(i = 0; i < K; ++i) {
     poly_invntt(&v->vec[i]);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
-    if (flag) {
+    if (flag == NTT_LITE_CHKNORM_FAIL) {
       return 1;
     }
   }
@@ -462,22 +391,11 @@ int polyveck_chknorm(const polyveck *v, uint32_t B) {
     } else {
       rhs = NTT_LITE_INPUT_DIS;
     }
-    ntt_lite_add_const((uint32_t*) temp.coeffs, (uint32_t*) v->vec[i].coeffs, rhs);
-    if (poly_chknorm_shifted(&temp, B)) {
-      return 1;
-    }
+    // ntt_lite_add_const((uint32_t*) temp.coeffs, (uint32_t*) v->vec[i].coeffs, rhs);
+    // if (poly_chknorm_shifted(&temp, B)) {
+    //   return 1;
+    // }
   }
-  return 0;
-}
-
-
-int polyveck_chknorm_shifted(const polyveck *v, int32_t bound) {
-  unsigned int i;
-
-  for(i = 0; i < K; ++i)
-    if(poly_chknorm_shifted(&v->vec[i], bound))
-      return 1;
-
   return 0;
 }
 
@@ -496,12 +414,6 @@ int polyveck_chknorm_shifted(const polyveck *v, int32_t bound) {
 *                              coefficients a0
 *              - const polyveck *v: pointer to input vector
 **************************************************/
-// void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
-//   unsigned int i;
-
-//   for(i = 0; i < K; ++i)
-//     poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
-// }
 void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
   unsigned int i;
   uint32_t mu[2] = {0, 1 << (32 - D)};
@@ -511,7 +423,7 @@ void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
   ntt_lite_set_bound(1 << D);
 
   for(i = 0; i < K; ++i)
-    poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+    poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
 
   poly_init_q();
 }
@@ -543,29 +455,6 @@ void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v) {
     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
 
   poly_init_q();
-}
-
-/*************************************************
-* Name:        polyveck_make_hint
-*
-* Description: Compute hint vector.
-*
-* Arguments:   - polyveck *h: pointer to output vector
-*              - const polyveck *v0: pointer to low part of input vector
-*              - const polyveck *v1: pointer to high part of input vector
-*
-* Returns number of 1 bits.
-**************************************************/
-unsigned int polyveck_make_hint(polyveck *h,
-                                const polyveck *v0,
-                                const polyveck *v1)
-{
-  unsigned int i, s = 0;
-
-  for(i = 0; i < K; ++i)
-    s += poly_make_hint(&h->vec[i], &v0->vec[i], &v1->vec[i]);
-
-  return s;
 }
 
 

@@ -44,20 +44,6 @@ void poly_init_invntt() {
 	ntt_lite_load_twiddle((uint32_t*) psi_inv);
 }
 
-/*************************************************
-* Name:        poly_reduce
-*
-* Description: Inplace reduction of all coefficients of polynomial to
-*              representative in [-6283008,6283008].
-*
-* Arguments:   - poly *a: pointer to input/output polynomial
-**************************************************/
-void poly_reduce(poly *a) {
-  unsigned int i;
-
-  for(i = 0; i < N; ++i)
-    a->coeffs[i] = reduce32(a->coeffs[i]);
-}
 
 /*************************************************
 * Name:        poly_caddq
@@ -151,23 +137,17 @@ void poly_invntt_sub(poly *a, poly *b, poly *c) {
 }
 
 
-void poly_invntt_sub_add_constant(poly *a, poly *b, poly *c, uint32_t d) {
-  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, c->coeffs);
-  ntt_lite_sub_rev(b->coeffs, NTT_LITE_INPUT_DIS, b->coeffs);
-  ntt_lite_add_const((uint32_t*)a->coeffs, NTT_LITE_INPUT_DIS, &d);
-}
-
-
-int poly_invntt_chknorm(poly *a, uint32_t B, poly *temp) {
-  unsigned int i;
-  uint32_t *rhs = &B;
+int poly_invntt_chknorm(poly *a, uint32_t B) {
+  unsigned int flag;
 
   ntt_lite_backward_ntt((uint32_t*) a->coeffs, (uint32_t*) a->coeffs);
-  ntt_lite_add_const((uint32_t*) temp->coeffs, NTT_LITE_INPUT_DIS, rhs);
-  if (poly_chknorm_shifted(temp, B)) {
+  flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+  if (flag == NTT_LITE_CHKNORM_FAIL) {
     return 1;
   }
-  return 0;
+  else {
+    return 0;
+  }
 }
 
 
@@ -251,10 +231,7 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
 *              - const poly *a: pointer to input polynomial
 **************************************************/
 void poly_power2round(poly *a1, poly *a0, const poly *a) {
-  unsigned int i;
-  
-  for(i = 0; i < N; ++i)
-    a1->coeffs[i] = power2round(&a0->coeffs[i], a->coeffs[i]);
+  ntt_lite_decompose((uint32_t*) a1->coeffs, (uint32_t*) a0->coeffs, (uint32_t*) a->coeffs);
 }
 
 /*************************************************
@@ -274,30 +251,6 @@ void poly_decompose(poly *a1, poly *a0, const poly *a) {
   ntt_lite_decompose((uint32_t*) a1->coeffs, (uint32_t*) a0->coeffs, (uint32_t*) a->coeffs);
 }
 
-/*************************************************
-* Name:        poly_make_hint
-*
-* Description: Compute hint polynomial. The coefficients of which indicate
-*              whether the low bits of the corresponding coefficient of
-*              the input polynomial overflow into the high bits.
-*
-* Arguments:   - poly *h: pointer to output hint polynomial
-*              - const poly *a0: pointer to low part of input polynomial
-*              - const poly *a1: pointer to high part of input polynomial
-*
-* Returns number of 1 bits.
-**************************************************/
-unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1) {
-  unsigned int i, s = 0;
-  
-
-  for(i = 0; i < N; ++i) {
-    h->coeffs[i] = make_hint(a0->coeffs[i], a1->coeffs[i]);
-    s += h->coeffs[i];
-  }
-
-  return s;
-}
 
 /*************************************************
 * Name:        poly_use_hint
@@ -329,46 +282,14 @@ void poly_use_hint(poly *b, const poly *a, const poly *h) {
 * Returns 0 if norm is strictly smaller than B <= (Q-1)/8 and 1 otherwise.
 **************************************************/
 int poly_chknorm(const poly *a, int32_t B) {
-  unsigned int i;
-  int32_t t;
-  
-
-  if(B > (Q-1)/8)
+  unsigned int flag;
+  flag = ntt_lite_chknorm((uint32_t*) a->coeffs);
+  if (flag == NTT_LITE_CHKNORM_FAIL) {
     return 1;
-
-  /* It is ok to leak which coefficient violates the bound since
-     the probability for each coefficient is independent of secret
-     data but we must not leak the sign of the centralized representative. */
-  for(i = 0; i < N; ++i) {
-    t = a->coeffs[i] + B;
-
-    if(((uint32_t)t) >= (2*B)) {
-      return 1;
-    }
   }
-
-  return 0;
-}
-
-
-
-int poly_chknorm_shifted(const poly *a, int32_t B) {
-  unsigned int i;
-  int32_t t;
-  
-  if(B > (Q-1)/8)
-    return 1;
-
-  /* It is ok to leak which coefficient violates the bound since
-     the probability for each coefficient is independent of secret
-     data but we must not leak the sign of the centralized representative. */
-  for(i = 0; i < N; ++i) {
-    if(((uint32_t) a->coeffs[i]) >= (2*B)) {
-      return 1;
-    }
+  else {
+    return 0;
   }
-
-  return 0;
 }
 
 

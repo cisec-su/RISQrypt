@@ -8,12 +8,8 @@ typedef struct {
   int32_t coeffs[N];
 } poly;
 
-#define poly_reduce DILITHIUM_NAMESPACE(poly_reduce)
-void poly_reduce(poly *a);
 #define poly_caddq DILITHIUM_NAMESPACE(poly_caddq)
 void poly_caddq(poly *a);
-#define poly_freeze DILITHIUM_NAMESPACE(poly_freeze)
-void poly_freeze(poly *a);
 
 #define poly_add DILITHIUM_NAMESPACE(poly_add)
 void poly_add(poly *c, const poly *a, const poly *b);
@@ -35,16 +31,11 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b);
 void poly_power2round(poly *a1, poly *a0, const poly *a);
 #define poly_decompose DILITHIUM_NAMESPACE(poly_decompose)
 void poly_decompose(poly *a1, poly *a0, const poly *a);
-#define poly_make_hint DILITHIUM_NAMESPACE(poly_make_hint)
-unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1);
 #define poly_use_hint DILITHIUM_NAMESPACE(poly_use_hint)
 void poly_use_hint(poly *b, const poly *a, const poly *h);
 
 #define poly_chknorm DILITHIUM_NAMESPACE(poly_chknorm)
 int poly_chknorm(const poly *a, int32_t B);
-
-#define poly_chknorm_shifted DILITHIUM_NAMESPACE(poly_chknorm_shifted)
-int poly_chknorm_shifted(const poly *a, int32_t B);
 
 #define poly_uniform DILITHIUM_NAMESPACE(poly_uniform)
 void poly_uniform(poly *a,
@@ -105,11 +96,13 @@ void poly_set_pack(void);
 #define poly_invntt_sub DILITHIUM_NAMESPACE(poly_invntt_sub)
 void poly_invntt_sub(poly *a, poly *b, poly *c);
 
-#define poly_invntt_sub_add_constant DILITHIUM_NAMESPACE(poly_invntt_sub_add_constant)
+#define poly_pointwise_add_invntt_chknorm DILITHIUM_NAMESPACE(poly_pointwise_add_invntt_chknorm)
 int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B);
 
 #define poly_pointwise_invntt_sub_chknorm DILITHIUM_NAMESPACE(poly_pointwise_invntt_sub_chknorm)
 int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B);
 
+#define poly_invntt_chknorm DILITHIUM_NAMESPACE(poly_invntt_chknorm)
+int poly_invntt_chknorm(poly *a, uint32_t B);
 
 #endif
