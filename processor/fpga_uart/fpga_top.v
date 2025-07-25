@@ -4,7 +4,7 @@ module fpga_top(input M100_clk_i,
                 output tx_o,
                 output led1,led2,led4);
 
-parameter SYS_CLK_FREQ = 50000000;
+parameter SYS_CLK_FREQ = 25000000;
 parameter NUM_SLAVES = 8;
 parameter NUM_DMA_ACCS = 2;
 

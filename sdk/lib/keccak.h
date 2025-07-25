@@ -16,6 +16,9 @@ int keccak_init(uint32_t rate, uint32_t mask);
 int keccak_absorb(const uint32_t *share_0, const uint32_t *share_1, unsigned int len);
 
 
+int keccak_absorb_public(const uint32_t *src, unsigned int len);
+
+
 int keccak_finish(const uint32_t *pad_word);
 
 

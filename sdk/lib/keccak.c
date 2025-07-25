@@ -43,6 +43,20 @@ int keccak_absorb(const uint32_t *share_0, const uint32_t *share_1, unsigned int
 }
 
 
+int keccak_absorb_public(const uint32_t *src, unsigned int len) {
+
+    KECCAK_REGS->data_len = len;
+    KECCAK_REGS->din_addr[0] = (uint32_t) src;
+
+    KECCAK_REGS->ctrl |= KECCAK_CTRL_CMD_ABSORB | KECCAK_CTRL_S_DIS_1S;
+
+    while(!(KECCAK_REGS->ctrl & KECCAK_CTRL_DONE_V));
+
+    KECCAK_REGS->ctrl &= ~KECCAK_CTRL_S_DIS_V;
+
+    return 0;
+}
+
 int keccak_finish(const uint32_t *pad_word) {
 
     if (pad_word != KECCAK_NULL_PAD_WORD) {
