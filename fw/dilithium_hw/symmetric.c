@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include "params.h"
 #include "symmetric.h"
-#include "fips202.h"
 #include "keccak.h"
 #include "symmetric.h"
 

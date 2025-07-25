@@ -70,11 +70,11 @@ void masked_polyveck_ntt(masked_polyveck *r) {
 }
 
 
-void masked_polyveck_invntt(masked_poly *r) {
+void masked_polyveck_invntt(masked_polyveck *r) {
   unsigned int i;
 
   for(i = 0; i < K; i++) 
-    masked_poly_invntt(&r[i]);
+    masked_poly_invntt(&r->vec[i]);
 }
 
 

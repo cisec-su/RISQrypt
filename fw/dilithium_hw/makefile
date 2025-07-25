@@ -11,7 +11,6 @@ SRC += randombytes.c
 SRC += rounding.c
 SRC += sign.c
 SRC += symmetric.c
-SRC += fips202.c
 SRC += reduce.c
 SRC += masked.c
 SRC += masked_sign.c

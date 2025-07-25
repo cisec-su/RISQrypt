@@ -1,5 +1,6 @@
 #include "masked_poly.h"
 #include "masked_gadgets.h"
+#include "masked_symmetric.h"
 #include "ntt_lite.h"
 
 
@@ -75,7 +76,7 @@ void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint1
     dilithium_masked_shake256_absorb_nonce((masked_flat_ptr) buf, POLYZ_PACKEDBYTES, (masked_flat_ptr) rhoprime, CRHBYTES, nonce);
 
     for(i = 0; i < MASKING_N; ++i) {
-        ntt_lite_decode(&y->share[i], (uint32_t*) buf[i], LOG_GAMMA1);
+        ntt_lite_decode((uint32_t*) y->share[i].coeffs, (uint32_t*) buf[i], LOG_GAMMA1);
     }
 
     masked_gadgets_B2A_q(y, y);
@@ -90,7 +91,7 @@ void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint1
         if (i == 1) {
             rhs = 0;
         }
-        ntt_lite_sub_rev_const(y->share[i].coeffs, y->share[i].coeffs, rhs_ptr);
+        ntt_lite_sub_rev_const((uint32_t*) y->share[i].coeffs, (uint32_t*) y->share[i].coeffs, rhs_ptr);
     }
 
 }
@@ -125,7 +126,7 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
     unsigned int i;
     int flag;
     masked_poly temp;
-    poly *ptr[MASKING_N];
+    const poly *ptr[MASKING_N];
     uint32_t B2 = (B << 1) - 1;
     uint32_t *dst;
 
@@ -141,29 +142,16 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
         }
     }
 
-    // unmask_and_print_coeffs(r, "z");
-    // for (i = 0; i< N; i++) {
-    //     temp.share[1].coeffs[i] = r->share[1].coeffs[i];
-    // }
-    // unmask_and_print_coeffs(&temp, "after add const");  
-
     // modulus switching from q to 2^32
     masked_gadgets_A2B_q_ptr(&temp, ptr);
-    // unmask_and_print_coeffs_bool(&temp, "after A2B");  
     masked_gadgets_B2A_2k(&temp, &temp, 0xFFFFFFFF);
-    // unmask_and_print_coeffs_2k(&temp, "B2A 2k");  
 
     ntt_lite_set_q(0);
     ntt_lite_set_bound(B2);
 
     ntt_lite_sub_const((uint32_t*) &temp.share[0].coeffs, (uint32_t*) &temp.share[0].coeffs, NTT_LITE_INPUT_DIS);
     
-
-    // unmask_and_print_coeffs_2k(&temp, "after sub");  
-    
     masked_gadgets_A2B_2k(&temp, &temp, 0xFFFFFFFF);
-    // unmask_and_print_coeffs_bool(&temp, "after A2B");  
-
 
     ntt_lite_set_q(1);
     for (i = 0; i < MASKING_N; i++) {
@@ -175,7 +163,6 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
         }
         ntt_lite_decompress_floor(dst, (uint32_t*) temp.share[i].coeffs, 31);
     }
-    // unmask_and_print_coeffs_bool(&temp, "after sr31");  
     
     // unmasking
     ntt_lite_set_q(2);
@@ -185,13 +172,8 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
     ntt_lite_set_bound(1);
     ntt_lite_add_const(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
 
-    // print_all_coeffs(temp.share[0], "unmasked");
-
     ntt_lite_set_bound(0);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
-    // print_string("flag is \n");
-    // print_u32(flag);
-    // print_string("\n");
     poly_set_q(); // reset the modulus to Dilithium's Q
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;

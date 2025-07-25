@@ -49,7 +49,7 @@ void masked_gadgets_A2B_q_ptr(masked_poly *r, const poly *a[MASKING_N]) {
 
 void masked_gadgets_A2B_q(masked_poly *r, const masked_poly *a) {
     unsigned int i;
-    poly *ptr[MASKING_N];
+    const poly *ptr[MASKING_N];
     for (i = 0; i < MASKING_N; i++) {
         ptr[i] = &a->share[i];
     }

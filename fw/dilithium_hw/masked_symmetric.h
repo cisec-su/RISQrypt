@@ -10,4 +10,6 @@ void dilithium_masked_shake256_absorb_double(masked_flat_ptr dst, unsigned int d
 
 void dilithium_masked_shake256_absorb_nonce(masked_flat_ptr dst, unsigned int dst_len, const masked_flat_ptr src, unsigned int src_len, const uint16_t nonce);
 
+void dilithium_masked_shake256_absorb_nonce(masked_flat_ptr dst, unsigned int dst_len, const masked_flat_ptr src, unsigned int src_len, const uint16_t nonce);
+
 #endif
