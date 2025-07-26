@@ -153,7 +153,7 @@ void test_masked_poly_msg() {
 
     masked_poly_frommsg(&mpoly_, mm);
 
-    BENCH_END(MASKED_POLY_SUB_FROMMSG)
+    BENCH_END(MASKED_POLY_FROMMSG)
 
 
     for (i = 0; i < KYBER_N; i++) {
