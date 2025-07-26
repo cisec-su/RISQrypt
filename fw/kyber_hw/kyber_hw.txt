@@ -50,55 +50,55 @@ Disassembly of section .text:
     1090:	feb694e3          	bne	a3,a1,1078 <main+0x64>
     1094:	0000a5b7          	lui	a1,0xa
     1098:	00003537          	lui	a0,0x3
-    109c:	14900613          	li	a2,329
+    109c:	14700613          	li	a2,327
     10a0:	6f858593          	addi	a1,a1,1784 # a6f8 <strlen+0x230>
     10a4:	16850513          	addi	a0,a0,360 # 3168 <test_indcpa_keypair>
     10a8:	170090ef          	jal	a218 <UnityDefaultTestRun>
     10ac:	0000a5b7          	lui	a1,0xa
     10b0:	00006537          	lui	a0,0x6
-    10b4:	14a00613          	li	a2,330
+    10b4:	14800613          	li	a2,328
     10b8:	70c58593          	addi	a1,a1,1804 # a70c <strlen+0x244>
     10bc:	20850513          	addi	a0,a0,520 # 6208 <test_indcpa_enc>
     10c0:	158090ef          	jal	a218 <UnityDefaultTestRun>
     10c4:	0000a5b7          	lui	a1,0xa
     10c8:	00008537          	lui	a0,0x8
-    10cc:	14b00613          	li	a2,331
+    10cc:	14900613          	li	a2,329
     10d0:	71c58593          	addi	a1,a1,1820 # a71c <strlen+0x254>
     10d4:	05850513          	addi	a0,a0,88 # 8058 <test_indcpa_dec>
     10d8:	140090ef          	jal	a218 <UnityDefaultTestRun>
     10dc:	0000a5b7          	lui	a1,0xa
     10e0:	00008537          	lui	a0,0x8
-    10e4:	14c00613          	li	a2,332
+    10e4:	14a00613          	li	a2,330
     10e8:	72c58593          	addi	a1,a1,1836 # a72c <strlen+0x264>
     10ec:	2e050513          	addi	a0,a0,736 # 82e0 <test_indcca>
     10f0:	128090ef          	jal	a218 <UnityDefaultTestRun>
     10f4:	0000a5b7          	lui	a1,0xa
     10f8:	00009537          	lui	a0,0x9
-    10fc:	14d00613          	li	a2,333
+    10fc:	14b00613          	li	a2,331
     1100:	73858593          	addi	a1,a1,1848 # a738 <strlen+0x270>
     1104:	cc850513          	addi	a0,a0,-824 # 8cc8 <test_masked_poly_msg>
     1108:	110090ef          	jal	a218 <UnityDefaultTestRun>
     110c:	0000a5b7          	lui	a1,0xa
     1110:	00004537          	lui	a0,0x4
-    1114:	14e00613          	li	a2,334
+    1114:	14c00613          	li	a2,332
     1118:	75058593          	addi	a1,a1,1872 # a750 <strlen+0x288>
     111c:	b5c50513          	addi	a0,a0,-1188 # 3b5c <test_masked_cbd>
     1120:	0f8090ef          	jal	a218 <UnityDefaultTestRun>
     1124:	0000a5b7          	lui	a1,0xa
     1128:	0000a537          	lui	a0,0xa
-    112c:	14f00613          	li	a2,335
+    112c:	14d00613          	li	a2,333
     1130:	76058593          	addi	a1,a1,1888 # a760 <strlen+0x298>
     1134:	c0050513          	addi	a0,a0,-1024 # 9c00 <test_masked_poly_compress>
     1138:	0e0090ef          	jal	a218 <UnityDefaultTestRun>
     113c:	0000a5b7          	lui	a1,0xa
     1140:	00009537          	lui	a0,0x9
-    1144:	15000613          	li	a2,336
+    1144:	14e00613          	li	a2,334
     1148:	77c58593          	addi	a1,a1,1916 # a77c <strlen+0x2b4>
     114c:	61450513          	addi	a0,a0,1556 # 9614 <test_masked_indcpa_dec>
     1150:	0c8090ef          	jal	a218 <UnityDefaultTestRun>
     1154:	0000a5b7          	lui	a1,0xa
     1158:	00008537          	lui	a0,0x8
-    115c:	15100613          	li	a2,337
+    115c:	14f00613          	li	a2,335
     1160:	79458593          	addi	a1,a1,1940 # a794 <strlen+0x2cc>
     1164:	9f050513          	addi	a0,a0,-1552 # 79f0 <test_masked_indcpa_enc_cmp>
     1168:	0b0090ef          	jal	a218 <UnityDefaultTestRun>
@@ -3013,7 +3013,7 @@ Disassembly of section .text:
     3e64:	40f585b3          	sub	a1,a1,a5
     3e68:	dd5ff06f          	j	3c3c <test_masked_cbd+0xe0>
     3e6c:	00300993          	li	s3,3
-    3e70:	0fd00513          	li	a0,253
+    3e70:	0fb00513          	li	a0,251
     3e74:	e9cfe0ef          	jal	2510 <UnityTestResultsFailBegin>
     3e78:	10008737          	lui	a4,0x10008
     3e7c:	0000c637          	lui	a2,0xc
@@ -7065,7 +7065,7 @@ Disassembly of section .text:
     7d54:	fa9ff06f          	j	7cfc <test_masked_indcpa_enc_cmp+0x30c>
     7d58:	0000a637          	lui	a2,0xa
     7d5c:	00050593          	mv	a1,a0
-    7d60:	14000693          	li	a3,320
+    7d60:	13e00693          	li	a3,318
     7d64:	5e860613          	addi	a2,a2,1512 # a5e8 <strlen+0x120>
     7d68:	00100513          	li	a0,1
     7d6c:	b85fc0ef          	jal	48f0 <UnityAssertEqualIntNumber.part.0.constprop.0>
@@ -7075,13 +7075,13 @@ Disassembly of section .text:
     7d7c:	62c020ef          	jal	a3a8 <longjmp>
     7d80:	0000a637          	lui	a2,0xa
     7d84:	00050593          	mv	a1,a0
-    7d88:	13400693          	li	a3,308
+    7d88:	13200693          	li	a3,306
     7d8c:	5c860613          	addi	a2,a2,1480 # a5c8 <strlen+0x100>
     7d90:	00100513          	li	a0,1
     7d94:	b5dfc0ef          	jal	48f0 <UnityAssertEqualIntNumber.part.0.constprop.0>
     7d98:	0000a637          	lui	a2,0xa
     7d9c:	00050593          	mv	a1,a0
-    7da0:	12a00693          	li	a3,298
+    7da0:	12800693          	li	a3,296
     7da4:	5b060613          	addi	a2,a2,1456 # a5b0 <strlen+0xe8>
     7da8:	00000513          	li	a0,0
     7dac:	b45fc0ef          	jal	48f0 <UnityAssertEqualIntNumber.part.0.constprop.0>
@@ -8198,7 +8198,7 @@ Disassembly of section .text:
     8ee8:	01f0cfb3          	xor	t6,ra,t6
     8eec:	00734333          	xor	t1,t1,t2
     8ef0:	0058c8b3          	xor	a7,a7,t0
-    8ef4:	09700613          	li	a2,151
+    8ef4:	09600613          	li	a2,150
     8ef8:	818f0513          	addi	a0,t5,-2024
     8efc:	0d458593          	addi	a1,a1,212 # d0d4 <m_unmasked>
     8f00:	00d7ac23          	sw	a3,24(a5)
@@ -8469,7 +8469,7 @@ Disassembly of section .text:
     9324:	00f106b3          	add	a3,sp,a5
     9328:	40f585b3          	sub	a1,a1,a5
     932c:	ad9ff06f          	j	8e04 <test_masked_poly_msg+0x13c>
-    9330:	0ab00513          	li	a0,171
+    9330:	0aa00513          	li	a0,170
     9334:	9dcf90ef          	jal	2510 <UnityTestResultsFailBegin>
     9338:	10008737          	lui	a4,0x10008
     933c:	0000c637          	lui	a2,0xc
@@ -8758,7 +8758,7 @@ Disassembly of section .text:
     97a0:	01012903          	lw	s2,16(sp)
     97a4:	0000e5b7          	lui	a1,0xe
     97a8:	81ff2c23          	sw	t6,-2024(t5)
-    97ac:	11200613          	li	a2,274
+    97ac:	11000613          	li	a2,272
     97b0:	9b458593          	addi	a1,a1,-1612 # d9b4 <m>
     97b4:	818f0513          	addi	a0,t5,-2024
     97b8:	02010113          	addi	sp,sp,32
@@ -9145,12 +9145,12 @@ Disassembly of section .text:
     9d9c:	00a00793          	li	a5,10
     9da0:	0000d5b7          	lui	a1,0xd
     9da4:	00f70023          	sb	a5,0(a4)
-    9da8:	0ca00613          	li	a2,202
+    9da8:	0c900613          	li	a2,201
     9dac:	8d458593          	addi	a1,a1,-1836 # c8d4 <mpoly_comp_d4>
     9db0:	6d848513          	addi	a0,s1,1752
     9db4:	b69ff0ef          	jal	991c <UnityAssertEqualMemory.constprop.2>
     9db8:	0000d5b7          	lui	a1,0xd
-    9dbc:	0cb00613          	li	a2,203
+    9dbc:	0ca00613          	li	a2,202
     9dc0:	cd458593          	addi	a1,a1,-812 # ccd4 <mpoly_comp_d4+0x400>
     9dc4:	ad840513          	addi	a0,s0,-1320
     9dc8:	b55ff0ef          	jal	991c <UnityAssertEqualMemory.constprop.2>
@@ -9234,7 +9234,7 @@ Disassembly of section .text:
     9f00:	00a00793          	li	a5,10
     9f04:	0000c5b7          	lui	a1,0xc
     9f08:	6d848513          	addi	a0,s1,1752
-    9f0c:	0de00613          	li	a2,222
+    9f0c:	0dd00613          	li	a2,221
     9f10:	0d458593          	addi	a1,a1,212 # c0d4 <mpoly_comp_d10>
     9f14:	00f70023          	sb	a5,0(a4)
     9f18:	a05ff0ef          	jal	991c <UnityAssertEqualMemory.constprop.2>
@@ -9251,7 +9251,7 @@ Disassembly of section .text:
     9f44:	02812c03          	lw	s8,40(sp)
     9f48:	02412c83          	lw	s9,36(sp)
     9f4c:	0000c5b7          	lui	a1,0xc
-    9f50:	0df00613          	li	a2,223
+    9f50:	0de00613          	li	a2,222
     9f54:	4d458593          	addi	a1,a1,1236 # c4d4 <mpoly_comp_d10+0x400>
     9f58:	05010113          	addi	sp,sp,80
     9f5c:	9c1ff06f          	j	991c <UnityAssertEqualMemory.constprop.2>

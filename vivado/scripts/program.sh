@@ -6,13 +6,12 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 case "$1" in
     -g)
         vivado -mode batch -source "$SCRIPT_DIR/build.tcl"
-        vivado -mode batch -source "$SCRIPT_DIR/program.tcl"
         ;;
     -p)
         vivado -mode batch -source "$SCRIPT_DIR/program.tcl"
         ;;
     *)
-        echo "Usage: $0 -g   (generate bitstream + program)"
+        echo "Usage: $0 -g   (generate bitstream)"
         echo "       $0 -p   (program FPGA only)"
         exit 1
         ;;

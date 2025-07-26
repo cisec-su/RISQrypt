@@ -1,4 +1,4 @@
-open_project ../hornet_fhe.xpr
+open_project ../risqrypt.xpr
 
 reset_run clk_wiz_0_synth_1
 reset_run synth_1

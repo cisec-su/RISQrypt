@@ -21,5 +21,6 @@ __pycache__/
 *.ip_user_files
 *.sim
 *.cache
+*.gen
 *.webtalk
 .vscode
