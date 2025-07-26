@@ -62,3 +62,20 @@ void print_u32_arr(uint32_t *ptr, size_t len) {
         print_string("\n");
     }
 }
+
+void print_u32_int(uint32_t num) {
+    char buffer[11]; 
+    int i = 10;
+    buffer[i] = '\0';
+
+    if (num == 0) {
+        buffer[--i] = '0';
+    } else {
+        while (num > 0 && i > 0) {
+            buffer[--i] = '0' + (num % 10);
+            num /= 10;
+        }
+    }
+
+    uart_transmit_string(&buffer[i], 10 - i);
+}

@@ -19,4 +19,7 @@ void print_u32_arr(uint32_t *ptr, size_t len);
 
 void print_hex_with_label(const char *label, const uint8_t *data, size_t len);
 
+void print_u32_int(uint32_t num);
+
+
 #endif

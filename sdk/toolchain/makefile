@@ -16,11 +16,13 @@ SRC += $(LIB_DIR)/timer.c
 SRC += $(LIB_DIR)/keccak.c
 SRC += $(LIB_DIR)/ntt_lite.c
 
+
+
 ifndef OPTIMIZATION
 	OPTIMIZATION = -O0
 endif
 
-_CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(LIB_INC) -march=rv32im -mabi=ilp32 -mstrict-align -T $(LINKER) -flto -ffunction-sections -fdata-sections -nostartfiles -o $(PROJ).elf
+_CFLAGS = $(CFLAGS) $(OPTIMIZATION) -I$(INC) $(LIB_INC) -march=rv32im -mabi=ilp32 -mstrict-align -T $(LINKER) -flto -ffunction-sections -fdata-sections -nostartfiles -o $(PROJ).elf
 
 
 
