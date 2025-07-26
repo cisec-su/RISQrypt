@@ -100,15 +100,15 @@ static void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec 
 {
   unsigned int i;
   poly t;
-
-  poly_basemul(r, &a->vec[0], &b->vec[0]);
+  poly_init_zeta();
+  ntt_lite_pwm((uint32_t*) r->coeffs, (uint32_t*) &a->vec[0].coeffs, (uint32_t*) &b->vec[0].coeffs);
 
   for(i = 1; i < KYBER_K; i++) {
-    poly_basemul(&t, &a->vec[i], &b->vec[i]);
+    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
     if ((i == (KYBER_K - 1)) & intt) {
-      ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) r->coeffs, (uint32_t*) t.coeffs);      
+      ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
     } else {
-      ntt_lite_add((uint32_t*) r->coeffs, (uint32_t*) r->coeffs, (uint32_t*) t.coeffs);      
+      ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
     }
   }
   if (intt) {
