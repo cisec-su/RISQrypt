@@ -111,8 +111,6 @@
 #define FALCON_ASM_CORTEXM4   1
  */
 
-#define FALCON_ASM_CORTEXM4   1
-
 /*
  * Enable use of AVX2 intrinsics. If enabled, then the code will compile
  * only when targeting x86 with a compiler that supports AVX2 intrinsics

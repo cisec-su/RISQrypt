@@ -1,13 +1,16 @@
-CC = arm-none-eabi-gcc
-CFLAGS = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -O2 -I.
-TARGET = falcon_test.elf
+PROJ = falcon_hw
 
-SRCS = pqm4.c codec.c common.c fft.c randombytes.c fpr.c keygen.c sign.c vrfy.c rng.c fips202.c
+TOOLCHAIN_DIR = ../../sdk/toolchain
+LIB_DIR = ../../sdk/lib
 
-all: $(TARGET)
+SRC  = main.c
+SRC += vrfy.c
+SRC += common.c
 
-$(TARGET): $(SRCS)
-	$(CC) $(CFLAGS) -o $@ $(SRCS) -lm
 
-clean:
-	rm -f $(TARGET) *.o
+OBJ_DUMP = 1 # Uncomment if disassembly is needed
+
+# Optimization level
+OPTIMIZATION = -O3 # Default is -O0
+
+include $(TOOLCHAIN_DIR)/makefile
