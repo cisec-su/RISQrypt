@@ -55,9 +55,9 @@ if __name__ == "__main__":
             "-f", "--file",
             type=str,
             required=False,
-            default='C:\\Users\\cisec\\Downloads\\x2x_example.bin',
+            #default='C:\\Users\\cisec\\Downloads\\x2x_example.bin',
             #default='C:\\Users\\cisec\\Downloads\\x2x_example_std.bin',
-            #default='C:\\Users\\cisec\\Downloads\\kyber_hw.bin',
+            default='C:\\Users\\cisec\\Downloads\\kyber_hw.bin',
             help="File to send"
         )
     parser.add_argument(

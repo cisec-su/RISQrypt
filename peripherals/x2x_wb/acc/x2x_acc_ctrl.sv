@@ -28,7 +28,7 @@ module x2x_acc_ctrl
         // data address registers
         output reg [      31:0]  din_addr  [0:SHARES-1],     // (Write)
         output reg [      31:0]  dout_addr [0:SHARES-1],     // (Write)
-        output reg [  LOGL-1:0]  data_len              ,     // (Write)
+        output reg [      31:0]  data_len              ,     // (Write)
         output reg [      63:0]  seed                  ,     // (Write)
         output reg               load_seed             ,     // (Write/Self-Clear)
         output reg [31:0]        modulus               ,

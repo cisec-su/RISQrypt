@@ -39,13 +39,37 @@ localparam B    = 32;
 localparam N    = 1600 / B;
 localparam LOGN = $rtoi($ceil($clog2(N + 1)));
 
-localparam N_SHARES = 2;
+/*localparam N_SHARES = 2;
 localparam N_STAGES = 4;
 localparam LOG2_OF_q = 12;
-localparam PARAM_WIDTH = LOG2_OF_q + 1;
+localparam PARAM_WIDTH = 32; //LOG2_OF_q + 1;
 localparam RND_SHARES = 2 * (N_SHARES - 1) + 2 * N_SHARES + 4 * (N_SHARES * (N_SHARES - 1) / 2);
 localparam RND_SHARES_8bit = 2 * N_STAGES * 3 *(N_SHARES * (N_SHARES - 1) / 2);
-   
+
+localparam RND_SHARES_2SHARE = 2 * B2A_RND_SHARES_2SHARE + 2 * EXPAND_SHARES_2SHARE + 2 * TRIANGLE_SHARES_2SHARE;
+localparam RND_SHARES_2SHARE_BOX = 2 * BOX_SHARES_2SHARE;*/
+
+localparam log2_of_q = 12;
+localparam PARAM_WIDTH = 32;
+localparam BOX_WIDTH = 16;
+localparam LSFR_WIDTH = 32;
+localparam NB_SEEDS = 12;
+localparam N_STAGES = 5;
+//localparam prime_q = 8380417; //3329; // Kyber Q
+//localparam power_of_two_q = 4294967296; // 2**32
+//localparam prime_twoc_q = 4286586879; //4294963967; 
+
+localparam N_SHARES_2SHARE = 2;
+
+localparam B2A_RND_SHARES_2SHARE = N_SHARES_2SHARE - 1;
+localparam EXPAND_SHARES_2SHARE = N_SHARES_2SHARE;
+localparam TRIANGLE_SHARES_2SHARE = 2 * (N_SHARES_2SHARE * (N_SHARES_2SHARE - 1) / 2);
+localparam BOX_SHARES_2SHARE = (N_STAGES - 1) * 3 * (N_SHARES_2SHARE * (N_SHARES_2SHARE - 1) / 2) + 2 * (N_SHARES_2SHARE * (N_SHARES_2SHARE - 1) / 2);
+
+localparam RND_SHARES_2SHARE = 2 * B2A_RND_SHARES_2SHARE + 2 * EXPAND_SHARES_2SHARE + 2 * TRIANGLE_SHARES_2SHARE;
+localparam RND_SHARES_2SHARE_BOX = 2 * BOX_SHARES_2SHARE;
+    
+      
 // wb <-> top
 wire clk;
 wire rst_n;
@@ -63,9 +87,10 @@ wire start;
 wire [3:0] cmd;
 wire [31:0] din_addr [0:SHARES-1];
 wire [31:0] dout_addr [0:SHARES-1];
-wire [LOGL-1:0] data_len;
+wire [31:0] data_len;
 wire [63:0] seed;
 wire [31:0] modulus;
+wire [31:0] modulus_twoc;
 wire load_seed;
 wire busy, done;
 wire share_mode;
@@ -88,22 +113,21 @@ wire x2x_valid_data;
 wire x2x_ready_data;
 wire x2x_ready_result;
 wire x2x_valid_result;
-wire [PARAM_WIDTH - 1 : 0]   x2x_fresh_rnd_shares        [RND_SHARES - 1 : 0];
-wire [8 - 1 : 0]             x2x_fresh_rnd_shares_8bit   [RND_SHARES_8bit - 1 : 0];
-wire [PARAM_WIDTH - 1 : 0] x2x_original_data    [2 - 1 : 0][N_SHARES - 1:0];
-wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES - 1:0];
+wire [PARAM_WIDTH - 1 : 0] x2x_fresh_rnd_shares        [RND_SHARES_2SHARE - 1 : 0];
+wire [BOX_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_8bit   [RND_SHARES_2SHARE_BOX - 1 : 0];
 
+wire [PARAM_WIDTH - 1 : 0] x2x_original_data    [2 - 1 : 0][N_SHARES_2SHARE - 1:0];
+wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES_2SHARE - 1:0];
 
+assign modulus_twoc = (32'hFFFFFFFF ^ modulus) + 1;
 
-MaskConversion_HALFCYCLE_STREAM #(
+X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .HALFCYCLE          (1              ),
-    .LOG2_OF_q          (12             ),
-    .q                  (3329           ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
     .N_SHARES           (2              ),
-    .N_STAGES           (4              ),
-    .RND_SHARES         (RND_SHARES),
-    .RND_SHARES_8bit    (2 * N_STAGES * 3 *(N_SHARES * (N_SHARES - 1) / 2))
+    .RND_SHARES         (RND_SHARES_2SHARE),
+    .RND_SHARES_BOX    (RND_SHARES_2SHARE_BOX),
+    .BOX_WIDTH (BOX_WIDTH)
 ) x2x_inst (
     .clk                    (clk           ),
     .rst_n                  (rst_n         ),
@@ -116,23 +140,33 @@ MaskConversion_HALFCYCLE_STREAM #(
     .ready_data             (x2x_ready_data),
     .ready_result           (x2x_ready_result),
     .valid_result           (x2x_valid_result),
-   
+    
+    .modulus(modulus),
+    .modulus_twoc(modulus_twoc),
+        
     .fresh_rnd_shares       (x2x_fresh_rnd_shares),//TBC
     .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),//TBC
     .original_data          (x2x_original_data),
     .converted_data         (x2x_converted_data)
 );
 
-
+        
+        
+        
+        
+        
 
 x2x_acc_fsm #(
     .SHARES       (SHARES     ),
     .LOGL         (LOGL       ),
     .B            (B          ),
     .PARAM_WIDTH  (PARAM_WIDTH),
-    .RND_SHARES   (RND_SHARES ),
-    .RND_SHARES_8bit   (RND_SHARES_8bit ),
-    .N_SHARES     (N_SHARES   )
+    //.RND_SHARES   (RND_SHARES ),
+    //.RND_SHARES_8bit   (RND_SHARES_8bit ),
+    .N_SHARES     (N_SHARES_2SHARE   ),
+    .RND_SHARES_2SHARE         (RND_SHARES_2SHARE),
+    .RND_SHARES_2SHARE_BOX    (RND_SHARES_2SHARE_BOX),
+    .BOX_WIDTH (BOX_WIDTH)
 ) x2x_acc_fsm_inst (
     .clk             (clk              ),
     .rst_n           (rst_n            ),

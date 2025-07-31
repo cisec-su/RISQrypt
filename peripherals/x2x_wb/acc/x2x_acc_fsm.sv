@@ -1,14 +1,18 @@
+
 module x2x_acc_fsm
    #(
         parameter SHARES  = 2 ,
         parameter B       = 32,
         parameter LOGL    = 10,
         parameter PARAM_WIDTH = 0,
-        parameter RND_SHARES = 0,
         parameter RND_SHARES_8bit = 0,
         parameter N_SHARES = 0,
         
-        parameter BURST_LEN = 16 // MINIMUM 2
+        parameter BURST_LEN = 16, // MINIMUM 2
+        
+        parameter RND_SHARES_2SHARE = 0,
+        parameter RND_SHARES_2SHARE_BOX = 0,
+        parameter BOX_WIDTH = 0
     )
     (
         input                   clk                        ,
@@ -21,7 +25,7 @@ module x2x_acc_fsm
         output reg              ctrl_done                  ,
         input      [      31:0] ctrl_din_addr  [0:SHARES-1],
         input      [      31:0] ctrl_dout_addr [0:SHARES-1],
-        input      [  LOGL-1:0] ctrl_data_len              ,
+        input      [      31:0] ctrl_data_len              ,
         input      [      63:0] ctrl_seed             , 
         input      [31:0] modulus,
         input                   ctrl_load_seed             ,
@@ -49,20 +53,22 @@ module x2x_acc_fsm
         output reg              x2x_ready_result           , 
         input                   x2x_valid_result           , 
         
-        output [PARAM_WIDTH - 1 : 0]             x2x_fresh_rnd_shares   [RND_SHARES - 1 : 0]    ,
-        output [8-1:0]            x2x_fresh_rnd_shares_8bit [RND_SHARES_8bit - 1 : 0] ,
+        output [PARAM_WIDTH - 1 : 0]             x2x_fresh_rnd_shares   [RND_SHARES_2SHARE - 1 : 0]    ,
+        output [BOX_WIDTH-1:0]            x2x_fresh_rnd_shares_8bit [RND_SHARES_2SHARE_BOX - 1 : 0] ,
         output reg [PARAM_WIDTH - 1 : 0]             x2x_original_data [2 - 1 : 0] [N_SHARES - 1:0]        ,
         input      [PARAM_WIDTH - 1 : 0]             x2x_converted_data [2 - 1 : 0][N_SHARES - 1:0]
     );
 
 wire rnd_ready;
 
+
 x2x_acc_rng #(
         .B(B),
         .LOGL(LOGL),
         .PARAM_WIDTH(PARAM_WIDTH),
-        .RND_SHARES(RND_SHARES),
-        .RND_SHARES_8bit(RND_SHARES_8bit)
+        .BOX_WIDTH(BOX_WIDTH),
+        .RND_SHARES_2SHARE(RND_SHARES_2SHARE),
+        .RND_SHARES_2SHARE_BOX(RND_SHARES_2SHARE_BOX)
 ) x2x_acc_rng (
         .clk(clk),
         .rst_n(rst_n),
@@ -127,8 +133,10 @@ reg [11:0] ctr_trivium;
 reg [31:0] bit_calc;
 reg [2:0] reg_index;
 reg [4:0] bit_index;
+reg [31:0] addr_offset;
 
 reg [31:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
+reg [31:0] shares_one_bit [SHARES - 1 : 0];
 reg write_s0, write_s1;
 
 reg dualprime_msh, dualprime_comp;
@@ -140,7 +148,7 @@ wire [PARAM_WIDTH-1:0] modulus_half;
 assign modulus_half = modulus >> 1;
  
 wire [PARAM_WIDTH-1:0] modulus_complement;
-assign modulus_complement = (13'h1FFF ^ modulus) + 1;
+assign modulus_complement = (32'hFFFFFFFF ^ modulus) + 1;
 
 wire [LOGL-1:0] input_data_len;
 assign input_data_len = ctrl_data_len;
@@ -191,6 +199,7 @@ always @(*) begin
     reg_index = 0;
     bit_index = 0;
     bit_calc = 0;
+    addr_offset = 0;
     
     case(fsm_state)
     
@@ -210,8 +219,20 @@ always @(*) begin
     begin
        if(mem_i_ready)
        begin
-            fsm_next_state = ST_FETCH_DATA_0_1;
-            mem_addr = ctrl_din_addr[0] + ((ctr_array + ctr_block_w) << 2);
+            if(ctrl_one_bit_mode)
+            begin
+                fsm_next_state = ST_FETCH_DATA_0_2;
+                if(ctrl_dual_mode)
+                    mem_addr = ctrl_din_addr[0] + (ctr_iter << 2);
+                else
+                    mem_addr = ctrl_din_addr[0] + (ctr_iter << 1);
+            end
+            else
+            begin   
+                fsm_next_state = ST_FETCH_DATA_0_1;
+                mem_addr = ctrl_din_addr[0] + ((ctr_array + ctr_block_w) << 2);
+            end
+            
             mem_re = 1;      
             ctr_block_w_inc = 1;
        end
@@ -258,10 +279,23 @@ always @(*) begin
        begin
            if(mem_i_ready)
            begin
-               fsm_next_state = ST_FETCH_DATA_1_1;
-               mem_addr = ctrl_din_addr[1] + ((ctr_array + ctr_block_w) << 2);
-               mem_re = !ctrl_share_mode; 
-               ctr_block_w_inc = 1;   
+                if(ctrl_one_bit_mode)
+                begin
+                    if(ctrl_dual_mode)
+                        mem_addr = ctrl_din_addr[1] + (ctr_iter << 2);
+                    else
+                        mem_addr = ctrl_din_addr[1] + (ctr_iter << 1);
+                    
+                    fsm_next_state = ST_FETCH_DATA_1_2;
+                end
+                else
+                begin   
+                    mem_addr = ctrl_din_addr[1] + ((ctr_array + ctr_block_w) << 2);
+                    fsm_next_state = ST_FETCH_DATA_1_1;
+                end
+                
+                mem_re = !ctrl_share_mode; 
+                ctr_block_w_inc = 1;   
            end
        end
     end
@@ -320,11 +354,14 @@ always @(*) begin
     begin
         if(ctrl_one_bit_mode)
         begin
-            bit_calc = ((ctr_array + ctr_block_r) << log_stride);
-            bit_index = (bit_calc[7:0] + bit_calc[31:8]) & 5'h1f;
-            reg_index = ((bit_calc[7:0] + bit_calc[31:8]) >> 5) & 3'h7;
-            x2x_original_data[0][0] = {{(PARAM_WIDTH - 1){1'b0}}, shares[0][reg_index][bit_index]};
-            x2x_original_data[0][1] = {{(PARAM_WIDTH - 1){1'b0}}, shares[1][reg_index][bit_index]};
+            if(ctrl_dual_mode)
+                bit_calc = ctr_block_r << log_stride ; //((((ctr_array << 1) + ctr_block_r)& 5'h1f) << log_stride);
+            else
+                bit_calc = (((ctr_array + ctr_block_r) & 5'h1f) << log_stride);
+            
+            bit_index = (bit_calc[4:0] + bit_calc[31:5]) & 5'h1f;
+            x2x_original_data[0][0] = {{(PARAM_WIDTH - 1){1'b0}}, shares_one_bit[0][bit_index]};
+            x2x_original_data[0][1] = {{(PARAM_WIDTH - 1){1'b0}}, shares_one_bit[1][bit_index]};
         end
         else
             begin
@@ -332,25 +369,45 @@ always @(*) begin
             begin
                 if(!ctrl_conv_mode & !ctrl_arith_mode & ctrl_data_type) // A2B Unsigned
                 begin
-                    if(shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] > modulus_half) // HARDCODED FOR KYBER, TODO: PARAMETRIC
-                        x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16] + modulus_complement;
+                    if(shares[0][ctr_block_r][31:16] > modulus_half) 
+                        x2x_original_data[0][0] = shares[0][ctr_block_r][31:16] + modulus_complement;
                     else
-                        x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
+                        x2x_original_data[0][0] = shares[0][ctr_block_r][31:16];
                         
-                    if(shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] > modulus_half)
-                        x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16] + modulus_complement;
+                    if(shares[1][ctr_block_r][31:16] > modulus_half)
+                        x2x_original_data[0][1] = shares[1][ctr_block_r][31:16] + modulus_complement;
                     else 
-                        x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+                        x2x_original_data[0][1] = shares[1][ctr_block_r][31:16];
                 end
                 else 
                 begin
-                    x2x_original_data[0][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
-                    x2x_original_data[0][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][31:16];
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][31:16];
+                end
+            end
+            else if(dualprime && !dualprime_msh)
+            begin
+                if(!ctrl_conv_mode & !ctrl_arith_mode & ctrl_data_type) // A2B Unsigned
+                begin
+                    if(shares[0][ctr_block_r][15:0] > modulus_half) 
+                        x2x_original_data[0][0] = shares[0][ctr_block_r][15:0] + modulus_complement;
+                    else
+                        x2x_original_data[0][0] = shares[0][ctr_block_r][15:0];
+                        
+                    if(shares[1][ctr_block_r][15:0] > modulus_half)
+                        x2x_original_data[0][1] = shares[1][ctr_block_r][15:0] + modulus_complement;
+                    else 
+                        x2x_original_data[0][1] = shares[1][ctr_block_r][15:0];
+                end
+                else 
+                begin
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][15:0];
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][15:0];
                 end
             end
             else
             begin
-                if(!ctrl_conv_mode & !ctrl_arith_mode  & ctrl_data_type)
+                if(!ctrl_conv_mode & !ctrl_arith_mode  & ctrl_data_type) // A2B Unsigned
                 begin
                     if(shares[0][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half)
                         x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0] + modulus_complement;
@@ -362,6 +419,11 @@ always @(*) begin
                     else
                         x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];
                 end
+                else if (ctrl_dual_mode && !ctrl_data_type)
+                begin
+                    x2x_original_data[0][0] = shares[0][ctr_block_r][16-1:0];
+                    x2x_original_data[0][1] = shares[1][ctr_block_r][16-1:0];
+                end
                 else
                 begin
                     x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
@@ -370,8 +432,8 @@ always @(*) begin
             end
             if(ctrl_dual_mode && !ctrl_data_type)
             begin
-                x2x_original_data[1][0] = shares[0][ctr_block_r][16+PARAM_WIDTH-1:16];
-                x2x_original_data[1][1] = shares[1][ctr_block_r][16+PARAM_WIDTH-1:16];
+                x2x_original_data[1][0] = shares[0][ctr_block_r][31:16];
+                x2x_original_data[1][1] = shares[1][ctr_block_r][31:16];
             end
         end
         
@@ -384,7 +446,7 @@ always @(*) begin
         begin
             if(ctrl_dual_mode)
             begin
-                if(ctr_block_r == (BURST_LEN - 1))
+                if(ctr_block_r == ((BURST_LEN << 1)- 1))
                 begin
                     fsm_next_state = ST_MASK_WAIT;
                     ctr_block_r_rst = 1;
@@ -392,7 +454,7 @@ always @(*) begin
             end
             else
             begin
-                if(ctr_block_r == ((BURST_LEN >> 1) - 1))
+                if(ctr_block_r == (BURST_LEN - 1))
                 begin
                     fsm_next_state = ST_MASK_WAIT;
                     ctr_block_r_rst = 1;
@@ -421,7 +483,7 @@ always @(*) begin
             begin
                 if(ctrl_dual_mode)
                 begin
-                    if(ctr_block_w == (BURST_LEN - 1))
+                    if(ctr_block_w == ((BURST_LEN << 1) - 1))
                     begin
                         fsm_next_state = ST_PUT_DATA_0;
                         ctr_block_w_rst = 1;
@@ -433,7 +495,7 @@ always @(*) begin
                 end
                 else
                 begin
-                    if(ctr_block_w == ((BURST_LEN >> 1) - 1))
+                    if(ctr_block_w == (BURST_LEN - 1))
                     begin
                         fsm_next_state = ST_PUT_DATA_0;
                         ctr_block_w_rst = 1;
@@ -476,10 +538,17 @@ always @(*) begin
     begin
         if(ctrl_one_bit_mode)
         begin
-            mem_o_data = shares[0][ctr_block_r + (BURST_LEN >> 1)];
+            mem_o_data = shares[0][ctr_block_r];
+            addr_offset = (ctr_array + ctr_block_r);
+            
+            if(ctrl_dual_mode)
+                mem_addr = ctrl_dout_addr[0] + (((addr_offset[31:4] << (4 - log_stride)) + (addr_offset[3:0] & ((1 << (4 - log_stride)) - 1)) + (((addr_offset[3:0] >> (4 - log_stride)) * (ctrl_data_len >> (log_stride + 1))))) << 2);
+            else 
+                mem_addr = ctrl_dout_addr[0] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + (((addr_offset[4:0] >> (5 - log_stride)) * (ctrl_data_len >> log_stride)))) << 2);
+  
             if(mem_o_ready)
             begin
-                if(ctr_block_r < ((BURST_LEN >> 1) - 1))
+                if(ctr_block_r < (BURST_LEN - 1))
                 begin
                     ctr_block_r_inc = 1; 
                 end
@@ -493,6 +562,7 @@ always @(*) begin
         else
         begin
             mem_o_data = shares[0][ctr_block_r];
+            mem_addr = ctrl_dout_addr[0] + (ctr_array << 2)  + (ctr_block_r << 2);
             if(mem_o_ready)
             begin
                 if(ctr_block_r < (BURST_LEN - 1))
@@ -507,10 +577,10 @@ always @(*) begin
             end
         end
         
-        if(ctrl_one_bit_mode & ctrl_dual_mode)
+        /*if(ctrl_one_bit_mode & ctrl_dual_mode)
             mem_addr = ctrl_dout_addr[0] + (ctr_array << 1)  + (ctr_block_r << 2);
         else   
-            mem_addr = ctrl_dout_addr[0] + (ctr_array << 2)  + (ctr_block_r << 2);
+            mem_addr = ctrl_dout_addr[0] + (ctr_array << 2)  + (ctr_block_r << 2);*/
         
         mem_we = 1;
     end
@@ -518,30 +588,72 @@ always @(*) begin
     begin
         if(ctrl_one_bit_mode)
         begin
-            mem_o_data = shares[1][ctr_block_r + (BURST_LEN >> 1)];
-            if(mem_o_ready)
+            if(ctrl_dual_mode)
             begin
-                if(ctr_block_r == ((BURST_LEN >> 1) - 1))
+                addr_offset = (ctr_array + ctr_block_r);
+                mem_o_data = shares[1][ctr_block_r];
+                if(ctrl_dual_mode)
+                    mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:4] << (4 - log_stride)) + (addr_offset[3:0] & ((1 << (4 - log_stride)) - 1)) + (((addr_offset[3:0] >> (4 - log_stride)) * (ctrl_data_len >> (log_stride + 1))))) << 2);
+                else 
+                    mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + (((addr_offset[4:0] >> (5 - log_stride)) * (ctrl_data_len >> log_stride)))) << 2);
+                
+                if(mem_o_ready)
                 begin
-                    ctr_block_r_rst = 1;
-                    ctr_array_inc_b = 1;
-                    ctr_iter_inc = 1;
-                    if(((ctr_array == ((ctrl_data_len << 5) - BURST_LEN)) && ctrl_dual_mode) || ((ctr_array == ((ctrl_data_len << 5) - (BURST_LEN >> 1)))&& !ctrl_dual_mode))
+                    if(ctr_block_r == (BURST_LEN - 1))
                     begin
-                        fsm_next_state = ST_DONE;
+                        ctr_block_r_rst = 1;
+                        ctr_array_inc_b = 1;
+                        ctr_iter_inc = 1;
+                        if (ctr_array == ((ctrl_data_len >> 1) - BURST_LEN))//(((ctr_array == ((ctrl_data_len << 5) - BURST_LEN)) && ctrl_dual_mode) || ((ctr_array == ((ctrl_data_len << 5) - (BURST_LEN >> 1)))&& !ctrl_dual_mode))
+                        begin
+                            fsm_next_state = ST_DONE;
+                        end
+                        else
+                        begin
+                            fsm_next_state = ST_FETCH_DATA_0_0;
+                        end
                     end
                     else
-                        fsm_next_state = ST_MASK_SEND;
-                end
-                else
-                begin
-                    ctr_block_r_inc = 1; 
+                    begin
+                        ctr_block_r_inc = 1; 
+                    end
                 end
             end
+            else
+            begin
+                addr_offset = (ctr_array + ctr_block_r);
+                mem_o_data = shares[1][ctr_block_r];
+                mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + (((addr_offset[4:0] >> (5 - log_stride)) * (ctrl_data_len >> log_stride)))) << 2);
+                if(mem_o_ready)
+                begin
+                    if(ctr_block_r == (BURST_LEN - 1))
+                    begin
+                        ctr_block_r_rst = 1;
+                        ctr_array_inc_b = 1;
+                        ctr_iter_inc = 1;
+                        if (ctr_array == (ctrl_data_len - BURST_LEN))//(((ctr_array == ((ctrl_data_len << 5) - BURST_LEN)) && ctrl_dual_mode) || ((ctr_array == ((ctrl_data_len << 5) - (BURST_LEN >> 1)))&& !ctrl_dual_mode))
+                        begin
+                            fsm_next_state = ST_DONE;
+                        end
+                        else
+                        begin
+                            if(!ctr_iter[0])
+                                fsm_next_state = ST_MASK_SEND;
+                            else
+                                fsm_next_state = ST_FETCH_DATA_0_0;
+                        end
+                    end
+                    else
+                    begin
+                        ctr_block_r_inc = 1; 
+                    end
+                end
+             end
         end
         else
         begin
             mem_o_data = shares[1][ctr_block_r];
+            mem_addr = ctrl_dout_addr[1] + (ctr_array << 2)  + (ctr_block_r << 2);
             if(mem_o_ready)
             begin
                 if(ctr_block_r == (BURST_LEN - 1))
@@ -563,11 +675,11 @@ always @(*) begin
             end
         end
         
-        if(ctrl_one_bit_mode & ctrl_dual_mode)
+        /*if(ctrl_one_bit_mode & ctrl_dual_mode)
             mem_addr = ctrl_dout_addr[1] + (ctr_array << 1)  + (ctr_block_r << 2);
         else   
             mem_addr = ctrl_dout_addr[1] + (ctr_array << 2)  + (ctr_block_r << 2);
-            
+        */    
         mem_we = 1;
     end
     ST_DONE:
@@ -595,7 +707,7 @@ always @(posedge clk or negedge rst_n) begin
     end
     else if (ctr_array_inc_b) begin
         if(ctrl_one_bit_mode & !ctrl_dual_mode)
-            ctr_array <= ctr_array + (BURST_LEN >> 1);
+            ctr_array <= ctr_array + BURST_LEN;
         else
             ctr_array <= ctr_array + BURST_LEN;
     end
@@ -668,21 +780,32 @@ always @(posedge clk) begin
     if (!rst_n) 
     begin
         for (int i = 0; i < SHARES; i = i + 1)
+        begin
+            shares_one_bit [i] <= 0;
             for (int j = 0; j < BURST_LEN; j = j + 1)
                 shares[i][j] <= 0;
+        end
     end 
     else 
     begin
         if (write_s0)
         begin
-            shares[0][ctr_block_w - 1] <= mem_i_data;
+            if (ctrl_one_bit_mode)
+                shares_one_bit[0] <= mem_i_data;
+            else
+                shares[0][ctr_block_w - 1] <= mem_i_data;
         end
         else if (write_s1) 
         begin
-            if (!ctrl_share_mode)
-                shares[1][ctr_block_w - 1] <= mem_i_data;
-            else
-                shares[1][ctr_block_w - 1] <= 0;
+            if (ctrl_one_bit_mode)
+                shares_one_bit[1] <= mem_i_data;
+            else    
+            begin
+                if (!ctrl_share_mode)
+                    shares[1][ctr_block_w - 1] <= mem_i_data;
+                else
+                    shares[1][ctr_block_w - 1] <= 0;
+            end
         end
 
         else if (x2x_valid_result)// && ctr_block_w < BURST_LEN) 
@@ -693,19 +816,19 @@ always @(posedge clk) begin
                 begin
                     if(ctr_block_w[0])
                     begin
-                        shares[0][(ctr_block_w >> 1) + (BURST_LEN >> 1)][31:16] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
-                        shares[1][(ctr_block_w >> 1) + (BURST_LEN >> 1)][31:16] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+                        shares[0][(ctr_block_w >> 1)][31:16] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
+                        shares[1][(ctr_block_w >> 1)][31:16] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
                     end
                     else
                     begin
-                        shares[0][(ctr_block_w >> 1) + (BURST_LEN >> 1)][15:0] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
-                        shares[1][(ctr_block_w >> 1) + (BURST_LEN >> 1)][15:0] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+                        shares[0][(ctr_block_w >> 1)][15:0] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
+                        shares[1][(ctr_block_w >> 1)][15:0] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
                     end
                 end
                 else
                 begin
-                    shares[0][ctr_block_w + (BURST_LEN >> 1)] <= {{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
-                    shares[1][ctr_block_w + (BURST_LEN >> 1)] <= {{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+                    shares[0][ctr_block_w] <= {{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
+                    shares[1][ctr_block_w] <= {{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
                 end
             end
             else if(dualprime)
@@ -721,15 +844,22 @@ always @(posedge clk) begin
                     shares[1][ctr_block_w][31:16] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
                 end
             end
+            else if (!ctrl_dual_mode  && !ctrl_data_type  && !ctrl_conv_mode) 
+            begin
+                shares[0][ctr_block_w] <= x2x_converted_data[0][0] & (modulus - 1); //{{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
+                shares[1][ctr_block_w] <= x2x_converted_data[0][1] & (modulus - 1); //{{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+            end
             else if (!ctrl_dual_mode) 
             begin
-                shares[0][ctr_block_w] <= {{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
-                shares[1][ctr_block_w] <= {{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+                shares[0][ctr_block_w] <= x2x_converted_data[0][0]; //{{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
+                shares[1][ctr_block_w] <= x2x_converted_data[0][1]; //{{(32 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
             end 
             else 
             begin
-                shares[0][ctr_block_w] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[1][0], {(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
-                shares[1][ctr_block_w] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[1][1], {(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+                //shares[0][ctr_block_w] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[1][0], {(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][0]};
+                //shares[1][ctr_block_w] <= {{(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[1][1], {(16 - PARAM_WIDTH){1'b0}}, x2x_converted_data[0][1]};
+                shares[0][ctr_block_w] <= {x2x_converted_data[1][0][15:0], x2x_converted_data[0][0][15:0]};
+                shares[1][ctr_block_w] <= {x2x_converted_data[1][1][15:0], x2x_converted_data[0][1][15:0]};
             end
         end
     end
