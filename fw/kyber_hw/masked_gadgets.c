@@ -7,12 +7,19 @@
 #include "util.h"
 
 
-
-
-void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p) { //TODO
+void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p) { //DONE
     unsigned int i,j;
     uint16_t t, k;
-
+    
+    uint32_t modulus = p+1;
+    uint32_t log_modulus = 15;//check it -- 15 or 16?
+    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
+    x2x_a2b(r->share[1].coeffs, r->share[0].coeffs, a->share[1].coeffs, a->share[0].coeffs, 128);
+    
+    /*print_u32(p);
+    print_u32_arr(a->share[0].coeffs,8);
+    print_u32_arr(a->share[1].coeffs,8);
     for(j = 0; j < KYBER_N; j++) {
         t = 0;
         k = 0;
@@ -26,81 +33,72 @@ void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p) { /
         t = t & p;
         r->share[MASKING_N - 1].coeffs[j] = k ^ t;        
     }
+    print_u32_arr(r->share[0].coeffs,8);
+    print_u32_arr(r->share[1].coeffs,8);*/
 }
 
 
-void masked_gadgets_A2B_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a, uint32_t p) {
+void masked_gadgets_A2B_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a, uint32_t p) { // PASS  
     unsigned int i,j;
     uint32_t t, k;
 
-    for(j = 0; j < KYBER_N; j++) {
-        t = 0;
-        k = 0;
-        for(i = 0; i < MASKING_N - 1; i++) {
-            r->share[i].coeffs[j] = a->share[i].coeffs[j];
-            t = t + a->share[i].coeffs[j];
-            k = k ^ a->share[i].coeffs[j];
-            t = t & p;
-        }
-        t = t + a->share[MASKING_N - 1].coeffs[j];
-        t = t & p;
-        r->share[MASKING_N - 1].coeffs[j] = k ^ t;        
-    }
-}
-
-
-void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {
-    unsigned int volatile i,j;
-    uint16_t t, k;
+    /*print_u32(p);
+    print_u32_arr(a->share[0].coeffs,4);
+    print_u32_arr(a->share[1].coeffs,4);*/
     
-    unsigned int len = 8;
-          
-    /*uart_transmit_string("IN0\n\n", 5);
-    print_u32_arr((uint32_t*)&(a->share[0].coeffs[0]),len);
-    uart_transmit_string("IN1\n\n", 5);
-    print_u32_arr((uint32_t*)&(a->share[1].coeffs[0]),len);*/
 
+    uint32_t modulus = p+1;
+    uint32_t log_modulus = 0;//check it -- 15 or 16?
+    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
+    x2x_a2b(r->share[1].coeffs, r->share[0].coeffs, a->share[1].coeffs, a->share[0].coeffs, 256);
+
+    
     /*for(j = 0; j < KYBER_N; j++) {
         t = 0;
         k = 0;
         for(i = 0; i < MASKING_N - 1; i++) {
             r->share[i].coeffs[j] = a->share[i].coeffs[j];
-            t = t ^ a->share[i].coeffs[j];
-            k = k + a->share[i].coeffs[j];
-            if (k >= KYBER_Q) {
-                k -= KYBER_Q;
-            }
+            t = t + a->share[i].coeffs[j];
+            k = k ^ a->share[i].coeffs[j];
+            t = t & p;
         }
-        t = t ^ a->share[MASKING_N - 1].coeffs[j];
-        r->share[MASKING_N - 1].coeffs[j] = t - k;
-        if (r->share[MASKING_N - 1].coeffs[j] < 0) {
-            r->share[MASKING_N - 1].coeffs[j] += KYBER_Q;
-        }
+        t = t + a->share[MASKING_N - 1].coeffs[j];
+        t = t & p;
+        r->share[MASKING_N - 1].coeffs[j] = k ^ t;        
     }*/
-    uint32_t modulus = 3329;
-    
-    x2x_set_modulus(&modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN);
-    
-    x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
-    
-    /*uart_transmit_string("OUT0\n\n", 6);
-    print_u32_arr((uint32_t*)&(r->share[0].coeffs[0]),len);
-    uart_transmit_string("OUT1\n\n", 6);
-    print_u32_arr((uint32_t*)&(r->share[1].coeffs[0]),len);*/
-
-    i = 0;
-    while(i < 0x1)
-    {
-        i=i+1;
-    }
+    /*print_u32_arr(r->share[0].coeffs,4);
+    print_u32_arr(r->share[1].coeffs,4);*/
 }
 
 
-void masked_gadgets_B2A_qm_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) {
+void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) { //DONE
+       
+    uint32_t modulus = 3329;
+    uint32_t log_modulus = 12;
+    
+    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
+    x2x_b2a(r->share[1].coeffs, r->share[0].coeffs, a->share[1].coeffs, a->share[0].coeffs, 128);
+    
+}
+
+
+void masked_gadgets_B2A_qm_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) { //DONE
     unsigned int i,j;
     uint32_t t, k;
 
-    for(j = 0; j < KYBER_N; j++) {
+    uint32_t modulus = Q_EXP;
+    uint32_t log_modulus = 32;
+
+    /*print_u32_arr(a[0]->coeffs,4);
+    print_u32_arr(a[1]->coeffs,4);*/
+
+    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
+    x2x_b2a(r[1]->coeffs, r[0]->coeffs, a[1]->coeffs, a[0]->coeffs, 256);
+
+    /*for(j = 0; j < KYBER_N; j++) {
         t = 0;
         k = 0;
         for(i = 0; i < MASKING_N - 1; i++) {
@@ -116,7 +114,10 @@ void masked_gadgets_B2A_qm_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MA
         if ((r[MASKING_N - 1]->coeffs[j]) >= Q_EXP) {
             r[MASKING_N - 1]->coeffs[j] -= Q_EXP;
         }
-    }
+    }*/
+
+    /*print_u32_arr(r[0]->coeffs,4);
+    print_u32_arr(r[1]->coeffs,4);*/
 }
 
 
@@ -150,8 +151,8 @@ void masked_gadgets_B2A_qm_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u
     }
 }
 
-
-void masked_gadgets_B2A_2k_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) {
+/*
+void masked_gadgets_B2A_2k_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) { //NOT USED
     unsigned int i,j;
     uint16_t t, k;
 
@@ -167,7 +168,7 @@ void masked_gadgets_B2A_2k_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MA
         r[MASKING_N - 1]->coeffs[j] = t - k;
     }
 }
-
+*/
 
 void masked_gadgets_B2A_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a) {
 #if (MASKING_N != 2)
