@@ -45,6 +45,9 @@ void poly_ntt(poly *r);
 #define poly_invntt KYBER_NAMESPACE(_poly_invntt)
 void poly_invntt(poly *r);
 
+#define poly_init_zeta KYBER_NAMESPACE(_poly_init_zeta)
+void poly_init_zeta();
+
 #define poly_basemul KYBER_NAMESPACE(_poly_basemul)
 void poly_basemul(poly *r, const poly *a, const poly *b);
 

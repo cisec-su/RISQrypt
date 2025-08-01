@@ -89,21 +89,7 @@ void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint
     masked_ptr ptr = {buf[0], buf[1]};
     unsigned int i;
     for (i = 0; i < KYBER_K; i++) {
-        // print_string("seed0: ");
-        // print_hex(seed[0], KYBER_SYMBYTES);
-        // print_string("\nseed1: ");
-        // print_hex(seed[1], KYBER_SYMBYTES);
-        // print_string("\n");        
         masked_prf(ptr, sizeof(buf) / MASKING_N, seed, (*nonce)++);
-        // if (i == 0) {
-        //     print_string("buf[0]: ");
-        //     print_hex(buf[0], 32, 0);
-        //     print_string("\n");
-        //     print_string("buf[1]: ");
-        //     print_hex(buf[1], 32, 0);
-        //     print_string("flag: \n");
-        //     unmask_and_print_bool(buf, 32);
-        // }
         masked_cbd_eta1_i(r, buf, i);
     }    
 }

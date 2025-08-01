@@ -149,6 +149,19 @@ int ntt_lite_load_twiddle(const uint32_t *psi) {
 }
 
 
+int ntt_lite_load_zeta(const uint32_t *zeta) {
+
+    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+        return -1;
+    }
+    NTT_LITE_REGS->din_addr = (uint32_t) zeta;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_ZETA;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    return 0;
+}
+
+
 static int ntt_lite_ntt_core(uint32_t *dst, const uint32_t *src, uint32_t op) {
 
     uint32_t cmd;

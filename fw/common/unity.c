@@ -539,9 +539,7 @@ static void UnityTestResultsFailBegin(const UNITY_LINE_TYPE line)
 {
     UnityTestResultsBegin(Unity.TestFile, line);
     UnityPrint(UnityStrFail);
-    UnityPrint("fail");
     UNITY_OUTPUT_CHAR(':');
-
 }
 
 /*-----------------------------------------------*/
