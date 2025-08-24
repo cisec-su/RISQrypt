@@ -16,6 +16,8 @@
 static const uint8_t test_msg[] = "Test Falcon";
 static const size_t test_msg_len = 11;
 
+// Global buffer for large temporary allocations
+static uint8_t tmp_buffer[2 * N * sizeof(uint16_t)];
 
 void test_to_ntt_monty() {
     uint16_t poly[N];
@@ -28,11 +30,11 @@ void test_to_ntt_monty() {
 
 void test_compute_public() {
     uint16_t h[N];
-    uint8_t tmp[N * sizeof(uint16_t)] = {0};
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
     int result;
     print_string("[TEST] compute_public... ");
     
-    result = Zf(compute_public)(h, test_f, test_g, LOGN, tmp);
+    result = Zf(compute_public)(h, test_f, test_g, LOGN, tmp_buffer);
     if (result) {
         if (memcmp(h, test_h, sizeof(h)) == 0) {
             print_string("PASS\n");
@@ -46,13 +48,12 @@ void test_compute_public() {
 
 void test_complete_private() {
     int8_t G[N];
-    uint8_t tmp[2 * N * sizeof(uint16_t)] = {0};
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
     int result;
     print_string("[TEST] complete_private... ");
     
-    result = Zf(complete_private)(G, test_f, test_g, test_F, LOGN, tmp);
+    result = Zf(complete_private)(G, test_f, test_g, test_F, LOGN, tmp_buffer);
     if (result) {
-
         if (memcmp(G, test_g, sizeof(G)) == 0) {
             print_string("PASS\n");
         } else {
@@ -64,11 +65,11 @@ void test_complete_private() {
 }
 
 void test_is_invertible() {
-    uint8_t tmp[N * sizeof(uint16_t)];
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
     int result;
     
     print_string("[TEST] is_invertible... ");
-    result = Zf(is_invertible)(test_s2, LOGN, tmp);
+    result = Zf(is_invertible)(test_s2, LOGN, tmp_buffer);
     if (result) {
         print_string("PASS\n");
     } else {
@@ -77,11 +78,11 @@ void test_is_invertible() {
 }
 
 void test_verify_raw() {
-    uint8_t tmp[2 * N * sizeof(uint16_t)] = {0};
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
     int result;
     print_string("[TEST] verify_raw... ");
     
-    result = Zf(verify_raw)(test_c0, test_s2, test_h, LOGN, tmp);
+    result = Zf(verify_raw)(test_c0, test_s2, test_h, LOGN, tmp_buffer);
     if (result) {
         print_string("PASS\n");
     } else {
@@ -91,27 +92,36 @@ void test_verify_raw() {
 
 void test_verify_recover() {
     uint16_t h[N];
-    uint8_t tmp[2 * N * sizeof(uint16_t)] = {0};
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
     int result;
     print_string("[TEST] verify_recover... ");
     
-    result = Zf(verify_recover)(h, test_c0, test_s1, test_s2, LOGN, tmp);
+    result = Zf(verify_recover)(h, test_c0, test_s1, test_s2, LOGN, tmp_buffer);
     if (result) {
-        print_string("PASS\n");
+        if (memcmp(h, test_h, sizeof(h)) == 0) {
+            print_string("PASS\n");
+        } else {
+            print_string("FAIL (output mismatch)\n");
+        }
     } else {
         print_string("FAIL\n");
     }
 }
 
 void test_count_nttzero() {
-    uint8_t tmp[N * sizeof(uint16_t)] = {0};
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
     int count;
     print_string("[TEST] count_nttzero... ");
-    count = Zf(count_nttzero)(test_s2, LOGN, tmp);
+    count = Zf(count_nttzero)(test_s2, LOGN, tmp_buffer);
     
     print_string("Count: ");
     print_u32(count);
-    print_string("\n");
+
+    if (count >= 0 && count <= N) {
+        print_string(" (PASS)\n");
+    } else {
+        print_string(" (FAIL - invalid count)\n");
+    }
 }
 
 int main() {
