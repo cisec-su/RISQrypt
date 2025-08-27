@@ -21,7 +21,7 @@ SRC += masked_symmetric.c
 SRC += ../common/unity.c
 
 
-INC = ../common
+INC = -I../common
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

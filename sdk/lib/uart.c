@@ -32,3 +32,17 @@ void uart_receive_string(char *data, size_t len)
         uart_receive_byte(data++);
     }
 }
+
+
+void uart_1_transmit_byte(const char data)
+{
+    while (((UART_1_REGS->status) & UART_TX_STATUS_V));
+    UART_1_REGS->tx = data;
+}
+
+
+void uart_1_receive_byte(char *data)
+{
+    while (!((UART_1_REGS->status) & UART_RX_STATUS_V));
+    *data = UART_1_REGS->rx;
+}

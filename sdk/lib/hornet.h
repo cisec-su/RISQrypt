@@ -20,6 +20,16 @@
 #define TIMER_REGS               ((timer_regs_t*) TIMER_BASE_ADDR)
 
 
+#include "gpio_regs.h"
+
+#define GPIO_BASE_ADDR           ((uint32_t) 0x10008020)
+#define GPIO_REGS                ((gpio_regs_t*) GPIO_BASE_ADDR)
+
+
+#define UART_1_BASE_ADDR          ((uint32_t) 0x10008030)
+#define UART_1_REGS               ((uart_regs_t*) UART_1_BASE_ADDR)
+
+
 #include "ntt_lite_regs.h"
 
 #define NTT_LITE_BASE_ADDR        ((uint32_t) 0x10040000)

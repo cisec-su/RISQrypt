@@ -2,10 +2,15 @@ module fpga_top(input M100_clk_i,
                 input reset_i,
                 input rx_i,
                 output tx_o,
-                output led1,led2,led4);
+                input rx_1_i,
+                output tx_1_o,
+                output clock_o,
+                output led1,led2,led4,
+                output [7:0] gpio_pins
+                );
 
 parameter SYS_CLK_FREQ = 25000000;
-parameter NUM_SLAVES = 8;
+parameter NUM_SLAVES = 10;
 parameter NUM_DMA_ACCS = 2;
 
 parameter ROM_START = 32'h0000_0000;
@@ -25,6 +30,12 @@ parameter RESET_END   = 32'h1000_8014;
 
 parameter TIMER_START = 32'h1000_8018;
 parameter TIMER_END   = 32'h1000_801F;
+
+parameter GPIO_START = 32'h1000_8020;
+parameter GPIO_END   = 32'h1000_802F;
+
+parameter UART_1_START = 32'h1000_8030;
+parameter UART_1_END   = 32'h1000_8033;
 
 parameter NTT_START =  32'h1004_0000;
 parameter NTT_END   =  32'h1004_001F;
@@ -52,6 +63,8 @@ clk_wiz_0 clkwiz0
 // Clock in ports
        .clk_in1(M100_clk_i)
 );
+
+assign clock_o = clk_i;
 
 //Wishbone master interface signals for core
 wire data_wb_cyc_o;
@@ -138,6 +151,12 @@ assign slave_adr_end[6] =   NTT_END;
 
 assign slave_adr_begin[7] = KECCAK_START;
 assign slave_adr_end[7] = KECCAK_END;
+
+assign slave_adr_begin[8] = GPIO_START;
+assign slave_adr_end[8] = GPIO_END;
+
+assign slave_adr_begin[9] = UART_1_START;
+assign slave_adr_end[9] = UART_1_END;
 
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
@@ -343,6 +362,26 @@ uart_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ), .BAUD(9600))
           .rx_byte_o(rx_byte),
           .rx_irq_o(rx_irq_o));
 
+
+uart_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ), .BAUD(9600))
+    uart1(.wb_cyc_i(wb_cyc_i[9]),
+          .wb_stb_i(wb_stb_i[9]),
+          .wb_we_i(wb_we_i[9]),
+          .wb_adr_i(wb_adr_i[9]),
+          .wb_dat_i(wb_dat_i[9]),
+          .wb_sel_i(wb_sel_i[9]),
+          .wb_stall_o(wb_stall_o[9]),
+          .wb_ack_o(wb_ack_o[9]),
+          .wb_dat_o(wb_dat_o[9]),
+          .wb_err_o(wb_err_o[9]),
+          .wb_rst_i(wb_rst_i[9]),
+          .wb_clk_i(wb_clk_i[9]),
+
+          .rx_i(rx_1_i),
+          .tx_o(tx_1_o));
+
+
+
 loader_wb #(.SYS_CLK_FREQ(SYS_CLK_FREQ))
     loader0(.wb_cyc_i(wb_cyc_i[4]),
             .wb_stb_i(wb_stb_i[4]),
@@ -376,6 +415,27 @@ timer_wb #(.BASE_ADDR(TIMER_START))
            .wb_err_o(wb_err_o[5]),
            .wb_rst_i(wb_rst_i[5]),
            .wb_clk_i(wb_clk_i[5]));
+
+
+wb_gpio #(
+    .BASE_ADDR(GPIO_START),
+    .width(8)
+) gpio_inst (
+    .gpio(gpio_pins), // Connect as needed, e.g., .gpio(gpio_pins)
+    .wb_cyc_i(wb_cyc_i[8]),
+    .wb_stb_i(wb_stb_i[8]),
+    .wb_we_i(wb_we_i[8]),
+    .wb_adr_i(wb_adr_i[8]),
+    .wb_dat_i(wb_dat_i[8]),
+    .wb_sel_i(wb_sel_i[8]),
+    .wb_stall_o(wb_stall_o[8]),
+    .wb_ack_o(wb_ack_o[8]),
+    .wb_dat_o(wb_dat_o[8]),
+    .wb_err_o(wb_err_o[8]),
+    .wb_rst_i(wb_rst_i[8]),
+    .wb_clk_i(wb_clk_i[8])
+);
+
 
 
 ntt_lite_acc_top #(.BASE_ADDR(NTT_START))
