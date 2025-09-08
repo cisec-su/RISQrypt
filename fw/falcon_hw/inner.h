@@ -236,7 +236,7 @@
 	&& (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25))) \
 	|| (defined __FreeBSD__ && __FreeBSD__ >= 12) \
 	|| defined __OpenBSD__
-#define FALCON_RAND_GETENTROPY   1
+#define FALCON_RAND_GETENTROPY   0
 #else
 #define FALCON_RAND_GETENTROPY   0
 #endif

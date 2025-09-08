@@ -30,7 +30,7 @@
  */
 
 #include "inner.h"
-
+#include <stdio.h>
 #define MKN(logn)   ((size_t)1 << (logn))
 
 /* ==================================================================== */
@@ -4284,6 +4284,41 @@ Zf(keygen)(inner_shake256_context *rng,
 		if (!Zf(compute_public)(h2, f, g, logn, (uint8_t *)tmp2)) {
 			continue;
 		}
+
+		/*
+		* Compute public key - dump test vectors
+		*/
+		printf("/* Generated compute_public test vectors from pqm4.c */\n");
+		printf("/* Zf(compute_public)(h2, f, g, logn, (uint8_t *)tmp2) */\n\n");
+		printf("#ifndef FALCON_COMPUTE_PUBLIC_VECTORS_H\n");
+		printf("#define FALCON_COMPUTE_PUBLIC_VECTORS_H\n\n");
+		printf("#include <stdint.h>\n\n");
+
+		// Input: f polynomial
+		printf("const int8_t compute_public_f[%zu] = {\n", (size_t)(1 << logn));
+		for (size_t i = 0; i < (1 << logn); i++) {
+			printf(" %d", (int8_t)f[i]);
+			if (i < (1 << logn) - 1) printf(",");
+		}
+		printf("};\n\n");
+
+		// Input: g polynomial
+		printf("const int8_t compute_public_g[%zu] = {\n", (size_t)(1 << logn));
+		for (size_t i = 0; i < (1 << logn); i++) {
+			printf(" %d", (int8_t)g[i]);
+			if (i < (1 << logn) - 1) printf(",");
+		}
+		printf("};\n\n");
+
+		// Output: h2 polynomial (computed public key)
+		printf("const uint16_t compute_public_h2[%zu] = {\n", (size_t)(1 << logn));
+		for (size_t i = 0; i < (1 << logn); i++) {
+			printf(" %u", (unsigned)h2[i]);
+			if (i < (1 << logn) - 1) printf(",");
+		}
+		printf("};\n\n");
+
+		printf("#endif /* FALCON_COMPUTE_PUBLIC_VECTORS_H */\n");
 
 		/*
 		 * Solve the NTRU equation to get F and G.

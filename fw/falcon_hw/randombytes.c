@@ -1,29 +1,128 @@
-#include "stdint.h"
+// SPDX-License-Identifier: Apache-2.0 or CC0-1.0
 #include "randombytes.h"
 
+#if defined(STM32F2) || defined(STM32F4) || defined(STM32L4R5ZI) && !defined(MPS2_AN386)
 
-// 48 byte seed
-static const unsigned char seed[48] = {
-    0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,
-    0x90, 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0, 0x00,
-    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
-    0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x01,
-    0x13, 0x26, 0x39, 0x4C, 0x5F, 0x72, 0x85, 0x98,
-    0xAB, 0xBE, 0xD1, 0xE4, 0xF7, 0x0A, 0x1D, 0x2F
-};
+#include <libopencm3/stm32/rng.h>
 
-int randombytes(unsigned char *x, unsigned long long xlen) {
-    for (int i = 0; i < xlen; i++) {
-        x[i] = seed[i % 48];
+//TODO Maybe we do not want to use the hardware RNG for all randomness, but instead only read a seed and then expand that using fips202.
+
+int randombytes(uint8_t *obuf, size_t len)
+{
+    union
+    {
+        unsigned char aschar[4];
+        uint32_t asint;
+    } random;
+
+    while (len > 4)
+    {
+        random.asint = rng_get_random_blocking();
+        *obuf++ = random.aschar[0];
+        *obuf++ = random.aschar[1];
+        *obuf++ = random.aschar[2];
+        *obuf++ = random.aschar[3];
+        len -= 4;
     }
+    if (len > 0)
+    {
+        for (random.asint = rng_get_random_blocking(); len > 0; --len)
+        {
+            *obuf++ = random.aschar[len - 1];
+        }
+    }
+
     return 0;
 }
 
-static int t = 0;
+#else /* NONRANDOM FALLBACK IMPLEMENTATION */
+//#warning Using a non-random randombytes
 
-uint16_t rand16() {
-    uint16_t temp = ((uint16_t*) seed)[t];
-    t += 1;
-    if (t == 24) t = 0;  // 48 / 2 = 24
-    return temp;
+#include <string.h>
+
+static uint32_t seed[32] = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3,
+                            2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5};
+static uint32_t in[12];
+static uint8_t out_buf[sizeof(uint32_t) * 16];
+static int32_t outleft = 0;
+
+#define ROTATE(x, b) (((x) << (b)) | ((x) >> (32 - (b))))
+#define MUSH(i, b) x = t[i] += (((x ^ seed[i]) + sum) ^ ROTATE(x, b));
+
+static void surf(uint32_t out[8])
+{
+  uint32_t t[12];
+  uint32_t x;
+  uint32_t sum = 0;
+  int32_t r;
+  int32_t i;
+  int32_t loop;
+
+  for (i = 0; i < 12; ++i) {
+    t[i] = in[i] ^ seed[12 + i];
+  }
+  for (i = 0; i < 8; ++i) {
+    out[i] = seed[24 + i];
+  }
+  x = t[11];
+  for (loop = 0; loop < 2; ++loop) {
+    for (r = 0; r < 16; ++r) {
+      sum += 0x9e3779b9;
+      MUSH(0, 5)
+      MUSH(1, 7)
+      MUSH(2, 9)
+      MUSH(3, 13)
+      MUSH(4, 5)
+      MUSH(5, 7)
+      MUSH(6, 9)
+      MUSH(7, 13)
+      MUSH(8, 5)
+      MUSH(9, 7)
+      MUSH(10, 9)
+      MUSH(11, 13)
+    }
+    for (i = 0; i < 8; ++i) {
+      out[i] ^= t[i + 4];
+    }
+  }
 }
+
+void randombytes_regen(void);
+void randombytes_regen(void)
+{
+  uint32_t out[8];
+  if (!++in[0]) {
+    if (!++in[1]) {
+      if (!++in[2]) {
+        ++in[3];
+      }
+    }
+  }
+  surf(out);
+  memcpy(out_buf, out, sizeof(out));
+  if (!++in[0]) {
+    if (!++in[1]) {
+      if (!++in[2]) {
+        ++in[3];
+      }
+    }
+  }
+  surf(out);
+  memcpy(out_buf + sizeof(out), out, sizeof(out));
+  outleft = sizeof(out_buf);
+}
+
+int randombytes(uint8_t* buf, size_t xlen)
+{
+  while (xlen > 0) {
+    if (!outleft) {
+      randombytes_regen();
+    }
+    *buf = out_buf[--outleft];
+    ++buf;
+    --xlen;
+  }
+  return 0;
+}
+
+#endif
