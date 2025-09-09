@@ -180,7 +180,8 @@ void test_verify_recover() {
     int result;
     print_string("[TEST] verify_recover... ");
 
-    result = Zf(verify_recover)(h, verify_raw_hm, verify_raw_sig, verify_raw_sig + N, LOGN, tmp_buffer);
+    result = Zf(verify_recover)(h, verify_raw_hm, verify_recover_s1, verify_raw_sig, LOGN, tmp_buffer);
+    Zf(to_ntt_monty)(h, LOGN);
     if (result) {
         if (memcmp(h, verify_raw_h, sizeof(h)) == 0) {
             print_string("PASS\n");
