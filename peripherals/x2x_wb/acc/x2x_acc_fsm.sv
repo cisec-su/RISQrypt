@@ -437,16 +437,16 @@ always @(*) begin
             end
         end
         
-        x2x_valid_data = 1;
+        x2x_valid_data = rnd_ready;
         x2x_ready_result = 1;
-        if(x2x_ready_data)
+        if(x2x_ready_data & rnd_ready)
             ctr_block_r_inc = 1;
         
         if(ctrl_one_bit_mode)
         begin
             if(ctrl_dual_mode)
             begin
-                if(ctr_block_r == ((BURST_LEN << 1)- 1))
+                if((ctr_block_r == ((BURST_LEN << 1)- 1))& rnd_ready)
                 begin
                     fsm_next_state = ST_MASK_WAIT;
                     ctr_block_r_rst = 1;
@@ -454,7 +454,7 @@ always @(*) begin
             end
             else
             begin
-                if(ctr_block_r == (BURST_LEN - 1))
+                if((ctr_block_r == (BURST_LEN - 1))& rnd_ready)
                 begin
                     fsm_next_state = ST_MASK_WAIT;
                     ctr_block_r_rst = 1;
@@ -463,7 +463,7 @@ always @(*) begin
         end
         else
         begin 
-            if(ctr_block_r == (BURST_LEN - 1))
+            if((ctr_block_r == (BURST_LEN - 1))& rnd_ready)
             begin
                 fsm_next_state = ST_MASK_WAIT;
                 ctr_block_r_rst = 1;
