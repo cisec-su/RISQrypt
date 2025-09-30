@@ -9,7 +9,7 @@ module fpga_top(input M100_clk_i,
                 output [7:0] gpio_pins
                 );
 
-parameter SYS_CLK_FREQ = 25000000;
+parameter SYS_CLK_FREQ = 7372790;
 parameter NUM_SLAVES = 10;
 parameter NUM_DMA_ACCS = 2;
 
@@ -275,7 +275,7 @@ core_wb #(.reset_vector(ROM_START))
           .fast_irq_i({15'b0,rx_irq_o}),
           .irq_ack_o(irq_ack_o));
 
-memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
+memory_2rw_wb/*_dma*/ #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
     memory(.port0_wb_cyc_i(wb_cyc_i[0]),
            .port0_wb_stb_i(wb_stb_i[0]),
            .port0_wb_we_i(wb_we_i[0]),
@@ -300,31 +300,31 @@ memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
            .port1_wb_dat_o(wb_dat_o[1]),
            .port1_wb_err_o(wb_err_o[1]),
            .port1_wb_rst_i(wb_rst_i[1]),
-           .port1_wb_clk_i(wb_clk_i[1]),
+           .port1_wb_clk_i(wb_clk_i[1])//,
            
-           .dma_cyc_i_0(dma_cyc_i[0]),
-           .dma_stb_i_0(dma_stb_i[0]),
-           .dma_we_i_0(dma_we_i[0]),
-           .dma_adr_i_0(dma_adr_i[0]),
-           .dma_dat_i_0(dma_dat_i[0]),
-           .dma_sel_i_0(dma_sel_i[0]),
-           .dma_stall_o_0(dma_stall_o[0]),
-           .dma_ack_o_0(dma_ack_o[0]),
-           .dma_dat_o_0(dma_dat_o[0]),
-           .dma_err_o_0(dma_err_o[0]),
-           .dma_rst_i_0(dma_rst_i[0]),
+        //    .dma_cyc_i_0(dma_cyc_i[0]),
+        //    .dma_stb_i_0(dma_stb_i[0]),
+        //    .dma_we_i_0(dma_we_i[0]),
+        //    .dma_adr_i_0(dma_adr_i[0]),
+        //    .dma_dat_i_0(dma_dat_i[0]),
+        //    .dma_sel_i_0(dma_sel_i[0]),
+        //    .dma_stall_o_0(dma_stall_o[0]),
+        //    .dma_ack_o_0(dma_ack_o[0]),
+        //    .dma_dat_o_0(dma_dat_o[0]),
+        //    .dma_err_o_0(dma_err_o[0]),
+        //    .dma_rst_i_0(dma_rst_i[0]),
            
-           .dma_cyc_i_1(dma_cyc_i[1]),
-           .dma_stb_i_1(dma_stb_i[1]),
-           .dma_we_i_1(dma_we_i[1]),
-           .dma_adr_i_1(dma_adr_i[1]),
-           .dma_dat_i_1(dma_dat_i[1]),
-           .dma_sel_i_1(dma_sel_i[1]),
-           .dma_stall_o_1(dma_stall_o[1]),
-           .dma_ack_o_1(dma_ack_o[1]),
-           .dma_dat_o_1(dma_dat_o[1]),
-           .dma_err_o_1(dma_err_o[1]),
-           .dma_rst_i_1(dma_rst_i[1])
+        //    .dma_cyc_i_1(dma_cyc_i[1]),
+        //    .dma_stb_i_1(dma_stb_i[1]),
+        //    .dma_we_i_1(dma_we_i[1]),
+        //    .dma_adr_i_1(dma_adr_i[1]),
+        //    .dma_dat_i_1(dma_dat_i[1]),
+        //    .dma_sel_i_1(dma_sel_i[1]),
+        //    .dma_stall_o_1(dma_stall_o[1]),
+        //    .dma_ack_o_1(dma_ack_o[1]),
+        //    .dma_dat_o_1(dma_dat_o[1]),
+        //    .dma_err_o_1(dma_err_o[1]),
+        //    .dma_rst_i_1(dma_rst_i[1])
            );
 
 mtime_registers_wb #(.mtime_adr(MTIME_START),
@@ -438,61 +438,61 @@ wb_gpio #(
 
 
 
-ntt_lite_acc_top #(.BASE_ADDR(NTT_START))
-    ntt_lite_acc_top_inst (
-            .wb_cyc_i(wb_cyc_i[6]),
-            .wb_stb_i(wb_stb_i[6]),
-            .wb_we_i(wb_we_i[6]),
-            .wb_adr_i(wb_adr_i[6]),
-            .wb_dat_i(wb_dat_i[6]),
-            .wb_sel_i(wb_sel_i[6]),
-            .wb_stall_o(wb_stall_o[6]),
-            .wb_ack_o(wb_ack_o[6]),
-            .wb_dat_o(wb_dat_o[6]),
-            .wb_err_o(wb_err_o[6]),
-            .wb_rst_i(wb_rst_i[6]),
-            .wb_clk_i(wb_clk_i[6]),
+// ntt_lite_acc_top #(.BASE_ADDR(NTT_START))
+//     ntt_lite_acc_top_inst (
+//             .wb_cyc_i(wb_cyc_i[6]),
+//             .wb_stb_i(wb_stb_i[6]),
+//             .wb_we_i(wb_we_i[6]),
+//             .wb_adr_i(wb_adr_i[6]),
+//             .wb_dat_i(wb_dat_i[6]),
+//             .wb_sel_i(wb_sel_i[6]),
+//             .wb_stall_o(wb_stall_o[6]),
+//             .wb_ack_o(wb_ack_o[6]),
+//             .wb_dat_o(wb_dat_o[6]),
+//             .wb_err_o(wb_err_o[6]),
+//             .wb_rst_i(wb_rst_i[6]),
+//             .wb_clk_i(wb_clk_i[6]),
             
-            .dma_cyc_i(dma_cyc_i[0]),
-            .dma_stb_i(dma_stb_i[0]),
-            .dma_we_i(dma_we_i[0]),
-            .dma_adr_i(dma_adr_i[0]),
-            .dma_dat_i(dma_dat_i[0]),
-            .dma_sel_i(dma_sel_i[0]),
-            .dma_stall_o(dma_stall_o[0]),
-            .dma_ack_o(dma_ack_o[0]),
-            .dma_dat_o(dma_dat_o[0]),
-            .dma_err_o(dma_err_o[0]),
-            .dma_rst_i(dma_rst_i[0])
-            );
+//             .dma_cyc_i(dma_cyc_i[0]),
+//             .dma_stb_i(dma_stb_i[0]),
+//             .dma_we_i(dma_we_i[0]),
+//             .dma_adr_i(dma_adr_i[0]),
+//             .dma_dat_i(dma_dat_i[0]),
+//             .dma_sel_i(dma_sel_i[0]),
+//             .dma_stall_o(dma_stall_o[0]),
+//             .dma_ack_o(dma_ack_o[0]),
+//             .dma_dat_o(dma_dat_o[0]),
+//             .dma_err_o(dma_err_o[0]),
+//             .dma_rst_i(dma_rst_i[0])
+//             );
 
 
-keccak_acc_top #(.BASE_ADDR(KECCAK_START))
-    keccak_acc_top_inst (
-            .wb_cyc_i(wb_cyc_i[7]),
-            .wb_stb_i(wb_stb_i[7]),
-            .wb_we_i(wb_we_i[7]),
-            .wb_adr_i(wb_adr_i[7]),
-            .wb_dat_i(wb_dat_i[7]),
-            .wb_sel_i(wb_sel_i[7]),
-            .wb_stall_o(wb_stall_o[7]),
-            .wb_ack_o(wb_ack_o[7]),
-            .wb_dat_o(wb_dat_o[7]),
-            .wb_err_o(wb_err_o[7]),
-            .wb_rst_i(wb_rst_i[7]),
-            .wb_clk_i(wb_clk_i[7]),
+// keccak_acc_top #(.BASE_ADDR(KECCAK_START))
+//     keccak_acc_top_inst (
+//             .wb_cyc_i(wb_cyc_i[7]),
+//             .wb_stb_i(wb_stb_i[7]),
+//             .wb_we_i(wb_we_i[7]),
+//             .wb_adr_i(wb_adr_i[7]),
+//             .wb_dat_i(wb_dat_i[7]),
+//             .wb_sel_i(wb_sel_i[7]),
+//             .wb_stall_o(wb_stall_o[7]),
+//             .wb_ack_o(wb_ack_o[7]),
+//             .wb_dat_o(wb_dat_o[7]),
+//             .wb_err_o(wb_err_o[7]),
+//             .wb_rst_i(wb_rst_i[7]),
+//             .wb_clk_i(wb_clk_i[7]),
             
-            .dma_cyc_i(dma_cyc_i[1]),
-            .dma_stb_i(dma_stb_i[1]),
-            .dma_we_i(dma_we_i[1]),
-            .dma_adr_i(dma_adr_i[1]),
-            .dma_dat_i(dma_dat_i[1]),
-            .dma_sel_i(dma_sel_i[1]),
-            .dma_stall_o(dma_stall_o[1]),
-            .dma_ack_o(dma_ack_o[1]),
-            .dma_dat_o(dma_dat_o[1]),
-            .dma_err_o(dma_err_o[1]),
-            .dma_rst_i(dma_rst_i[1])
-            );
+//             .dma_cyc_i(dma_cyc_i[1]),
+//             .dma_stb_i(dma_stb_i[1]),
+//             .dma_we_i(dma_we_i[1]),
+//             .dma_adr_i(dma_adr_i[1]),
+//             .dma_dat_i(dma_dat_i[1]),
+//             .dma_sel_i(dma_sel_i[1]),
+//             .dma_stall_o(dma_stall_o[1]),
+//             .dma_ack_o(dma_ack_o[1]),
+//             .dma_dat_o(dma_dat_o[1]),
+//             .dma_err_o(dma_err_o[1]),
+//             .dma_rst_i(dma_rst_i[1])
+//             );
 
 endmodule

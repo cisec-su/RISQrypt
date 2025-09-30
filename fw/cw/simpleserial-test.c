@@ -18,6 +18,7 @@
 
 #include "simpleserial.h"
 #include "gpio.h"
+#include "timer.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -39,21 +40,27 @@ uint8_t get_key(uint8_t* k, uint8_t len)
 uint8_t get_pt(uint8_t* pt, uint8_t len)
 {
     // print_string("Setting Plaintext\n");
-
+    uint32_t time;
 
     gpio_write(7, 1);
+    // timer_start();
+
+	// for (uint8_t i = 0; i < 16; i++) {
+	// 	ct[i] = 0;
+	// }
 
 	for (uint8_t i = 0; i < 16; i++) {
+		ct[i] = pt[i] + key[i];
 		ct[i] = 0;
-	}
-
-	for (uint8_t i = 0; i < 16; i++) {
-		ct[i] = pt[i] * key[i];
-	}
-
-	for (uint8_t i = 0; i < 16; i++) {
+		ct[i] = pt[i] + key[i];
 		ct[i] = 0;
-	}
+		ct[i] = pt[i] + key[i];
+    }
+
+    // time = timer_read();
+    // print_string("Time: ");
+    // print_u32(time);
+    // print_string("\n");
 
     gpio_write(7, 0);
 
