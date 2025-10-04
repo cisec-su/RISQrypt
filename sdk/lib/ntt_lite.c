@@ -31,9 +31,7 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, u
 
     NTT_LITE_REGS->q = q;
     NTT_LITE_REGS->mu[0] = mu[0];
-    if (mode == NTT_LITE_MODE_SINGLE) {
-        NTT_LITE_REGS->mu[1] = mu[1];
-    }
+    NTT_LITE_REGS->mu[1] = mu[1];
 
     NTT_LITE_REGS->inv2 = inv2;
 

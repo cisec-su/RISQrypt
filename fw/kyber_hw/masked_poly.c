@@ -11,8 +11,8 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
 
     unsigned int i;
     const uint32_t q_half_ceil_dual = (((KYBER_Q >> 1) + 1) << 16) | ((KYBER_Q >> 1) + 1);
-    const uint32_t q = KYBER_Q;
-    const uint32_t mu = 0x13afb7; 
+    const uint32_t q = (KYBER_Q << 16) | KYBER_Q;
+    const uint32_t mu[2] = {0x13afb7, 0x13afb7};
     
     for (i = 0; i < MASKING_N; i++) {
         ntt_lite_decode((uint32_t*) &a->share[i], (uint32_t*) msg[i], 1);
@@ -20,7 +20,7 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
 
     masked_gadgets_B2A_q(a, a);
 
-    ntt_lite_load_q(q, &mu, 7, 12, 0, NTT_LITE_MODE_DUAL);  
+    ntt_lite_load_q(q, mu, 7, 12, 0, NTT_LITE_MODE_DUAL);
 
     ntt_lite_set_bound(q_half_ceil_dual);
 
@@ -40,7 +40,7 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     unsigned int i;
     const uint32_t q = KYBER_Q << 1;
     const uint32_t mu[2] = {0xb405d82a, 0x9d7db};
-    const uint32_t inv2 = 0x681;
+    const uint32_t inv2 = 0x6810681;
     const uint32_t alpha = 12 + LOG_MASKING_N;
     const uint32_t alpha_shift = (1 << (alpha));
     const uint32_t alpha_m1_shift = (1 << (alpha - 1));
@@ -72,9 +72,9 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
 
     ntt_lite_load_q(alpha_shift, mu, 8, 32, inv2, NTT_LITE_MODE_SINGLE);
     ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) b, d);
-    ntt_lite_decompress_floor(t, NTT_LITE_INPUT_DIS, 0);
+    ntt_lite_decompress_floor(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 0);
     ntt_lite_load_q((1 << d_), mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
-    ntt_lite_sub((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs, (uint32_t*) t);
+    ntt_lite_sub_rev((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs);
 
     masked_gadgets_A2B_2k_u32(&mpu32, &mpu32, (1 << d_) - 1);
 
@@ -107,11 +107,12 @@ void masked_poly_sub_tomsg(masked_msg msg, const poly *a, masked_poly *b) {
 #error "This implementation requires MASKING_N = 2"
 #endif
     unsigned int i;
-    const uint32_t q = KYBER_Q << 1;
-    const uint32_t mu = 0x9d7db;
+    const uint32_t q = ((KYBER_Q << 1) << 16) | (KYBER_Q << 1);
+    const uint32_t mu[2] = {0x9d7db, 0x9d7db};
     const uint32_t alpha = 12 + LOG_MASKING_N;
     const uint32_t alpha_dual = ((1 << (alpha - 1)) << 16) | (1 << (alpha - 1));
     const uint32_t d_ = alpha + 2; // alpha + d + 1
+    const uint32_t d_dual = ((1 << d_) << 16) | (1 << d_);
     uint32_t *dst;
     
 
@@ -132,17 +133,17 @@ void masked_poly_sub_tomsg(masked_msg msg, const poly *a, masked_poly *b) {
         else {
             ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) b->share[i].coeffs, NTT_LITE_INPUT_DIS);
         }
-        ntt_lite_load_q(q, &mu, 7, 13, 0, NTT_LITE_MODE_POLY);
+        ntt_lite_load_q(q, mu, 7, 13, 0, NTT_LITE_MODE_POLY);
         ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
     }
 
     ntt_lite_set_bound(alpha_dual);
-    ntt_lite_load_q((1 << d_), &mu, 7, 13, 0, NTT_LITE_MODE_POLY);
+    ntt_lite_load_q(d_dual, mu, 7, 13, 0, NTT_LITE_MODE_POLY);
     ntt_lite_add_const((uint32_t*) b->share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
 
     masked_gadgets_A2B_2k(b, b, (1 << d_) - 1);
 
-    ntt_lite_load_q(1, &mu, 7, 1, 0, NTT_LITE_MODE_POLY);
+    ntt_lite_load_q(0x10001, mu, 7, 1, 0, NTT_LITE_MODE_POLY);
 
     for (i = 0; i < MASKING_N; i++) {
         ntt_lite_decompress_floor(NTT_LITE_OUTPUT_DIS, (uint32_t*) b->share[i].coeffs, alpha);
