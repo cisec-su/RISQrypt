@@ -7,6 +7,7 @@
 #include "kem.h"
 #include "masked_poly.h"
 #include "masked_cbd.h"
+#include "masked_gadgets.h"
 #include "masked_indcpa.h"
 #include "unity.h"
 #include "unity_internals.h"
@@ -150,6 +151,7 @@ void test_masked_poly_msg() {
 
 
     poly_init_q();
+    masked_gadgets_init_q();
 
     BENCH_START()
 
@@ -222,7 +224,7 @@ void test_masked_poly_compress() {
 
     BENCH_START() 
 
-    masked_poly_sub_compress_du(mpoly_ptr_dst, mpoly_ptr_src, b);
+    masked_poly_sub_compress_du(mpoly_ptr_dst, mpoly_ptr_src, b, 1);
 
 	BENCH_END(MASKED_POLY_SUB_COMPRESS_DU)
 

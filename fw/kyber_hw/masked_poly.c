@@ -35,7 +35,7 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
 /* https://eprint.iacr.org/2022/158: Algorithm 15
  * Distinctively, we use mod c+alpha+1 during decompress.
  */
-static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const uint8_t *b, uint32_t d) {
+static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const uint8_t *b, uint32_t d, int init_a2b) {
 
     unsigned int i;
     const uint32_t q = KYBER_Q << 1;
@@ -75,7 +75,10 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     ntt_lite_set_q(1 << d_);
     ntt_lite_sub_rev((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs);
 
-    masked_gadgets_A2B_2k_u32(&mpu32, &mpu32, (1 << d_) - 1);
+    if (init_a2b) {
+        masked_gadgets_init_2k_u32((1 << d_) - 1);
+    }
+    masked_gadgets_A2B_2k_u32(&mpu32, &mpu32);
 
     ntt_lite_set_q(1);
     ntt_lite_set_ctrl(8, d, NTT_LITE_MODE_SINGLE);
@@ -89,12 +92,12 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
 void masked_poly_sub_compress(masked_poly_u32 *r, const masked_poly *a, const uint8_t *b) {
     poly_u32 *r_[MASKING_N] = {&r->share[0], &r->share[1]};
     const poly *a_[MASKING_N] = {&a->share[0], &a->share[1]};
-    masked_poly_sub_compress_core(r_, a_, b, KYBER_DV);
+    masked_poly_sub_compress_core(r_, a_, b, KYBER_DV, 1);
 }
 
 
-void masked_poly_sub_compress_du(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const uint8_t *b) {
-    masked_poly_sub_compress_core(r, a, b, KYBER_DU);
+void masked_poly_sub_compress_du(poly_u32 *r[MASKING_N], const poly *a[MASKING_N], const uint8_t *b, int init_a2b) {
+    masked_poly_sub_compress_core(r, a, b, KYBER_DU, init_a2b);
 }
 
 
@@ -144,7 +147,8 @@ void masked_poly_sub_tomsg(masked_msg msg, const poly *a, masked_poly *b) {
     ntt_lite_set_q(d_dual);
     ntt_lite_add_const((uint32_t*) b->share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
 
-    masked_gadgets_A2B_2k(b, b, (1 << d_) - 1);
+    masked_gadgets_init_2k((1 << d_) - 1);
+    masked_gadgets_A2B_2k(b, b);
 
     ntt_lite_set_q(0x10001);
     ntt_lite_set_ctrl(7, 1, NTT_LITE_MODE_POLY);

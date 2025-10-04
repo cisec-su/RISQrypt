@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 
-#define KECCAK_MASK_DIS ((uint32_t) 0x0)
 #define KECCAK_MASK_EN  ((uint32_t) 0x1)
+#define KECCAK_MASK_DIS ((uint32_t) 0x0)
 #define KECCAK_NULL_PAD_WORD  ((uint32_t*) 0x0)
 
 

@@ -26,9 +26,7 @@ void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a
 #define masked_polyvec_sub_compress KYBER_NAMESPACE(_masked_polyvec_sub_compress)
 void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a, const uint8_t *b);
 
-void masked_polyvec_mask(masked_polyvec *r, polyvec *a);
-
-void masked_polyvec_unmask(polyvec *r, masked_polyvec *a);
+void masked_polyvec_mask(masked_polyvec *r, const polyvec *a);
 
 #define masked_polyvec_getnoise_eta1 KYBER_NAMESPACE(_masked_polyvec_getnoise_eta1)
 void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);

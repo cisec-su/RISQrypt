@@ -53,24 +53,14 @@ void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a,
         a_[1] = &(a->share[1].vec[i]);
         r_[0] = &(r->share[0].vec[i]);
         r_[1] = &(r->share[1].vec[i]);
-        masked_poly_sub_compress_du(r_, a_, b + (i * (KYBER_POLYVECCOMPRESSEDBYTES / 3)));
+        masked_poly_sub_compress_du(r_, a_, b + (i * (KYBER_POLYVECCOMPRESSEDBYTES / 3)), i == 0);
     }
 }
 
 
 
-void masked_polyvec_mask(masked_polyvec *r, polyvec *a) {//TODO
-    unsigned int i, j, k;
-    uint16_t t;
-    unsigned int len = 8;
-
-    uint32_t modulus = 3329;
-    uint32_t log_modulus = 12;
-    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
-
-    for(k = 0; k < KYBER_K; k++) {
-        x2x_a_share(r->share[1].vec[k].coeffs, r->share[0].vec[k].coeffs, a->vec[k].coeffs, 128);
-    }
+void masked_polyvec_mask(masked_polyvec *r, const polyvec *a) {
+    masked_gadgets_mask_polyvec(r, a);
 }
 
 

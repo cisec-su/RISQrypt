@@ -143,15 +143,17 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
     }
 
     // modulus switching from q to 2^32
+    masked_gadgets_init_q();
     masked_gadgets_A2B_q_ptr(&temp, ptr);
-    masked_gadgets_B2A_2k(&temp, &temp, 0xFFFFFFFF);
+    masked_gadgets_init_2k(0xFFFFFFFF);
+    masked_gadgets_B2A_2k(&temp, &temp);
 
     ntt_lite_set_q(0);
     ntt_lite_set_bound(B2);
 
     ntt_lite_sub_const((uint32_t*) &temp.share[0].coeffs, (uint32_t*) &temp.share[0].coeffs, NTT_LITE_INPUT_DIS);
     
-    masked_gadgets_A2B_2k(&temp, &temp, 0xFFFFFFFF);
+    masked_gadgets_A2B_2k(&temp, &temp);
 
     ntt_lite_set_q(1);
     for (i = 0; i < MASKING_N; i++) {

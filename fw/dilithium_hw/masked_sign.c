@@ -4,6 +4,7 @@
 #include "masked_packing.h"
 #include "masked_polyvec.h"
 #include "masked_poly.h"
+#include "masked_gadgets.h"
 #include "randombytes.h"
 #include "masked_symmetric.h"
 
@@ -62,6 +63,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
 
 rej:
     /* Sample intermediate vector y */
+    masked_gadgets_init_q();
     masked_polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
     /* Matrix-vector multiplication */ 

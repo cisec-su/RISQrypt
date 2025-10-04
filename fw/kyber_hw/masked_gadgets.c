@@ -7,117 +7,52 @@
 #include "util.h"
 
 
-void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p) { //DONE
-    unsigned int i,j;
-    uint16_t t, k;
-    
-    uint32_t modulus = p+1;
-    uint32_t log_modulus = 15;//check it -- 15 or 16?
-    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
-    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
-    x2x_a2b(r->share[1].coeffs, r->share[0].coeffs, a->share[1].coeffs, a->share[0].coeffs, 128);
-    
-    /*print_u32(p);
-    print_u32_arr(a->share[0].coeffs,8);
-    print_u32_arr(a->share[1].coeffs,8);
-    for(j = 0; j < KYBER_N; j++) {
-        t = 0;
-        k = 0;
-        for(i = 0; i < MASKING_N - 1; i++) {
-            r->share[i].coeffs[j] = a->share[i].coeffs[j];
-            t = t + a->share[i].coeffs[j];
-            k = k ^ a->share[i].coeffs[j];
-            t = t & p;
-        }
-        t = t + a->share[MASKING_N - 1].coeffs[j];
-        t = t & p;
-        r->share[MASKING_N - 1].coeffs[j] = k ^ t;        
+void masked_gadgets_init_q() {
+    x2x_set_modulus(KYBER_Q, 12, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+}
+
+
+void masked_gadgets_mask_polyvec(masked_polyvec *r, const polyvec *a) {
+    unsigned int k;
+
+    for(k = 0; k < KYBER_K; k++) {
+        x2x_a_share((uint32_t*) r->share[1].vec[k].coeffs, (uint32_t*) r->share[0].vec[k].coeffs, (uint32_t*) a->vec[k].coeffs, KYBER_N >> 1);
     }
-    print_u32_arr(r->share[0].coeffs,8);
-    print_u32_arr(r->share[1].coeffs,8);*/
 }
 
 
-void masked_gadgets_A2B_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a, uint32_t p) { // PASS  
-    unsigned int i,j;
-    uint32_t t, k;
-
-    /*print_u32(p);
-    print_u32_arr(a->share[0].coeffs,4);
-    print_u32_arr(a->share[1].coeffs,4);*/
-    
-
-    uint32_t modulus = p+1;
-    uint32_t log_modulus = 0;//check it -- 15 or 16?
-    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
-    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
-    x2x_a2b(r->share[1].coeffs, r->share[0].coeffs, a->share[1].coeffs, a->share[0].coeffs, 256);
-
-    
-    /*for(j = 0; j < KYBER_N; j++) {
-        t = 0;
-        k = 0;
-        for(i = 0; i < MASKING_N - 1; i++) {
-            r->share[i].coeffs[j] = a->share[i].coeffs[j];
-            t = t + a->share[i].coeffs[j];
-            k = k ^ a->share[i].coeffs[j];
-            t = t & p;
-        }
-        t = t + a->share[MASKING_N - 1].coeffs[j];
-        t = t & p;
-        r->share[MASKING_N - 1].coeffs[j] = k ^ t;        
-    }*/
-    /*print_u32_arr(r->share[0].coeffs,4);
-    print_u32_arr(r->share[1].coeffs,4);*/
+void masked_gadgets_init_2k(uint32_t p) {
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
 }
 
 
-void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) { //DONE
-       
-    uint32_t modulus = 3329;
-    uint32_t log_modulus = 12;
-    
-    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
-    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
-    x2x_b2a(r->share[1].coeffs, r->share[0].coeffs, a->share[1].coeffs, a->share[0].coeffs, 128);
-    
+void masked_gadgets_init_2k_u32(uint32_t p) {
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
 }
 
 
-void masked_gadgets_B2A_qm_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) { //DONE
-    unsigned int i,j;
-    uint32_t t, k;
+void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a) {
+    x2x_a2b((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->share[1].coeffs, (uint32_t*) a->share[0].coeffs, KYBER_N >> 1);
+}
 
-    uint32_t modulus = Q_EXP;
-    uint32_t log_modulus = 32;
 
-    /*print_u32_arr(a[0]->coeffs,4);
-    print_u32_arr(a[1]->coeffs,4);*/
+void masked_gadgets_A2B_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a) {
+    x2x_a2b((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->share[1].coeffs, (uint32_t*) a->share[0].coeffs, KYBER_N);
+}
 
-    x2x_set_modulus(modulus, log_modulus, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
-    //x2x_b2a((uint32_t*)&(r->share[1].coeffs[0]), (uint32_t*)&(r->share[0].coeffs[0]), (uint32_t*)&(a->share[1].coeffs[0]), (uint32_t*)&(a->share[0].coeffs[0]), 128);
-    x2x_b2a(r[1]->coeffs, r[0]->coeffs, a[1]->coeffs, a[0]->coeffs, 256);
 
-    /*for(j = 0; j < KYBER_N; j++) {
-        t = 0;
-        k = 0;
-        for(i = 0; i < MASKING_N - 1; i++) {
-            r[i]->coeffs[j] = a[i]->coeffs[j];
-            t = t ^ a[i]->coeffs[j];
-            k = k + a[i]->coeffs[j];
-            if (k >= Q_EXP) {
-                k -= Q_EXP;
-            }
-        }
-        t = t ^ a[MASKING_N - 1]->coeffs[j];
-        r[MASKING_N - 1]->coeffs[j] = Q_EXP + t - k;
-        if ((r[MASKING_N - 1]->coeffs[j]) >= Q_EXP) {
-            r[MASKING_N - 1]->coeffs[j] -= Q_EXP;
-        }
-    }*/
+void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {       
+    x2x_b2a((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->share[1].coeffs, (uint32_t*) a->share[0].coeffs, KYBER_N >> 1);
+}
 
-    /*print_u32_arr(r[0]->coeffs,4);
-    print_u32_arr(r[1]->coeffs,4);*/
+
+void masked_gadgets_init_q_carrier() {
+    x2x_set_modulus(Q_EXP, 32, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+}
+
+
+void masked_gadgets_B2A_qm_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) {
+    x2x_b2a((uint32_t*) r[1]->coeffs, (uint32_t*) r[0]->coeffs, (uint32_t*) a[1]->coeffs, (uint32_t*) a[0]->coeffs, KYBER_N);
 }
 
 
@@ -150,56 +85,6 @@ void masked_gadgets_B2A_qm_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u
         masked_gadgets_B2A_qm_u32_core(r_, a_);
     }
 }
-
-/*
-void masked_gadgets_B2A_2k_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MASKING_N]) { //NOT USED
-    unsigned int i,j;
-    uint16_t t, k;
-
-    for(j = 0; j < KYBER_N; j++) {
-        t = 0;
-        k = 0;
-        for(i = 0; i < MASKING_N - 1; i++) {
-            r[i]->coeffs[j] = a[i]->coeffs[j];
-            t = t ^ a[i]->coeffs[j];
-            k = k + a[i]->coeffs[j];
-        }
-        t = t ^ a[MASKING_N - 1]->coeffs[j];
-        r[MASKING_N - 1]->coeffs[j] = t - k;
-    }
-}
-*/
-
-void masked_gadgets_B2A_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a) {
-#if (MASKING_N != 2)
-#error "This implementation requires MASKING_N = 2"
-#endif
-    const poly_u32 *a_[MASKING_N];
-    poly_u32 *r_[MASKING_N];
-    a_[0] = &(a->share[0]);
-    a_[1] = &(a->share[1]);
-    r_[0] = &(r->share[0]);
-    r_[1] = &(r->share[1]);    
-    masked_gadgets_B2A_2k_u32_core(r_, a_);
-}
-
-
-void masked_gadgets_B2A_2k_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u32 *a) {
-#if (MASKING_N != 2)
-#error "This implementation requires MASKING_N = 2"
-#endif
-    unsigned int i;
-    const poly_u32 *a_[MASKING_N];
-    poly_u32 *r_[MASKING_N];
-    for (i = 0; i < KYBER_K; i++) {
-        a_[0] = &(a->share[0].vec[i]);
-        a_[1] = &(a->share[1].vec[i]);
-        r_[0] = &(r->share[0].vec[i]);
-        r_[1] = &(r->share[1].vec[i]);
-        masked_gadgets_B2A_2k_u32_core(r_, a_);
-    }
-}
-
 
 
 // https://eprint.iacr.org/2021/1615.pdf alg.17
