@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity Trivium256 is
+entity Trivium is
     Generic (output_bits : INTEGER := 256);
     Port (  clk : in STD_LOGIC;
             rst : in STD_LOGIC;
@@ -9,9 +9,9 @@ entity Trivium256 is
             key : in STD_LOGIC_VECTOR(79 downto 0);
             iv : in STD_LOGIC_VECTOR(79 downto 0);
             stream_out : out STD_LOGIC_VECTOR(output_bits-1 downto 0));
-end Trivium256;
+end Trivium;
 
-architecture Behavioral of Trivium256 is
+architecture Behavioral of Trivium is
 
     type cycle_states is array (0 to output_bits) of STD_LOGIC_VECTOR(287 downto 0);
     signal state : cycle_states;

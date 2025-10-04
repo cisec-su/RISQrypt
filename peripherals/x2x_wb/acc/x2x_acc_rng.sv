@@ -1,7 +1,5 @@
 module x2x_acc_rng
    #(
-        parameter B       = 32,
-        parameter LOGL    = 10,
         parameter PARAM_WIDTH = 0,
         parameter BOX_WIDTH = 0,
         parameter RND_SHARES_2SHARE = 0,
@@ -38,7 +36,9 @@ reg [RND_SHARES_2SHARE - 1 : 0] data_ready;
 
 assign rnd_ready = (data_ready == 0); // TODO : will be parametric*/
 
-Trivium256 RNG1 (
+Trivium #(
+    .output_bits(256)
+) RNG1 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -47,7 +47,9 @@ Trivium256 RNG1 (
     .stream_out(stream_out1)
 );
 
-Trivium256 RNG2 (
+Trivium #(
+    .output_bits(256)
+) RNG2 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -56,7 +58,9 @@ Trivium256 RNG2 (
     .stream_out(stream_out2)
 );
 
-Trivium160 RNG3 (
+Trivium #(
+    .output_bits(256)
+) RNG3 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -65,7 +69,9 @@ Trivium160 RNG3 (
     .stream_out(stream_out3)
 );
 
-Trivium160 RNG4 (
+Trivium #(
+    .output_bits(160)
+) RNG4 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -74,7 +80,9 @@ Trivium160 RNG4 (
     .stream_out(stream_out4)
 );
 
-Trivium160 RNG5 (
+Trivium #(
+    .output_bits(160)
+) RNG5 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -83,7 +91,9 @@ Trivium160 RNG5 (
     .stream_out(stream_out5)
 );
 
-Trivium160 RNG6 (
+Trivium #(
+    .output_bits(160)
+) RNG6 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -92,7 +102,9 @@ Trivium160 RNG6 (
     .stream_out(stream_out6)
 );
 
-Trivium160 RNG7 (
+Trivium #(
+    .output_bits(160)
+) RNG7 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -101,7 +113,9 @@ Trivium160 RNG7 (
     .stream_out(stream_out7)
 );
 
-Trivium160 RNG8 (
+Trivium #(
+    .output_bits(160)
+) RNG8 (
     .clk(clk),
     .rst(rst_n),
     .load(ctrl_load_seed),
@@ -161,40 +175,8 @@ for(genvar j = 0; j < RND_SHARES_2SHARE ; j = j + 1) begin
             end
     end
 end
-/*
-for(genvar j = 0; j < RND_SHARES ; j = j + 1) begin
-    always @(*) begin
-            x2x_fresh_rnd_shares1[j] = (stream_out1[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & 13'h03FF);   
-    end
-end
 
-for(genvar j = 0; j < RND_SHARES ; j = j + 1) begin
-    always @(*) begin
-            x2x_fresh_rnd_shares2[j] = (stream_out2[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & 13'h03FF);   
-    end
-end
 
-for(genvar j = 0; j < RND_SHARES ; j = j + 1) begin
-    always @(*) begin
-            
-            if(x2x_fresh_rnd_shares1[j] < modulus)
-            begin
-                x2x_fresh_rnd_shares[j] = x2x_fresh_rnd_shares1[j];
-                data_ready[j] = 1;
-            end
-            else if (x2x_fresh_rnd_shares2[j] < modulus)
-            begin
-                x2x_fresh_rnd_shares[j] = x2x_fresh_rnd_shares2[j];
-                data_ready[j] = 1;
-            end
-            else
-            begin
-                x2x_fresh_rnd_shares[j] = 0;
-                data_ready[j] = 0;
-            end
-    end
-end
-*/
 for(genvar j = 0; j < RND_SHARES_2SHARE_BOX ; j = j + 1) begin
     always @(*) begin
         if(j<(RND_SHARES_2SHARE_BOX/2))
@@ -203,5 +185,6 @@ for(genvar j = 0; j < RND_SHARES_2SHARE_BOX ; j = j + 1) begin
             x2x_fresh_rnd_shares_8bit[j] = stream_out2[(BOX_WIDTH*((j-RND_SHARES_2SHARE_BOX/2)+1)-1):(BOX_WIDTH*(j-RND_SHARES_2SHARE_BOX/2))];     
     end
 end
+
 
 endmodule

@@ -1,7 +1,6 @@
 module x2x_acc_ctrl 
    #(
         parameter SHARES    = 2           ,
-        parameter LOGL      = 10          ,
         parameter BASE_ADDR = 32'h1004_0060
     )
     (    

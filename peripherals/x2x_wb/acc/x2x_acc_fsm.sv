@@ -63,8 +63,6 @@ wire rnd_ready;
 
 
 x2x_acc_rng #(
-        .B(B),
-        .LOGL(LOGL),
         .PARAM_WIDTH(PARAM_WIDTH),
         .BOX_WIDTH(BOX_WIDTH),
         .RND_SHARES_2SHARE(RND_SHARES_2SHARE),

@@ -271,8 +271,7 @@ x2x_acc_wb x2x_acc_wb_inst (
 
 x2x_acc_ctrl #(
     .BASE_ADDR (BASE_ADDR),
-    .SHARES    (SHARES   ),
-    .LOGL      (LOGL     )
+    .SHARES    (SHARES   )
 ) x2x_acc_ctrl_inst (
     .clk       (clk       ),
     .rst_n     (rst_n     ),
