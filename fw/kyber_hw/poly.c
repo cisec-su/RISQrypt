@@ -155,6 +155,10 @@ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t non
   cbd_eta2(r, buf);
 }
 
+void poly_set_ctrl() {
+  ntt_lite_set_ctrl(7, 12, NTT_LITE_MODE_POLY);
+}
+
 void poly_init_q() {
   const uint32_t q = (KYBER_Q << 16) | KYBER_Q;
   const uint32_t mu[2] = {0x13afb7, 0x13afb7};

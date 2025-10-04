@@ -149,6 +149,9 @@ void test_masked_poly_msg() {
 
     TEST_ASSERT_EQUAL_MEMORY(m_unmasked_, m_unmasked, KYBER_INDCPA_MSGBYTES);
 
+
+    poly_init_q();
+
     BENCH_START()
 
     masked_poly_frommsg(&mpoly_, mm);
