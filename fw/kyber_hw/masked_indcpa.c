@@ -31,7 +31,7 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
 
     masked_poly_frommsg(&mk, m);
 
-    poly_init_q();
+    poly_set_ctrl();
 
     unpack_pk(&pkpv, seed, pk);
   
@@ -60,10 +60,7 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
 
     masked_polyvec_u32_acc(t0, &mpvu32, &mpu32);
 
-    masked_gadgets_exp_u32(t1, t0);
-
-    masked_gadgets_unmask_u32(&t, t1);
-    return (int) t;
+    return masked_gadgets_zero_test_mul(t0);
 }
 
 

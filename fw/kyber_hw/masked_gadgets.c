@@ -245,6 +245,56 @@ void masked_gadgets_exp_u32(masked_u32 r, masked_u32 a) {
 }
 
 
+static void masked_zero_double(volatile masked_u32 r) {
+    unsigned int i;
+    for (i = 0; i < MASKING_N; i++) {
+        r[(i << 1)] = 0;
+    }
+}
+
+
+// https://eprint.iacr.org/2021/1615.pdf alg.1
+int masked_gadgets_zero_test_mul(masked_u32 a) {
+#if MASKING_N != 2
+#error "This implementation requires MASKING_N = 2"
+#endif      
+    unsigned int i, j;
+    volatile uint32_t t[MASKING_N << 1];
+    uint32_t buf[MASKING_N];
+    uint32_t *src_ptr, *dst_ptr;
+
+    randombytes((uint8_t*) buf, sizeof(buf));
+
+    ntt_lite_set_ctrl(LOG_MASKING_N + 1, 32, NTT_LITE_MODE_SINGLE);
+
+
+    for (i = 0; i < MASKING_N; i++) {
+        t[ i << 1     ] = a[i]; // to avoid transitional leakage
+        t[(i << 1) + 1] = 0;
+    }
+
+    for (i = 0; i < MASKING_N; i++) {
+        if (i == 0) {
+            src_ptr = (uint32_t*) &t[0];
+        }
+        else {
+            src_ptr = NTT_LITE_INPUT_DIS;
+        }
+
+        ntt_lite_set_bound(buf[i]);
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, src_ptr, NTT_LITE_INPUT_DIS);
+        masked_zero_double(t);
+        ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) t);
+    }
+
+    ntt_lite_sum((uint32_t*) &t[0], NTT_LITE_INPUT_DIS);
+
+    return (t[0] != 0);
+}
+
+
+
+
 void masked_gadgets_unmask_u32(uint32_t *r, const masked_u32 a) {
     unsigned int i;
     uint32_t *src;

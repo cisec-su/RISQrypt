@@ -31,9 +31,7 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, u
 
     NTT_LITE_REGS->q = q;
     NTT_LITE_REGS->mu[0] = mu[0];
-    if (mode == NTT_LITE_MODE_SINGLE) {
-        NTT_LITE_REGS->mu[1] = mu[1];
-    }
+    NTT_LITE_REGS->mu[1] = mu[1];
 
     NTT_LITE_REGS->inv2 = inv2;
 
@@ -43,60 +41,15 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, u
 }
 
 
-int ntt_lite_set_q(uint32_t q) {
-
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
-        return -1;
-    }
-
-    NTT_LITE_REGS->q = q;
-
-    return 0;
-}
-
-
-int ntt_lite_set_inv2(uint32_t inv2) {
-
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
-        return -1;
-    }
-
-    NTT_LITE_REGS->inv2 = inv2;
-
-    return 0;
-}
-
-
-int ntt_lite_set_mu(const uint32_t *mu, uint32_t mode) {
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
-        return -1;
-    }
-
-    NTT_LITE_REGS->mu[0] = mu[0];
-    if (mode == NTT_LITE_MODE_SINGLE) {
-        NTT_LITE_REGS->mu[1] = mu[1];
-    }
-    return 0;
-}
-
-
-int ntt_lite_set_bound(uint32_t bound) {
-
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
-        return -1;
-    }
-
-    NTT_LITE_REGS->bound = bound;
-
-    return 0;
-}
-
-
-int ntt_lite_set_mode(uint32_t mode) {
+int ntt_lite_set_ctrl(uint32_t logn, uint32_t k, uint32_t mode) {
 
     uint32_t mode_int;
 
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if (logn > 8) {
+        return -1;
+    }
+
+    if (k > 32) {
         return -1;
     }
 
@@ -110,7 +63,40 @@ int ntt_lite_set_mode(uint32_t mode) {
         return -1;
     }
 
-    NTT_LITE_REGS->ctrl = (NTT_LITE_REGS->ctrl & ~NTT_LITE_CTRL_MODE_V) | mode_int;
+    NTT_LITE_REGS->ctrl = (logn << NTT_LITE_CTRL_LOGN_S) | (k << NTT_LITE_CTRL_K_S) | mode_int;
+
+    return 0;
+}
+
+
+int ntt_lite_set_q(uint32_t q) {
+
+    NTT_LITE_REGS->q = q;
+
+    return 0;
+}
+
+
+int ntt_lite_set_inv2(uint32_t inv2) {
+
+    NTT_LITE_REGS->inv2 = inv2;
+
+    return 0;
+}
+
+
+int ntt_lite_set_mu(const uint32_t *mu, uint32_t mode) {
+
+    NTT_LITE_REGS->mu[0] = mu[0];
+    NTT_LITE_REGS->mu[1] = mu[1];
+
+    return 0;
+}
+
+
+int ntt_lite_set_bound(uint32_t bound) {
+
+    NTT_LITE_REGS->bound = bound;
 
     return 0;
 }
