@@ -18,11 +18,11 @@ Disassembly of section .text:
 00001014 <main>:
     1014:	fe010113          	addi	sp,sp,-32
     1018:	00812c23          	sw	s0,24(sp)
-    101c:	00015437          	lui	s0,0x15
+    101c:	00017437          	lui	s0,0x17
     1020:	00112e23          	sw	ra,28(sp)
     1024:	00912a23          	sw	s1,20(sp)
     1028:	01212823          	sw	s2,16(sp)
-    102c:	e5840413          	addi	s0,s0,-424 # 14e58 <Unity>
+    102c:	8d040413          	addi	s0,s0,-1840 # 168d0 <Unity>
     1030:	100407b7          	lui	a5,0x10040
     1034:	00042823          	sw	zero,16(s0)
     1038:	00042a23          	sw	zero,20(s0)
@@ -31,8 +31,8 @@ Disassembly of section .text:
     1044:	02042023          	sw	zero,32(s0)
     1048:	02042223          	sw	zero,36(s0)
     104c:	0607a683          	lw	a3,96(a5) # 10040060 <__stack_top+0x10000064>
-    1050:	0000a737          	lui	a4,0xa
-    1054:	04c70713          	addi	a4,a4,76 # a04c <strlen+0x21c>
+    1050:	00010737          	lui	a4,0x10
+    1054:	19070713          	addi	a4,a4,400 # 10190 <strlen+0x6360>
     1058:	00e42023          	sw	a4,0(s0)
     105c:	00042223          	sw	zero,4(s0)
     1060:	00042423          	sw	zero,8(s0)
@@ -44,10 +44,10 @@ Disassembly of section .text:
     1078:	00e7a423          	sw	a4,8(a5)
     107c:	00e7a623          	sw	a4,12(a5)
     1080:	10008737          	lui	a4,0x10008
-    1084:	0000a6b7          	lui	a3,0xa
-    1088:	0000a5b7          	lui	a1,0xa
-    108c:	02868693          	addi	a3,a3,40 # a028 <strlen+0x1f8>
-    1090:	04a58593          	addi	a1,a1,74 # a04a <strlen+0x21a>
+    1084:	000106b7          	lui	a3,0x10
+    1088:	000105b7          	lui	a1,0x10
+    108c:	16c68693          	addi	a3,a3,364 # 1016c <strlen+0x633c>
+    1090:	18e58593          	addi	a1,a1,398 # 1018e <strlen+0x635e>
     1094:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     1098:	0006c603          	lbu	a2,0(a3)
     109c:	00168693          	addi	a3,a3,1
@@ -56,92 +56,92 @@ Disassembly of section .text:
     10a8:	fe079ce3          	bnez	a5,10a0 <main+0x8c>
     10ac:	00c70023          	sb	a2,0(a4)
     10b0:	feb694e3          	bne	a3,a1,1098 <main+0x84>
-    10b4:	0000a5b7          	lui	a1,0xa
+    10b4:	000105b7          	lui	a1,0x10
     10b8:	00005537          	lui	a0,0x5
     10bc:	15700613          	li	a2,343
-    10c0:	05458593          	addi	a1,a1,84 # a054 <strlen+0x224>
+    10c0:	19858593          	addi	a1,a1,408 # 10198 <strlen+0x6368>
     10c4:	5b050513          	addi	a0,a0,1456 # 55b0 <test_indcpa_keypair>
     10c8:	241070ef          	jal	8b08 <UnityDefaultTestRun>
-    10cc:	0000a5b7          	lui	a1,0xa
+    10cc:	000105b7          	lui	a1,0x10
     10d0:	00005537          	lui	a0,0x5
     10d4:	15800613          	li	a2,344
-    10d8:	06858593          	addi	a1,a1,104 # a068 <strlen+0x238>
+    10d8:	1ac58593          	addi	a1,a1,428 # 101ac <strlen+0x637c>
     10dc:	07450513          	addi	a0,a0,116 # 5074 <test_indcpa_enc>
     10e0:	229070ef          	jal	8b08 <UnityDefaultTestRun>
-    10e4:	0000a5b7          	lui	a1,0xa
+    10e4:	000105b7          	lui	a1,0x10
     10e8:	00005537          	lui	a0,0x5
     10ec:	15900613          	li	a2,345
-    10f0:	07858593          	addi	a1,a1,120 # a078 <strlen+0x248>
+    10f0:	1bc58593          	addi	a1,a1,444 # 101bc <strlen+0x638c>
     10f4:	b7c50513          	addi	a0,a0,-1156 # 4b7c <test_indcpa_dec>
     10f8:	211070ef          	jal	8b08 <UnityDefaultTestRun>
-    10fc:	0000a5b7          	lui	a1,0xa
+    10fc:	000105b7          	lui	a1,0x10
     1100:	00006537          	lui	a0,0x6
     1104:	15a00613          	li	a2,346
-    1108:	08858593          	addi	a1,a1,136 # a088 <strlen+0x258>
+    1108:	1cc58593          	addi	a1,a1,460 # 101cc <strlen+0x639c>
     110c:	d5c50513          	addi	a0,a0,-676 # 5d5c <test_indcca>
     1110:	1f9070ef          	jal	8b08 <UnityDefaultTestRun>
-    1114:	0000a5b7          	lui	a1,0xa
+    1114:	000105b7          	lui	a1,0x10
     1118:	00008537          	lui	a0,0x8
     111c:	15b00613          	li	a2,347
-    1120:	09458593          	addi	a1,a1,148 # a094 <strlen+0x264>
+    1120:	1d858593          	addi	a1,a1,472 # 101d8 <strlen+0x63a8>
     1124:	e4850513          	addi	a0,a0,-440 # 7e48 <test_masked_poly_msg>
     1128:	1e1070ef          	jal	8b08 <UnityDefaultTestRun>
-    112c:	0000a5b7          	lui	a1,0xa
+    112c:	000105b7          	lui	a1,0x10
     1130:	00007537          	lui	a0,0x7
     1134:	15c00613          	li	a2,348
-    1138:	0ac58593          	addi	a1,a1,172 # a0ac <strlen+0x27c>
+    1138:	1f058593          	addi	a1,a1,496 # 101f0 <strlen+0x63c0>
     113c:	9a850513          	addi	a0,a0,-1624 # 69a8 <test_masked_cbd>
     1140:	1c9070ef          	jal	8b08 <UnityDefaultTestRun>
-    1144:	0000a5b7          	lui	a1,0xa
+    1144:	000105b7          	lui	a1,0x10
     1148:	00007537          	lui	a0,0x7
     114c:	15d00613          	li	a2,349
-    1150:	0bc58593          	addi	a1,a1,188 # a0bc <strlen+0x28c>
+    1150:	20058593          	addi	a1,a1,512 # 10200 <strlen+0x63d0>
     1154:	4e450513          	addi	a0,a0,1252 # 74e4 <test_masked_poly_compress>
     1158:	1b1070ef          	jal	8b08 <UnityDefaultTestRun>
-    115c:	0000a5b7          	lui	a1,0xa
+    115c:	000105b7          	lui	a1,0x10
     1160:	00009537          	lui	a0,0x9
     1164:	15e00613          	li	a2,350
-    1168:	0d858593          	addi	a1,a1,216 # a0d8 <strlen+0x2a8>
+    1168:	21c58593          	addi	a1,a1,540 # 1021c <strlen+0x63ec>
     116c:	80450513          	addi	a0,a0,-2044 # 8804 <test_masked_indcpa_dec>
     1170:	199070ef          	jal	8b08 <UnityDefaultTestRun>
-    1174:	0000a5b7          	lui	a1,0xa
+    1174:	000105b7          	lui	a1,0x10
     1178:	0000a537          	lui	a0,0xa
     117c:	15f00613          	li	a2,351
-    1180:	0f058593          	addi	a1,a1,240 # a0f0 <strlen+0x2c0>
+    1180:	23458593          	addi	a1,a1,564 # 10234 <strlen+0x6404>
     1184:	91050513          	addi	a0,a0,-1776 # 9910 <test_masked_indcpa_enc_cmp>
     1188:	181070ef          	jal	8b08 <UnityDefaultTestRun>
     118c:	00a00913          	li	s2,10
     1190:	00f10513          	addi	a0,sp,15
     1194:	012107a3          	sb	s2,15(sp)
     1198:	0b4000ef          	jal	124c <uart_transmit_string.constprop.0>
-    119c:	00010537          	lui	a0,0x10
-    11a0:	08c50513          	addi	a0,a0,140 # 1008c <UnityStrBreaker>
+    119c:	00012537          	lui	a0,0x12
+    11a0:	b0450513          	addi	a0,a0,-1276 # 11b04 <UnityStrBreaker>
     11a4:	0c8000ef          	jal	126c <UnityPrint.part.0>
     11a8:	00f10513          	addi	a0,sp,15
     11ac:	012107a3          	sb	s2,15(sp)
     11b0:	09c000ef          	jal	124c <uart_transmit_string.constprop.0>
     11b4:	01442503          	lw	a0,20(s0)
     11b8:	578030ef          	jal	4730 <UnityPrintNumber>
-    11bc:	00010537          	lui	a0,0x10
-    11c0:	08450513          	addi	a0,a0,132 # 10084 <UnityStrResultsTests>
+    11bc:	00012537          	lui	a0,0x12
+    11c0:	afc50513          	addi	a0,a0,-1284 # 11afc <UnityStrResultsTests>
     11c4:	0a8000ef          	jal	126c <UnityPrint.part.0>
     11c8:	01842483          	lw	s1,24(s0)
     11cc:	00048513          	mv	a0,s1
     11d0:	560030ef          	jal	4730 <UnityPrintNumber>
-    11d4:	00010537          	lui	a0,0x10
-    11d8:	07850513          	addi	a0,a0,120 # 10078 <UnityStrResultsFailures>
+    11d4:	00012537          	lui	a0,0x12
+    11d8:	af050513          	addi	a0,a0,-1296 # 11af0 <UnityStrResultsFailures>
     11dc:	090000ef          	jal	126c <UnityPrint.part.0>
     11e0:	01c42503          	lw	a0,28(s0)
     11e4:	54c030ef          	jal	4730 <UnityPrintNumber>
-    11e8:	00010537          	lui	a0,0x10
-    11ec:	06c50513          	addi	a0,a0,108 # 1006c <UnityStrResultsIgnored>
+    11e8:	00012537          	lui	a0,0x12
+    11ec:	ae450513          	addi	a0,a0,-1308 # 11ae4 <UnityStrResultsIgnored>
     11f0:	07c000ef          	jal	126c <UnityPrint.part.0>
     11f4:	00f10513          	addi	a0,sp,15
     11f8:	012107a3          	sb	s2,15(sp)
     11fc:	050000ef          	jal	124c <uart_transmit_string.constprop.0>
     1200:	02049e63          	bnez	s1,123c <main+0x228>
-    1204:	00010537          	lui	a0,0x10
-    1208:	03c50513          	addi	a0,a0,60 # 1003c <UnityStrOk>
+    1204:	00012537          	lui	a0,0x12
+    1208:	ab450513          	addi	a0,a0,-1356 # 11ab4 <UnityStrOk>
     120c:	060000ef          	jal	126c <UnityPrint.part.0>
     1210:	00f10513          	addi	a0,sp,15
     1214:	00a00793          	li	a5,10
@@ -154,8 +154,8 @@ Disassembly of section .text:
     1230:	01412483          	lw	s1,20(sp)
     1234:	02010113          	addi	sp,sp,32
     1238:	00008067          	ret
-    123c:	00010537          	lui	a0,0x10
-    1240:	02c50513          	addi	a0,a0,44 # 1002c <UnityStrFail>
+    123c:	00012537          	lui	a0,0x12
+    1240:	aa450513          	addi	a0,a0,-1372 # 11aa4 <UnityStrFail>
     1244:	028000ef          	jal	126c <UnityPrint.part.0>
     1248:	fc9ff06f          	j	1210 <main+0x1fc>
 
@@ -285,8 +285,8 @@ Disassembly of section .text:
     141c:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     1420:	00171813          	slli	a6,a4,0x1
     1424:	02084463          	bltz	a6,144c <polyvec_pointwise_acc_core+0x34>
-    1428:	0000a737          	lui	a4,0xa
-    142c:	10c70713          	addi	a4,a4,268 # a10c <zetas>
+    1428:	00010737          	lui	a4,0x10
+    142c:	25070713          	addi	a4,a4,592 # 10250 <zetas>
     1430:	00e7a223          	sw	a4,4(a5)
     1434:	0007a803          	lw	a6,0(a5)
     1438:	10040737          	lui	a4,0x10040
@@ -359,8 +359,8 @@ Disassembly of section .text:
     1544:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     1548:	00171693          	slli	a3,a4,0x1
     154c:	0206c463          	bltz	a3,1574 <polyvec_pointwise_acc_core+0x15c>
-    1550:	0000a737          	lui	a4,0xa
-    1554:	30c70713          	addi	a4,a4,780 # a30c <psi_inv>
+    1550:	00010737          	lui	a4,0x10
+    1554:	45070713          	addi	a4,a4,1104 # 10450 <psi_inv>
     1558:	00e7a223          	sw	a4,4(a5)
     155c:	0007a683          	lw	a3,0(a5)
     1560:	10040737          	lui	a4,0x10040
@@ -644,8 +644,8 @@ Disassembly of section .text:
     19b0:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     19b4:	00171693          	slli	a3,a4,0x1
     19b8:	0206c463          	bltz	a3,19e0 <pqcrystals_kyber768_ref_indcpa_dec+0x388>
-    19bc:	0000a737          	lui	a4,0xa
-    19c0:	50c70713          	addi	a4,a4,1292 # a50c <psi>
+    19bc:	00010737          	lui	a4,0x10
+    19c0:	65070713          	addi	a4,a4,1616 # 10650 <psi>
     19c4:	00e7a223          	sw	a4,4(a5)
     19c8:	0007a683          	lw	a3,0(a5)
     19cc:	10040737          	lui	a4,0x10040
@@ -913,14 +913,14 @@ Disassembly of section .text:
     1dd4:	00008067          	ret
 
 00001dd8 <UnityAddMsgIfSpecified>:
-    1dd8:	000155b7          	lui	a1,0x15
-    1ddc:	e5858593          	addi	a1,a1,-424 # 14e58 <Unity>
+    1dd8:	000175b7          	lui	a1,0x17
+    1ddc:	8d058593          	addi	a1,a1,-1840 # 168d0 <Unity>
     1de0:	0085a603          	lw	a2,8(a1)
     1de4:	12060863          	beqz	a2,1f14 <UnityAddMsgIfSpecified+0x13c>
     1de8:	10008737          	lui	a4,0x10008
-    1dec:	00010837          	lui	a6,0x10
+    1dec:	00012837          	lui	a6,0x12
     1df0:	02e00693          	li	a3,46
-    1df4:	02880813          	addi	a6,a6,40 # 10028 <UnityStrSpacer>
+    1df4:	aa080813          	addi	a6,a6,-1376 # 11aa0 <UnityStrSpacer>
     1df8:	00a00893          	li	a7,10
     1dfc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     1e00:	00d00313          	li	t1,13
@@ -933,9 +933,9 @@ Disassembly of section .text:
     1e1c:	00084683          	lbu	a3,0(a6)
     1e20:	fe0692e3          	bnez	a3,1e04 <UnityAddMsgIfSpecified+0x2c>
     1e24:	10008737          	lui	a4,0x10008
-    1e28:	00010837          	lui	a6,0x10
+    1e28:	00012837          	lui	a6,0x12
     1e2c:	04600693          	li	a3,70
-    1e30:	01c80813          	addi	a6,a6,28 # 1001c <UnityStrDetail1Name>
+    1e30:	a9480813          	addi	a6,a6,-1388 # 11a94 <UnityStrDetail1Name>
     1e34:	00a00893          	li	a7,10
     1e38:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     1e3c:	00d00313          	li	t1,13
@@ -964,9 +964,9 @@ Disassembly of section .text:
     1e98:	00c5a583          	lw	a1,12(a1)
     1e9c:	06058c63          	beqz	a1,1f14 <UnityAddMsgIfSpecified+0x13c>
     1ea0:	10008737          	lui	a4,0x10008
-    1ea4:	00010637          	lui	a2,0x10
+    1ea4:	00012637          	lui	a2,0x12
     1ea8:	02000693          	li	a3,32
-    1eac:	01060613          	addi	a2,a2,16 # 10010 <UnityStrDetail2Name>
+    1eac:	a8860613          	addi	a2,a2,-1400 # 11a88 <UnityStrDetail2Name>
     1eb0:	00a00813          	li	a6,10
     1eb4:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     1eb8:	00d00893          	li	a7,13
@@ -994,9 +994,9 @@ Disassembly of section .text:
     1f10:	fe0692e3          	bnez	a3,1ef4 <UnityAddMsgIfSpecified+0x11c>
     1f14:	16050c63          	beqz	a0,208c <UnityAddMsgIfSpecified+0x2b4>
     1f18:	10008737          	lui	a4,0x10008
-    1f1c:	00010637          	lui	a2,0x10
+    1f1c:	00012637          	lui	a2,0x12
     1f20:	02e00693          	li	a3,46
-    1f24:	02860613          	addi	a2,a2,40 # 10028 <UnityStrSpacer>
+    1f24:	aa060613          	addi	a2,a2,-1376 # 11aa0 <UnityStrSpacer>
     1f28:	00a00593          	li	a1,10
     1f2c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     1f30:	00d00813          	li	a6,13
@@ -1098,8 +1098,8 @@ Disassembly of section .text:
     20a8:	10040437          	lui	s0,0x10040
     20ac:	00002937          	lui	s2,0x2
     20b0:	000044b7          	lui	s1,0x4
-    20b4:	00011a37          	lui	s4,0x11
-    20b8:	000119b7          	lui	s3,0x11
+    20b4:	00013a37          	lui	s4,0x13
+    20b8:	000139b7          	lui	s3,0x13
     20bc:	13512a23          	sw	s5,308(sp)
     20c0:	13612823          	sw	s6,304(sp)
     20c4:	13712623          	sw	s7,300(sp)
@@ -1110,8 +1110,8 @@ Disassembly of section .text:
     20d8:	14112623          	sw	ra,332(sp)
     20dc:	00050d93          	mv	s11,a0
     20e0:	00058a93          	mv	s5,a1
-    20e4:	298a0a13          	addi	s4,s4,664 # 11298 <masked_coins>
-    20e8:	2b898993          	addi	s3,s3,696 # 112b8 <masked_coins+0x20>
+    20e4:	d10a0a13          	addi	s4,s4,-752 # 12d10 <masked_coins>
+    20e8:	d3098993          	addi	s3,s3,-720 # 12d30 <masked_coins+0x20>
     20ec:	60050d13          	addi	s10,a0,1536
     20f0:	02040413          	addi	s0,s0,32 # 10040020 <__stack_top+0x10000024>
     20f4:	00f00c93          	li	s9,15
@@ -1223,8 +1223,8 @@ Disassembly of section .text:
     2294:	00d7ae23          	sw	a3,28(a5)
     2298:	07070713          	addi	a4,a4,112 # 198070 <__stack_top+0x158074>
     229c:	00e7a023          	sw	a4,0(a5)
-    22a0:	0000c7b7          	lui	a5,0xc
-    22a4:	80c78793          	addi	a5,a5,-2036 # b80c <d>
+    22a0:	000127b7          	lui	a5,0x12
+    22a4:	95078793          	addi	a5,a5,-1712 # 11950 <d>
     22a8:	0007ae03          	lw	t3,0(a5)
     22ac:	0047a303          	lw	t1,4(a5)
     22b0:	0087a883          	lw	a7,8(a5)
@@ -1514,8 +1514,8 @@ Disassembly of section .text:
     2720:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     2724:	00171693          	slli	a3,a4,0x1
     2728:	0206c463          	bltz	a3,2750 <pqcrystals_kyber768_ref_indcpa_keypair+0x53c>
-    272c:	0000a737          	lui	a4,0xa
-    2730:	50c70713          	addi	a4,a4,1292 # a50c <psi>
+    272c:	00010737          	lui	a4,0x10
+    2730:	65070713          	addi	a4,a4,1616 # 10650 <psi>
     2734:	00e7a223          	sw	a4,4(a5)
     2738:	0007a683          	lw	a3,0(a5)
     273c:	10040737          	lui	a4,0x10040
@@ -1792,7 +1792,7 @@ Disassembly of section .text:
     2b70:	68188893          	addi	a7,a7,1665 # 6810681 <__stack_top+0x67d0685>
     2b74:	0001a837          	lui	a6,0x1a
     2b78:	0117ae23          	sw	a7,28(a5)
-    2b7c:	08080813          	addi	a6,a6,128 # 1a080 <__BSS_END__+0x50b0>
+    2b7c:	08080813          	addi	a6,a6,128 # 1a080 <__BSS_END__+0x3638>
     2b80:	0107a023          	sw	a6,0(a5)
     2b84:	00e68313          	addi	t1,a3,14
     2b88:	02001fb7          	lui	t6,0x2001
@@ -2118,15 +2118,15 @@ Disassembly of section .text:
     3080:	fe07dee3          	bgez	a5,307c <pqcrystals_kyber768_ref_masked_poly_tomsg.constprop.0+0x1fc>
     3084:	00010737          	lui	a4,0x10
     3088:	100406b7          	lui	a3,0x10040
-    308c:	00170713          	addi	a4,a4,1 # 10001 <UnityStrPass+0x1>
+    308c:	00170713          	addi	a4,a4,1 # 10001 <strlen+0x61d1>
     3090:	001827b7          	lui	a5,0x182
     3094:	00e6a823          	sw	a4,16(a3) # 10040010 <__stack_top+0x10000014>
     3098:	07078793          	addi	a5,a5,112 # 182070 <__stack_top+0x142074>
     309c:	00f6a023          	sw	a5,0(a3)
     30a0:	11a00537          	lui	a0,0x11a00
     30a4:	00200637          	lui	a2,0x200
-    30a8:	000136b7          	lui	a3,0x13
-    30ac:	83868693          	addi	a3,a3,-1992 # 12838 <mm>
+    30a8:	000146b7          	lui	a3,0x14
+    30ac:	2b068693          	addi	a3,a3,688 # 142b0 <mm>
     30b0:	40058813          	addi	a6,a1,1024
     30b4:	100407b7          	lui	a5,0x10040
     30b8:	60450513          	addi	a0,a0,1540 # 11a00604 <__stack_top+0x119c0608>
@@ -2184,8 +2184,8 @@ Disassembly of section .text:
     3180:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     3184:	00171693          	slli	a3,a4,0x1
     3188:	0406ca63          	bltz	a3,31dc <pqcrystals_kyber768_ref_masked_indcpa_dec.constprop.0+0xc0>
-    318c:	00011737          	lui	a4,0x11
-    3190:	e5470713          	addi	a4,a4,-428 # 10e54 <c>
+    318c:	00013737          	lui	a4,0x13
+    3190:	8cc70713          	addi	a4,a4,-1844 # 128cc <c>
     3194:	00e7a223          	sw	a4,4(a5)
     3198:	0007a703          	lw	a4,0(a5)
     319c:	014016b7          	lui	a3,0x1401
@@ -2229,8 +2229,8 @@ Disassembly of section .text:
     3234:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     3238:	00171693          	slli	a3,a4,0x1
     323c:	0406ca63          	bltz	a3,3290 <pqcrystals_kyber768_ref_masked_indcpa_dec.constprop.0+0x174>
-    3240:	00011737          	lui	a4,0x11
-    3244:	f9470713          	addi	a4,a4,-108 # 10f94 <c+0x140>
+    3240:	00013737          	lui	a4,0x13
+    3244:	a0c70713          	addi	a4,a4,-1524 # 12a0c <c+0x140>
     3248:	00e7a223          	sw	a4,4(a5)
     324c:	0007a703          	lw	a4,0(a5)
     3250:	014016b7          	lui	a3,0x1401
@@ -2273,8 +2273,8 @@ Disassembly of section .text:
     32e4:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     32e8:	00171693          	slli	a3,a4,0x1
     32ec:	0406ca63          	bltz	a3,3340 <pqcrystals_kyber768_ref_masked_indcpa_dec.constprop.0+0x224>
-    32f0:	00011737          	lui	a4,0x11
-    32f4:	0d470713          	addi	a4,a4,212 # 110d4 <c+0x280>
+    32f0:	00013737          	lui	a4,0x13
+    32f4:	b4c70713          	addi	a4,a4,-1204 # 12b4c <c+0x280>
     32f8:	00e7a223          	sw	a4,4(a5)
     32fc:	0007a703          	lw	a4,0(a5)
     3300:	014016b7          	lui	a3,0x1401
@@ -2317,8 +2317,8 @@ Disassembly of section .text:
     3394:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     3398:	00171693          	slli	a3,a4,0x1
     339c:	0406ca63          	bltz	a3,33f0 <pqcrystals_kyber768_ref_masked_indcpa_dec.constprop.0+0x2d4>
-    33a0:	00011737          	lui	a4,0x11
-    33a4:	21470713          	addi	a4,a4,532 # 11214 <c+0x3c0>
+    33a0:	00013737          	lui	a4,0x13
+    33a4:	c8c70713          	addi	a4,a4,-884 # 12c8c <c+0x3c0>
     33a8:	00e7a223          	sw	a4,4(a5)
     33ac:	0007a703          	lw	a4,0(a5)
     33b0:	008016b7          	lui	a3,0x801
@@ -2364,9 +2364,9 @@ Disassembly of section .text:
     3450:	e0078793          	addi	a5,a5,-512 # 1e00 <UnityAddMsgIfSpecified+0x28>
     3454:	00b787b3          	add	a5,a5,a1
     3458:	01010713          	addi	a4,sp,16
-    345c:	000116b7          	lui	a3,0x11
+    345c:	000126b7          	lui	a3,0x12
     3460:	00e785b3          	add	a1,a5,a4
-    3464:	9d468693          	addi	a3,a3,-1580 # 109d4 <sk>
+    3464:	44c68693          	addi	a3,a3,1100 # 1244c <sk>
     3468:	01801837          	lui	a6,0x1801
     346c:	01801537          	lui	a0,0x1801
     3470:	48068893          	addi	a7,a3,1152
@@ -2396,8 +2396,8 @@ Disassembly of section .text:
     34d0:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     34d4:	00171693          	slli	a3,a4,0x1
     34d8:	0206c463          	bltz	a3,3500 <pqcrystals_kyber768_ref_masked_indcpa_dec.constprop.0+0x3e4>
-    34dc:	0000a737          	lui	a4,0xa
-    34e0:	50c70713          	addi	a4,a4,1292 # a50c <psi>
+    34dc:	00010737          	lui	a4,0x10
+    34e0:	65070713          	addi	a4,a4,1616 # 10650 <psi>
     34e4:	00e7a223          	sw	a4,4(a5)
     34e8:	0007a683          	lw	a3,0(a5)
     34ec:	10040737          	lui	a4,0x10040
@@ -2519,8 +2519,8 @@ Disassembly of section .text:
     36b4:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     36b8:	00171693          	slli	a3,a4,0x1
     36bc:	0406ca63          	bltz	a3,3710 <pqcrystals_kyber768_ref_masked_poly_frommsg.constprop.0+0x60>
-    36c0:	00013737          	lui	a4,0x13
-    36c4:	83870713          	addi	a4,a4,-1992 # 12838 <mm>
+    36c0:	00014737          	lui	a4,0x14
+    36c4:	2b070713          	addi	a4,a4,688 # 142b0 <mm>
     36c8:	00e7a223          	sw	a4,4(a5)
     36cc:	0007a703          	lw	a4,0(a5)
     36d0:	002016b7          	lui	a3,0x201
@@ -2544,8 +2544,8 @@ Disassembly of section .text:
     3718:	20050613          	addi	a2,a0,512
     371c:	00171693          	slli	a3,a4,0x1
     3720:	0406ca63          	bltz	a3,3774 <pqcrystals_kyber768_ref_masked_poly_frommsg.constprop.0+0xc4>
-    3724:	00013737          	lui	a4,0x13
-    3728:	85870713          	addi	a4,a4,-1960 # 12858 <mm+0x20>
+    3724:	00014737          	lui	a4,0x14
+    3728:	2d070713          	addi	a4,a4,720 # 142d0 <mm+0x20>
     372c:	00e7a223          	sw	a4,4(a5)
     3730:	0007a703          	lw	a4,0(a5)
     3734:	002016b7          	lui	a3,0x201
@@ -3026,8 +3026,8 @@ Disassembly of section .text:
     3e90:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
     3e94:	00171693          	slli	a3,a4,0x1
     3e98:	0206c463          	bltz	a3,3ec0 <pqcrystals_kyber768_ref_indcpa_enc+0x328>
-    3e9c:	0000a737          	lui	a4,0xa
-    3ea0:	50c70713          	addi	a4,a4,1292 # a50c <psi>
+    3e9c:	00010737          	lui	a4,0x10
+    3ea0:	65070713          	addi	a4,a4,1616 # 10650 <psi>
     3ea4:	00e7a223          	sw	a4,4(a5)
     3ea8:	0007a683          	lw	a3,0(a5)
     3eac:	10040737          	lui	a4,0x10040
@@ -3344,16 +3344,16 @@ Disassembly of section .text:
     4380:	4e912223          	sw	s1,1252(sp)
     4384:	4f212023          	sw	s2,1248(sp)
     4388:	01010493          	addi	s1,sp,16
-    438c:	00013437          	lui	s0,0x13
-    4390:	00013937          	lui	s2,0x13
-    4394:	2f840613          	addi	a2,s0,760 # 132f8 <sk_cca>
-    4398:	eb890593          	addi	a1,s2,-328 # 12eb8 <c_cca>
+    438c:	00015437          	lui	s0,0x15
+    4390:	00015937          	lui	s2,0x15
+    4394:	d7040613          	addi	a2,s0,-656 # 14d70 <sk_cca>
+    4398:	93090593          	addi	a1,s2,-1744 # 14930 <c_cca>
     439c:	00048513          	mv	a0,s1
     43a0:	4e112623          	sw	ra,1260(sp)
     43a4:	4d312e23          	sw	s3,1244(sp)
     43a8:	ab0fd0ef          	jal	1658 <pqcrystals_kyber768_ref_indcpa_dec>
-    43ac:	000147b7          	lui	a5,0x14
-    43b0:	c1878793          	addi	a5,a5,-1000 # 13c18 <sk_cca+0x920>
+    43ac:	000157b7          	lui	a5,0x15
+    43b0:	69078793          	addi	a5,a5,1680 # 15690 <sk_cca+0x920>
     43b4:	0007a303          	lw	t1,0(a5)
     43b8:	01c7a703          	lw	a4,28(a5)
     43bc:	0047a883          	lw	a7,4(a5)
@@ -3425,14 +3425,14 @@ Disassembly of section .text:
     44c4:	00f72023          	sw	a5,0(a4)
     44c8:	0006a783          	lw	a5,0(a3)
     44cc:	fe07dee3          	bgez	a5,44c8 <pqcrystals_kyber768_ref_dec.constprop.0.isra.0+0x150>
-    44d0:	00013637          	lui	a2,0x13
+    44d0:	00015637          	lui	a2,0x15
     44d4:	00048593          	mv	a1,s1
     44d8:	07010693          	addi	a3,sp,112
-    44dc:	77860613          	addi	a2,a2,1912 # 13778 <sk_cca+0x480>
+    44dc:	1f060613          	addi	a2,a2,496 # 151f0 <sk_cca+0x480>
     44e0:	09010513          	addi	a0,sp,144
     44e4:	eb4ff0ef          	jal	3b98 <pqcrystals_kyber768_ref_indcpa_enc>
     44e8:	09010793          	addi	a5,sp,144
-    44ec:	eb890693          	addi	a3,s2,-328
+    44ec:	93090693          	addi	a3,s2,-1744
     44f0:	4d010593          	addi	a1,sp,1232
     44f4:	00000493          	li	s1,0
     44f8:	0007a703          	lw	a4,0(a5)
@@ -3442,7 +3442,7 @@ Disassembly of section .text:
     4508:	00c74733          	xor	a4,a4,a2
     450c:	009764b3          	or	s1,a4,s1
     4510:	fef594e3          	bne	a1,a5,44f8 <pqcrystals_kyber768_ref_dec.constprop.0.isra.0+0x180>
-    4514:	eb890593          	addi	a1,s2,-328
+    4514:	93090593          	addi	a1,s2,-1744
     4518:	44000613          	li	a2,1088
     451c:	07010513          	addi	a0,sp,112
     4520:	e44fd0ef          	jal	1b64 <sha3_256>
@@ -3454,7 +3454,7 @@ Disassembly of section .text:
     4538:	0097e7b3          	or	a5,a5,s1
     453c:	0ff7f793          	zext.b	a5,a5
     4540:	00f037b3          	snez	a5,a5
-    4544:	2f840413          	addi	s0,s0,760
+    4544:	d7040413          	addi	s0,s0,-656
     4548:	40f007b3          	neg	a5,a5
     454c:	00001737          	lui	a4,0x1
     4550:	00870733          	add	a4,a4,s0
@@ -3559,8 +3559,8 @@ Disassembly of section .text:
     46dc:	fe07dee3          	bgez	a5,46d8 <pqcrystals_kyber768_ref_dec.constprop.0.isra.0+0x360>
     46e0:	00800793          	li	a5,8
     46e4:	00f72223          	sw	a5,4(a4)
-    46e8:	000137b7          	lui	a5,0x13
-    46ec:	e7878793          	addi	a5,a5,-392 # 12e78 <K_>
+    46e8:	000157b7          	lui	a5,0x15
+    46ec:	8f078793          	addi	a5,a5,-1808 # 148f0 <K_>
     46f0:	02f72623          	sw	a5,44(a4)
     46f4:	02072823          	sw	zero,48(a4)
     46f8:	00072783          	lw	a5,0(a4)
@@ -3615,7 +3615,7 @@ Disassembly of section .text:
     47b4:	02e7d7b3          	divu	a5,a5,a4
     47b8:	14d67063          	bgeu	a2,a3,48f8 <UnityPrintNumber+0x1c8>
     47bc:	00018637          	lui	a2,0x18
-    47c0:	69f60613          	addi	a2,a2,1695 # 1869f <__BSS_END__+0x36cf>
+    47c0:	69f60613          	addi	a2,a2,1695 # 1869f <__BSS_END__+0x1c57>
     47c4:	02e7f5b3          	remu	a1,a5,a4
     47c8:	03058593          	addi	a1,a1,48
     47cc:	00b10523          	sb	a1,10(sp)
@@ -3707,8 +3707,8 @@ Disassembly of section .text:
 00004920 <UnityTestResultsFailBegin>:
     4920:	fe010113          	addi	sp,sp,-32
     4924:	00912a23          	sw	s1,20(sp)
-    4928:	000154b7          	lui	s1,0x15
-    492c:	e5848493          	addi	s1,s1,-424 # 14e58 <Unity>
+    4928:	000174b7          	lui	s1,0x17
+    492c:	8d048493          	addi	s1,s1,-1840 # 168d0 <Unity>
     4930:	0004a603          	lw	a2,0(s1)
     4934:	00112e23          	sw	ra,28(sp)
     4938:	00812c23          	sw	s0,24(sp)
@@ -3795,9 +3795,9 @@ Disassembly of section .text:
     4a7c:	0027f793          	andi	a5,a5,2
     4a80:	fe079ce3          	bnez	a5,4a78 <UnityTestResultsFailBegin+0x158>
     4a84:	03a00793          	li	a5,58
-    4a88:	000106b7          	lui	a3,0x10
+    4a88:	000126b7          	lui	a3,0x12
     4a8c:	00f70023          	sb	a5,0(a4)
-    4a90:	02c68693          	addi	a3,a3,44 # 1002c <UnityStrFail>
+    4a90:	aa468693          	addi	a3,a3,-1372 # 11aa4 <UnityStrFail>
     4a94:	01b00713          	li	a4,27
     4a98:	00a00593          	li	a1,10
     4a9c:	100087b7          	lui	a5,0x10008
@@ -3866,23 +3866,23 @@ Disassembly of section .text:
     4b90:	100084b7          	lui	s1,0x10008
     4b94:	00200793          	li	a5,2
     4b98:	00f4ac23          	sw	a5,24(s1) # 10008018 <__stack_top+0xffc801c>
-    4b9c:	00015437          	lui	s0,0x15
+    4b9c:	00017437          	lui	s0,0x17
     4ba0:	00100793          	li	a5,1
-    4ba4:	00011637          	lui	a2,0x11
-    4ba8:	000115b7          	lui	a1,0x11
-    4bac:	e5458593          	addi	a1,a1,-428 # 10e54 <c>
-    4bb0:	fb040513          	addi	a0,s0,-80 # 14fb0 <m_>
+    4ba4:	00012637          	lui	a2,0x12
+    4ba8:	000135b7          	lui	a1,0x13
+    4bac:	8cc58593          	addi	a1,a1,-1844 # 128cc <c>
+    4bb0:	a2840513          	addi	a0,s0,-1496 # 16a28 <m_>
     4bb4:	00f4ac23          	sw	a5,24(s1)
-    4bb8:	9d460613          	addi	a2,a2,-1580 # 109d4 <sk>
+    4bb8:	44c60613          	addi	a2,a2,1100 # 1244c <sk>
     4bbc:	a9dfc0ef          	jal	1658 <pqcrystals_kyber768_ref_indcpa_dec>
     4bc0:	01c4a503          	lw	a0,28(s1)
     4bc4:	10008737          	lui	a4,0x10008
-    4bc8:	0000a6b7          	lui	a3,0xa
-    4bcc:	0000a5b7          	lui	a1,0xa
-    4bd0:	ebc68693          	addi	a3,a3,-324 # 9ebc <strlen+0x8c>
-    4bd4:	ec858593          	addi	a1,a1,-312 # 9ec8 <strlen+0x98>
+    4bc8:	000106b7          	lui	a3,0x10
+    4bcc:	000105b7          	lui	a1,0x10
+    4bd0:	00068693          	mv	a3,a3
+    4bd4:	00c58593          	addi	a1,a1,12 # 1000c <strlen+0x61dc>
     4bd8:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
-    4bdc:	0006c603          	lbu	a2,0(a3)
+    4bdc:	0006c603          	lbu	a2,0(a3) # 10000 <strlen+0x61d0>
     4be0:	00168693          	addi	a3,a3,1
     4be4:	00274783          	lbu	a5,2(a4)
     4be8:	0027f793          	andi	a5,a5,2
@@ -3906,10 +3906,10 @@ Disassembly of section .text:
     4c30:	00c70023          	sb	a2,0(a4)
     4c34:	feb694e3          	bne	a3,a1,4c1c <test_indcpa_dec+0xa0>
     4c38:	10008737          	lui	a4,0x10008
-    4c3c:	0000a6b7          	lui	a3,0xa
-    4c40:	0000a5b7          	lui	a1,0xa
-    4c44:	ecc68693          	addi	a3,a3,-308 # 9ecc <strlen+0x9c>
-    4c48:	ed358593          	addi	a1,a1,-301 # 9ed3 <strlen+0xa3>
+    4c3c:	000106b7          	lui	a3,0x10
+    4c40:	000105b7          	lui	a1,0x10
+    4c44:	01068693          	addi	a3,a3,16 # 10010 <strlen+0x61e0>
+    4c48:	01758593          	addi	a1,a1,23 # 10017 <strlen+0x61e7>
     4c4c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     4c50:	0006c603          	lbu	a2,0(a3)
     4c54:	00168693          	addi	a3,a3,1
@@ -3924,19 +3924,19 @@ Disassembly of section .text:
     4c78:	0027f793          	andi	a5,a5,2
     4c7c:	fe079ce3          	bnez	a5,4c74 <test_indcpa_dec+0xf8>
     4c80:	00a00793          	li	a5,10
-    4c84:	000154b7          	lui	s1,0x15
+    4c84:	000174b7          	lui	s1,0x17
     4c88:	00f70023          	sb	a5,0(a4)
-    4c8c:	e5848493          	addi	s1,s1,-424 # 14e58 <Unity>
+    4c8c:	8d048493          	addi	s1,s1,-1840 # 168d0 <Unity>
     4c90:	0204a783          	lw	a5,32(s1)
     4c94:	0244a703          	lw	a4,36(s1)
     4c98:	00e7e7b3          	or	a5,a5,a4
     4c9c:	3c079063          	bnez	a5,505c <test_indcpa_dec+0x4e0>
-    4ca0:	000117b7          	lui	a5,0x11
-    4ca4:	00015737          	lui	a4,0x15
-    4ca8:	fb040913          	addi	s2,s0,-80
-    4cac:	9b478793          	addi	a5,a5,-1612 # 109b4 <m>
-    4cb0:	fb040413          	addi	s0,s0,-80
-    4cb4:	fd070713          	addi	a4,a4,-48 # 14fd0 <__BSS_END__>
+    4ca0:	000127b7          	lui	a5,0x12
+    4ca4:	00017737          	lui	a4,0x17
+    4ca8:	a2840913          	addi	s2,s0,-1496
+    4cac:	42c78793          	addi	a5,a5,1068 # 1242c <m>
+    4cb0:	a2840413          	addi	s0,s0,-1496
+    4cb4:	a4870713          	addi	a4,a4,-1464 # 16a48 <__BSS_END__>
     4cb8:	00044603          	lbu	a2,0(s0)
     4cbc:	0007c683          	lbu	a3,0(a5)
     4cc0:	12d61c63          	bne	a2,a3,4df8 <test_indcpa_dec+0x27c>
@@ -3976,7 +3976,7 @@ Disassembly of section .text:
     4d48:	02e7d7b3          	divu	a5,a5,a4
     4d4c:	2ca6f863          	bgeu	a3,a0,501c <test_indcpa_dec+0x4a0>
     4d50:	000186b7          	lui	a3,0x18
-    4d54:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    4d54:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     4d58:	02e7f633          	remu	a2,a5,a4
     4d5c:	03060613          	addi	a2,a2,48
     4d60:	00c102a3          	sb	a2,5(sp)
@@ -4020,9 +4020,9 @@ Disassembly of section .text:
     4df8:	03500513          	li	a0,53
     4dfc:	b25ff0ef          	jal	4920 <UnityTestResultsFailBegin>
     4e00:	10008737          	lui	a4,0x10008
-    4e04:	00010637          	lui	a2,0x10
+    4e04:	00012637          	lui	a2,0x12
     4e08:	02000693          	li	a3,32
-    4e0c:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    4e0c:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     4e10:	00a00593          	li	a1,10
     4e14:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     4e18:	00d00513          	li	a0,13
@@ -4035,9 +4035,9 @@ Disassembly of section .text:
     4e34:	00064683          	lbu	a3,0(a2)
     4e38:	fe0692e3          	bnez	a3,4e1c <test_indcpa_dec+0x2a0>
     4e3c:	10008737          	lui	a4,0x10008
-    4e40:	00010637          	lui	a2,0x10
+    4e40:	00012637          	lui	a2,0x12
     4e44:	02000693          	li	a3,32
-    4e48:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    4e48:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     4e4c:	00a00593          	li	a1,10
     4e50:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     4e54:	00d00513          	li	a0,13
@@ -4079,9 +4079,9 @@ Disassembly of section .text:
     4ee4:	00d70023          	sb	a3,0(a4)
     4ee8:	fec414e3          	bne	s0,a2,4ed0 <test_indcpa_dec+0x354>
     4eec:	10008737          	lui	a4,0x10008
-    4ef0:	00010637          	lui	a2,0x10
+    4ef0:	00012637          	lui	a2,0x12
     4ef4:	02000693          	li	a3,32
-    4ef8:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    4ef8:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     4efc:	00a00593          	li	a1,10
     4f00:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     4f04:	00d00513          	li	a0,13
@@ -4094,9 +4094,9 @@ Disassembly of section .text:
     4f20:	00064683          	lbu	a3,0(a2)
     4f24:	fe0692e3          	bnez	a3,4f08 <test_indcpa_dec+0x38c>
     4f28:	10008737          	lui	a4,0x10008
-    4f2c:	00010637          	lui	a2,0x10
+    4f2c:	00012637          	lui	a2,0x12
     4f30:	02000693          	li	a3,32
-    4f34:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    4f34:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     4f38:	00a00593          	li	a1,10
     4f3c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     4f40:	00d00513          	li	a0,13
@@ -4110,10 +4110,10 @@ Disassembly of section .text:
     4f60:	fe0692e3          	bnez	a3,4f44 <test_indcpa_dec+0x3c8>
     4f64:	00000513          	li	a0,0
     4f68:	e71fc0ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    4f6c:	00015537          	lui	a0,0x15
+    4f6c:	00017537          	lui	a0,0x17
     4f70:	00100793          	li	a5,1
     4f74:	00100593          	li	a1,1
-    4f78:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    4f78:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     4f7c:	02f4a023          	sw	a5,32(s1)
     4f80:	591040ef          	jal	9d10 <longjmp>
     4f84:	00274783          	lbu	a5,2(a4)
@@ -4170,9 +4170,9 @@ Disassembly of section .text:
     5050:	d99ff06f          	j	4de8 <test_indcpa_dec+0x26c>
     5054:	00100793          	li	a5,1
     5058:	d91ff06f          	j	4de8 <test_indcpa_dec+0x26c>
-    505c:	00015537          	lui	a0,0x15
+    505c:	00017537          	lui	a0,0x17
     5060:	00100593          	li	a1,1
-    5064:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    5064:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     5068:	4a9040ef          	jal	9d10 <longjmp>
     506c:	00e00793          	li	a5,14
     5070:	e45ff06f          	j	4eb4 <test_indcpa_dec+0x338>
@@ -4186,23 +4186,23 @@ Disassembly of section .text:
     5088:	100084b7          	lui	s1,0x10008
     508c:	00200793          	li	a5,2
     5090:	00f4ac23          	sw	a5,24(s1) # 10008018 <__stack_top+0xffc801c>
-    5094:	00015437          	lui	s0,0x15
+    5094:	00016437          	lui	s0,0x16
     5098:	00100793          	li	a5,1
-    509c:	000106b7          	lui	a3,0x10
-    50a0:	00010637          	lui	a2,0x10
-    50a4:	000115b7          	lui	a1,0x11
-    50a8:	4f468693          	addi	a3,a3,1268 # 104f4 <coins>
-    50ac:	9b458593          	addi	a1,a1,-1612 # 109b4 <m>
-    50b0:	a1840513          	addi	a0,s0,-1512 # 14a18 <c_>
+    509c:	000126b7          	lui	a3,0x12
+    50a0:	00012637          	lui	a2,0x12
+    50a4:	000125b7          	lui	a1,0x12
+    50a8:	f6c68693          	addi	a3,a3,-148 # 11f6c <coins>
+    50ac:	42c58593          	addi	a1,a1,1068 # 1242c <m>
+    50b0:	49040513          	addi	a0,s0,1168 # 16490 <c_>
     50b4:	00f4ac23          	sw	a5,24(s1)
-    50b8:	51460613          	addi	a2,a2,1300 # 10514 <pk>
+    50b8:	f8c60613          	addi	a2,a2,-116 # 11f8c <pk>
     50bc:	addfe0ef          	jal	3b98 <pqcrystals_kyber768_ref_indcpa_enc>
     50c0:	01c4a503          	lw	a0,28(s1)
     50c4:	10008737          	lui	a4,0x10008
-    50c8:	0000a6b7          	lui	a3,0xa
-    50cc:	0000a5b7          	lui	a1,0xa
-    50d0:	ed468693          	addi	a3,a3,-300 # 9ed4 <strlen+0xa4>
-    50d4:	ee058593          	addi	a1,a1,-288 # 9ee0 <strlen+0xb0>
+    50c8:	000106b7          	lui	a3,0x10
+    50cc:	000105b7          	lui	a1,0x10
+    50d0:	01868693          	addi	a3,a3,24 # 10018 <strlen+0x61e8>
+    50d4:	02458593          	addi	a1,a1,36 # 10024 <strlen+0x61f4>
     50d8:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     50dc:	0006c603          	lbu	a2,0(a3)
     50e0:	00168693          	addi	a3,a3,1
@@ -4228,10 +4228,10 @@ Disassembly of section .text:
     5130:	00c70023          	sb	a2,0(a4)
     5134:	feb694e3          	bne	a3,a1,511c <test_indcpa_enc+0xa8>
     5138:	10008737          	lui	a4,0x10008
-    513c:	0000a6b7          	lui	a3,0xa
-    5140:	0000a5b7          	lui	a1,0xa
-    5144:	ecc68693          	addi	a3,a3,-308 # 9ecc <strlen+0x9c>
-    5148:	ed358593          	addi	a1,a1,-301 # 9ed3 <strlen+0xa3>
+    513c:	000106b7          	lui	a3,0x10
+    5140:	000105b7          	lui	a1,0x10
+    5144:	01068693          	addi	a3,a3,16 # 10010 <strlen+0x61e0>
+    5148:	01758593          	addi	a1,a1,23 # 10017 <strlen+0x61e7>
     514c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5150:	0006c603          	lbu	a2,0(a3)
     5154:	00168693          	addi	a3,a3,1
@@ -4246,19 +4246,19 @@ Disassembly of section .text:
     5178:	0027f793          	andi	a5,a5,2
     517c:	fe079ce3          	bnez	a5,5174 <test_indcpa_enc+0x100>
     5180:	00a00793          	li	a5,10
-    5184:	000154b7          	lui	s1,0x15
+    5184:	000174b7          	lui	s1,0x17
     5188:	00f70023          	sb	a5,0(a4)
-    518c:	e5848493          	addi	s1,s1,-424 # 14e58 <Unity>
+    518c:	8d048493          	addi	s1,s1,-1840 # 168d0 <Unity>
     5190:	0204a783          	lw	a5,32(s1)
     5194:	0244a703          	lw	a4,36(s1)
     5198:	00e7e7b3          	or	a5,a5,a4
     519c:	3e079663          	bnez	a5,5588 <test_indcpa_enc+0x514>
-    51a0:	000117b7          	lui	a5,0x11
-    51a4:	00015737          	lui	a4,0x15
-    51a8:	a1840913          	addi	s2,s0,-1512
-    51ac:	e5478793          	addi	a5,a5,-428 # 10e54 <c>
-    51b0:	a1840413          	addi	s0,s0,-1512
-    51b4:	e5870713          	addi	a4,a4,-424 # 14e58 <Unity>
+    51a0:	000137b7          	lui	a5,0x13
+    51a4:	00017737          	lui	a4,0x17
+    51a8:	49040913          	addi	s2,s0,1168
+    51ac:	8cc78793          	addi	a5,a5,-1844 # 128cc <c>
+    51b0:	49040413          	addi	s0,s0,1168
+    51b4:	8d070713          	addi	a4,a4,-1840 # 168d0 <Unity>
     51b8:	00044603          	lbu	a2,0(s0)
     51bc:	0007c683          	lbu	a3,0(a5)
     51c0:	12d61c63          	bne	a2,a3,52f8 <test_indcpa_enc+0x284>
@@ -4298,7 +4298,7 @@ Disassembly of section .text:
     5248:	02e7d7b3          	divu	a5,a5,a4
     524c:	2ea6fe63          	bgeu	a3,a0,5548 <test_indcpa_enc+0x4d4>
     5250:	000186b7          	lui	a3,0x18
-    5254:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    5254:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     5258:	02e7f633          	remu	a2,a5,a4
     525c:	03060613          	addi	a2,a2,48
     5260:	00c102a3          	sb	a2,5(sp)
@@ -4342,9 +4342,9 @@ Disassembly of section .text:
     52f8:	04300513          	li	a0,67
     52fc:	e24ff0ef          	jal	4920 <UnityTestResultsFailBegin>
     5300:	10008737          	lui	a4,0x10008
-    5304:	00010637          	lui	a2,0x10
+    5304:	00012637          	lui	a2,0x12
     5308:	02000693          	li	a3,32
-    530c:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    530c:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     5310:	00a00593          	li	a1,10
     5314:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5318:	00d00513          	li	a0,13
@@ -4357,9 +4357,9 @@ Disassembly of section .text:
     5334:	00064683          	lbu	a3,0(a2)
     5338:	fe0692e3          	bnez	a3,531c <test_indcpa_enc+0x2a8>
     533c:	10008737          	lui	a4,0x10008
-    5340:	00010637          	lui	a2,0x10
+    5340:	00012637          	lui	a2,0x12
     5344:	02000693          	li	a3,32
-    5348:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    5348:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     534c:	00a00593          	li	a1,10
     5350:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5354:	00d00513          	li	a0,13
@@ -4412,9 +4412,9 @@ Disassembly of section .text:
     5410:	00d70023          	sb	a3,0(a4)
     5414:	fec414e3          	bne	s0,a2,53fc <test_indcpa_enc+0x388>
     5418:	10008737          	lui	a4,0x10008
-    541c:	00010637          	lui	a2,0x10
+    541c:	00012637          	lui	a2,0x12
     5420:	02000693          	li	a3,32
-    5424:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    5424:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     5428:	00a00593          	li	a1,10
     542c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5430:	00d00513          	li	a0,13
@@ -4427,9 +4427,9 @@ Disassembly of section .text:
     544c:	00064683          	lbu	a3,0(a2)
     5450:	fe0692e3          	bnez	a3,5434 <test_indcpa_enc+0x3c0>
     5454:	10008737          	lui	a4,0x10008
-    5458:	00010637          	lui	a2,0x10
+    5458:	00012637          	lui	a2,0x12
     545c:	02000693          	li	a3,32
-    5460:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    5460:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     5464:	00a00593          	li	a1,10
     5468:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     546c:	00d00513          	li	a0,13
@@ -4443,10 +4443,10 @@ Disassembly of section .text:
     548c:	fe0692e3          	bnez	a3,5470 <test_indcpa_enc+0x3fc>
     5490:	00000513          	li	a0,0
     5494:	945fc0ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    5498:	00015537          	lui	a0,0x15
+    5498:	00017537          	lui	a0,0x17
     549c:	00100793          	li	a5,1
     54a0:	00100593          	li	a1,1
-    54a4:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    54a4:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     54a8:	02f4a023          	sw	a5,32(s1)
     54ac:	065040ef          	jal	9d10 <longjmp>
     54b0:	00274783          	lbu	a5,2(a4)
@@ -4503,9 +4503,9 @@ Disassembly of section .text:
     557c:	d6dff06f          	j	52e8 <test_indcpa_enc+0x274>
     5580:	00100793          	li	a5,1
     5584:	d65ff06f          	j	52e8 <test_indcpa_enc+0x274>
-    5588:	00015537          	lui	a0,0x15
+    5588:	00017537          	lui	a0,0x17
     558c:	00100593          	li	a1,1
-    5590:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    5590:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     5594:	77c040ef          	jal	9d10 <longjmp>
     5598:	00c00793          	li	a5,12
     559c:	e45ff06f          	j	53e0 <test_indcpa_enc+0x36c>
@@ -4524,19 +4524,19 @@ Disassembly of section .text:
     55c8:	10008937          	lui	s2,0x10008
     55cc:	00200793          	li	a5,2
     55d0:	00f92c23          	sw	a5,24(s2) # 10008018 <__stack_top+0xffc801c>
-    55d4:	000144b7          	lui	s1,0x14
+    55d4:	000164b7          	lui	s1,0x16
     55d8:	00100793          	li	a5,1
-    55dc:	00014437          	lui	s0,0x14
-    55e0:	0f848593          	addi	a1,s1,248 # 140f8 <sk_>
-    55e4:	57840513          	addi	a0,s0,1400 # 14578 <pk_>
+    55dc:	00016437          	lui	s0,0x16
+    55e0:	b7048593          	addi	a1,s1,-1168 # 15b70 <sk_>
+    55e4:	ff040513          	addi	a0,s0,-16 # 15ff0 <pk_>
     55e8:	00f92c23          	sw	a5,24(s2)
     55ec:	c29fc0ef          	jal	2214 <pqcrystals_kyber768_ref_indcpa_keypair>
     55f0:	01c92503          	lw	a0,28(s2)
     55f4:	10008737          	lui	a4,0x10008
-    55f8:	0000a6b7          	lui	a3,0xa
-    55fc:	0000a5b7          	lui	a1,0xa
-    5600:	ee468693          	addi	a3,a3,-284 # 9ee4 <strlen+0xb4>
-    5604:	ef458593          	addi	a1,a1,-268 # 9ef4 <strlen+0xc4>
+    55f8:	000106b7          	lui	a3,0x10
+    55fc:	000105b7          	lui	a1,0x10
+    5600:	02868693          	addi	a3,a3,40 # 10028 <strlen+0x61f8>
+    5604:	03858593          	addi	a1,a1,56 # 10038 <strlen+0x6208>
     5608:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     560c:	0006c603          	lbu	a2,0(a3)
     5610:	00168693          	addi	a3,a3,1
@@ -4562,10 +4562,10 @@ Disassembly of section .text:
     5660:	00c70023          	sb	a2,0(a4)
     5664:	feb694e3          	bne	a3,a1,564c <test_indcpa_keypair+0x9c>
     5668:	10008737          	lui	a4,0x10008
-    566c:	0000a6b7          	lui	a3,0xa
-    5670:	0000a5b7          	lui	a1,0xa
-    5674:	ecc68693          	addi	a3,a3,-308 # 9ecc <strlen+0x9c>
-    5678:	ed358593          	addi	a1,a1,-301 # 9ed3 <strlen+0xa3>
+    566c:	000106b7          	lui	a3,0x10
+    5670:	000105b7          	lui	a1,0x10
+    5674:	01068693          	addi	a3,a3,16 # 10010 <strlen+0x61e0>
+    5678:	01758593          	addi	a1,a1,23 # 10017 <strlen+0x61e7>
     567c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5680:	0006c603          	lbu	a2,0(a3)
     5684:	00168693          	addi	a3,a3,1
@@ -4580,31 +4580,31 @@ Disassembly of section .text:
     56a8:	0027f793          	andi	a5,a5,2
     56ac:	fe079ce3          	bnez	a5,56a4 <test_indcpa_keypair+0xf4>
     56b0:	00a00793          	li	a5,10
-    56b4:	00015937          	lui	s2,0x15
+    56b4:	00017937          	lui	s2,0x17
     56b8:	00f70023          	sb	a5,0(a4)
-    56bc:	e5890913          	addi	s2,s2,-424 # 14e58 <Unity>
+    56bc:	8d090913          	addi	s2,s2,-1840 # 168d0 <Unity>
     56c0:	02092783          	lw	a5,32(s2)
     56c4:	02492703          	lw	a4,36(s2)
     56c8:	00e7e7b3          	or	a5,a5,a4
     56cc:	64079863          	bnez	a5,5d1c <test_indcpa_keypair+0x76c>
-    56d0:	000107b7          	lui	a5,0x10
-    56d4:	00015737          	lui	a4,0x15
-    56d8:	57840993          	addi	s3,s0,1400
-    56dc:	51478793          	addi	a5,a5,1300 # 10514 <pk>
-    56e0:	57840413          	addi	s0,s0,1400
-    56e4:	a1870713          	addi	a4,a4,-1512 # 14a18 <c_>
+    56d0:	000127b7          	lui	a5,0x12
+    56d4:	00016737          	lui	a4,0x16
+    56d8:	ff040993          	addi	s3,s0,-16
+    56dc:	f8c78793          	addi	a5,a5,-116 # 11f8c <pk>
+    56e0:	ff040413          	addi	s0,s0,-16
+    56e4:	49070713          	addi	a4,a4,1168 # 16490 <c_>
     56e8:	00044603          	lbu	a2,0(s0)
     56ec:	0007c683          	lbu	a3,0(a5)
     56f0:	16d61663          	bne	a2,a3,585c <test_indcpa_keypair+0x2ac>
     56f4:	00140413          	addi	s0,s0,1
     56f8:	00178793          	addi	a5,a5,1
     56fc:	fee416e3          	bne	s0,a4,56e8 <test_indcpa_keypair+0x138>
-    5700:	000117b7          	lui	a5,0x11
-    5704:	00014637          	lui	a2,0x14
-    5708:	9d478793          	addi	a5,a5,-1580 # 109d4 <sk>
-    570c:	0f848993          	addi	s3,s1,248
-    5710:	0f848413          	addi	s0,s1,248
-    5714:	57860613          	addi	a2,a2,1400 # 14578 <pk_>
+    5700:	000127b7          	lui	a5,0x12
+    5704:	00016637          	lui	a2,0x16
+    5708:	44c78793          	addi	a5,a5,1100 # 1244c <sk>
+    570c:	b7048993          	addi	s3,s1,-1168
+    5710:	b7048413          	addi	s0,s1,-1168
+    5714:	ff060613          	addi	a2,a2,-16 # 15ff0 <pk_>
     5718:	00044683          	lbu	a3,0(s0)
     571c:	0007c703          	lbu	a4,0(a5)
     5720:	38e69263          	bne	a3,a4,5aa4 <test_indcpa_keypair+0x4f4>
@@ -4645,7 +4645,7 @@ Disassembly of section .text:
     57ac:	02e7d7b3          	divu	a5,a5,a4
     57b0:	52a6fa63          	bgeu	a3,a0,5ce4 <test_indcpa_keypair+0x734>
     57b4:	000186b7          	lui	a3,0x18
-    57b8:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    57b8:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     57bc:	02e7f633          	remu	a2,a5,a4
     57c0:	03060613          	addi	a2,a2,48
     57c4:	00c102a3          	sb	a2,5(sp)
@@ -4689,9 +4689,9 @@ Disassembly of section .text:
     585c:	05100513          	li	a0,81
     5860:	8c0ff0ef          	jal	4920 <UnityTestResultsFailBegin>
     5864:	10008737          	lui	a4,0x10008
-    5868:	00010637          	lui	a2,0x10
+    5868:	00012637          	lui	a2,0x12
     586c:	02000693          	li	a3,32
-    5870:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    5870:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     5874:	00a00593          	li	a1,10
     5878:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     587c:	00d00513          	li	a0,13
@@ -4704,9 +4704,9 @@ Disassembly of section .text:
     5898:	00064683          	lbu	a3,0(a2)
     589c:	fe0692e3          	bnez	a3,5880 <test_indcpa_keypair+0x2d0>
     58a0:	10008737          	lui	a4,0x10008
-    58a4:	00010637          	lui	a2,0x10
+    58a4:	00012637          	lui	a2,0x12
     58a8:	02000693          	li	a3,32
-    58ac:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    58ac:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     58b0:	00a00593          	li	a1,10
     58b4:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     58b8:	00d00513          	li	a0,13
@@ -4759,9 +4759,9 @@ Disassembly of section .text:
     5974:	00d70023          	sb	a3,0(a4)
     5978:	fec414e3          	bne	s0,a2,5960 <test_indcpa_keypair+0x3b0>
     597c:	10008737          	lui	a4,0x10008
-    5980:	00010637          	lui	a2,0x10
+    5980:	00012637          	lui	a2,0x12
     5984:	02000693          	li	a3,32
-    5988:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    5988:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     598c:	00a00593          	li	a1,10
     5990:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5994:	00d00513          	li	a0,13
@@ -4774,9 +4774,9 @@ Disassembly of section .text:
     59b0:	00064683          	lbu	a3,0(a2)
     59b4:	fe0692e3          	bnez	a3,5998 <test_indcpa_keypair+0x3e8>
     59b8:	10008737          	lui	a4,0x10008
-    59bc:	00010637          	lui	a2,0x10
+    59bc:	00012637          	lui	a2,0x12
     59c0:	02000693          	li	a3,32
-    59c4:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    59c4:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     59c8:	00a00593          	li	a1,10
     59cc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     59d0:	00d00513          	li	a0,13
@@ -4790,10 +4790,10 @@ Disassembly of section .text:
     59f0:	fe0692e3          	bnez	a3,59d4 <test_indcpa_keypair+0x424>
     59f4:	00000513          	li	a0,0
     59f8:	be0fc0ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    59fc:	00015537          	lui	a0,0x15
+    59fc:	00017537          	lui	a0,0x17
     5a00:	00100793          	li	a5,1
     5a04:	00100593          	li	a1,1
-    5a08:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    5a08:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     5a0c:	02f92023          	sw	a5,32(s2)
     5a10:	300040ef          	jal	9d10 <longjmp>
     5a14:	00274783          	lbu	a5,2(a4)
@@ -4835,9 +4835,9 @@ Disassembly of section .text:
     5aa4:	05200513          	li	a0,82
     5aa8:	e79fe0ef          	jal	4920 <UnityTestResultsFailBegin>
     5aac:	10008737          	lui	a4,0x10008
-    5ab0:	00010637          	lui	a2,0x10
+    5ab0:	00012637          	lui	a2,0x12
     5ab4:	02000693          	li	a3,32
-    5ab8:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    5ab8:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     5abc:	00a00593          	li	a1,10
     5ac0:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5ac4:	00d00513          	li	a0,13
@@ -4850,9 +4850,9 @@ Disassembly of section .text:
     5ae0:	00064683          	lbu	a3,0(a2)
     5ae4:	fe0692e3          	bnez	a3,5ac8 <test_indcpa_keypair+0x518>
     5ae8:	10008737          	lui	a4,0x10008
-    5aec:	00010637          	lui	a2,0x10
+    5aec:	00012637          	lui	a2,0x12
     5af0:	02000693          	li	a3,32
-    5af4:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    5af4:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     5af8:	00a00593          	li	a1,10
     5afc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5b00:	00d00513          	li	a0,13
@@ -4905,9 +4905,9 @@ Disassembly of section .text:
     5bbc:	00d70023          	sb	a3,0(a4)
     5bc0:	fec414e3          	bne	s0,a2,5ba8 <test_indcpa_keypair+0x5f8>
     5bc4:	10008737          	lui	a4,0x10008
-    5bc8:	00010637          	lui	a2,0x10
+    5bc8:	00012637          	lui	a2,0x12
     5bcc:	02000693          	li	a3,32
-    5bd0:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    5bd0:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     5bd4:	00a00593          	li	a1,10
     5bd8:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5bdc:	00d00513          	li	a0,13
@@ -4919,9 +4919,9 @@ Disassembly of section .text:
     5bf4:	00d70023          	sb	a3,0(a4)
     5bf8:	00064683          	lbu	a3,0(a2)
     5bfc:	fe0692e3          	bnez	a3,5be0 <test_indcpa_keypair+0x630>
-    5c00:	00010637          	lui	a2,0x10
+    5c00:	00012637          	lui	a2,0x12
     5c04:	10008737          	lui	a4,0x10008
-    5c08:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    5c08:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     5c0c:	02000693          	li	a3,32
     5c10:	00a00593          	li	a1,10
     5c14:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
@@ -4990,9 +4990,9 @@ Disassembly of section .text:
     5d10:	b3dff06f          	j	584c <test_indcpa_keypair+0x29c>
     5d14:	00100793          	li	a5,1
     5d18:	b35ff06f          	j	584c <test_indcpa_keypair+0x29c>
-    5d1c:	00015537          	lui	a0,0x15
+    5d1c:	00017537          	lui	a0,0x17
     5d20:	00100593          	li	a1,1
-    5d24:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    5d24:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     5d28:	7e9030ef          	jal	9d10 <longjmp>
     5d2c:	00c00793          	li	a5,12
     5d30:	e5dff06f          	j	5b8c <test_indcpa_keypair+0x5dc>
@@ -5019,15 +5019,15 @@ Disassembly of section .text:
     5d7c:	09512a23          	sw	s5,148(sp)
     5d80:	00200713          	li	a4,2
     5d84:	00e7ac23          	sw	a4,24(a5) # 10008018 <__stack_top+0xffc801c>
-    5d88:	000134b7          	lui	s1,0x13
+    5d88:	000154b7          	lui	s1,0x15
     5d8c:	00100713          	li	a4,1
-    5d90:	00014437          	lui	s0,0x14
+    5d90:	00015437          	lui	s0,0x15
     5d94:	00e7ac23          	sw	a4,24(a5)
-    5d98:	2f848593          	addi	a1,s1,760 # 132f8 <sk_cca>
-    5d9c:	c5840513          	addi	a0,s0,-936 # 13c58 <pk_cca>
+    5d98:	d7048593          	addi	a1,s1,-656 # 14d70 <sk_cca>
+    5d9c:	6d040513          	addi	a0,s0,1744 # 156d0 <pk_cca>
     5da0:	c74fc0ef          	jal	2214 <pqcrystals_kyber768_ref_indcpa_keypair>
-    5da4:	2f848793          	addi	a5,s1,760
-    5da8:	c5840713          	addi	a4,s0,-936
+    5da4:	d7048793          	addi	a5,s1,-656
+    5da8:	6d040713          	addi	a4,s0,1744
     5dac:	48078793          	addi	a5,a5,1152
     5db0:	4a070813          	addi	a6,a4,1184
     5db4:	00072503          	lw	a0,0(a4)
@@ -5041,13 +5041,13 @@ Disassembly of section .text:
     5dd4:	01070713          	addi	a4,a4,16
     5dd8:	01078793          	addi	a5,a5,16
     5ddc:	fd071ce3          	bne	a4,a6,5db4 <test_indcca+0x58>
-    5de0:	00014537          	lui	a0,0x14
+    5de0:	00015537          	lui	a0,0x15
     5de4:	4a000613          	li	a2,1184
-    5de8:	c5840593          	addi	a1,s0,-936
-    5dec:	c1850513          	addi	a0,a0,-1000 # 13c18 <sk_cca+0x920>
+    5de8:	6d040593          	addi	a1,s0,1744
+    5dec:	69050513          	addi	a0,a0,1680 # 15690 <sk_cca+0x920>
     5df0:	d75fb0ef          	jal	1b64 <sha3_256>
-    5df4:	0000c637          	lui	a2,0xc
-    5df8:	80c60613          	addi	a2,a2,-2036 # b80c <d>
+    5df4:	00012637          	lui	a2,0x12
+    5df8:	95060613          	addi	a2,a2,-1712 # 11950 <d>
     5dfc:	01062803          	lw	a6,16(a2)
     5e00:	01462503          	lw	a0,20(a2)
     5e04:	01c62703          	lw	a4,28(a2)
@@ -5056,8 +5056,8 @@ Disassembly of section .text:
     5e10:	00862303          	lw	t1,8(a2)
     5e14:	00c62883          	lw	a7,12(a2)
     5e18:	01862583          	lw	a1,24(a2)
-    5e1c:	000147b7          	lui	a5,0x14
-    5e20:	c3878793          	addi	a5,a5,-968 # 13c38 <sk_cca+0x940>
+    5e1c:	000157b7          	lui	a5,0x15
+    5e20:	6b078793          	addi	a5,a5,1712 # 156b0 <sk_cca+0x940>
     5e24:	100086b7          	lui	a3,0x10008
     5e28:	00a7aa23          	sw	a0,20(a5)
     5e2c:	00e7ae23          	sw	a4,28(a5)
@@ -5069,10 +5069,10 @@ Disassembly of section .text:
     5e44:	00b7ac23          	sw	a1,24(a5)
     5e48:	01c6a803          	lw	a6,28(a3) # 1000801c <__stack_top+0xffc8020>
     5e4c:	10008737          	lui	a4,0x10008
-    5e50:	0000a6b7          	lui	a3,0xa
-    5e54:	0000a537          	lui	a0,0xa
-    5e58:	ef868693          	addi	a3,a3,-264 # 9ef8 <strlen+0xc8>
-    5e5c:	f0850513          	addi	a0,a0,-248 # 9f08 <strlen+0xd8>
+    5e50:	000106b7          	lui	a3,0x10
+    5e54:	00010537          	lui	a0,0x10
+    5e58:	03c68693          	addi	a3,a3,60 # 1003c <strlen+0x620c>
+    5e5c:	04c50513          	addi	a0,a0,76 # 1004c <strlen+0x621c>
     5e60:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5e64:	0006c583          	lbu	a1,0(a3)
     5e68:	00168693          	addi	a3,a3,1
@@ -5098,12 +5098,12 @@ Disassembly of section .text:
     5eb8:	fe079ce3          	bnez	a5,5eb0 <test_indcca+0x154>
     5ebc:	00b70023          	sb	a1,0(a4)
     5ec0:	fea694e3          	bne	a3,a0,5ea8 <test_indcca+0x14c>
-    5ec4:	0000a6b7          	lui	a3,0xa
+    5ec4:	000106b7          	lui	a3,0x10
     5ec8:	10008737          	lui	a4,0x10008
-    5ecc:	0000a937          	lui	s2,0xa
-    5ed0:	ecc68993          	addi	s3,a3,-308 # 9ecc <strlen+0x9c>
-    5ed4:	ed390913          	addi	s2,s2,-301 # 9ed3 <strlen+0xa3>
-    5ed8:	ecc68693          	addi	a3,a3,-308
+    5ecc:	00010937          	lui	s2,0x10
+    5ed0:	01068993          	addi	s3,a3,16 # 10010 <strlen+0x61e0>
+    5ed4:	01790913          	addi	s2,s2,23 # 10017 <strlen+0x61e7>
+    5ed8:	01068693          	addi	a3,a3,16
     5edc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     5ee0:	0006c583          	lbu	a1,0(a3)
     5ee4:	00168693          	addi	a3,a3,1
@@ -5145,7 +5145,7 @@ Disassembly of section .text:
     5f74:	02d12423          	sw	a3,40(sp)
     5f78:	bedfb0ef          	jal	1b64 <sha3_256>
     5f7c:	4a000613          	li	a2,1184
-    5f80:	c5840593          	addi	a1,s0,-936
+    5f80:	6d040593          	addi	a1,s0,1744
     5f84:	03010513          	addi	a0,sp,48
     5f88:	bddfb0ef          	jal	1b64 <sha3_256>
     5f8c:	100407b7          	lui	a5,0x10040
@@ -5203,14 +5203,14 @@ Disassembly of section .text:
     605c:	00f72023          	sw	a5,0(a4)
     6060:	000a2783          	lw	a5,0(s4)
     6064:	fe07dee3          	bgez	a5,6060 <test_indcca+0x304>
-    6068:	00013ab7          	lui	s5,0x13
+    6068:	00015ab7          	lui	s5,0x15
     606c:	07010693          	addi	a3,sp,112
-    6070:	c5840613          	addi	a2,s0,-936
+    6070:	6d040613          	addi	a2,s0,1744
     6074:	01010593          	addi	a1,sp,16
-    6078:	eb8a8513          	addi	a0,s5,-328 # 12eb8 <c_cca>
+    6078:	930a8513          	addi	a0,s5,-1744 # 14930 <c_cca>
     607c:	b1dfd0ef          	jal	3b98 <pqcrystals_kyber768_ref_indcpa_enc>
     6080:	44000613          	li	a2,1088
-    6084:	eb8a8593          	addi	a1,s5,-328
+    6084:	930a8593          	addi	a1,s5,-1744
     6088:	07010513          	addi	a0,sp,112
     608c:	ad9fb0ef          	jal	1b64 <sha3_256>
     6090:	10040737          	lui	a4,0x10040
@@ -5257,9 +5257,9 @@ Disassembly of section .text:
     6134:	00072783          	lw	a5,0(a4)
     6138:	fe07dee3          	bgez	a5,6134 <test_indcca+0x3d8>
     613c:	00800793          	li	a5,8
-    6140:	00013437          	lui	s0,0x13
+    6140:	00015437          	lui	s0,0x15
     6144:	00f72223          	sw	a5,4(a4)
-    6148:	e9840413          	addi	s0,s0,-360 # 12e98 <K>
+    6148:	91040413          	addi	s0,s0,-1776 # 14910 <K>
     614c:	02872623          	sw	s0,44(a4)
     6150:	02072823          	sw	zero,48(a4)
     6154:	00072783          	lw	a5,0(a4)
@@ -5272,10 +5272,10 @@ Disassembly of section .text:
     6170:	100087b7          	lui	a5,0x10008
     6174:	01c7a503          	lw	a0,28(a5) # 1000801c <__stack_top+0xffc8020>
     6178:	10008737          	lui	a4,0x10008
-    617c:	0000a6b7          	lui	a3,0xa
-    6180:	0000a5b7          	lui	a1,0xa
-    6184:	f0c68693          	addi	a3,a3,-244 # 9f0c <strlen+0xdc>
-    6188:	f1858593          	addi	a1,a1,-232 # 9f18 <strlen+0xe8>
+    617c:	000106b7          	lui	a3,0x10
+    6180:	000105b7          	lui	a1,0x10
+    6184:	05068693          	addi	a3,a3,80 # 10050 <strlen+0x6220>
+    6188:	05c58593          	addi	a1,a1,92 # 1005c <strlen+0x622c>
     618c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6190:	0006c603          	lbu	a2,0(a3)
     6194:	00168693          	addi	a3,a3,1
@@ -5325,10 +5325,10 @@ Disassembly of section .text:
     6244:	934fe0ef          	jal	4378 <pqcrystals_kyber768_ref_dec.constprop.0.isra.0>
     6248:	01ca2503          	lw	a0,28(s4)
     624c:	10008737          	lui	a4,0x10008
-    6250:	0000a6b7          	lui	a3,0xa
-    6254:	0000a637          	lui	a2,0xa
-    6258:	f1c68693          	addi	a3,a3,-228 # 9f1c <strlen+0xec>
-    625c:	f2860613          	addi	a2,a2,-216 # 9f28 <strlen+0xf8>
+    6250:	000106b7          	lui	a3,0x10
+    6254:	00010637          	lui	a2,0x10
+    6258:	06068693          	addi	a3,a3,96 # 10060 <strlen+0x6230>
+    625c:	06c60613          	addi	a2,a2,108 # 1006c <strlen+0x623c>
     6260:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6264:	0006c583          	lbu	a1,0(a3)
     6268:	00168693          	addi	a3,a3,1
@@ -5368,18 +5368,18 @@ Disassembly of section .text:
     62f0:	0027f793          	andi	a5,a5,2
     62f4:	fe079ce3          	bnez	a5,62ec <test_indcca+0x590>
     62f8:	00a00793          	li	a5,10
-    62fc:	000159b7          	lui	s3,0x15
+    62fc:	000179b7          	lui	s3,0x17
     6300:	00f70023          	sb	a5,0(a4)
-    6304:	e5898993          	addi	s3,s3,-424 # 14e58 <Unity>
+    6304:	8d098993          	addi	s3,s3,-1840 # 168d0 <Unity>
     6308:	0209a783          	lw	a5,32(s3)
     630c:	0249a703          	lw	a4,36(s3)
     6310:	00e7e7b3          	or	a5,a5,a4
     6314:	68079263          	bnez	a5,6998 <test_indcca+0xc3c>
-    6318:	00013937          	lui	s2,0x13
-    631c:	000137b7          	lui	a5,0x13
-    6320:	e7890a13          	addi	s4,s2,-392 # 12e78 <K_>
-    6324:	e9878793          	addi	a5,a5,-360 # 12e98 <K>
-    6328:	e7890913          	addi	s2,s2,-392
+    6318:	00015937          	lui	s2,0x15
+    631c:	000157b7          	lui	a5,0x15
+    6320:	8f090a13          	addi	s4,s2,-1808 # 148f0 <K_>
+    6324:	91078793          	addi	a5,a5,-1776 # 14910 <K>
+    6328:	8f090913          	addi	s2,s2,-1808
     632c:	00094683          	lbu	a3,0(s2)
     6330:	00044703          	lbu	a4,0(s0)
     6334:	36e69463          	bne	a3,a4,669c <test_indcca+0x940>
@@ -5422,7 +5422,7 @@ Disassembly of section .text:
     63c8:	02e7d7b3          	divu	a5,a5,a4
     63cc:	56a6fe63          	bgeu	a3,a0,6948 <test_indcca+0xbec>
     63d0:	000186b7          	lui	a3,0x18
-    63d4:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    63d4:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     63d8:	02e7f633          	remu	a2,a5,a4
     63dc:	03060613          	addi	a2,a2,48
     63e0:	04c10aa3          	sb	a2,85(sp)
@@ -5490,7 +5490,7 @@ Disassembly of section .text:
     64d8:	02e7d7b3          	divu	a5,a5,a4
     64dc:	40a6fa63          	bgeu	a3,a0,68f0 <test_indcca+0xb94>
     64e0:	000186b7          	lui	a3,0x18
-    64e4:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    64e4:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     64e8:	02e7f633          	remu	a2,a5,a4
     64ec:	03060613          	addi	a2,a2,48
     64f0:	04c10aa3          	sb	a2,85(sp)
@@ -5558,7 +5558,7 @@ Disassembly of section .text:
     65e8:	02e7d7b3          	divu	a5,a5,a4
     65ec:	3306f263          	bgeu	a3,a6,6910 <test_indcca+0xbb4>
     65f0:	000186b7          	lui	a3,0x18
-    65f4:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    65f4:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     65f8:	02e7f5b3          	remu	a1,a5,a4
     65fc:	03058593          	addi	a1,a1,48
     6600:	04b10aa3          	sb	a1,85(sp)
@@ -5603,9 +5603,9 @@ Disassembly of section .text:
     669c:	06e00513          	li	a0,110
     66a0:	a80fe0ef          	jal	4920 <UnityTestResultsFailBegin>
     66a4:	10008737          	lui	a4,0x10008
-    66a8:	00010637          	lui	a2,0x10
+    66a8:	00012637          	lui	a2,0x12
     66ac:	02000693          	li	a3,32
-    66b0:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    66b0:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     66b4:	00a00593          	li	a1,10
     66b8:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     66bc:	00d00513          	li	a0,13
@@ -5618,9 +5618,9 @@ Disassembly of section .text:
     66d8:	00064683          	lbu	a3,0(a2)
     66dc:	fe0692e3          	bnez	a3,66c0 <test_indcca+0x964>
     66e0:	10008737          	lui	a4,0x10008
-    66e4:	00010637          	lui	a2,0x10
+    66e4:	00012637          	lui	a2,0x12
     66e8:	02000693          	li	a3,32
-    66ec:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    66ec:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     66f0:	00a00593          	li	a1,10
     66f4:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     66f8:	00d00513          	li	a0,13
@@ -5662,9 +5662,9 @@ Disassembly of section .text:
     6788:	00d70023          	sb	a3,0(a4)
     678c:	fec494e3          	bne	s1,a2,6774 <test_indcca+0xa18>
     6790:	10008737          	lui	a4,0x10008
-    6794:	00010637          	lui	a2,0x10
+    6794:	00012637          	lui	a2,0x12
     6798:	02000693          	li	a3,32
-    679c:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    679c:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     67a0:	00a00593          	li	a1,10
     67a4:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     67a8:	00d00513          	li	a0,13
@@ -5677,9 +5677,9 @@ Disassembly of section .text:
     67c4:	00064683          	lbu	a3,0(a2)
     67c8:	fe0692e3          	bnez	a3,67ac <test_indcca+0xa50>
     67cc:	10008737          	lui	a4,0x10008
-    67d0:	00010637          	lui	a2,0x10
+    67d0:	00012637          	lui	a2,0x12
     67d4:	02000693          	li	a3,32
-    67d8:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    67d8:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     67dc:	00a00593          	li	a1,10
     67e0:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     67e4:	00d00513          	li	a0,13
@@ -5693,10 +5693,10 @@ Disassembly of section .text:
     6804:	fe0692e3          	bnez	a3,67e8 <test_indcca+0xa8c>
     6808:	00000513          	li	a0,0
     680c:	dccfb0ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    6810:	00015537          	lui	a0,0x15
+    6810:	00017537          	lui	a0,0x17
     6814:	00100793          	li	a5,1
     6818:	00100593          	li	a1,1
-    681c:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    681c:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     6820:	02f9a023          	sw	a5,32(s3)
     6824:	4ec030ef          	jal	9d10 <longjmp>
     6828:	00274783          	lbu	a5,2(a4)
@@ -5791,9 +5791,9 @@ Disassembly of section .text:
     698c:	bedff06f          	j	6578 <test_indcca+0x81c>
     6990:	00e00793          	li	a5,14
     6994:	dc5ff06f          	j	6758 <test_indcca+0x9fc>
-    6998:	00015537          	lui	a0,0x15
+    6998:	00017537          	lui	a0,0x17
     699c:	00100593          	li	a1,1
-    69a0:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    69a0:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     69a4:	36c030ef          	jal	9d10 <longjmp>
 
 000069a8 <test_masked_cbd>:
@@ -5823,24 +5823,24 @@ Disassembly of section .text:
     6a04:	100089b7          	lui	s3,0x10008
     6a08:	00200793          	li	a5,2
     6a0c:	00f9ac23          	sw	a5,24(s3) # 10008018 <__stack_top+0xffc801c>
-    6a10:	00011937          	lui	s2,0x11
+    6a10:	00013937          	lui	s2,0x13
     6a14:	00100793          	li	a5,1
-    6a18:	00011437          	lui	s0,0x11
-    6a1c:	0000a5b7          	lui	a1,0xa
+    6a18:	00013437          	lui	s0,0x13
+    6a1c:	000115b7          	lui	a1,0x11
     6a20:	00f9ac23          	sw	a5,24(s3)
-    6a24:	70c58593          	addi	a1,a1,1804 # a70c <buf>
+    6a24:	85058593          	addi	a1,a1,-1968 # 10850 <buf>
     6a28:	00010513          	mv	a0,sp
-    6a2c:	2d890493          	addi	s1,s2,728 # 112d8 <mpoly_cbd_>
-    6a30:	4d840413          	addi	s0,s0,1240 # 114d8 <mpoly_cbd_+0x200>
+    6a2c:	d5090493          	addi	s1,s2,-688 # 12d50 <mpoly_cbd_>
+    6a30:	f5040413          	addi	s0,s0,-176 # 12f50 <mpoly_cbd_+0x200>
     6a34:	00912023          	sw	s1,0(sp)
     6a38:	00812223          	sw	s0,4(sp)
     6a3c:	a0cfb0ef          	jal	1c48 <masked_cbd_eta2_core>
     6a40:	01c9a503          	lw	a0,28(s3)
     6a44:	10008737          	lui	a4,0x10008
-    6a48:	0000a6b7          	lui	a3,0xa
-    6a4c:	0000a5b7          	lui	a1,0xa
-    6a50:	f2c68693          	addi	a3,a3,-212 # 9f2c <strlen+0xfc>
-    6a54:	f3858593          	addi	a1,a1,-200 # 9f38 <strlen+0x108>
+    6a48:	000106b7          	lui	a3,0x10
+    6a4c:	000105b7          	lui	a1,0x10
+    6a50:	07068693          	addi	a3,a3,112 # 10070 <strlen+0x6240>
+    6a54:	07c58593          	addi	a1,a1,124 # 1007c <strlen+0x624c>
     6a58:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6a5c:	0006c603          	lbu	a2,0(a3)
     6a60:	00168693          	addi	a3,a3,1
@@ -5866,10 +5866,10 @@ Disassembly of section .text:
     6ab0:	00c70023          	sb	a2,0(a4)
     6ab4:	feb694e3          	bne	a3,a1,6a9c <test_masked_cbd+0xf4>
     6ab8:	10008737          	lui	a4,0x10008
-    6abc:	0000a6b7          	lui	a3,0xa
-    6ac0:	0000a5b7          	lui	a1,0xa
-    6ac4:	ecc68693          	addi	a3,a3,-308 # 9ecc <strlen+0x9c>
-    6ac8:	ed358593          	addi	a1,a1,-301 # 9ed3 <strlen+0xa3>
+    6abc:	000106b7          	lui	a3,0x10
+    6ac0:	000105b7          	lui	a1,0x10
+    6ac4:	01068693          	addi	a3,a3,16 # 10010 <strlen+0x61e0>
+    6ac8:	01758593          	addi	a1,a1,23 # 10017 <strlen+0x61e7>
     6acc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6ad0:	0006c603          	lbu	a2,0(a3)
     6ad4:	00168693          	addi	a3,a3,1
@@ -5904,13 +5904,13 @@ Disassembly of section .text:
     6b48:	00d71023          	sh	a3,0(a4)
     6b4c:	00270713          	addi	a4,a4,2
     6b50:	fce416e3          	bne	s0,a4,6b1c <test_masked_cbd+0x174>
-    6b54:	00015437          	lui	s0,0x15
-    6b58:	e5840413          	addi	s0,s0,-424 # 14e58 <Unity>
+    6b54:	00017437          	lui	s0,0x17
+    6b58:	8d040413          	addi	s0,s0,-1840 # 168d0 <Unity>
     6b5c:	02042983          	lw	s3,32(s0)
     6b60:	02442783          	lw	a5,36(s0)
     6b64:	00f9e9b3          	or	s3,s3,a5
     6b68:	3a099863          	bnez	s3,6f18 <test_masked_cbd+0x570>
-    6b6c:	2d894783          	lbu	a5,728(s2)
+    6b6c:	d5094783          	lbu	a5,-688(s2)
     6b70:	14079863          	bnez	a5,6cc0 <test_masked_cbd+0x318>
     6b74:	0014c783          	lbu	a5,1(s1)
     6b78:	38079c63          	bnez	a5,6f10 <test_masked_cbd+0x568>
@@ -5954,7 +5954,7 @@ Disassembly of section .text:
     6c10:	02e7d7b3          	divu	a5,a5,a4
     6c14:	2ca6f263          	bgeu	a3,a0,6ed8 <test_masked_cbd+0x530>
     6c18:	000186b7          	lui	a3,0x18
-    6c1c:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    6c1c:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     6c20:	02e7f633          	remu	a2,a5,a4
     6c24:	03060613          	addi	a2,a2,48
     6c28:	00c102a3          	sb	a2,5(sp)
@@ -5999,9 +5999,9 @@ Disassembly of section .text:
     6cc4:	10900513          	li	a0,265
     6cc8:	c59fd0ef          	jal	4920 <UnityTestResultsFailBegin>
     6ccc:	10008737          	lui	a4,0x10008
-    6cd0:	00010637          	lui	a2,0x10
+    6cd0:	00012637          	lui	a2,0x12
     6cd4:	02000693          	li	a3,32
-    6cd8:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    6cd8:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     6cdc:	00a00593          	li	a1,10
     6ce0:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6ce4:	00d00513          	li	a0,13
@@ -6014,9 +6014,9 @@ Disassembly of section .text:
     6d00:	00064683          	lbu	a3,0(a2)
     6d04:	fe0692e3          	bnez	a3,6ce8 <test_masked_cbd+0x340>
     6d08:	10008737          	lui	a4,0x10008
-    6d0c:	00010637          	lui	a2,0x10
+    6d0c:	00012637          	lui	a2,0x12
     6d10:	02000693          	li	a3,32
-    6d14:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    6d14:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     6d18:	00a00593          	li	a1,10
     6d1c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6d20:	00d00513          	li	a0,13
@@ -6050,9 +6050,9 @@ Disassembly of section .text:
     6d90:	00b70023          	sb	a1,0(a4)
     6d94:	fec694e3          	bne	a3,a2,6d7c <test_masked_cbd+0x3d4>
     6d98:	10008737          	lui	a4,0x10008
-    6d9c:	00010637          	lui	a2,0x10
+    6d9c:	00012637          	lui	a2,0x12
     6da0:	02000693          	li	a3,32
-    6da4:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    6da4:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     6da8:	00a00593          	li	a1,10
     6dac:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6db0:	00d00513          	li	a0,13
@@ -6065,9 +6065,9 @@ Disassembly of section .text:
     6dcc:	00064683          	lbu	a3,0(a2)
     6dd0:	fe0692e3          	bnez	a3,6db4 <test_masked_cbd+0x40c>
     6dd4:	10008737          	lui	a4,0x10008
-    6dd8:	00010637          	lui	a2,0x10
+    6dd8:	00012637          	lui	a2,0x12
     6ddc:	02000693          	li	a3,32
-    6de0:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    6de0:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     6de4:	00a00593          	li	a1,10
     6de8:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     6dec:	00d00513          	li	a0,13
@@ -6081,10 +6081,10 @@ Disassembly of section .text:
     6e0c:	fe0692e3          	bnez	a3,6df0 <test_masked_cbd+0x448>
     6e10:	00000513          	li	a0,0
     6e14:	fc5fa0ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    6e18:	00015537          	lui	a0,0x15
+    6e18:	00017537          	lui	a0,0x17
     6e1c:	00100793          	li	a5,1
     6e20:	00100593          	li	a1,1
-    6e24:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    6e24:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     6e28:	02f42023          	sw	a5,32(s0)
     6e2c:	6e5020ef          	jal	9d10 <longjmp>
     6e30:	00274783          	lbu	a5,2(a4)
@@ -6145,9 +6145,9 @@ Disassembly of section .text:
     6f0c:	db9ff06f          	j	6cc4 <test_masked_cbd+0x31c>
     6f10:	00200993          	li	s3,2
     6f14:	db1ff06f          	j	6cc4 <test_masked_cbd+0x31c>
-    6f18:	00015537          	lui	a0,0x15
+    6f18:	00017537          	lui	a0,0x17
     6f1c:	00100593          	li	a1,1
-    6f20:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    6f20:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     6f24:	5ed020ef          	jal	9d10 <longjmp>
 
 00006f28 <UnityAssertEqualIntNumber.part.0.constprop.0>:
@@ -6162,9 +6162,9 @@ Disassembly of section .text:
     6f48:	00112e23          	sw	ra,28(sp)
     6f4c:	9d5fd0ef          	jal	4920 <UnityTestResultsFailBegin>
     6f50:	100087b7          	lui	a5,0x10008
-    6f54:	00010637          	lui	a2,0x10
+    6f54:	00012637          	lui	a2,0x12
     6f58:	02000713          	li	a4,32
-    6f5c:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    6f5c:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     6f60:	00a00593          	li	a1,10
     6f64:	01078793          	addi	a5,a5,16 # 10008010 <__stack_top+0xffc8014>
     6f68:	00d00513          	li	a0,13
@@ -6197,9 +6197,9 @@ Disassembly of section .text:
     6fd4:	00c70023          	sb	a2,0(a4)
     6fd8:	feb694e3          	bne	a3,a1,6fc0 <UnityAssertEqualIntNumber.part.0.constprop.0+0x98>
     6fdc:	100087b7          	lui	a5,0x10008
-    6fe0:	00010637          	lui	a2,0x10
+    6fe0:	00012637          	lui	a2,0x12
     6fe4:	02000713          	li	a4,32
-    6fe8:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    6fe8:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     6fec:	00a00593          	li	a1,10
     6ff0:	01078793          	addi	a5,a5,16 # 10008010 <__stack_top+0xffc8014>
     6ff4:	00d00513          	li	a0,13
@@ -6244,7 +6244,7 @@ Disassembly of section .text:
     7090:	02e7d7b3          	divu	a5,a5,a4
     7094:	42d67463          	bgeu	a2,a3,74bc <UnityAssertEqualIntNumber.part.0.constprop.0+0x594>
     7098:	00018637          	lui	a2,0x18
-    709c:	69f60613          	addi	a2,a2,1695 # 1869f <__BSS_END__+0x36cf>
+    709c:	69f60613          	addi	a2,a2,1695 # 1869f <__BSS_END__+0x1c57>
     70a0:	02e7f5b3          	remu	a1,a5,a4
     70a4:	03058593          	addi	a1,a1,48
     70a8:	00b10523          	sb	a1,10(sp)
@@ -6295,14 +6295,14 @@ Disassembly of section .text:
     715c:	fe079ce3          	bnez	a5,7154 <UnityAssertEqualIntNumber.part.0.constprop.0+0x22c>
     7160:	00d70023          	sb	a3,0(a4)
     7164:	fec494e3          	bne	s1,a2,714c <UnityAssertEqualIntNumber.part.0.constprop.0+0x224>
-    7168:	000156b7          	lui	a3,0x15
-    716c:	e5868693          	addi	a3,a3,-424 # 14e58 <Unity>
+    7168:	000176b7          	lui	a3,0x17
+    716c:	8d068693          	addi	a3,a3,-1840 # 168d0 <Unity>
     7170:	0086a503          	lw	a0,8(a3)
     7174:	12050863          	beqz	a0,72a4 <UnityAssertEqualIntNumber.part.0.constprop.0+0x37c>
     7178:	10008737          	lui	a4,0x10008
-    717c:	000105b7          	lui	a1,0x10
+    717c:	000125b7          	lui	a1,0x12
     7180:	02e00613          	li	a2,46
-    7184:	02858593          	addi	a1,a1,40 # 10028 <UnityStrSpacer>
+    7184:	aa058593          	addi	a1,a1,-1376 # 11aa0 <UnityStrSpacer>
     7188:	00a00813          	li	a6,10
     718c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7190:	00d00893          	li	a7,13
@@ -6315,9 +6315,9 @@ Disassembly of section .text:
     71ac:	0005c603          	lbu	a2,0(a1)
     71b0:	fe0612e3          	bnez	a2,7194 <UnityAssertEqualIntNumber.part.0.constprop.0+0x26c>
     71b4:	10008737          	lui	a4,0x10008
-    71b8:	000105b7          	lui	a1,0x10
+    71b8:	000125b7          	lui	a1,0x12
     71bc:	04600613          	li	a2,70
-    71c0:	01c58593          	addi	a1,a1,28 # 1001c <UnityStrDetail1Name>
+    71c0:	a9458593          	addi	a1,a1,-1388 # 11a94 <UnityStrDetail1Name>
     71c4:	00a00813          	li	a6,10
     71c8:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     71cc:	00d00893          	li	a7,13
@@ -6346,9 +6346,9 @@ Disassembly of section .text:
     7228:	00c6a503          	lw	a0,12(a3)
     722c:	06050c63          	beqz	a0,72a4 <UnityAssertEqualIntNumber.part.0.constprop.0+0x37c>
     7230:	10008737          	lui	a4,0x10008
-    7234:	000105b7          	lui	a1,0x10
+    7234:	000125b7          	lui	a1,0x12
     7238:	02000613          	li	a2,32
-    723c:	01058593          	addi	a1,a1,16 # 10010 <UnityStrDetail2Name>
+    723c:	a8858593          	addi	a1,a1,-1400 # 11a88 <UnityStrDetail2Name>
     7240:	00a00813          	li	a6,10
     7244:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7248:	00d00893          	li	a7,13
@@ -6376,9 +6376,9 @@ Disassembly of section .text:
     72a0:	fe0612e3          	bnez	a2,7284 <UnityAssertEqualIntNumber.part.0.constprop.0+0x35c>
     72a4:	06040c63          	beqz	s0,731c <UnityAssertEqualIntNumber.part.0.constprop.0+0x3f4>
     72a8:	10008737          	lui	a4,0x10008
-    72ac:	000105b7          	lui	a1,0x10
+    72ac:	000125b7          	lui	a1,0x12
     72b0:	02e00613          	li	a2,46
-    72b4:	02858593          	addi	a1,a1,40 # 10028 <UnityStrSpacer>
+    72b4:	aa058593          	addi	a1,a1,-1376 # 11aa0 <UnityStrSpacer>
     72b8:	00a00513          	li	a0,10
     72bc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     72c0:	00d00813          	li	a6,13
@@ -6404,10 +6404,10 @@ Disassembly of section .text:
     7310:	00c70023          	sb	a2,0(a4)
     7314:	00044603          	lbu	a2,0(s0)
     7318:	fe0612e3          	bnez	a2,72fc <UnityAssertEqualIntNumber.part.0.constprop.0+0x3d4>
-    731c:	00015537          	lui	a0,0x15
+    731c:	00017537          	lui	a0,0x17
     7320:	00100793          	li	a5,1
     7324:	00100593          	li	a1,1
-    7328:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    7328:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     732c:	02f6a023          	sw	a5,32(a3)
     7330:	1e1020ef          	jal	9d10 <longjmp>
     7334:	0027c703          	lbu	a4,2(a5)
@@ -6522,10 +6522,10 @@ Disassembly of section .text:
 000074e4 <test_masked_poly_compress>:
     74e4:	fb010113          	addi	sp,sp,-80
     74e8:	05212023          	sw	s2,64(sp)
-    74ec:	00012937          	lui	s2,0x12
+    74ec:	00014937          	lui	s2,0x14
     74f0:	14000613          	li	a2,320
     74f4:	00000593          	li	a1,0
-    74f8:	ed890513          	addi	a0,s2,-296 # 11ed8 <b>
+    74f8:	95090513          	addi	a0,s2,-1712 # 13950 <b>
     74fc:	04112623          	sw	ra,76(sp)
     7500:	04812423          	sw	s0,72(sp)
     7504:	04912223          	sw	s1,68(sp)
@@ -6557,21 +6557,21 @@ Disassembly of section .text:
     756c:	10008437          	lui	s0,0x10008
     7570:	00200793          	li	a5,2
     7574:	00f42c23          	sw	a5,24(s0) # 10008018 <__stack_top+0xffc801c>
-    7578:	00011bb7          	lui	s7,0x11
+    7578:	00013bb7          	lui	s7,0x13
     757c:	00100793          	li	a5,1
-    7580:	00012b37          	lui	s6,0x12
-    7584:	00010a37          	lui	s4,0x10
-    7588:	000109b7          	lui	s3,0x10
+    7580:	00013b37          	lui	s6,0x13
+    7584:	00012a37          	lui	s4,0x12
+    7588:	000129b7          	lui	s3,0x12
     758c:	00f42c23          	sw	a5,24(s0)
     7590:	00100713          	li	a4,1
     7594:	00400693          	li	a3,4
     7598:	01410593          	addi	a1,sp,20
     759c:	00c10513          	addi	a0,sp,12
-    75a0:	6d8b8b93          	addi	s7,s7,1752 # 116d8 <mpoly_comp_>
-    75a4:	ad8b0b13          	addi	s6,s6,-1320 # 11ad8 <mpoly_comp_+0x400>
-    75a8:	0f4a0a13          	addi	s4,s4,244 # 100f4 <mpoly>
-    75ac:	2f498993          	addi	s3,s3,756 # 102f4 <mpoly+0x200>
-    75b0:	ed890613          	addi	a2,s2,-296
+    75a0:	150b8b93          	addi	s7,s7,336 # 13150 <mpoly_comp_>
+    75a4:	550b0b13          	addi	s6,s6,1360 # 13550 <mpoly_comp_+0x400>
+    75a8:	b6ca0a13          	addi	s4,s4,-1172 # 11b6c <mpoly>
+    75ac:	d6c98993          	addi	s3,s3,-660 # 11d6c <mpoly+0x200>
+    75b0:	95090613          	addi	a2,s2,-1712
     75b4:	01712623          	sw	s7,12(sp)
     75b8:	01612823          	sw	s6,16(sp)
     75bc:	01412a23          	sw	s4,20(sp)
@@ -6579,10 +6579,10 @@ Disassembly of section .text:
     75c4:	d68fb0ef          	jal	2b2c <masked_poly_sub_compress_core>
     75c8:	01c42503          	lw	a0,28(s0)
     75cc:	10008737          	lui	a4,0x10008
-    75d0:	0000a6b7          	lui	a3,0xa
-    75d4:	0000a5b7          	lui	a1,0xa
-    75d8:	f3c68693          	addi	a3,a3,-196 # 9f3c <strlen+0x10c>
-    75dc:	f5658593          	addi	a1,a1,-170 # 9f56 <strlen+0x126>
+    75d0:	000106b7          	lui	a3,0x10
+    75d4:	000105b7          	lui	a1,0x10
+    75d8:	08068693          	addi	a3,a3,128 # 10080 <strlen+0x6250>
+    75dc:	09a58593          	addi	a1,a1,154 # 1009a <strlen+0x626a>
     75e0:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     75e4:	0006c603          	lbu	a2,0(a3)
     75e8:	00168693          	addi	a3,a3,1
@@ -6607,12 +6607,12 @@ Disassembly of section .text:
     7634:	fe079ce3          	bnez	a5,762c <test_masked_poly_compress+0x148>
     7638:	00c70023          	sb	a2,0(a4)
     763c:	feb694e3          	bne	a3,a1,7624 <test_masked_poly_compress+0x140>
-    7640:	0000a6b7          	lui	a3,0xa
+    7640:	000106b7          	lui	a3,0x10
     7644:	10008737          	lui	a4,0x10008
-    7648:	0000ac37          	lui	s8,0xa
-    764c:	ecc68493          	addi	s1,a3,-308 # 9ecc <strlen+0x9c>
-    7650:	ed3c0c13          	addi	s8,s8,-301 # 9ed3 <strlen+0xa3>
-    7654:	ecc68693          	addi	a3,a3,-308
+    7648:	00010c37          	lui	s8,0x10
+    764c:	01068493          	addi	s1,a3,16 # 10010 <strlen+0x61e0>
+    7650:	017c0c13          	addi	s8,s8,23 # 10017 <strlen+0x61e7>
+    7654:	01068693          	addi	a3,a3,16
     7658:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     765c:	0006c603          	lbu	a2,0(a3)
     7660:	00168693          	addi	a3,a3,1
@@ -6627,10 +6627,10 @@ Disassembly of section .text:
     7684:	0027f793          	andi	a5,a5,2
     7688:	fe079ce3          	bnez	a5,7680 <test_masked_poly_compress+0x19c>
     768c:	00a00793          	li	a5,10
-    7690:	0000b6b7          	lui	a3,0xb
+    7690:	000116b7          	lui	a3,0x11
     7694:	00f70023          	sb	a5,0(a4)
     7698:	000b8413          	mv	s0,s7
-    769c:	00c68693          	addi	a3,a3,12 # b00c <mpoly_comp_d4>
+    769c:	15068693          	addi	a3,a3,336 # 11150 <mpoly_comp_d4>
     76a0:	000b8713          	mv	a4,s7
     76a4:	00100a93          	li	s5,1
     76a8:	00072783          	lw	a5,0(a4)
@@ -6645,8 +6645,8 @@ Disassembly of section .text:
     76cc:	00fafab3          	and	s5,s5,a5
     76d0:	00468693          	addi	a3,a3,4
     76d4:	fceb1ae3          	bne	s6,a4,76a8 <test_masked_poly_compress+0x1c4>
-    76d8:	000157b7          	lui	a5,0x15
-    76dc:	e5878793          	addi	a5,a5,-424 # 14e58 <Unity>
+    76d8:	000177b7          	lui	a5,0x17
+    76dc:	8d078793          	addi	a5,a5,-1840 # 168d0 <Unity>
     76e0:	0207a703          	lw	a4,32(a5)
     76e4:	0247a783          	lw	a5,36(a5)
     76e8:	00f767b3          	or	a5,a4,a5
@@ -6654,7 +6654,7 @@ Disassembly of section .text:
     76f0:	480a8463          	beqz	s5,7b78 <test_masked_poly_compress+0x694>
     76f4:	10000613          	li	a2,256
     76f8:	00000593          	li	a1,0
-    76fc:	ed890513          	addi	a0,s2,-296
+    76fc:	95090513          	addi	a0,s2,-1712
     7700:	654020ef          	jal	9d54 <memset>
     7704:	100407b7          	lui	a5,0x10040
     7708:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
@@ -6686,14 +6686,14 @@ Disassembly of section .text:
     7770:	00c10593          	addi	a1,sp,12
     7774:	00410513          	addi	a0,sp,4
     7778:	00fcac23          	sw	a5,24(s9)
-    777c:	ed890613          	addi	a2,s2,-296
+    777c:	95090613          	addi	a2,s2,-1712
     7780:	bacfb0ef          	jal	2b2c <masked_poly_sub_compress_core>
     7784:	01cca503          	lw	a0,28(s9)
     7788:	10008737          	lui	a4,0x10008
-    778c:	0000a6b7          	lui	a3,0xa
-    7790:	0000a5b7          	lui	a1,0xa
-    7794:	f5868693          	addi	a3,a3,-168 # 9f58 <strlen+0x128>
-    7798:	f7558593          	addi	a1,a1,-139 # 9f75 <strlen+0x145>
+    778c:	000106b7          	lui	a3,0x10
+    7790:	000105b7          	lui	a1,0x10
+    7794:	09c68693          	addi	a3,a3,156 # 1009c <strlen+0x626c>
+    7798:	0b958593          	addi	a1,a1,185 # 100b9 <strlen+0x6289>
     779c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     77a0:	0006c603          	lbu	a2,0(a3)
     77a4:	00168693          	addi	a3,a3,1
@@ -6731,7 +6731,7 @@ Disassembly of section .text:
     7824:	02e7d7b3          	divu	a5,a5,a4
     7828:	32a6fa63          	bgeu	a3,a0,7b5c <test_masked_poly_compress+0x678>
     782c:	000186b7          	lui	a3,0x18
-    7830:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    7830:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     7834:	02e7f633          	remu	a2,a5,a4
     7838:	03060613          	addi	a2,a2,48
     783c:	00c10ca3          	sb	a2,25(sp)
@@ -6798,8 +6798,8 @@ Disassembly of section .text:
     7930:	fe079ce3          	bnez	a5,7928 <test_masked_poly_compress+0x444>
     7934:	00a00793          	li	a5,10
     7938:	00f70023          	sb	a5,0(a4)
-    793c:	0000b737          	lui	a4,0xb
-    7940:	80c70713          	addi	a4,a4,-2036 # a80c <mpoly_comp_d10>
+    793c:	00011737          	lui	a4,0x11
+    7940:	95070713          	addi	a4,a4,-1712 # 10950 <mpoly_comp_d10>
     7944:	00042783          	lw	a5,0(s0)
     7948:	40042583          	lw	a1,1024(s0)
     794c:	00072683          	lw	a3,0(a4)
@@ -6853,7 +6853,7 @@ Disassembly of section .text:
     7a0c:	02e7d7b3          	divu	a5,a5,a4
     7a10:	10a6f263          	bgeu	a3,a0,7b14 <test_masked_poly_compress+0x630>
     7a14:	000186b7          	lui	a3,0x18
-    7a18:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    7a18:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     7a1c:	02e7f633          	remu	a2,a5,a4
     7a20:	03060613          	addi	a2,a2,48
     7a24:	00c10ca3          	sb	a2,25(sp)
@@ -6946,16 +6946,16 @@ Disassembly of section .text:
     7b80:	00000593          	li	a1,0
     7b84:	00100513          	li	a0,1
     7b88:	ba0ff0ef          	jal	6f28 <UnityAssertEqualIntNumber.part.0.constprop.0>
-    7b8c:	00015537          	lui	a0,0x15
+    7b8c:	00017537          	lui	a0,0x17
     7b90:	00100593          	li	a1,1
-    7b94:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    7b94:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     7b98:	178020ef          	jal	9d10 <longjmp>
 
 00007b9c <UnityAssertEqualMemory.constprop.0>:
     7b9c:	fe010113          	addi	sp,sp,-32
     7ba0:	00912a23          	sw	s1,20(sp)
-    7ba4:	000154b7          	lui	s1,0x15
-    7ba8:	e5848493          	addi	s1,s1,-424 # 14e58 <Unity>
+    7ba4:	000174b7          	lui	s1,0x17
+    7ba8:	8d048493          	addi	s1,s1,-1840 # 168d0 <Unity>
     7bac:	0204a783          	lw	a5,32(s1)
     7bb0:	0244a703          	lw	a4,36(s1)
     7bb4:	00112e23          	sw	ra,28(sp)
@@ -6963,13 +6963,13 @@ Disassembly of section .text:
     7bbc:	01212823          	sw	s2,16(sp)
     7bc0:	00e7e733          	or	a4,a5,a4
     7bc4:	26071a63          	bnez	a4,7e38 <UnityAssertEqualMemory.constprop.0+0x29c>
-    7bc8:	00013437          	lui	s0,0x13
-    7bcc:	81840913          	addi	s2,s0,-2024 # 12818 <m_unmasked_>
+    7bc8:	00014437          	lui	s0,0x14
+    7bcc:	29040913          	addi	s2,s0,656 # 14290 <m_unmasked_>
     7bd0:	00050793          	mv	a5,a0
     7bd4:	03250463          	beq	a0,s2,7bfc <UnityAssertEqualMemory.constprop.0+0x60>
-    7bd8:	00013637          	lui	a2,0x13
-    7bdc:	81840413          	addi	s0,s0,-2024
-    7be0:	83860613          	addi	a2,a2,-1992 # 12838 <mm>
+    7bd8:	00014637          	lui	a2,0x14
+    7bdc:	29040413          	addi	s0,s0,656
+    7be0:	2b060613          	addi	a2,a2,688 # 142b0 <mm>
     7be4:	00044683          	lbu	a3,0(s0)
     7be8:	0007c703          	lbu	a4,0(a5)
     7bec:	02e69463          	bne	a3,a4,7c14 <UnityAssertEqualMemory.constprop.0+0x78>
@@ -6985,9 +6985,9 @@ Disassembly of section .text:
     7c14:	00058513          	mv	a0,a1
     7c18:	d09fc0ef          	jal	4920 <UnityTestResultsFailBegin>
     7c1c:	10008737          	lui	a4,0x10008
-    7c20:	00010637          	lui	a2,0x10
+    7c20:	00012637          	lui	a2,0x12
     7c24:	02000693          	li	a3,32
-    7c28:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    7c28:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     7c2c:	00a00593          	li	a1,10
     7c30:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7c34:	00d00513          	li	a0,13
@@ -7000,9 +7000,9 @@ Disassembly of section .text:
     7c50:	00064683          	lbu	a3,0(a2)
     7c54:	fe0692e3          	bnez	a3,7c38 <UnityAssertEqualMemory.constprop.0+0x9c>
     7c58:	10008737          	lui	a4,0x10008
-    7c5c:	00010637          	lui	a2,0x10
+    7c5c:	00012637          	lui	a2,0x12
     7c60:	02000693          	li	a3,32
-    7c64:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    7c64:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     7c68:	00a00593          	li	a1,10
     7c6c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7c70:	00d00513          	li	a0,13
@@ -7044,9 +7044,9 @@ Disassembly of section .text:
     7d00:	00d70023          	sb	a3,0(a4)
     7d04:	fec414e3          	bne	s0,a2,7cec <UnityAssertEqualMemory.constprop.0+0x150>
     7d08:	10008737          	lui	a4,0x10008
-    7d0c:	00010637          	lui	a2,0x10
+    7d0c:	00012637          	lui	a2,0x12
     7d10:	02000693          	li	a3,32
-    7d14:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    7d14:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     7d18:	00a00593          	li	a1,10
     7d1c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7d20:	00d00513          	li	a0,13
@@ -7059,9 +7059,9 @@ Disassembly of section .text:
     7d3c:	00064683          	lbu	a3,0(a2)
     7d40:	fe0692e3          	bnez	a3,7d24 <UnityAssertEqualMemory.constprop.0+0x188>
     7d44:	10008737          	lui	a4,0x10008
-    7d48:	00010637          	lui	a2,0x10
+    7d48:	00012637          	lui	a2,0x12
     7d4c:	02000693          	li	a3,32
-    7d50:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    7d50:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     7d54:	00a00593          	li	a1,10
     7d58:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7d5c:	00d00513          	li	a0,13
@@ -7075,10 +7075,10 @@ Disassembly of section .text:
     7d7c:	fe0692e3          	bnez	a3,7d60 <UnityAssertEqualMemory.constprop.0+0x1c4>
     7d80:	00000513          	li	a0,0
     7d84:	854fa0ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    7d88:	00015537          	lui	a0,0x15
+    7d88:	00017537          	lui	a0,0x17
     7d8c:	00100793          	li	a5,1
     7d90:	00100593          	li	a1,1
-    7d94:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    7d94:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     7d98:	02f4a023          	sw	a5,32(s1)
     7d9c:	775010ef          	jal	9d10 <longjmp>
     7da0:	00274783          	lbu	a5,2(a4)
@@ -7119,9 +7119,9 @@ Disassembly of section .text:
     7e2c:	f11ff06f          	j	7d3c <UnityAssertEqualMemory.constprop.0+0x1a0>
     7e30:	00e00793          	li	a5,14
     7e34:	e9dff06f          	j	7cd0 <UnityAssertEqualMemory.constprop.0+0x134>
-    7e38:	00015537          	lui	a0,0x15
+    7e38:	00017537          	lui	a0,0x17
     7e3c:	00100593          	li	a1,1
-    7e40:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    7e40:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     7e44:	6cd010ef          	jal	9d10 <longjmp>
 
 00007e48 <test_masked_poly_msg>:
@@ -7148,13 +7148,13 @@ Disassembly of section .text:
     7e98:	00d7ae23          	sw	a3,28(a5)
     7e9c:	07070713          	addi	a4,a4,112 # 198070 <__stack_top+0x158074>
     7ea0:	00e7a023          	sw	a4,0(a5)
-    7ea4:	000107b7          	lui	a5,0x10
-    7ea8:	0f478613          	addi	a2,a5,244 # 100f4 <mpoly>
-    7eac:	00013937          	lui	s2,0x13
+    7ea4:	000127b7          	lui	a5,0x12
+    7ea8:	b6c78613          	addi	a2,a5,-1172 # 11b6c <mpoly>
+    7eac:	00014937          	lui	s2,0x14
     7eb0:	000015b7          	lui	a1,0x1
-    7eb4:	a7890693          	addi	a3,s2,-1416 # 12a78 <mpoly_0>
+    7eb4:	4f090693          	addi	a3,s2,1264 # 144f0 <mpoly_0>
     7eb8:	20060513          	addi	a0,a2,512
-    7ebc:	0f478793          	addi	a5,a5,244
+    7ebc:	b6c78793          	addi	a5,a5,-1172
     7ec0:	d0158593          	addi	a1,a1,-767 # d01 <_start-0x2ff>
     7ec4:	0007d703          	lhu	a4,0(a5)
     7ec8:	00268693          	addi	a3,a3,2
@@ -7163,8 +7163,8 @@ Disassembly of section .text:
     7ed4:	fee69f23          	sh	a4,-2(a3)
     7ed8:	fea796e3          	bne	a5,a0,7ec4 <test_masked_poly_msg+0x7c>
     7edc:	000015b7          	lui	a1,0x1
-    7ee0:	000136b7          	lui	a3,0x13
-    7ee4:	c7868693          	addi	a3,a3,-904 # 12c78 <mpoly_0+0x200>
+    7ee0:	000146b7          	lui	a3,0x14
+    7ee4:	6f068693          	addi	a3,a3,1776 # 146f0 <mpoly_0+0x200>
     7ee8:	40060613          	addi	a2,a2,1024
     7eec:	d0158593          	addi	a1,a1,-767 # d01 <_start-0x2ff>
     7ef0:	0007d703          	lhu	a4,0(a5)
@@ -7173,25 +7173,25 @@ Disassembly of section .text:
     7efc:	40e58733          	sub	a4,a1,a4
     7f00:	fee69f23          	sh	a4,-2(a3)
     7f04:	fec796e3          	bne	a5,a2,7ef0 <test_masked_poly_msg+0xa8>
-    7f08:	000134b7          	lui	s1,0x13
+    7f08:	000144b7          	lui	s1,0x14
     7f0c:	20000613          	li	a2,512
     7f10:	00000593          	li	a1,0
-    7f14:	87848513          	addi	a0,s1,-1928 # 12878 <a>
+    7f14:	2f048513          	addi	a0,s1,752 # 142f0 <a>
     7f18:	63d010ef          	jal	9d54 <memset>
     7f1c:	10008437          	lui	s0,0x10008
     7f20:	00200793          	li	a5,2
     7f24:	00f42c23          	sw	a5,24(s0) # 10008018 <__stack_top+0xffc801c>
     7f28:	00100793          	li	a5,1
-    7f2c:	a7890593          	addi	a1,s2,-1416
-    7f30:	87848513          	addi	a0,s1,-1928
+    7f2c:	4f090593          	addi	a1,s2,1264
+    7f30:	2f048513          	addi	a0,s1,752
     7f34:	00f42c23          	sw	a5,24(s0)
     7f38:	f49fa0ef          	jal	2e80 <pqcrystals_kyber768_ref_masked_poly_tomsg.constprop.0>
     7f3c:	01c42503          	lw	a0,28(s0)
     7f40:	10008737          	lui	a4,0x10008
-    7f44:	0000a6b7          	lui	a3,0xa
-    7f48:	0000a5b7          	lui	a1,0xa
-    7f4c:	f7868693          	addi	a3,a3,-136 # 9f78 <strlen+0x148>
-    7f50:	f8f58593          	addi	a1,a1,-113 # 9f8f <strlen+0x15f>
+    7f44:	000106b7          	lui	a3,0x10
+    7f48:	000105b7          	lui	a1,0x10
+    7f4c:	0bc68693          	addi	a3,a3,188 # 100bc <strlen+0x628c>
+    7f50:	0d358593          	addi	a1,a1,211 # 100d3 <strlen+0x62a3>
     7f54:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7f58:	0006c603          	lbu	a2,0(a3)
     7f5c:	00168693          	addi	a3,a3,1
@@ -7216,12 +7216,12 @@ Disassembly of section .text:
     7fa8:	fe079ce3          	bnez	a5,7fa0 <test_masked_poly_msg+0x158>
     7fac:	00c70023          	sb	a2,0(a4)
     7fb0:	feb694e3          	bne	a3,a1,7f98 <test_masked_poly_msg+0x150>
-    7fb4:	0000a6b7          	lui	a3,0xa
+    7fb4:	000106b7          	lui	a3,0x10
     7fb8:	10008737          	lui	a4,0x10008
-    7fbc:	0000a4b7          	lui	s1,0xa
-    7fc0:	ecc68913          	addi	s2,a3,-308 # 9ecc <strlen+0x9c>
-    7fc4:	ed348493          	addi	s1,s1,-301 # 9ed3 <strlen+0xa3>
-    7fc8:	ecc68693          	addi	a3,a3,-308
+    7fbc:	000104b7          	lui	s1,0x10
+    7fc0:	01068913          	addi	s2,a3,16 # 10010 <strlen+0x61e0>
+    7fc4:	01748493          	addi	s1,s1,23 # 10017 <strlen+0x61e7>
+    7fc8:	01068693          	addi	a3,a3,16
     7fcc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     7fd0:	0006c603          	lbu	a2,0(a3)
     7fd4:	00168693          	addi	a3,a3,1
@@ -7235,12 +7235,12 @@ Disassembly of section .text:
     7ff4:	00274783          	lbu	a5,2(a4)
     7ff8:	0027f793          	andi	a5,a5,2
     7ffc:	fe079ce3          	bnez	a5,7ff4 <test_masked_poly_msg+0x1ac>
-    8000:	000136b7          	lui	a3,0x13
+    8000:	000146b7          	lui	a3,0x14
     8004:	00a00793          	li	a5,10
     8008:	00f70023          	sb	a5,0(a4)
-    800c:	83868793          	addi	a5,a3,-1992 # 12838 <mm>
+    800c:	2b068793          	addi	a5,a3,688 # 142b0 <mm>
     8010:	0387a503          	lw	a0,56(a5)
-    8014:	8386ae83          	lw	t4,-1992(a3)
+    8014:	2b06ae83          	lw	t4,688(a3)
     8018:	0187a683          	lw	a3,24(a5)
     801c:	0047a083          	lw	ra,4(a5)
     8020:	0087a403          	lw	s0,8(a5)
@@ -7256,9 +7256,9 @@ Disassembly of section .text:
     8048:	0307a283          	lw	t0,48(a5)
     804c:	0347af83          	lw	t6,52(a5)
     8050:	00a6c6b3          	xor	a3,a3,a0
-    8054:	00013f37          	lui	t5,0x13
-    8058:	00010537          	lui	a0,0x10
-    805c:	818f0793          	addi	a5,t5,-2024 # 12818 <m_unmasked_>
+    8054:	00014f37          	lui	t5,0x14
+    8058:	00012537          	lui	a0,0x12
+    805c:	290f0793          	addi	a5,t5,656 # 14290 <m_unmasked_>
     8060:	00b74733          	xor	a4,a4,a1
     8064:	01d9ceb3          	xor	t4,s3,t4
     8068:	001e4e33          	xor	t3,t3,ra
@@ -7267,7 +7267,7 @@ Disassembly of section .text:
     8074:	00584833          	xor	a6,a6,t0
     8078:	01f64633          	xor	a2,a2,t6
     807c:	09600593          	li	a1,150
-    8080:	0d450513          	addi	a0,a0,212 # 100d4 <m_unmasked>
+    8080:	b4c50513          	addi	a0,a0,-1204 # 11b4c <m_unmasked>
     8084:	00d7ac23          	sw	a3,24(a5)
     8088:	00e7ae23          	sw	a4,28(a5)
     808c:	01c7a223          	sw	t3,4(a5)
@@ -7275,7 +7275,7 @@ Disassembly of section .text:
     8094:	0117a623          	sw	a7,12(a5)
     8098:	0107a823          	sw	a6,16(a5)
     809c:	00c7aa23          	sw	a2,20(a5)
-    80a0:	81df2c23          	sw	t4,-2024(t5)
+    80a0:	29df2823          	sw	t4,656(t5)
     80a4:	af9ff0ef          	jal	7b9c <UnityAssertEqualMemory.constprop.0>
     80a8:	100407b7          	lui	a5,0x10040
     80ac:	0007a703          	lw	a4,0(a5) # 10040000 <__stack_top+0x10000004>
@@ -7307,17 +7307,17 @@ Disassembly of section .text:
     8114:	100089b7          	lui	s3,0x10008
     8118:	00200713          	li	a4,2
     811c:	00e9ac23          	sw	a4,24(s3) # 10008018 <__stack_top+0xffc801c>
-    8120:	00012437          	lui	s0,0x12
+    8120:	00014437          	lui	s0,0x14
     8124:	00100713          	li	a4,1
     8128:	00e9ac23          	sw	a4,24(s3)
-    812c:	41840513          	addi	a0,s0,1048 # 12418 <mpoly_>
+    812c:	e9040513          	addi	a0,s0,-368 # 13e90 <mpoly_>
     8130:	d80fb0ef          	jal	36b0 <pqcrystals_kyber768_ref_masked_poly_frommsg.constprop.0>
     8134:	01c9a503          	lw	a0,28(s3)
     8138:	10008737          	lui	a4,0x10008
-    813c:	0000a6b7          	lui	a3,0xa
-    8140:	0000a5b7          	lui	a1,0xa
-    8144:	f9068693          	addi	a3,a3,-112 # 9f90 <strlen+0x160>
-    8148:	fa558593          	addi	a1,a1,-91 # 9fa5 <strlen+0x175>
+    813c:	000106b7          	lui	a3,0x10
+    8140:	000105b7          	lui	a1,0x10
+    8144:	0d468693          	addi	a3,a3,212 # 100d4 <strlen+0x62a4>
+    8148:	0e958593          	addi	a1,a1,233 # 100e9 <strlen+0x62b9>
     814c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     8150:	0006c603          	lbu	a2,0(a3)
     8154:	00168693          	addi	a3,a3,1
@@ -7356,14 +7356,14 @@ Disassembly of section .text:
     81d8:	00274783          	lbu	a5,2(a4)
     81dc:	0027f793          	andi	a5,a5,2
     81e0:	fe079ce3          	bnez	a5,81d8 <test_masked_poly_msg+0x390>
-    81e4:	000126b7          	lui	a3,0x12
+    81e4:	000146b7          	lui	a3,0x14
     81e8:	00a00793          	li	a5,10
-    81ec:	000105b7          	lui	a1,0x10
+    81ec:	000125b7          	lui	a1,0x12
     81f0:	00f70023          	sb	a5,0(a4)
-    81f4:	21868813          	addi	a6,a3,536 # 12218 <mpoly_unmasked_A>
+    81f4:	c9068813          	addi	a6,a3,-880 # 13c90 <mpoly_unmasked_A>
     81f8:	00000713          	li	a4,0
-    81fc:	21868693          	addi	a3,a3,536
-    8200:	0d458593          	addi	a1,a1,212 # 100d4 <m_unmasked>
+    81fc:	c9068693          	addi	a3,a3,-880
+    8200:	b4c58593          	addi	a1,a1,-1204 # 11b4c <m_unmasked>
     8204:	10000513          	li	a0,256
     8208:	00375793          	srli	a5,a4,0x3
     820c:	00f587b3          	add	a5,a1,a5
@@ -7377,14 +7377,14 @@ Disassembly of section .text:
     822c:	00f69023          	sh	a5,0(a3)
     8230:	00268693          	addi	a3,a3,2
     8234:	fca71ae3          	bne	a4,a0,8208 <test_masked_poly_msg+0x3c0>
-    8238:	000126b7          	lui	a3,0x12
-    823c:	41840713          	addi	a4,s0,1048
+    8238:	000146b7          	lui	a3,0x14
+    823c:	e9040713          	addi	a4,s0,-368
     8240:	000015b7          	lui	a1,0x1
     8244:	fffff8b7          	lui	a7,0xfffff
-    8248:	01868493          	addi	s1,a3,24 # 12018 <mpoly_unmasked_B>
-    824c:	01868413          	addi	s0,a3,24
+    8248:	a9068493          	addi	s1,a3,-1392 # 13a90 <mpoly_unmasked_B>
+    824c:	a9068413          	addi	s0,a3,-1392
     8250:	20070513          	addi	a0,a4,512
-    8254:	01868693          	addi	a3,a3,24
+    8254:	a9068693          	addi	a3,a3,-1392
     8258:	d0058593          	addi	a1,a1,-768 # d00 <_start-0x300>
     825c:	2ff88893          	addi	a7,a7,767 # fffff2ff <__stack_top+0xfffbf303>
     8260:	0140006f          	j	8274 <test_masked_poly_msg+0x42c>
@@ -7405,15 +7405,15 @@ Disassembly of section .text:
     829c:	00270713          	addi	a4,a4,2
     82a0:	00268693          	addi	a3,a3,2
     82a4:	fca718e3          	bne	a4,a0,8274 <test_masked_poly_msg+0x42c>
-    82a8:	00015937          	lui	s2,0x15
-    82ac:	e5890913          	addi	s2,s2,-424 # 14e58 <Unity>
+    82a8:	00017937          	lui	s2,0x17
+    82ac:	8d090913          	addi	s2,s2,-1840 # 168d0 <Unity>
     82b0:	02092783          	lw	a5,32(s2)
     82b4:	02492703          	lw	a4,36(s2)
     82b8:	00e7e7b3          	or	a5,a5,a4
     82bc:	52079463          	bnez	a5,87e4 <test_masked_poly_msg+0x99c>
-    82c0:	00012637          	lui	a2,0x12
+    82c0:	00014637          	lui	a2,0x14
     82c4:	00080793          	mv	a5,a6
-    82c8:	21860613          	addi	a2,a2,536 # 12218 <mpoly_unmasked_A>
+    82c8:	c9060613          	addi	a2,a2,-880 # 13c90 <mpoly_unmasked_A>
     82cc:	00044683          	lbu	a3,0(s0)
     82d0:	0007c703          	lbu	a4,0(a5)
     82d4:	24e69663          	bne	a3,a4,8520 <test_masked_poly_msg+0x6d8>
@@ -7454,7 +7454,7 @@ Disassembly of section .text:
     8360:	02e7d7b3          	divu	a5,a5,a4
     8364:	44a6f863          	bgeu	a3,a0,87b4 <test_masked_poly_msg+0x96c>
     8368:	000186b7          	lui	a3,0x18
-    836c:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    836c:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     8370:	02e7f633          	remu	a2,a5,a4
     8374:	03060613          	addi	a2,a2,48
     8378:	00c102a3          	sb	a2,5(sp)
@@ -7522,7 +7522,7 @@ Disassembly of section .text:
     8470:	02e7d7b3          	divu	a5,a5,a4
     8474:	36a6f063          	bgeu	a3,a0,87d4 <test_masked_poly_msg+0x98c>
     8478:	000186b7          	lui	a3,0x18
-    847c:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    847c:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     8480:	02e7f633          	remu	a2,a5,a4
     8484:	03060613          	addi	a2,a2,48
     8488:	00c102a3          	sb	a2,5(sp)
@@ -7566,9 +7566,9 @@ Disassembly of section .text:
     8520:	0ae00513          	li	a0,174
     8524:	bfcfc0ef          	jal	4920 <UnityTestResultsFailBegin>
     8528:	10008737          	lui	a4,0x10008
-    852c:	00010637          	lui	a2,0x10
+    852c:	00012637          	lui	a2,0x12
     8530:	02000693          	li	a3,32
-    8534:	0c060613          	addi	a2,a2,192 # 100c0 <UnityStrMemory>
+    8534:	b3860613          	addi	a2,a2,-1224 # 11b38 <UnityStrMemory>
     8538:	00a00593          	li	a1,10
     853c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     8540:	00d00513          	li	a0,13
@@ -7581,9 +7581,9 @@ Disassembly of section .text:
     855c:	00064683          	lbu	a3,0(a2)
     8560:	fe0692e3          	bnez	a3,8544 <test_masked_poly_msg+0x6fc>
     8564:	10008737          	lui	a4,0x10008
-    8568:	00010637          	lui	a2,0x10
+    8568:	00012637          	lui	a2,0x12
     856c:	02000693          	li	a3,32
-    8570:	0b860613          	addi	a2,a2,184 # 100b8 <UnityStrByte>
+    8570:	b3060613          	addi	a2,a2,-1232 # 11b30 <UnityStrByte>
     8574:	00a00593          	li	a1,10
     8578:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     857c:	00d00513          	li	a0,13
@@ -7631,9 +7631,9 @@ Disassembly of section .text:
     8624:	00d70023          	sb	a3,0(a4)
     8628:	fec414e3          	bne	s0,a2,8610 <test_masked_poly_msg+0x7c8>
     862c:	10008737          	lui	a4,0x10008
-    8630:	00010637          	lui	a2,0x10
+    8630:	00012637          	lui	a2,0x12
     8634:	02000693          	li	a3,32
-    8638:	0ac60613          	addi	a2,a2,172 # 100ac <UnityStrExpected>
+    8638:	b2460613          	addi	a2,a2,-1244 # 11b24 <UnityStrExpected>
     863c:	00a00593          	li	a1,10
     8640:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     8644:	00d00513          	li	a0,13
@@ -7646,9 +7646,9 @@ Disassembly of section .text:
     8660:	00064683          	lbu	a3,0(a2)
     8664:	fe0692e3          	bnez	a3,8648 <test_masked_poly_msg+0x800>
     8668:	10008737          	lui	a4,0x10008
-    866c:	00010637          	lui	a2,0x10
+    866c:	00012637          	lui	a2,0x12
     8670:	02000693          	li	a3,32
-    8674:	0a460613          	addi	a2,a2,164 # 100a4 <UnityStrWas>
+    8674:	b1c60613          	addi	a2,a2,-1252 # 11b1c <UnityStrWas>
     8678:	00a00593          	li	a1,10
     867c:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     8680:	00d00513          	li	a0,13
@@ -7662,10 +7662,10 @@ Disassembly of section .text:
     86a0:	fe0692e3          	bnez	a3,8684 <test_masked_poly_msg+0x83c>
     86a4:	00000513          	li	a0,0
     86a8:	f30f90ef          	jal	1dd8 <UnityAddMsgIfSpecified>
-    86ac:	00015537          	lui	a0,0x15
+    86ac:	00017537          	lui	a0,0x17
     86b0:	00100793          	li	a5,1
     86b4:	00100593          	li	a1,1
-    86b8:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    86b8:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     86bc:	02f92023          	sw	a5,32(s2)
     86c0:	650010ef          	jal	9d10 <longjmp>
     86c4:	00274783          	lbu	a5,2(a4)
@@ -7740,9 +7740,9 @@ Disassembly of section .text:
     87d8:	d39ff06f          	j	8510 <test_masked_poly_msg+0x6c8>
     87dc:	00500793          	li	a5,5
     87e0:	d31ff06f          	j	8510 <test_masked_poly_msg+0x6c8>
-    87e4:	00015537          	lui	a0,0x15
+    87e4:	00017537          	lui	a0,0x17
     87e8:	00100593          	li	a1,1
-    87ec:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    87ec:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     87f0:	520010ef          	jal	9d10 <longjmp>
     87f4:	00e00793          	li	a5,14
     87f8:	dfdff06f          	j	85f4 <test_masked_poly_msg+0x7ac>
@@ -7763,10 +7763,10 @@ Disassembly of section .text:
     882c:	8f1fa0ef          	jal	311c <pqcrystals_kyber768_ref_masked_indcpa_dec.constprop.0>
     8830:	01c42503          	lw	a0,28(s0)
     8834:	10008737          	lui	a4,0x10008
-    8838:	0000a6b7          	lui	a3,0xa
-    883c:	0000a5b7          	lui	a1,0xa
-    8840:	fa868693          	addi	a3,a3,-88 # 9fa8 <strlen+0x178>
-    8844:	fbb58593          	addi	a1,a1,-69 # 9fbb <strlen+0x18b>
+    8838:	000106b7          	lui	a3,0x10
+    883c:	000105b7          	lui	a1,0x10
+    8840:	0ec68693          	addi	a3,a3,236 # 100ec <strlen+0x62bc>
+    8844:	0ff58593          	addi	a1,a1,255 # 100ff <strlen+0x62cf>
     8848:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     884c:	0006c603          	lbu	a2,0(a3)
     8850:	00168693          	addi	a3,a3,1
@@ -7792,10 +7792,10 @@ Disassembly of section .text:
     88a0:	00c70023          	sb	a2,0(a4)
     88a4:	fed594e3          	bne	a1,a3,888c <test_masked_indcpa_dec+0x88>
     88a8:	10008737          	lui	a4,0x10008
-    88ac:	0000a6b7          	lui	a3,0xa
-    88b0:	0000a5b7          	lui	a1,0xa
-    88b4:	ecc68693          	addi	a3,a3,-308 # 9ecc <strlen+0x9c>
-    88b8:	ed358593          	addi	a1,a1,-301 # 9ed3 <strlen+0xa3>
+    88ac:	000106b7          	lui	a3,0x10
+    88b0:	000105b7          	lui	a1,0x10
+    88b4:	01068693          	addi	a3,a3,16 # 10010 <strlen+0x61e0>
+    88b8:	01758593          	addi	a1,a1,23 # 10017 <strlen+0x61e7>
     88bc:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     88c0:	0006c603          	lbu	a2,0(a3)
     88c4:	00168693          	addi	a3,a3,1
@@ -7809,13 +7809,13 @@ Disassembly of section .text:
     88e4:	00274783          	lbu	a5,2(a4)
     88e8:	0027f793          	andi	a5,a5,2
     88ec:	fe079ce3          	bnez	a5,88e4 <test_masked_indcpa_dec+0xe0>
-    88f0:	000136b7          	lui	a3,0x13
+    88f0:	000146b7          	lui	a3,0x14
     88f4:	00a00793          	li	a5,10
     88f8:	00f70023          	sb	a5,0(a4)
-    88fc:	83868793          	addi	a5,a3,-1992 # 12838 <mm>
+    88fc:	2b068793          	addi	a5,a3,688 # 142b0 <mm>
     8900:	0187a503          	lw	a0,24(a5)
     8904:	01c7a583          	lw	a1,28(a5)
-    8908:	8386a903          	lw	s2,-1992(a3)
+    8908:	2b06a903          	lw	s2,688(a3)
     890c:	0047ae03          	lw	t3,4(a5)
     8910:	0247a483          	lw	s1,36(a5)
     8914:	0087a303          	lw	t1,8(a5)
@@ -7828,10 +7828,10 @@ Disassembly of section .text:
     8930:	0347a603          	lw	a2,52(a5)
     8934:	0387a683          	lw	a3,56(a5)
     8938:	03c7a703          	lw	a4,60(a5)
-    893c:	00013f37          	lui	t5,0x13
+    893c:	00014f37          	lui	t5,0x14
     8940:	0207ae83          	lw	t4,32(a5)
     8944:	009e4e33          	xor	t3,t3,s1
-    8948:	818f0793          	addi	a5,t5,-2024 # 12818 <m_unmasked_>
+    8948:	290f0793          	addi	a5,t5,656 # 14290 <m_unmasked_>
     894c:	00834333          	xor	t1,t1,s0
     8950:	00a6c6b3          	xor	a3,a3,a0
     8954:	00b74733          	xor	a4,a4,a1
@@ -7850,10 +7850,10 @@ Disassembly of section .text:
     8988:	01412483          	lw	s1,20(sp)
     898c:	012eceb3          	xor	t4,t4,s2
     8990:	01012903          	lw	s2,16(sp)
-    8994:	00011537          	lui	a0,0x11
-    8998:	81df2c23          	sw	t4,-2024(t5)
+    8994:	00012537          	lui	a0,0x12
+    8998:	29df2823          	sw	t4,656(t5)
     899c:	11e00593          	li	a1,286
-    89a0:	9b450513          	addi	a0,a0,-1612 # 109b4 <m>
+    89a0:	42c50513          	addi	a0,a0,1068 # 1242c <m>
     89a4:	02010113          	addi	sp,sp,32
     89a8:	9f4ff06f          	j	7b9c <UnityAssertEqualMemory.constprop.0>
     89ac:	00a00713          	li	a4,10
@@ -7883,7 +7883,7 @@ Disassembly of section .text:
     8a0c:	02e7d7b3          	divu	a5,a5,a4
     8a10:	0ca6f463          	bgeu	a3,a0,8ad8 <test_masked_indcpa_dec+0x2d4>
     8a14:	000186b7          	lui	a3,0x18
-    8a18:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    8a18:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     8a1c:	02e7f633          	remu	a2,a5,a4
     8a20:	03060613          	addi	a2,a2,48
     8a24:	00c104a3          	sb	a2,9(sp)
@@ -7945,16 +7945,16 @@ Disassembly of section .text:
     8b04:	fa9ff06f          	j	8aac <test_masked_indcpa_dec+0x2a8>
 
 00008b08 <UnityDefaultTestRun>:
-    8b08:	000157b7          	lui	a5,0x15
-    8b0c:	e5878793          	addi	a5,a5,-424 # 14e58 <Unity>
+    8b08:	000177b7          	lui	a5,0x17
+    8b0c:	8d078793          	addi	a5,a5,-1840 # 168d0 <Unity>
     8b10:	0147a703          	lw	a4,20(a5)
     8b14:	fd010113          	addi	sp,sp,-48
     8b18:	00050693          	mv	a3,a0
-    8b1c:	00015537          	lui	a0,0x15
+    8b1c:	00017537          	lui	a0,0x17
     8b20:	02112623          	sw	ra,44(sp)
     8b24:	02812423          	sw	s0,40(sp)
     8b28:	00170713          	addi	a4,a4,1
-    8b2c:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    8b2c:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     8b30:	00d12623          	sw	a3,12(sp)
     8b34:	00b7a223          	sw	a1,4(a5)
     8b38:	00c7a823          	sw	a2,16(a5)
@@ -7963,11 +7963,11 @@ Disassembly of section .text:
     8b44:	0007a623          	sw	zero,12(a5)
     8b48:	188010ef          	jal	9cd0 <setjmp>
     8b4c:	06050a63          	beqz	a0,8bc0 <UnityDefaultTestRun+0xb8>
-    8b50:	00015537          	lui	a0,0x15
-    8b54:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    8b50:	00017537          	lui	a0,0x17
+    8b54:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     8b58:	178010ef          	jal	9cd0 <setjmp>
-    8b5c:	000157b7          	lui	a5,0x15
-    8b60:	e5878793          	addi	a5,a5,-424 # 14e58 <Unity>
+    8b5c:	000177b7          	lui	a5,0x17
+    8b60:	8d078793          	addi	a5,a5,-1840 # 168d0 <Unity>
     8b64:	0247a703          	lw	a4,36(a5)
     8b68:	04071463          	bnez	a4,8bb0 <UnityDefaultTestRun+0xa8>
     8b6c:	0207a703          	lw	a4,32(a5)
@@ -7975,8 +7975,8 @@ Disassembly of section .text:
     8b74:	0187a703          	lw	a4,24(a5)
     8b78:	00170713          	addi	a4,a4,1
     8b7c:	00e7ac23          	sw	a4,24(a5)
-    8b80:	000157b7          	lui	a5,0x15
-    8b84:	e5878793          	addi	a5,a5,-424 # 14e58 <Unity>
+    8b80:	000177b7          	lui	a5,0x17
+    8b84:	8d078793          	addi	a5,a5,-1840 # 168d0 <Unity>
     8b88:	01f10513          	addi	a0,sp,31
     8b8c:	0207a023          	sw	zero,32(a5)
     8b90:	0207a223          	sw	zero,36(a5)
@@ -8014,8 +8014,8 @@ Disassembly of section .text:
     8c10:	fe079ce3          	bnez	a5,8c08 <UnityDefaultTestRun+0x100>
     8c14:	03a00793          	li	a5,58
     8c18:	00f70023          	sb	a5,0(a4)
-    8c1c:	000157b7          	lui	a5,0x15
-    8c20:	e5c7a503          	lw	a0,-420(a5) # 14e5c <Unity+0x4>
+    8c1c:	000177b7          	lui	a5,0x17
+    8c20:	8d47a503          	lw	a0,-1836(a5) # 168d4 <Unity+0x4>
     8c24:	00050463          	beqz	a0,8c2c <UnityDefaultTestRun+0x124>
     8c28:	e44f80ef          	jal	126c <UnityPrint.part.0>
     8c2c:	10008737          	lui	a4,0x10008
@@ -8024,9 +8024,9 @@ Disassembly of section .text:
     8c38:	0027f793          	andi	a5,a5,2
     8c3c:	fe079ce3          	bnez	a5,8c34 <UnityDefaultTestRun+0x12c>
     8c40:	03a00793          	li	a5,58
-    8c44:	00010537          	lui	a0,0x10
+    8c44:	00012537          	lui	a0,0x12
     8c48:	00f70023          	sb	a5,0(a4)
-    8c4c:	00050513          	mv	a0,a0
+    8c4c:	a7850513          	addi	a0,a0,-1416 # 11a78 <UnityStrPass>
     8c50:	e1cf80ef          	jal	126c <UnityPrint.part.0>
     8c54:	f2dff06f          	j	8b80 <UnityDefaultTestRun+0x78>
 
@@ -8084,17 +8084,17 @@ Disassembly of section .text:
     8d20:	06e7a823          	sw	a4,112(a5)
     8d24:	98dfa0ef          	jal	36b0 <pqcrystals_kyber768_ref_masked_poly_frommsg.constprop.0>
     8d28:	001987b7          	lui	a5,0x198
-    8d2c:	000106b7          	lui	a3,0x10
+    8d2c:	000126b7          	lui	a3,0x12
     8d30:	ffffa637          	lui	a2,0xffffa
     8d34:	07078793          	addi	a5,a5,112 # 198070 <__stack_top+0x158074>
     8d38:	10040737          	lui	a4,0x10040
-    8d3c:	51468593          	addi	a1,a3,1300 # 10514 <pk>
+    8d3c:	f8c68593          	addi	a1,a3,-116 # 11f8c <pk>
     8d40:	01801837          	lui	a6,0x1801
     8d44:	01801537          	lui	a0,0x1801
     8d48:	00f72023          	sw	a5,0(a4) # 10040000 <__stack_top+0x10000004>
     8d4c:	3d060793          	addi	a5,a2,976 # ffffa3d0 <__stack_top+0xfffba3d4>
     8d50:	00878633          	add	a2,a5,s0
-    8d54:	51468693          	addi	a3,a3,1300
+    8d54:	f8c68693          	addi	a3,a3,-116
     8d58:	48058893          	addi	a7,a1,1152
     8d5c:	100407b7          	lui	a5,0x10040
     8d60:	00380813          	addi	a6,a6,3 # 1801003 <__stack_top+0x17c1007>
@@ -8175,11 +8175,11 @@ Disassembly of section .text:
     8e8c:	00e7a023          	sw	a4,0(a5)
     8e90:	00800713          	li	a4,8
     8e94:	00e7a223          	sw	a4,4(a5)
-    8e98:	00011737          	lui	a4,0x11
-    8e9c:	29870713          	addi	a4,a4,664 # 11298 <masked_coins>
+    8e98:	00013737          	lui	a4,0x13
+    8e9c:	d1070713          	addi	a4,a4,-752 # 12d10 <masked_coins>
     8ea0:	00e7a623          	sw	a4,12(a5)
-    8ea4:	00011737          	lui	a4,0x11
-    8ea8:	2b870713          	addi	a4,a4,696 # 112b8 <masked_coins+0x20>
+    8ea4:	00013737          	lui	a4,0x13
+    8ea8:	d3070713          	addi	a4,a4,-720 # 12d30 <masked_coins+0x20>
     8eac:	00e7a823          	sw	a4,16(a5)
     8eb0:	0007a603          	lw	a2,0(a5)
     8eb4:	10040737          	lui	a4,0x10040
@@ -8264,8 +8264,8 @@ Disassembly of section .text:
     8ff0:	0004a783          	lw	a5,0(s1) # 10040000 <__stack_top+0x10000004>
     8ff4:	00179713          	slli	a4,a5,0x1
     8ff8:	02074463          	bltz	a4,9020 <pqcrystals_kyber768_ref_masked_indcpa_enc_cmp.constprop.0+0x3c8>
-    8ffc:	0000a7b7          	lui	a5,0xa
-    9000:	50c78793          	addi	a5,a5,1292 # a50c <psi>
+    8ffc:	000107b7          	lui	a5,0x10
+    9000:	65078793          	addi	a5,a5,1616 # 10650 <psi>
     9004:	00f4a223          	sw	a5,4(s1)
     9008:	0004a783          	lw	a5,0(s1)
     900c:	10040737          	lui	a4,0x10040
@@ -8459,10 +8459,10 @@ Disassembly of section .text:
     92fc:	9d078793          	addi	a5,a5,-1584 # ffffa9d0 <__stack_top+0xfffba9d4>
     9300:	78c60713          	addi	a4,a2,1932
     9304:	00001c37          	lui	s8,0x1
-    9308:	00011bb7          	lui	s7,0x11
+    9308:	00013bb7          	lui	s7,0x13
     930c:	008787b3          	add	a5,a5,s0
     9310:	00870733          	add	a4,a4,s0
-    9314:	e54b8b93          	addi	s7,s7,-428 # 10e54 <c>
+    9314:	8ccb8b93          	addi	s7,s7,-1844 # 128cc <c>
     9318:	00048a13          	mv	s4,s1
     931c:	00000993          	li	s3,0
     9320:	c00c0c13          	addi	s8,s8,-1024 # c00 <_start-0x400>
@@ -8508,11 +8508,11 @@ Disassembly of section .text:
     93c0:	ffff9537          	lui	a0,0xffff9
     93c4:	40070893          	addi	a7,a4,1024
     93c8:	20078813          	addi	a6,a5,512
-    93cc:	00011637          	lui	a2,0x11
+    93cc:	00013637          	lui	a2,0x13
     93d0:	79850513          	addi	a0,a0,1944 # ffff9798 <__stack_top+0xfffb979c>
     93d4:	00100713          	li	a4,1
     93d8:	00400693          	li	a3,4
-    93dc:	21460613          	addi	a2,a2,532 # 11214 <c+0x3c0>
+    93dc:	c8c60613          	addi	a2,a2,-884 # 12c8c <c+0x3c0>
     93e0:	00850533          	add	a0,a0,s0
     93e4:	7cfb2823          	sw	a5,2000(s6)
     93e8:	7c6b2423          	sw	t1,1992(s6)
@@ -8848,19 +8848,19 @@ Disassembly of section .text:
 
 00009910 <test_masked_indcpa_enc_cmp>:
     9910:	fd010113          	addi	sp,sp,-48
-    9914:	00011737          	lui	a4,0x11
-    9918:	00010637          	lui	a2,0x10
+    9914:	00013737          	lui	a4,0x13
+    9918:	00012637          	lui	a2,0x12
     991c:	02912223          	sw	s1,36(sp)
     9920:	03212023          	sw	s2,32(sp)
     9924:	01312e23          	sw	s3,28(sp)
-    9928:	4f460913          	addi	s2,a2,1268 # 104f4 <coins>
-    992c:	29870493          	addi	s1,a4,664 # 11298 <masked_coins>
-    9930:	29870993          	addi	s3,a4,664
+    9928:	f6c60913          	addi	s2,a2,-148 # 11f6c <coins>
+    992c:	d1070493          	addi	s1,a4,-752 # 12d10 <masked_coins>
+    9930:	d1070993          	addi	s3,a4,-752
     9934:	02112623          	sw	ra,44(sp)
     9938:	02812423          	sw	s0,40(sp)
     993c:	01412c23          	sw	s4,24(sp)
-    9940:	29870713          	addi	a4,a4,664
-    9944:	4f460613          	addi	a2,a2,1268
+    9940:	d1070713          	addi	a4,a4,-752
+    9944:	f6c60613          	addi	a2,a2,-148
     9948:	00000693          	li	a3,0
     994c:	02000513          	li	a0,32
     9950:	00064583          	lbu	a1,0(a2)
@@ -8880,10 +8880,10 @@ Disassembly of section .text:
     9988:	ad0ff0ef          	jal	8c58 <pqcrystals_kyber768_ref_masked_indcpa_enc_cmp.constprop.0>
     998c:	01c42803          	lw	a6,28(s0)
     9990:	10008737          	lui	a4,0x10008
-    9994:	0000a6b7          	lui	a3,0xa
-    9998:	0000a5b7          	lui	a1,0xa
-    999c:	fbc68693          	addi	a3,a3,-68 # 9fbc <strlen+0x18c>
-    99a0:	fd358593          	addi	a1,a1,-45 # 9fd3 <strlen+0x1a3>
+    9994:	000106b7          	lui	a3,0x10
+    9998:	000105b7          	lui	a1,0x10
+    999c:	10068693          	addi	a3,a3,256 # 10100 <strlen+0x62d0>
+    99a0:	11758593          	addi	a1,a1,279 # 10117 <strlen+0x62e7>
     99a4:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     99a8:	0006c603          	lbu	a2,0(a3)
     99ac:	00168693          	addi	a3,a3,1
@@ -8909,10 +8909,10 @@ Disassembly of section .text:
     99fc:	00c70023          	sb	a2,0(a4)
     9a00:	feb694e3          	bne	a3,a1,99e8 <test_masked_indcpa_enc_cmp+0xd8>
     9a04:	10008737          	lui	a4,0x10008
-    9a08:	0000a6b7          	lui	a3,0xa
-    9a0c:	0000a5b7          	lui	a1,0xa
-    9a10:	ecc68693          	addi	a3,a3,-308 # 9ecc <strlen+0x9c>
-    9a14:	ed358593          	addi	a1,a1,-301 # 9ed3 <strlen+0xa3>
+    9a08:	000106b7          	lui	a3,0x10
+    9a0c:	000105b7          	lui	a1,0x10
+    9a10:	01068693          	addi	a3,a3,16 # 10010 <strlen+0x61e0>
+    9a14:	01758593          	addi	a1,a1,23 # 10017 <strlen+0x61e7>
     9a18:	01070713          	addi	a4,a4,16 # 10008010 <__stack_top+0xffc8014>
     9a1c:	0006c603          	lbu	a2,0(a3)
     9a20:	00168693          	addi	a3,a3,1
@@ -8928,8 +8928,8 @@ Disassembly of section .text:
     9a48:	fe079ce3          	bnez	a5,9a40 <test_masked_indcpa_enc_cmp+0x130>
     9a4c:	00a00793          	li	a5,10
     9a50:	00f70023          	sb	a5,0(a4)
-    9a54:	000157b7          	lui	a5,0x15
-    9a58:	e5878793          	addi	a5,a5,-424 # 14e58 <Unity>
+    9a54:	000177b7          	lui	a5,0x17
+    9a58:	8d078793          	addi	a5,a5,-1840 # 168d0 <Unity>
     9a5c:	0207a403          	lw	s0,32(a5)
     9a60:	0247a783          	lw	a5,36(a5)
     9a64:	00f46433          	or	s0,s0,a5
@@ -8962,8 +8962,8 @@ Disassembly of section .text:
     9ad0:	00190913          	addi	s2,s2,1
     9ad4:	00148493          	addi	s1,s1,1
     9ad8:	fed410e3          	bne	s0,a3,9ab8 <test_masked_indcpa_enc_cmp+0x1a8>
-    9adc:	000117b7          	lui	a5,0x11
-    9ae0:	e5478793          	addi	a5,a5,-428 # 10e54 <c>
+    9adc:	000137b7          	lui	a5,0x13
+    9ae0:	8cc78793          	addi	a5,a5,-1844 # 128cc <c>
     9ae4:	0007c703          	lbu	a4,0(a5)
     9ae8:	00170713          	addi	a4,a4,1
     9aec:	00e78023          	sb	a4,0(a5)
@@ -9005,7 +9005,7 @@ Disassembly of section .text:
     9b7c:	02e7d7b3          	divu	a5,a5,a4
     9b80:	0d06f463          	bgeu	a3,a6,9c48 <test_masked_indcpa_enc_cmp+0x338>
     9b84:	000186b7          	lui	a3,0x18
-    9b88:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x36cf>
+    9b88:	69f68693          	addi	a3,a3,1695 # 1869f <__BSS_END__+0x1c57>
     9b8c:	02e7f633          	remu	a2,a5,a4
     9b90:	03060613          	addi	a2,a2,48
     9b94:	00c104a3          	sb	a2,9(sp)
@@ -9065,26 +9065,26 @@ Disassembly of section .text:
     9c6c:	fb1ff06f          	j	9c1c <test_masked_indcpa_enc_cmp+0x30c>
     9c70:	00100793          	li	a5,1
     9c74:	fa9ff06f          	j	9c1c <test_masked_indcpa_enc_cmp+0x30c>
-    9c78:	0000a637          	lui	a2,0xa
+    9c78:	00010637          	lui	a2,0x10
     9c7c:	00050593          	mv	a1,a0
     9c80:	14c00693          	li	a3,332
-    9c84:	00c60613          	addi	a2,a2,12 # a00c <strlen+0x1dc>
+    9c84:	15060613          	addi	a2,a2,336 # 10150 <strlen+0x6320>
     9c88:	00100513          	li	a0,1
     9c8c:	a9cfd0ef          	jal	6f28 <UnityAssertEqualIntNumber.part.0.constprop.0>
-    9c90:	00015537          	lui	a0,0x15
+    9c90:	00017537          	lui	a0,0x17
     9c94:	00100593          	li	a1,1
-    9c98:	e8050513          	addi	a0,a0,-384 # 14e80 <Unity+0x28>
+    9c98:	8f850513          	addi	a0,a0,-1800 # 168f8 <Unity+0x28>
     9c9c:	074000ef          	jal	9d10 <longjmp>
-    9ca0:	0000a637          	lui	a2,0xa
+    9ca0:	00010637          	lui	a2,0x10
     9ca4:	00050593          	mv	a1,a0
     9ca8:	14000693          	li	a3,320
-    9cac:	fec60613          	addi	a2,a2,-20 # 9fec <strlen+0x1bc>
+    9cac:	13060613          	addi	a2,a2,304 # 10130 <strlen+0x6300>
     9cb0:	00100513          	li	a0,1
     9cb4:	a74fd0ef          	jal	6f28 <UnityAssertEqualIntNumber.part.0.constprop.0>
-    9cb8:	0000a637          	lui	a2,0xa
+    9cb8:	00010637          	lui	a2,0x10
     9cbc:	00050593          	mv	a1,a0
     9cc0:	13600693          	li	a3,310
-    9cc4:	fd460613          	addi	a2,a2,-44 # 9fd4 <strlen+0x1a4>
+    9cc4:	11860613          	addi	a2,a2,280 # 10118 <strlen+0x62e8>
     9cc8:	00000513          	li	a0,0
     9ccc:	a5cfd0ef          	jal	6f28 <UnityAssertEqualIntNumber.part.0.constprop.0>
 

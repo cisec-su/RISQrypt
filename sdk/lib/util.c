@@ -29,17 +29,17 @@ void print_string(const char *str) {
 
 
 void print_hex(const uint8_t *byte_arr, size_t len, unsigned int reverse) {
-    size_t i;
-    uint8_t hex_out[2];
-    for (i = 0; i < len; i++) {
-        if (reverse) {
-          byte_to_hex(hex_out, byte_arr + (len - i - 1), 1, 0);
-        }
-        else {
-          byte_to_hex(hex_out, byte_arr + i, 1, 0);
-        }      
-        uart_transmit_string(hex_out, 2);
-    }
+    // size_t i;
+    // uint8_t hex_out[2];
+    // for (i = 0; i < len; i++) {
+    //     if (reverse) {
+    //       byte_to_hex(hex_out, byte_arr + (len - i - 1), 1, 0);
+    //     }
+    //     else {
+    //       byte_to_hex(hex_out, byte_arr + i, 1, 0);
+    //     }      
+    //     uart_transmit_string(hex_out, 2);
+    // }
 }
 
 
@@ -54,13 +54,13 @@ void print_hex_with_label(const char *label, const uint8_t *data, size_t len) {
 }
 
 void print_u32_arr(uint32_t *ptr, size_t len) {
-    size_t i;
-    for (i = 0; i < len; i++) {
-        print_u32(i);
-        print_string(":\t0x");
-        print_u32(ptr[i]);
-        print_string("\n");
-    }
+    // size_t i;
+    // for (i = 0; i < len; i++) {
+    //     print_u32(i);
+    //     print_string(":\t0x");
+    //     print_u32(ptr[i]);
+    //     print_string("\n");
+    // }
 }
 
 void print_u32_int(uint32_t num) {

@@ -7,8 +7,8 @@ module x2x_acc_dma
         input              we         ,
         output reg [31:0]  i_data     ,
         output reg         i_valid    ,
-        output reg         i_ready    ,
-        output reg         o_ready    ,
+        output             i_ready    ,
+        output             o_ready    ,
         input      [31:0]  o_data     ,
         // dma connections
         output reg         dma_cyc_i  ,
@@ -25,6 +25,9 @@ module x2x_acc_dma
     );
 
 
+assign i_ready = 1;
+assign o_ready = 1;
+
 
 always @ (*)
 begin
@@ -38,10 +41,7 @@ begin
     dma_rst_i = ~rst_n;
     
     i_data = dma_dat_o;
-    
-    i_ready = ~dma_stall_o;
-    o_ready = ~dma_stall_o;
-    
+
     if(re)
     begin
         dma_cyc_i = 1;
@@ -67,8 +67,7 @@ begin
     if(!rst_n)
         i_valid <= 0;
     else
-        i_valid <= re & ~dma_stall_o;
-        
+        i_valid <= re;     
 end
 
   

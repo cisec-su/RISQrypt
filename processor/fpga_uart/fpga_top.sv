@@ -4,12 +4,13 @@ module fpga_top(input M100_clk_i,
                 output tx_o,
                 output led1,led2,led4);
 
-parameter SYS_CLK_FREQ = 25000000;
+parameter SYS_CLK_FREQ = 50000000;
 parameter NUM_SLAVES = 9;
 parameter NUM_DMA_ACCS = 3;
 
 parameter ROM_START = 32'h0000_0000;
 parameter ROM_END   = 32'h0003_FFFF;
+parameter DATA_MEM_START = 32'h0001_0000;
 
 parameter RAM_START = 32'h0000_0000; // will fix that later.
 parameter RAM_END   = 32'h0003_FFFF;
@@ -105,17 +106,17 @@ reg [NUM_SLAVES-1 : 0] r_stb;
 wire [31:0] slave_adr_begin [NUM_SLAVES-1 : 0];
 wire [31:0] slave_adr_end [NUM_SLAVES-1 : 0];
 
-wire [NUM_DMA_ACCS-1 : 0] dma_cyc_i ;
-wire [NUM_DMA_ACCS-1 : 0] dma_stb_i;
-wire [NUM_DMA_ACCS-1 : 0] dma_we_i;
-wire [31:0] dma_adr_i [NUM_DMA_ACCS-1 : 0];
-wire [31:0] dma_dat_i [NUM_DMA_ACCS-1 : 0];
-wire [3:0] dma_sel_i [NUM_DMA_ACCS-1 : 0];
-wire [NUM_DMA_ACCS-1 : 0] dma_stall_o;
-wire [NUM_DMA_ACCS-1 : 0] dma_ack_o;
-wire [31:0] dma_dat_o [NUM_DMA_ACCS-1 : 0];
-wire [NUM_DMA_ACCS-1 : 0] dma_err_o;
-wire [NUM_DMA_ACCS-1 : 0] dma_rst_i;
+wire        dma_cyc_i   [NUM_DMA_ACCS-1 : 0];
+wire        dma_stb_i   [NUM_DMA_ACCS-1 : 0];
+wire        dma_we_i    [NUM_DMA_ACCS-1 : 0];
+wire [31:0] dma_adr_i   [NUM_DMA_ACCS-1 : 0];
+wire [31:0] dma_dat_i   [NUM_DMA_ACCS-1 : 0];
+wire [ 3:0] dma_sel_i   [NUM_DMA_ACCS-1 : 0];
+wire        dma_stall_o [NUM_DMA_ACCS-1 : 0];
+wire        dma_ack_o   [NUM_DMA_ACCS-1 : 0];
+wire [31:0] dma_dat_o   [NUM_DMA_ACCS-1 : 0];
+wire        dma_err_o   [NUM_DMA_ACCS-1 : 0];
+wire        dma_rst_i   [NUM_DMA_ACCS-1 : 0];
 
 
 assign slave_adr_begin[0] = ROM_START;
@@ -160,9 +161,8 @@ assign inst_wb_err_i = wb_err_o[0];
 assign inst_wb_rst_i = ~reset;
 assign inst_wb_clk_i = clk_i;
 
-genvar i;
 generate
-    for (i = 1; i<NUM_SLAVES ;i=i+1)
+    for (genvar i = 1; i < NUM_SLAVES; i = i + 1)
     begin
         assign wb_cyc_i[i] = data_wb_cyc_o;
         assign wb_stb_i[i] = data_wb_stb_o & ((slave_adr_begin[i] <= wb_adr_i[i]) && (wb_adr_i[i] <= slave_adr_end[i]));
@@ -177,6 +177,7 @@ generate
         assign wb_clk_i[i] = clk_i;
     end
 endgenerate
+
 
 //Register strobe signals
 always @(posedge wb_clk_i[0] or posedge wb_rst_i[0])
@@ -261,8 +262,11 @@ core_wb #(.reset_vector(ROM_START))
           .fast_irq_i({15'b0,rx_irq_o}),
           .irq_ack_o(irq_ack_o));
 
-memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
-    memory(.port0_wb_cyc_i(wb_cyc_i[0]),
+memory_2rw_wb_dma #(
+           .ADDR_WIDTH    (ADDR_WIDTH    ),
+           .ROM_START     (ROM_START     ),
+           .DATA_MEM_START(DATA_MEM_START)
+    ) memory(.port0_wb_cyc_i(wb_cyc_i[0]),
            .port0_wb_stb_i(wb_stb_i[0]),
            .port0_wb_we_i(wb_we_i[0]),
            .port0_wb_adr_i(wb_adr_i[0]),
@@ -288,42 +292,18 @@ memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
            .port1_wb_rst_i(wb_rst_i[1]),
            .port1_wb_clk_i(wb_clk_i[1]),
            
-           .dma_cyc_i_0(dma_cyc_i[0]),
-           .dma_stb_i_0(dma_stb_i[0]),
-           .dma_we_i_0(dma_we_i[0]),
-           .dma_adr_i_0(dma_adr_i[0]),
-           .dma_dat_i_0(dma_dat_i[0]),
-           .dma_sel_i_0(dma_sel_i[0]),
-           .dma_stall_o_0(dma_stall_o[0]),
-           .dma_ack_o_0(dma_ack_o[0]),
-           .dma_dat_o_0(dma_dat_o[0]),
-           .dma_err_o_0(dma_err_o[0]),
-           .dma_rst_i_0(dma_rst_i[0]),
-           
-           .dma_cyc_i_1(dma_cyc_i[1]),
-           .dma_stb_i_1(dma_stb_i[1]),
-           .dma_we_i_1(dma_we_i[1]),
-           .dma_adr_i_1(dma_adr_i[1]),
-           .dma_dat_i_1(dma_dat_i[1]),
-           .dma_sel_i_1(dma_sel_i[1]),
-           .dma_stall_o_1(dma_stall_o[1]),
-           .dma_ack_o_1(dma_ack_o[1]),
-           .dma_dat_o_1(dma_dat_o[1]),
-           .dma_err_o_1(dma_err_o[1]),
-           .dma_rst_i_1(dma_rst_i[1]),
-           
-           .dma_cyc_i_2(dma_cyc_i[2]),
-           .dma_stb_i_2(dma_stb_i[2]),
-           .dma_we_i_2(dma_we_i[2]),
-           .dma_adr_i_2(dma_adr_i[2]),
-           .dma_dat_i_2(dma_dat_i[2]),
-           .dma_sel_i_2(dma_sel_i[2]),
-           .dma_stall_o_2(dma_stall_o[2]),
-           .dma_ack_o_2(dma_ack_o[2]),
-           .dma_dat_o_2(dma_dat_o[2]),
-           .dma_err_o_2(dma_err_o[2]),
-           .dma_rst_i_2(dma_rst_i[2])
-           );
+           .dma_cyc_i  (dma_cyc_i  ),
+           .dma_stb_i  (dma_stb_i  ),
+           .dma_we_i   (dma_we_i   ),
+           .dma_adr_i  (dma_adr_i  ),
+           .dma_dat_i  (dma_dat_i  ),
+           .dma_sel_i  (dma_sel_i  ),
+           .dma_stall_o(dma_stall_o),
+           .dma_ack_o  (dma_ack_o  ),
+           .dma_dat_o  (dma_dat_o  ),
+           .dma_err_o  (dma_err_o  ),
+           .dma_rst_i  (dma_rst_i  )
+        );
 
 mtime_registers_wb #(.mtime_adr(MTIME_START),
                      .mtimecmp_adr(MTIME_START + 8))
