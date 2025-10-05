@@ -5,6 +5,7 @@
 #include "masked_symmetric.h"
 #include "masked_poly.h"
 #include "masked_polyvec.h"
+#include "x2x.h"
 
 
 void masked_polyvec_ntt(masked_polyvec *r) {
@@ -52,32 +53,14 @@ void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a,
         a_[1] = &(a->share[1].vec[i]);
         r_[0] = &(r->share[0].vec[i]);
         r_[1] = &(r->share[1].vec[i]);
-        masked_poly_sub_compress_du(r_, a_, b + (i * (KYBER_POLYVECCOMPRESSEDBYTES / 3)));
+        masked_poly_sub_compress_du(r_, a_, b + (i * (KYBER_POLYVECCOMPRESSEDBYTES / 3)), i == 0);
     }
 }
 
 
 
-void masked_polyvec_mask(masked_polyvec *r, polyvec *a) {
-    unsigned int i, j, k;
-    uint16_t t;
-
-    for(k = 0; k < KYBER_K; k++) {
-        for(j = 0; j < KYBER_N; j++) {
-            t = 0;
-            for(i = 0; i < MASKING_N - 1; i++) {
-                r->share[i].vec[k].coeffs[j] = rand16() & 0x7FF;
-                t = t + r->share[i].vec[k].coeffs[j];
-                if (t >= KYBER_Q) {
-                    t -= KYBER_Q;
-                }
-            }
-            r->share[MASKING_N - 1].vec[k].coeffs[j] = a->vec[k].coeffs[j] - t;
-            if (r->share[MASKING_N - 1].vec[k].coeffs[j] < 0) {
-                r->share[MASKING_N - 1].vec[k].coeffs[j] += KYBER_Q;
-            }
-        }
-    }
+void masked_polyvec_mask(masked_polyvec *r, const polyvec *a) {
+    masked_gadgets_mask_polyvec(r, a);
 }
 
 

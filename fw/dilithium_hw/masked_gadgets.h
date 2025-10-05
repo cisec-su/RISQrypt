@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "masked_poly.h"
 
+#define masked_gadgets_init_q DILITHIUM_NAMESPACE(masked_gadgets_init_q)
+void masked_gadgets_init_q();
 
 #define masked_gadgets_B2A_q DILITHIUM_NAMESPACE(masked_gadgets_B2A_q)
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a);
@@ -14,11 +16,14 @@ void masked_gadgets_A2B_q_ptr(masked_poly *r, const poly *a[MASKING_N]);
 #define masked_gadgets_A2B_q DILITHIUM_NAMESPACE(masked_gadgets_A2B_q)
 void masked_gadgets_A2B_q(masked_poly *r, const masked_poly *a);
 
+#define masked_gadgets_init_2k DILITHIUM_NAMESPACE(masked_gadgets_init_2k)
+void masked_gadgets_init_2k(uint32_t p);
+
 #define masked_gadgets_B2A_2k DILITHIUM_NAMESPACE(masked_gadgets_B2A_2k)
-void masked_gadgets_B2A_2k(masked_poly *r, const masked_poly *a, uint32_t p);
+void masked_gadgets_B2A_2k(masked_poly *r, const masked_poly *a);
 
 #define masked_gadgets_A2B_2k DILITHIUM_NAMESPACE(masked_gadgets_A2B_2k)
-void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a, uint32_t p);
+void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a);
 
 
 #endif

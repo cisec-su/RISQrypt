@@ -4,9 +4,9 @@ module fpga_top(input M100_clk_i,
                 output tx_o,
                 output led1,led2,led4);
 
-parameter SYS_CLK_FREQ = 50000000;
-parameter NUM_SLAVES = 8;
-parameter NUM_DMA_ACCS = 2;
+parameter SYS_CLK_FREQ = 25000000;
+parameter NUM_SLAVES = 9;
+parameter NUM_DMA_ACCS = 3;
 
 parameter ROM_START = 32'h0000_0000;
 parameter ROM_END   = 32'h0003_FFFF;
@@ -30,7 +30,10 @@ parameter NTT_START =  32'h1004_0000;
 parameter NTT_END   =  32'h1004_001F;
 
 parameter KECCAK_START =  32'h1004_0020;
-parameter KECCAK_END   =  32'h1004_0050;
+parameter KECCAK_END   =  32'h1004_005F;
+
+parameter X2X_START =  32'h1004_0060;
+parameter X2X_END   =  32'h1004_009F;
 
 
 parameter ADDR_WIDTH =  $rtoi($ceil($clog2(((RAM_END - ROM_START + 1) >> 2))));
@@ -139,6 +142,8 @@ assign slave_adr_end[6] =   NTT_END;
 assign slave_adr_begin[7] = KECCAK_START;
 assign slave_adr_end[7] = KECCAK_END;
 
+assign slave_adr_begin[8] = X2X_START;
+assign slave_adr_end[8] = X2X_END;
 
 assign wb_cyc_i[0] = inst_wb_cyc_o;
 assign wb_stb_i[0] = inst_wb_stb_o;
@@ -305,7 +310,19 @@ memory_2rw_wb_dma #(.ADDR_WIDTH(ADDR_WIDTH), .ROM_START(ROM_START))
            .dma_ack_o_1(dma_ack_o[1]),
            .dma_dat_o_1(dma_dat_o[1]),
            .dma_err_o_1(dma_err_o[1]),
-           .dma_rst_i_1(dma_rst_i[1])
+           .dma_rst_i_1(dma_rst_i[1]),
+           
+           .dma_cyc_i_2(dma_cyc_i[2]),
+           .dma_stb_i_2(dma_stb_i[2]),
+           .dma_we_i_2(dma_we_i[2]),
+           .dma_adr_i_2(dma_adr_i[2]),
+           .dma_dat_i_2(dma_dat_i[2]),
+           .dma_sel_i_2(dma_sel_i[2]),
+           .dma_stall_o_2(dma_stall_o[2]),
+           .dma_ack_o_2(dma_ack_o[2]),
+           .dma_dat_o_2(dma_dat_o[2]),
+           .dma_err_o_2(dma_err_o[2]),
+           .dma_rst_i_2(dma_rst_i[2])
            );
 
 mtime_registers_wb #(.mtime_adr(MTIME_START),
@@ -434,5 +451,31 @@ keccak_acc_top #(.BASE_ADDR(KECCAK_START))
             .dma_err_o(dma_err_o[1]),
             .dma_rst_i(dma_rst_i[1])
             );
-
+x2x_acc_top #(.BASE_ADDR(X2X_START))
+    x2x_acc_top_inst (
+            .wb_cyc_i(wb_cyc_i[8]),
+            .wb_stb_i(wb_stb_i[8]),
+            .wb_we_i(wb_we_i[8]),
+            .wb_adr_i(wb_adr_i[8]),
+            .wb_dat_i(wb_dat_i[8]),
+            .wb_sel_i(wb_sel_i[8]),
+            .wb_stall_o(wb_stall_o[8]),
+            .wb_ack_o(wb_ack_o[8]),
+            .wb_dat_o(wb_dat_o[8]),
+            .wb_err_o(wb_err_o[8]),
+            .wb_rst_i(wb_rst_i[8]),
+            .wb_clk_i(wb_clk_i[8]),
+            
+            .dma_cyc_i(dma_cyc_i[2]),
+            .dma_stb_i(dma_stb_i[2]),
+            .dma_we_i(dma_we_i[2]),
+            .dma_adr_i(dma_adr_i[2]),
+            .dma_dat_i(dma_dat_i[2]),
+            .dma_sel_i(dma_sel_i[2]),
+            .dma_stall_o(dma_stall_o[2]),
+            .dma_ack_o(dma_ack_o[2]),
+            .dma_dat_o(dma_dat_o[2]),
+            .dma_err_o(dma_err_o[2]),
+            .dma_rst_i(dma_rst_i[2])
+            );
 endmodule

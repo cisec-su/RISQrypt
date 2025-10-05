@@ -1,4 +1,3 @@
-
 module memory_2rw_wb_dma(
 input         port0_wb_cyc_i,
 input         port0_wb_stb_i,
@@ -48,7 +47,19 @@ output reg dma_stall_o_1,
 output reg dma_ack_o_1,
 output reg [31:0] dma_dat_o_1,
 output reg dma_err_o_1,
-input dma_rst_i_1);
+input dma_rst_i_1,
+
+input dma_cyc_i_2,
+input dma_stb_i_2,
+input dma_we_i_2,
+input [31:0]  dma_adr_i_2,
+input [31:0]  dma_dat_i_2,
+input [3:0]   dma_sel_i_2,
+output reg dma_stall_o_2,
+output reg dma_ack_o_2,
+output reg [31:0] dma_dat_o_2,
+output reg dma_err_o_2,
+input dma_rst_i_2);
 
 
 parameter FPGA_READMEM = 1 ;
@@ -76,63 +87,112 @@ wire         wb_err_o;
 reg stb_core;
 reg stb_per_0;
 reg stb_per_1;
+reg stb_per_2;
 
 always @ (*)
 begin
     if(stb_core)
     begin
-        port1_wb_stall_o = wb_stall_o;
         port1_wb_ack_o = wb_ack_o;
         port1_wb_dat_o = wb_dat_o;
         port1_wb_err_o = wb_err_o;
         
-        dma_stall_o_0 = 1'b1;
         dma_ack_o_0 = 1'b0;
         dma_dat_o_0 = 1'b0;
         dma_err_o_0 = 1'b0;
-   
-        dma_stall_o_1 = 1'b1;
+        
         dma_ack_o_1 = 1'b0;
         dma_dat_o_1 = 1'b0;
         dma_err_o_1 = 1'b0;
+        
+        dma_ack_o_2 = 1'b0;
+        dma_dat_o_2 = 1'b0;
+        dma_err_o_2 = 1'b0;
     end
     else if (stb_per_0)
     begin
-        port1_wb_stall_o = 1'b1;
         port1_wb_ack_o = 1'b0;
         port1_wb_dat_o = 1'b0;
         port1_wb_err_o = 1'b0;
         
-        dma_stall_o_0 = wb_stall_o;
         dma_ack_o_0 = wb_ack_o;
         dma_dat_o_0 = wb_dat_o;
         dma_err_o_0 = wb_err_o;
         
-        dma_stall_o_1 = 1'b1;
         dma_ack_o_1 = 1'b0;
         dma_dat_o_1 = 1'b0;
         dma_err_o_1 = 1'b0;
+        
+        dma_ack_o_2 = 1'b0;
+        dma_dat_o_2 = 1'b0;
+        dma_err_o_2 = 1'b0;
     end
-    else// if (stb_per_1)
+    
+    
+  
+    else if (stb_per_1)
     begin
-        port1_wb_stall_o = 1'b1;
         port1_wb_ack_o = 1'b0;
         port1_wb_dat_o = 1'b0;
         port1_wb_err_o = 1'b0;
         
-        dma_stall_o_0 = 1'b1;
         dma_ack_o_0 = 1'b0;
         dma_dat_o_0 = 1'b0;
         dma_err_o_0 = 1'b0;
         
-        dma_stall_o_1 = wb_stall_o;
         dma_ack_o_1 = wb_ack_o;
         dma_dat_o_1 = wb_dat_o;
         dma_err_o_1 = wb_err_o;
+        
+        dma_ack_o_2 = 1'b0;
+        dma_dat_o_2 = 1'b0;
+        dma_err_o_2 = 1'b0;
+    end 
+    else if (stb_per_2)
+    begin
+        port1_wb_ack_o = 1'b0;
+        port1_wb_dat_o = 1'b0;
+        port1_wb_err_o = 1'b0;
+        
+        dma_ack_o_0 = 1'b0;
+        dma_dat_o_0 = 1'b0;
+        dma_err_o_0 = 1'b0;
+        
+        dma_ack_o_1 = 1'b0;
+        dma_dat_o_1 = 1'b0;
+        dma_err_o_1 = 1'b0;
+        
+        dma_ack_o_2 = wb_ack_o;
+        dma_dat_o_2 = wb_dat_o;
+        dma_err_o_2 = wb_err_o;
     end
+    else
+    begin
+        port1_wb_ack_o = 1'b0;
+        port1_wb_dat_o = 1'b0;
+        port1_wb_err_o = 1'b0;
+        
+        dma_ack_o_0 = 1'b0;
+        dma_dat_o_0 = 1'b0;
+        dma_err_o_0 = 1'b0;
+        
+        dma_ack_o_1 = 1'b0;
+        dma_dat_o_1 = 1'b0;
+        dma_err_o_1 = 1'b0;
+        
+        dma_ack_o_2 = 1'b0;
+        dma_dat_o_2 = 1'b0;
+        dma_err_o_2 = 1'b0;
+    end
+    
+    port1_wb_stall_o = 1'b0;
+    dma_stall_o_0 = port1_wb_stb_i;
+    dma_stall_o_1 = port1_wb_stb_i || dma_stb_i_0;
+    dma_stall_o_2 = port1_wb_stb_i || dma_stb_i_0 || dma_stb_i_1;
         
     if(port1_wb_stb_i)
     begin
+              
         wb_cyc_i = port1_wb_cyc_i;
         wb_stb_i = port1_wb_stb_i;
         wb_we_i = port1_wb_we_i;
@@ -145,6 +205,7 @@ begin
     end
     else if(dma_stb_i_0)
     begin
+        
         wb_cyc_i = dma_cyc_i_0;
         wb_stb_i = dma_stb_i_0;
         wb_we_i = dma_we_i_0;
@@ -154,8 +215,10 @@ begin
         wb_rst_i = dma_rst_i_0;
         wb_clk_i = port1_wb_clk_i;         
     end
-    else
+    
+    else if(dma_stb_i_1)
     begin
+        
         wb_cyc_i = dma_cyc_i_1;
         wb_stb_i = dma_stb_i_1;
         wb_we_i = dma_we_i_1;
@@ -163,6 +226,30 @@ begin
         wb_dat_i = dma_dat_i_1;
         wb_sel_i = dma_sel_i_1;  
         wb_rst_i = dma_rst_i_1;
+        wb_clk_i = port1_wb_clk_i;         
+    end 
+    else if(dma_stb_i_2)
+    begin
+        
+        wb_cyc_i = dma_cyc_i_2;
+        wb_stb_i = dma_stb_i_2;
+        wb_we_i = dma_we_i_2;
+        wb_adr_i = dma_adr_i_2;
+        wb_dat_i = dma_dat_i_2;
+        wb_sel_i = dma_sel_i_2;  
+        wb_rst_i = dma_rst_i_2;
+        wb_clk_i = port1_wb_clk_i;         
+    end  
+    else
+    begin
+              
+        wb_cyc_i = port1_wb_cyc_i;
+        wb_stb_i = port1_wb_stb_i;
+        wb_we_i = port1_wb_we_i;
+        wb_adr_i = port1_wb_adr_i;
+        wb_dat_i = port1_wb_dat_i;
+        wb_sel_i = port1_wb_sel_i;  
+        wb_rst_i = port1_wb_rst_i;
         wb_clk_i = port1_wb_clk_i;         
     end
 end
@@ -189,6 +276,14 @@ begin
         stb_per_1 <= 0;
     else 
         stb_per_1 <= dma_stb_i_1;
+end
+
+always @(posedge port0_wb_clk_i or posedge port0_wb_rst_i)
+begin
+    if(port0_wb_rst_i)
+        stb_per_2 <= 0;
+    else 
+        stb_per_2 <= dma_stb_i_2;
 end
 
 
