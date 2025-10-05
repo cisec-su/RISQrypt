@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "params.h"
+#include "x2x.h"
 #include "sign.h"
 #include "util.h"
 #include "randombytes.h"
@@ -236,7 +237,9 @@ void dilithium_masked_sign() {
 
 
 int main() {
-    UnityBegin("main.c");   
+    uint32_t seed[2] = {1, 1};
+    UnityBegin("main.c");
+    x2x_seed(seed);
     print_string("\n --- Dilithium Unity Test Start --- \n");
     RUN_TEST(dilithium_simple);
     RUN_TEST(dilithium_mean_sign);

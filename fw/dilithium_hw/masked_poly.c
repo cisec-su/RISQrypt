@@ -7,20 +7,7 @@
 
 
 void masked_poly_mask(masked_poly *r, const poly *a) {
-    int i, j;
-    for (i = 0; i < MASKING_N; i++) {
-        for (j = 0; j < N; j++) {
-            if (i == 0) {
-                r->share[i].coeffs[j] = a->coeffs[j] - j;
-                if (r->share[i].coeffs[j] < 0) {
-                    r->share[i].coeffs[j] += Q;
-                }
-            }
-            else {
-                r->share[i].coeffs[j] = j;
-            }
-        }
-    }
+    masked_gadgets_mask_poly(r, a);
 }
 
 
