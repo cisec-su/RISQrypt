@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include "ntt_lite.h"
-#include "reduce.h"
 #include "masked_gadgets.h"
 #include "masked_symmetric.h"
 #include "masked_cbd.h"

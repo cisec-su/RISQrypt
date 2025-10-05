@@ -284,7 +284,7 @@ int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
 }
 
 
-int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d) {
+static int ntt_lite_decode_core(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t op) {
 
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
         return -1;
@@ -295,12 +295,27 @@ int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d) {
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START | NTT_LITE_CTRL_OP_DECODE | (d << NTT_LITE_CTRL_D_S);
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START | op | (d << NTT_LITE_CTRL_D_S);
 
 
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     return 0;
+}
+
+
+int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d) {
+    return ntt_lite_decode_core(dst, src, d, NTT_LITE_CTRL_OP_DECODE);
+}
+
+
+int ntt_lite_cbd(uint32_t *dst, const uint32_t *src, uint32_t d) {
+
+    if ((d != 2) && (d != 3)) {
+        return -1;
+    }
+
+    return ntt_lite_decode_core(dst, src, d << 1, NTT_LITE_CTRL_OP_CBD);
 }
 
 

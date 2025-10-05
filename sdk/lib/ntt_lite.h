@@ -57,11 +57,14 @@ int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d);
 
 int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d);
 
+int ntt_lite_cbd(uint32_t *dst, const uint32_t *src, uint32_t d);
+
 int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d);
 
 int ntt_lite_decompress(uint32_t *dst, const uint32_t *src, uint32_t d);
 
 int ntt_lite_decompress_floor(uint32_t *dst, const uint32_t *src, uint32_t d);
+
 
 int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src);
 
