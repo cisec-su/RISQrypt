@@ -63,9 +63,9 @@ typedef struct
 #define X2X_CTRL_B2A_BIT_EN_M     ((uint32_t) 0x1)
 #define X2X_CTRL_B2A_BIT_EN_V     (X2X_CTRL_B2A_BIT_EN_M << X2X_CTRL_B2A_BIT_EN_S)
 
-#define X2X_CTRL_REJS_DIS_S       ((uint32_t) 12)
-#define X2X_CTRL_REJS_DIS_M       ((uint32_t) 0x1)
-#define X2X_CTRL_REJS_DIS_V       (X2X_CTRL_REJS_DIS_M << X2X_CTRL_REJS_DIS_S)
+#define X2X_CTRL_REJS_EN_S        ((uint32_t) 12)
+#define X2X_CTRL_REJS_EN_M        ((uint32_t) 0x1)
+#define X2X_CTRL_REJS_EN_V        (X2X_CTRL_REJS_EN_M << X2X_CTRL_REJS_EN_S)
 
 #define X2X_CTRL_LOG_STRIDE_S     ((uint32_t) 13)
 #define X2X_CTRL_LOG_STRIDE_M     ((uint32_t) 0x7)

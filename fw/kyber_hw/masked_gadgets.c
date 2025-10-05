@@ -8,7 +8,7 @@
 
 
 void masked_gadgets_init_q() {
-    x2x_set_modulus(KYBER_Q, 12, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_set_modulus(KYBER_Q, 12, X2X_MODULUS_PRIME, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_EN);
 }
 
 
@@ -22,12 +22,12 @@ void masked_gadgets_mask_polyvec(masked_polyvec *r, const polyvec *a) {
 
 
 void masked_gadgets_init_2k(uint32_t p) {
-    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_EN);
 }
 
 
 void masked_gadgets_init_2k_u32(uint32_t p) {
-    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_EN);
 }
 
 
@@ -47,7 +47,7 @@ void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {
 
 
 void masked_gadgets_init_q_carrier() {
-    x2x_set_modulus(Q_EXP, 32, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
+    x2x_set_modulus(Q_EXP, 31, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
 }
 
 
@@ -156,14 +156,6 @@ void masked_gadgets_exp_u32(masked_u32 r, masked_u32 a) {
 }
 
 
-static void masked_zero_double(volatile masked_u32 r) {
-    unsigned int i;
-    for (i = 0; i < MASKING_N; i++) {
-        r[(i << 1)] = 0;
-    }
-}
-
-
 // https://eprint.iacr.org/2021/1615.pdf alg.1
 int masked_gadgets_zero_test_mul(masked_u32 a) {
 #if MASKING_N != 2
@@ -173,8 +165,16 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
     volatile uint32_t t[MASKING_N << 1];
     uint32_t buf[MASKING_N];
     uint32_t *src_ptr, *dst_ptr;
+    const int buffer_len = 16;
+    uint32_t zero_buffer[buffer_len];
+    uint32_t rng_buffer[2][buffer_len];
 
-    randombytes((uint8_t*) buf, sizeof(buf));
+
+    for (i = 0; i < buffer_len; i++) {
+        zero_buffer[i] = 0;
+    }
+    masked_gadgets_init_q_carrier();
+    x2x_a_share(rng_buffer[0], rng_buffer[1], zero_buffer, buffer_len);
 
     ntt_lite_set_ctrl(LOG_MASKING_N + 1, 32, NTT_LITE_MODE_SINGLE);
 
@@ -192,9 +192,11 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
             src_ptr = NTT_LITE_INPUT_DIS;
         }
 
-        ntt_lite_set_bound(buf[i]);
+        ntt_lite_set_bound(rng_buffer[0][i]);
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, src_ptr, NTT_LITE_INPUT_DIS);
-        masked_zero_double(t);
+        for (j = 0; j < MASKING_N; j++) {
+            t[(j << 1)] = rng_buffer[j][i + MASKING_N];
+        }
         ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) t);
     }
 
