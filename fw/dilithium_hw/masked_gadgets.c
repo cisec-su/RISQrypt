@@ -8,6 +8,9 @@ void masked_gadgets_init_q() {
     x2x_set_modulus(Q, 23, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
 }
 
+void masked_gadgets_mask_poly(masked_poly *r, const poly *a) {
+    x2x_a_share((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->coeffs, N);
+}
 
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a) {
     x2x_b2a((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->share[1].coeffs, (uint32_t*) a->share[0].coeffs, N);

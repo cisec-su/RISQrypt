@@ -40,6 +40,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
     z_unmasked = (polyvecl*) &z;
 
     poly_init_q();
+    masked_gadgets_init_q();
 
     masked_unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
 
@@ -63,7 +64,9 @@ int masked_crypto_sign_signature(uint8_t *sig,
 
 rej:
     /* Sample intermediate vector y */
-    masked_gadgets_init_q();
+    if (nonce) {
+        masked_gadgets_init_q();
+    }
     masked_polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
     /* Matrix-vector multiplication */ 
