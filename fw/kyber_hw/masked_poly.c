@@ -75,7 +75,7 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     ntt_lite_sub_rev((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs);
 
     if (init_a2b) {
-        masked_gadgets_init_2k_u32((1 << d_) - 1);
+        masked_gadgets_init_2k_u32(0xFFFFFFFF);
     }
     masked_gadgets_A2B_2k_u32(&mpu32, &mpu32);
 
@@ -146,7 +146,7 @@ void masked_poly_sub_tomsg(masked_msg msg, const poly *a, masked_poly *b) {
     ntt_lite_set_q(d_dual);
     ntt_lite_add_const((uint32_t*) b->share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
 
-    masked_gadgets_init_2k((1 << d_) - 1);
+    masked_gadgets_init_2k(0xFFFF);
     masked_gadgets_A2B_2k(b, b);
 
     ntt_lite_set_q(0x10001);

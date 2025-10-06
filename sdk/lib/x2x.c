@@ -19,9 +19,9 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
     }
 
     if (rej_sample == X2X_REJ_SAMPLE_EN) {
-        rej_flag = X2X_CTRL_REJS_EN_V;
-    } else if (rej_sample == X2X_REJ_SAMPLE_DIS) {
         rej_flag = 0;
+    } else if (rej_sample == X2X_REJ_SAMPLE_DIS) {
+        rej_flag = X2X_CTRL_REJS_DIS_V;
     } else {
         return -1;
     }

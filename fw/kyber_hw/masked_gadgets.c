@@ -22,12 +22,12 @@ void masked_gadgets_mask_polyvec(masked_polyvec *r, const polyvec *a) {
 
 
 void masked_gadgets_init_2k(uint32_t p) {
-    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_EN);
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, 0);
 }
 
 
 void masked_gadgets_init_2k_u32(uint32_t p) {
-    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_EN);
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, 0);
 }
 
 
