@@ -30,7 +30,6 @@ int masked_crypto_sign_signature(uint8_t *sig,
     polyvecl *z_unmasked;
     polyveck *w0_unmasked;
     poly cp;
-    poly debug;
     int i;
     int flag;
     rho = seedbuf;
@@ -71,15 +70,6 @@ rej:
     }
     masked_polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
-    for (i = 0; i < N; i++) {
-        debug.coeffs[i] = y.vec[0].share[0].coeffs[i] + y.vec[0].share[1].coeffs[i];
-        if (debug.coeffs[i] >= Q) {
-            debug.coeffs[i] -= Q;
-        }
-    }
-    print_string("Unmasked poly y[0]: \n");
-    print_u32_arr((uint32_t*) debug.coeffs, 16);
-
     /* Matrix-vector multiplication */ 
     poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
     masked_polyvecl_ntt(&y);
@@ -106,7 +96,6 @@ rej:
     if(flag) {
         goto rej;
     }
-    print_string("masked_crypto_sign_signature: z ok\n");
 
     /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
      * do not reveal secret information */
