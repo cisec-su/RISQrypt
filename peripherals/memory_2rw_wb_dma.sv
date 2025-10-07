@@ -1,15 +1,19 @@
 module memory_2rw_wb_dma
-    #(  
-        parameter ADDR_WIDTH     = 18, 
-        parameter ROM_START      = 0 ,
+   #(  
+        parameter ROM_START      = 32'h0000_0000,
+        parameter ROM_END        = 32'h0000_081F,
+        parameter RAM_INST_START = 32'h0000_0820,
+        parameter RAM_INST_END   = 32'h0000_FFFF,
+        parameter RAM_DATA_START = 32'h0001_0000,
+        parameter RAM_DATA_END   = 32'h0003_FFFF,
         parameter NUM_DMA_ACCS   = 3 ,
         parameter FPGA_READMEM   = 1 ,
         parameter NUM_WMASKS     = 4 ,
-        parameter DATA_WIDTH     = 32,
-        parameter RAM_DEPTH      = 1 << ADDR_WIDTH,
-        parameter DATA_MEM_START = 16'hC000
+        parameter DATA_WIDTH     = 32
     )
     (
+        input             bootloader_en   ,
+
         input             port0_wb_cyc_i  ,
         input             port0_wb_stb_i  ,
         input             port0_wb_we_i   ,
@@ -50,49 +54,51 @@ module memory_2rw_wb_dma
     );
 
 localparam LOG_NUM_DMA_ACCS = $clog2(NUM_DMA_ACCS);
-
+localparam ADDR_WIDTH = $clog2(((RAM_DATA_END - ROM_START + 1) >> 2));
+localparam RAM_INST_DEPTH = (RAM_INST_END - ROM_START      + 1) >> 2;
+localparam RAM_DATA_DEPTH = (RAM_DATA_END - RAM_DATA_START + 1) >> 2;
 
 //inst RAM P1
-reg          inst_p1_cyc_i;
-reg          inst_p1_stb_i;
-reg          inst_p1_we_i;
-reg [31:0]   inst_p1_adr_i;
-reg [31:0]   inst_p1_dat_i;
-reg [3:0]    inst_p1_sel_i;
-reg          inst_p1_rst_i;
-reg          inst_p1_clk_i;
-wire         inst_p1_stall_o;
-wire         inst_p1_ack_o;
-wire  [31:0] inst_p1_dat_o;
-wire         inst_p1_err_o;
+reg         inst_p1_cyc_i;
+reg         inst_p1_stb_i;
+reg         inst_p1_we_i;
+reg  [31:0] inst_p1_adr_i;
+reg  [31:0] inst_p1_dat_i;
+reg  [ 3:0] inst_p1_sel_i;
+reg         inst_p1_rst_i;
+reg         inst_p1_clk_i;
+wire        inst_p1_stall_o;
+wire        inst_p1_ack_o;
+wire [31:0] inst_p1_dat_o;
+wire        inst_p1_err_o;
 
 //data RAM P0
-reg          data_p0_cyc_i;
-reg          data_p0_stb_i;
-reg          data_p0_we_i;
-reg [31:0]   data_p0_adr_i;
-reg [31:0]   data_p0_dat_i;
-reg [3:0]    data_p0_sel_i;
-reg          data_p0_rst_i;
-reg          data_p0_clk_i;
-wire         data_p0_stall_o;
-wire         data_p0_ack_o;
-wire  [31:0] data_p0_dat_o;
-wire         data_p0_err_o;
+reg         data_p0_cyc_i;
+reg         data_p0_stb_i;
+reg         data_p0_we_i;
+reg  [31:0] data_p0_adr_i;
+reg  [31:0] data_p0_dat_i;
+reg  [ 3:0] data_p0_sel_i;
+reg         data_p0_rst_i;
+reg         data_p0_clk_i;
+wire        data_p0_stall_o;
+wire        data_p0_ack_o;
+wire [31:0] data_p0_dat_o;
+wire        data_p0_err_o;
 
 //data RAM P1
-reg          data_dma_cyc_i;
-reg          data_dma_stb_i;
-reg          data_dma_we_i;
-reg [31:0]   data_dma_adr_i;
-reg [31:0]   data_dma_dat_i;
-reg [3:0]    data_dma_sel_i;
-reg          data_dma_rst_i;
-wire         data_dma_clk_i;
-wire         data_dma_stall_o;
-wire         data_dma_ack_o;
-wire  [31:0] data_dma_dat_o;
-wire         data_dma_err_o;
+reg         data_dma_cyc_i;
+reg         data_dma_stb_i;
+reg         data_dma_we_i;
+reg  [31:0] data_dma_adr_i;
+reg  [31:0] data_dma_dat_i;
+reg  [ 3:0] data_dma_sel_i;
+reg         data_dma_rst_i;
+wire        data_dma_clk_i;
+wire        data_dma_stall_o;
+wire        data_dma_ack_o;
+wire [31:0] data_dma_dat_o;
+wire        data_dma_err_o;
 
 reg  [    NUM_DMA_ACCS-1:0] dma_stb_q;
 reg  [LOG_NUM_DMA_ACCS-1:0] dma_stb_bin;
@@ -100,13 +106,14 @@ reg  [LOG_NUM_DMA_ACCS-1:0] dma_stb_q_bin;
 
 
 memory_2rw_wb #(
-        .ADDR_WIDTH  (ADDR_WIDTH  ),
-        .DATA_WIDTH  (DATA_WIDTH  ),
-        .NUM_WMASKS  (NUM_WMASKS  ),
-        .FPGA_READMEM(FPGA_READMEM),
-        .RAM_DEPTH   (DATA_MEM_START >> 2),
-        .ROM_START   (ROM_START   )
-    ) memory_inst (
+        .ADDR_WIDTH  (ADDR_WIDTH    ),
+        .DATA_WIDTH  (DATA_WIDTH    ),
+        .NUM_WMASKS  (NUM_WMASKS    ),
+        .FPGA_READMEM(FPGA_READMEM  ),
+        .RAM_DEPTH   (RAM_INST_DEPTH),
+        .ROM_START   (ROM_START     ),
+        .ROM_END     (ROM_END       )
+) ram_inst (
         .port0_wb_cyc_i  (port0_wb_cyc_i  ),
         .port0_wb_stb_i  (port0_wb_stb_i  ),
         .port0_wb_we_i   (port0_wb_we_i   ),
@@ -135,13 +142,12 @@ memory_2rw_wb #(
     );
     
 memory_2rw_wb #(
-        .ADDR_WIDTH  (ADDR_WIDTH),
-        .DATA_WIDTH  (DATA_WIDTH),
-        .NUM_WMASKS  (NUM_WMASKS),
-        .FPGA_READMEM(0         ),
-        .RAM_DEPTH   (RAM_DEPTH - (DATA_MEM_START >> 2)),
-        .ROM_START   (0         )
-    ) memory_data (
+        .ADDR_WIDTH  (ADDR_WIDTH    ),
+        .DATA_WIDTH  (DATA_WIDTH    ),
+        .NUM_WMASKS  (NUM_WMASKS    ),
+        .FPGA_READMEM(0             ),
+        .RAM_DEPTH   (RAM_DATA_DEPTH)
+) ram_data (
         .port0_wb_cyc_i  (data_p0_cyc_i  ),
         .port0_wb_stb_i  (data_p0_stb_i  ),
         .port0_wb_we_i   (data_p0_we_i   ),
@@ -172,16 +178,27 @@ memory_2rw_wb #(
 // CORE DATA inputs    
 always @(*)
 begin
-    if(port1_wb_adr_i < DATA_MEM_START)
+    if(port1_wb_adr_i < RAM_DATA_START)
     begin
-        inst_p1_cyc_i = port1_wb_cyc_i;
-        inst_p1_stb_i = port1_wb_stb_i;
-        inst_p1_we_i  = port1_wb_we_i;
-        inst_p1_adr_i = port1_wb_adr_i;
-        inst_p1_dat_i = port1_wb_dat_i;
-        inst_p1_sel_i = port1_wb_sel_i;
-        inst_p1_rst_i = port1_wb_rst_i;
-        inst_p1_clk_i = port1_wb_clk_i;
+        if ((bootloader_en && (ROM_END < port1_wb_adr_i)) || (~port1_wb_we_i)) begin
+            inst_p1_cyc_i = port1_wb_cyc_i;
+            inst_p1_stb_i = port1_wb_stb_i;
+            inst_p1_we_i  = port1_wb_we_i;
+            inst_p1_adr_i = port1_wb_adr_i;
+            inst_p1_dat_i = port1_wb_dat_i;
+            inst_p1_sel_i = port1_wb_sel_i;
+            inst_p1_rst_i = port1_wb_rst_i;
+            inst_p1_clk_i = port1_wb_clk_i;
+        end else begin
+            inst_p1_cyc_i = 0;
+            inst_p1_stb_i = 0;
+            inst_p1_we_i  = 0;
+            inst_p1_adr_i = 0;
+            inst_p1_dat_i = 0;
+            inst_p1_sel_i = 0;
+            inst_p1_rst_i = port1_wb_rst_i;
+            inst_p1_clk_i = port1_wb_clk_i;
+        end
         
         data_p0_cyc_i = 0;
         data_p0_stb_i = 0;
@@ -206,7 +223,7 @@ begin
         data_p0_cyc_i = port1_wb_cyc_i;
         data_p0_stb_i = port1_wb_stb_i;
         data_p0_we_i  = port1_wb_we_i;
-        data_p0_adr_i = port1_wb_adr_i - DATA_MEM_START;
+        data_p0_adr_i = port1_wb_adr_i - RAM_DATA_START;
         data_p0_dat_i = port1_wb_dat_i;
         data_p0_sel_i = port1_wb_sel_i;
         data_p0_rst_i = port1_wb_rst_i;
@@ -262,7 +279,7 @@ begin
     data_dma_cyc_i = dma_cyc_i[dma_stb_bin];
     data_dma_stb_i = dma_stb_i[dma_stb_bin];
     data_dma_we_i  = dma_we_i [dma_stb_bin];
-    data_dma_adr_i = dma_adr_i[dma_stb_bin] - DATA_MEM_START;
+    data_dma_adr_i = dma_adr_i[dma_stb_bin] - RAM_DATA_START;
     data_dma_dat_i = dma_dat_i[dma_stb_bin];
     data_dma_sel_i = dma_sel_i[dma_stb_bin];
     data_dma_rst_i = dma_rst_i[dma_stb_bin];

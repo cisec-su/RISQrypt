@@ -1,24 +1,24 @@
-`timescale 1ns/1ps
-
 module mtime_registers_wb
-                        #(
-                          parameter mtime_adr    = 32'h0000_2010,
-                          parameter mtimecmp_adr = mtime_adr + 8
-                        )(
-                          input         wb_cyc_i,
-                          input         wb_stb_i,
-                          input         wb_we_i,
-                          input [31:0]  wb_adr_i,
-                          input [31:0]  wb_dat_i,
-                          input [3:0]   wb_sel_i,
-                          output        wb_stall_o,
-                          output        wb_ack_o,
-                          output reg [31:0] wb_dat_o,
-                          output        wb_err_o,
-                          input         wb_rst_i,
-                          input         wb_clk_i,
-                          output mtip_o);
+   #(
+        parameter BASE_ADDR = 32'h0000_2010
+    )
+    (
+        input             wb_cyc_i  ,
+        input             wb_stb_i  ,
+        input             wb_we_i   ,
+        input     [31:0]  wb_adr_i  ,
+        input     [31:0]  wb_dat_i  ,
+        input     [ 3:0]  wb_sel_i  ,
+        output            wb_stall_o,
+        output            wb_ack_o  ,
+        output reg [31:0] wb_dat_o  ,
+        output            wb_err_o  ,
+        input             wb_rst_i  ,
+        input             wb_clk_i  ,
+        output            mtip_o
+    );
 
+localparam MTIMECMP_ADDR = BASE_ADDR + 8;
 
 
 reg [63:0] mtime, mtimecmp;
@@ -58,7 +58,7 @@ begin
         mtime <= 64'b0;
     else if(wb_cyc_i && stb && we)
     begin
-        if(adr == mtime_adr) //lower 32-bits
+        if(adr == BASE_ADDR) //lower 32-bits
         begin
             if(sel[3])
                 mtime[31:24] <= dat[31:24];
@@ -73,7 +73,7 @@ begin
                 mtime[7:0] <= dat[7:0];
         end
 
-        else if(adr == mtime_adr + 32'd4) //higher 32-bits
+        else if(adr == BASE_ADDR + 32'd4) //higher 32-bits
         begin
             if(sel[3])
                 mtime[63:56] <= dat[31:24];
@@ -102,7 +102,7 @@ begin
         mtimecmp <= 64'b0;
     else if(wb_cyc_i && stb && we)
     begin
-        if(adr == mtimecmp_adr) //lower 32-bits
+        if(adr == MTIMECMP_ADDR) //lower 32-bits
         begin
             if(sel[3])
                 mtimecmp[31:24] <= dat[31:24];
@@ -117,7 +117,7 @@ begin
                 mtimecmp[7:0] <= dat[7:0];
         end
 
-        else if(adr == mtimecmp_adr + 32'd4) //higher 32-bits
+        else if(adr == MTIMECMP_ADDR + 32'd4) //higher 32-bits
         begin
             if(sel[3])
                 mtimecmp[63:56] <= dat[31:24];
@@ -136,10 +136,10 @@ end
 
 always @(*)
 begin
-    if(adr == mtime_adr)
+    if(adr == BASE_ADDR)
         wb_dat_o = mtime[31:0];
 
-    else if(adr == mtime_adr + 32'd4)
+    else if(adr == BASE_ADDR + 32'd4)
         wb_dat_o = mtime[63:32];
 
     else if(adr == mtimecmp)

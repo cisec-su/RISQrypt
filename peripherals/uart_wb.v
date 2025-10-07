@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module uart_wb(input         wb_cyc_i,
                input         wb_stb_i,
                input         wb_we_i,
@@ -20,7 +18,7 @@ module uart_wb(input         wb_cyc_i,
 
 parameter SYS_CLK_FREQ = 100000000;
 parameter BAUD = 9600;
-parameter CLK_DIVIDER = SYS_CLK_FREQ / BAUD; 
+localparam CLK_DIVIDER = SYS_CLK_FREQ / BAUD; 
 
 wire [2:0] uart_status;
 wire [7:0] rx_byte;
