@@ -134,6 +134,11 @@ static const uint8_t sig[] = {0xaa, 0xb5, 0x7d, 0x52, 0x30, 0x65, 0xb5, 0x59, 0x
                               0x09, 0x22, 0x51, 0x93, 0xe3, 0xed, 0xf7, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x0d, 0x12, 0x1a, 0x20, 0x27};
 
 
+extern unsigned int ntt_lite_cc;
+extern unsigned int keccak_cc;
+extern unsigned int x2x_cc;
+
+
 void setUp(void)
 {
 }
@@ -143,17 +148,44 @@ void tearDown(void)
 }
 
 
+void reset_modules_cc() {
+    ntt_lite_cc = 0;
+    keccak_cc = 0;
+    x2x_cc = 0;
+}
+
+
+void print_modules_cc(unsigned int time, unsigned int shift) {
+    print_string("NTT-Lite cycles:\t");
+    print_u32_int(ntt_lite_cc >> shift);
+    print_string("\n");
+    print_string("Keccak cycles:\t");
+    print_u32_int(keccak_cc >> shift);
+    print_string("\n");
+    print_string("X2X cycles:\t");
+    print_u32_int(x2x_cc >> shift);
+    print_string("\n");
+    time = time - ntt_lite_cc - keccak_cc - x2x_cc;
+    print_string("SW cycles:\t");
+    print_u32_int(time >> shift);
+    print_string("\n");
+    reset_modules_cc();
+}
+
+
 void dilithium_simple() {
     size_t sig_len;
     int ret;
 
-    BENCH_INIT() 
+    BENCH_INIT()
+    reset_modules_cc(); 
 
     BENCH_START() 
 
     ret = crypto_sign_keypair(pk_, sk_);
 
     BENCH_END(SIGN_KEYPAIR)
+    print_modules_cc(time, 0);
 
     TEST_ASSERT_EQUAL_INT(0, ret);
 
@@ -172,12 +204,13 @@ void dilithium_simple() {
 
     TEST_ASSERT_EQUAL_MEMORY(sig, sig_, CRYPTO_BYTES);
 
-
+    reset_modules_cc();
     BENCH_START() 
 
     ret = crypto_sign_verify(sig, CRYPTO_BYTES, msg, sizeof(msg), pk);
 
     BENCH_END(SIGN_VERIFY)
+    print_modules_cc(time, 0);
 
     TEST_ASSERT_EQUAL_INT(0, ret);
 
@@ -200,6 +233,7 @@ void dilithium_mean_sign() {
     
     BENCH_INIT() 
 
+    reset_modules_cc(); 
     BENCH_START() 
 
     for (int i = 0; i < test_num; i++) {
@@ -211,6 +245,7 @@ void dilithium_mean_sign() {
     }
 
     BENCH_END_SHIFT(SIGN_SIGNATURE_MEAN, log_test_num)
+    print_modules_cc(time, log_test_num);
 
     TEST_ASSERT_EQUAL_INT(0, ret);
 
@@ -236,6 +271,35 @@ void dilithium_masked_sign() {
 }
 
 
+void dilithium_mean_masked_sign() {
+    size_t sig_len;
+    unsigned int log_test_num = 7;
+    unsigned int test_num = 1 << log_test_num;
+    int ret = 0;
+    
+    BENCH_INIT() 
+
+    reset_modules_cc(); 
+    BENCH_START() 
+
+    for (int i = 0; i < test_num; i++) {
+        msg[0] += 1;
+        ret += masked_crypto_sign_signature(sig_, &sig_len, msg, sizeof(msg), sk);
+        if (ret != 0) {
+            break;
+        }
+    }
+
+    BENCH_END_SHIFT(MASKED_SIGN_SIGNATURE_MEAN, log_test_num)
+    print_modules_cc(time, log_test_num);
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
+    msg[0] = msg[0] - test_num;
+}
+
+
+
 int main() {
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
@@ -244,5 +308,6 @@ int main() {
     RUN_TEST(dilithium_simple);
     RUN_TEST(dilithium_mean_sign);
     RUN_TEST(dilithium_masked_sign);
+    RUN_TEST(dilithium_mean_masked_sign);
     return(UnityEnd());
 }

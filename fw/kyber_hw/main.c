@@ -31,12 +31,41 @@ static uint8_t c_cca[KYBER_CIPHERTEXTBYTES] __attribute__((aligned(4)));
 static uint8_t K[KYBER_SSBYTES] __attribute__((aligned(4)));
 static uint8_t K_[KYBER_SSBYTES] __attribute__((aligned(4)));
 
+extern unsigned int ntt_lite_cc;
+extern unsigned int keccak_cc;
+extern unsigned int x2x_cc;
+
 void setUp(void)
 {
 }
 
 void tearDown(void)
 {
+}
+
+
+void reset_modules_cc() {
+    ntt_lite_cc = 0;
+    keccak_cc = 0;
+    x2x_cc = 0;
+}
+
+
+void print_modules_cc(unsigned int time) {
+    print_string("NTT-Lite cycles:\t");
+    print_u32_int(ntt_lite_cc);
+    print_string("\n");
+    print_string("Keccak cycles:\t");
+    print_u32_int(keccak_cc);
+    print_string("\n");
+    print_string("X2X cycles:\t");
+    print_u32_int(x2x_cc);
+    print_string("\n");
+    time = time - ntt_lite_cc - keccak_cc - x2x_cc;
+    print_string("SW cycles:\t");
+    print_u32_int(time);
+    print_string("\n");
+    reset_modules_cc();
 }
 
 
@@ -87,18 +116,21 @@ void test_indcpa_keypair() {
 void test_indcca() {
 
     BENCH_INIT() 
+    reset_modules_cc();
 
     BENCH_START()
 
     crypto_kem_keypair(pk_cca, sk_cca);
 
     BENCH_END(INDCCA_KEYPAIR)
+    print_modules_cc(time);
 
     BENCH_START()
 
     crypto_kem_enc(c_cca, K, pk_cca);
 
     BENCH_END(INDCCA_ENC)
+    print_modules_cc(time);
 
 
     BENCH_START()
@@ -106,6 +138,7 @@ void test_indcca() {
     crypto_kem_dec(K_, c_cca, sk_cca);
 
     BENCH_END(INDCCA_DEC)
+    print_modules_cc(time);
 
     TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
 
@@ -272,12 +305,14 @@ void test_masked_indcpa_dec() {
 
     BENCH_INIT() 
     unsigned int i;
+    reset_modules_cc();
 
     BENCH_START() 
 
     masked_indcpa_dec(mm, c, sk);
 
     BENCH_END(MASKED_INDCPA_DEC)
+    print_modules_cc(time);
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
         m_unmasked_[i] = mm[0][i] ^ mm[1][i];
@@ -294,6 +329,7 @@ void test_masked_indcpa_enc_cmp() {
     BENCH_INIT()
     unsigned int i;
     int fail;
+    reset_modules_cc();
 
 
     for (i = 0; i < KYBER_SYMBYTES; i++) {
@@ -306,6 +342,7 @@ void test_masked_indcpa_enc_cmp() {
     fail = masked_indcpa_enc_cmp(c, mm, pk, masked_coins);
 
     BENCH_END(MASKED_INDCPA_ENC_CMP)
+    print_modules_cc(time);
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, fail, "MASKED ENC (CORR) FAIL");
 
@@ -332,7 +369,6 @@ void test_masked_indcpa_enc_cmp() {
     TEST_ASSERT_EQUAL_INT_MESSAGE(1, fail, "MASKED ENC (INCORR C) FAIL");
 
 }
-
 
 
 int main() {
