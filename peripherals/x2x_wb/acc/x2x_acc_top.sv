@@ -122,7 +122,7 @@ wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES_2SHARE - 1:
 assign modulus_twoc = (32'hFFFFFFFF ^ modulus) + 1;
 
 X2X_32b_2SHARE_HALFCYCLE_STREAM #(
-    .HALFCYCLE          (1              ),
+    .HALFCYCLE          (0              ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
     .N_SHARES           (2              ),
     .RND_SHARES         (RND_SHARES_2SHARE),

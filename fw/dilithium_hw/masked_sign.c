@@ -30,6 +30,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
     polyvecl *z_unmasked;
     polyveck *w0_unmasked;
     poly cp;
+    int i;
     int flag;
     rho = seedbuf;
     tr = rho + SEEDBYTES;

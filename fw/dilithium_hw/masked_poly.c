@@ -59,6 +59,12 @@ void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint1
     uint8_t buf[MASKING_N][POLYZ_PACKEDBYTES];
     uint32_t rhs = GAMMA1;
     uint32_t *rhs_ptr;
+    for (i = 0; i < POLYZ_PACKEDBYTES; i++) {
+        buf[0][i] = 0xff;
+    }
+    for (i = 0; i < POLYZ_PACKEDBYTES; i++) {
+        buf[1][i] = 0xff;
+    }
 
     dilithium_masked_shake256_absorb_nonce((masked_flat_ptr) buf, POLYZ_PACKEDBYTES, (masked_flat_ptr) rhoprime, CRHBYTES, nonce);
 
@@ -67,7 +73,7 @@ void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint1
     }
 
     masked_gadgets_B2A_q(y, y);
-    
+
     for(i = 0; i < MASKING_N; i++) {
         if (i == 2) {
             rhs_ptr = NTT_LITE_INPUT_DIS;
@@ -137,9 +143,8 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
 
     ntt_lite_set_q(0);
     ntt_lite_set_bound(B2);
-
     ntt_lite_sub_const((uint32_t*) &temp.share[0].coeffs, (uint32_t*) &temp.share[0].coeffs, NTT_LITE_INPUT_DIS);
-    
+
     masked_gadgets_A2B_2k(&temp, &temp);
 
     ntt_lite_set_q(1);

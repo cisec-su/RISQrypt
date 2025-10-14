@@ -337,9 +337,9 @@ void test_masked_indcpa_enc_cmp() {
 
 int main() {
     uint32_t seed[2] = {1, 1};
-	UnityBegin("main.c");
-	x2x_seed(seed);
-	print_string("\n --- Kyber Unity Test Start --- \n");
+    UnityBegin("main.c");
+    x2x_seed(seed);
+    print_string("\n --- Kyber Unity Test Start --- \n");
     RUN_TEST(test_indcpa_keypair);
     RUN_TEST(test_indcpa_enc);
     RUN_TEST(test_indcpa_dec);
