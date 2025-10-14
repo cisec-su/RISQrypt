@@ -7,7 +7,7 @@ module memory_2rw_wb
         parameter RAM_DEPTH      = 1 << ADDR_WIDTH,
         parameter ROM_START      = 16'h0000 ,
         parameter ROM_END        = 16'hFFFF ,
-        parameter RAM_INST_START = 16'h0000 ,
+        parameter RAM_START      = 16'h0000 ,
         parameter RESET_START    = ROM_START,
         parameter RESET_END      = 16'h001F ,
         parameter BOOT_START     = RESET_END + 1,
@@ -70,7 +70,7 @@ generate
         initial     $readmemh("reset_handler.mem", mem, (RESET_START    >> 2),  (RESET_END >> 2));
         initial     $readmemh("bootloader.mem"   , mem, (BOOT_START     >> 2),  (BOOT_END  >> 2));
         if (SIMULATION) begin
-            initial $readmemh("x2x_example.mem"  , mem, (RAM_INST_START >> 2),   RAM_DEPTH   - 1);
+            initial $readmemh("x2x_example.mem"  , mem, (RAM_START      >> 2),   RAM_DEPTH   - 1);
         end
     end
 endgenerate

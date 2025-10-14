@@ -112,7 +112,8 @@ memory_2rw_wb #(
         .FPGA_READMEM(FPGA_READMEM  ),
         .RAM_DEPTH   (RAM_INST_DEPTH),
         .ROM_START   (ROM_START     ),
-        .ROM_END     (ROM_END       )
+        .ROM_END     (ROM_END       ),
+        .RAM_START   (RAM_INST_START)
 ) ram_inst (
         .port0_wb_cyc_i  (port0_wb_cyc_i  ),
         .port0_wb_stb_i  (port0_wb_stb_i  ),
