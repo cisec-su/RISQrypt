@@ -1,17 +1,25 @@
 module fpga_top
     (
-        input  M100_clk_i,
-        input  reset_i   ,
-        input  rx_i      ,
-        output tx_o      ,
-        output led
+        input                   M100_clk_i,
+        input                   reset_i   ,
+        input                   rx_i      ,
+        output                  tx_o      ,
+        output                  led       ,
+        output [GPIO_WIDTH-1:0] gpio
     );
 
 
-parameter SYS_CLK_FREQ = 50000000;
-parameter NUM_SLAVES   = 8;
-parameter NUM_DMA_ACCS = 3;
-parameter UART_BAUD    = 9600;
+///////////////////////////////////////////////////////
+//////////////// 0: Crypto disabled......./////////////
+//////////////// 1: Crypto enabled w/out masking...////
+//////////////// 2: Crypto enabled  with masking...////
+parameter MODE = 0;////////////////////////////////////
+///////////////////////////////////////////////////////
+
+
+parameter SYS_CLK_FREQ   = 10000000;
+parameter UART_BAUD      = 9600    ;
+parameter GPIO_WIDTH     = 8       ;
 
 parameter ROM_START      = 32'h0000_0000;
 parameter ROM_END        = 32'h0000_081F;
@@ -34,6 +42,9 @@ parameter RESET_END      = 32'h1000_8014;
 parameter TIMER_START    = 32'h1000_8018;
 parameter TIMER_END      = 32'h1000_801F;
 
+parameter GPIO_START     = 32'h1000_8020;
+parameter GPIO_END       = 32'h1000_802F;
+
 parameter NTT_START      = 32'h1004_0000;
 parameter NTT_END        = 32'h1004_001F;
 
@@ -42,6 +53,11 @@ parameter KECCAK_END     = 32'h1004_005F;
 
 parameter X2X_START      = 32'h1004_0060;
 parameter X2X_END        = 32'h1004_009F;
+
+
+localparam NUM_DMA_ACCS  = (MODE == 2)? 3 : (MODE == 1)? 2 : 0;
+localparam NUM_DMA_ACCS_ = (NUM_DMA_ACCS == 0) ? 1 : NUM_DMA_ACCS; // to avoid zero-width arrays
+localparam NUM_SLAVES    = 6 + NUM_DMA_ACCS;
 
 
 wire clk_i;
@@ -99,17 +115,17 @@ reg         stb_q      [NUM_SLAVES-1:0];
 wire [31:0] slave_adr_begin [NUM_SLAVES-1:0];
 wire [31:0] slave_adr_end   [NUM_SLAVES-1:0];
 
-wire        dma_cyc_i   [NUM_DMA_ACCS-1:0];
-wire        dma_stb_i   [NUM_DMA_ACCS-1:0];
-wire        dma_we_i    [NUM_DMA_ACCS-1:0];
-wire [31:0] dma_adr_i   [NUM_DMA_ACCS-1:0];
-wire [31:0] dma_dat_i   [NUM_DMA_ACCS-1:0];
-wire [ 3:0] dma_sel_i   [NUM_DMA_ACCS-1:0];
-wire        dma_stall_o [NUM_DMA_ACCS-1:0];
-wire        dma_ack_o   [NUM_DMA_ACCS-1:0];
-wire [31:0] dma_dat_o   [NUM_DMA_ACCS-1:0];
-wire        dma_err_o   [NUM_DMA_ACCS-1:0];
-wire        dma_rst_i   [NUM_DMA_ACCS-1:0];
+wire        dma_cyc_i   [NUM_DMA_ACCS_-1:0];
+wire        dma_stb_i   [NUM_DMA_ACCS_-1:0];
+wire        dma_we_i    [NUM_DMA_ACCS_-1:0];
+wire [31:0] dma_adr_i   [NUM_DMA_ACCS_-1:0];
+wire [31:0] dma_dat_i   [NUM_DMA_ACCS_-1:0];
+wire [ 3:0] dma_sel_i   [NUM_DMA_ACCS_-1:0];
+wire        dma_stall_o [NUM_DMA_ACCS_-1:0];
+wire        dma_ack_o   [NUM_DMA_ACCS_-1:0];
+wire [31:0] dma_dat_o   [NUM_DMA_ACCS_-1:0];
+wire        dma_err_o   [NUM_DMA_ACCS_-1:0];
+wire        dma_rst_i   [NUM_DMA_ACCS_-1:0];
 
 
 assign slave_adr_begin[0] = ROM_START   ;
@@ -127,14 +143,21 @@ assign slave_adr_end  [3] = RESET_END   ;
 assign slave_adr_begin[4] = TIMER_START ;
 assign slave_adr_end  [4] = TIMER_END   ;
 
-assign slave_adr_begin[5] = NTT_START   ;
-assign slave_adr_end  [5] = NTT_END     ;
+assign slave_adr_begin[5] = GPIO_START  ;
+assign slave_adr_end  [5] = GPIO_END    ;
 
-assign slave_adr_begin[6] = KECCAK_START;
-assign slave_adr_end  [6] = KECCAK_END  ;
+if (MODE == 1 || MODE == 2) begin
+assign slave_adr_begin[6] = NTT_START   ;
+assign slave_adr_end  [6] = NTT_END     ;
 
-assign slave_adr_begin[7] = X2X_START   ;
-assign slave_adr_end  [7] = X2X_END     ;
+assign slave_adr_begin[7] = KECCAK_START;
+assign slave_adr_end  [7] = KECCAK_END  ;
+end
+
+if (MODE == 2) begin
+assign slave_adr_begin[8] = X2X_START   ;
+assign slave_adr_end  [8] = X2X_END     ;
+end
 
 
 assign inst_wb_rst_i   = ~reset;
@@ -196,9 +219,13 @@ assign data_wb_clk_i   = clk_i;
 assign data_wb_rst_i   = ~reset;
 
 
+if (MODE == 0) begin
+    assign dma_stb_i[0] = 1'b0;
+end
+
+
 assign reset = loader_reset & reset_i;
 assign led   = bootloader_en;
-
 
 clk_wiz_0 clkwiz0
 (
@@ -254,7 +281,8 @@ memory_2rw_wb_dma #(
     .RAM_INST_START(RAM_INST_START),
     .RAM_INST_END  (RAM_INST_END  ),
     .RAM_DATA_START(RAM_DATA_START),
-    .RAM_DATA_END  (RAM_DATA_END  )
+    .RAM_DATA_END  (RAM_DATA_END  ),
+    .NUM_DMA_ACCS  (NUM_DMA_ACCS_ )
 ) memory (
     .bootloader_en   (bootloader_en),
 
@@ -383,9 +411,10 @@ timer_wb #(
 );
 
 
-ntt_lite_acc_top #(
-    .BASE_ADDR(NTT_START)
-) ntt_lite_acc_top_inst (
+gpio_wb #(
+    .BASE_ADDR(GPIO_START),
+    .WIDTH    (GPIO_WIDTH)
+) gpio_inst (
     .wb_cyc_i  (wb_cyc_i  [5]),
     .wb_stb_i  (wb_stb_i  [5]),
     .wb_we_i   (wb_we_i   [5]),
@@ -398,6 +427,28 @@ ntt_lite_acc_top #(
     .wb_err_o  (wb_err_o  [5]),
     .wb_rst_i  (wb_rst_i  [5]),
     .wb_clk_i  (wb_clk_i  [5]),
+
+    .gpio      (gpio)
+);
+
+
+if (MODE == 1 || MODE == 2) begin
+
+ntt_lite_acc_top #(
+    .BASE_ADDR(NTT_START)
+) ntt_lite_acc_top_inst (
+    .wb_cyc_i  (wb_cyc_i  [6]),
+    .wb_stb_i  (wb_stb_i  [6]),
+    .wb_we_i   (wb_we_i   [6]),
+    .wb_adr_i  (wb_adr_i  [6]),
+    .wb_dat_i  (wb_dat_i  [6]),
+    .wb_sel_i  (wb_sel_i  [6]),
+    .wb_stall_o(wb_stall_o[6]),
+    .wb_ack_o  (wb_ack_o  [6]),
+    .wb_dat_o  (wb_dat_o  [6]),
+    .wb_err_o  (wb_err_o  [6]),
+    .wb_rst_i  (wb_rst_i  [6]),
+    .wb_clk_i  (wb_clk_i  [6]),
     
     .dma_cyc_i  (dma_cyc_i  [0]),
     .dma_stb_i  (dma_stb_i  [0]),
@@ -414,20 +465,21 @@ ntt_lite_acc_top #(
 
 
 keccak_acc_top #(
-    .BASE_ADDR(KECCAK_START)
+    .BASE_ADDR(KECCAK_START),
+    .SHARES   (MODE        )
 ) keccak_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [6]),
-    .wb_stb_i  (wb_stb_i  [6]),
-    .wb_we_i   (wb_we_i   [6]),
-    .wb_adr_i  (wb_adr_i  [6]),
-    .wb_dat_i  (wb_dat_i  [6]),
-    .wb_sel_i  (wb_sel_i  [6]),
-    .wb_stall_o(wb_stall_o[6]),
-    .wb_ack_o  (wb_ack_o  [6]),
-    .wb_dat_o  (wb_dat_o  [6]),
-    .wb_err_o  (wb_err_o  [6]),
-    .wb_rst_i  (wb_rst_i  [6]),
-    .wb_clk_i  (wb_clk_i  [6]),
+    .wb_cyc_i  (wb_cyc_i  [7]),
+    .wb_stb_i  (wb_stb_i  [7]),
+    .wb_we_i   (wb_we_i   [7]),
+    .wb_adr_i  (wb_adr_i  [7]),
+    .wb_dat_i  (wb_dat_i  [7]),
+    .wb_sel_i  (wb_sel_i  [7]),
+    .wb_stall_o(wb_stall_o[7]),
+    .wb_ack_o  (wb_ack_o  [7]),
+    .wb_dat_o  (wb_dat_o  [7]),
+    .wb_err_o  (wb_err_o  [7]),
+    .wb_rst_i  (wb_rst_i  [7]),
+    .wb_clk_i  (wb_clk_i  [7]),
     
     .dma_cyc_i  (dma_cyc_i  [1]),
     .dma_stb_i  (dma_stb_i  [1]),
@@ -442,22 +494,26 @@ keccak_acc_top #(
     .dma_rst_i  (dma_rst_i  [1])
 );
 
+end
+
+
+if (MODE == 2) begin
 
 x2x_acc_top #(
     .BASE_ADDR(X2X_START)
 ) x2x_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [7]),
-    .wb_stb_i  (wb_stb_i  [7]),
-    .wb_we_i   (wb_we_i   [7]),
-    .wb_adr_i  (wb_adr_i  [7]),
-    .wb_dat_i  (wb_dat_i  [7]),
-    .wb_sel_i  (wb_sel_i  [7]),
-    .wb_stall_o(wb_stall_o[7]),
-    .wb_ack_o  (wb_ack_o  [7]),
-    .wb_dat_o  (wb_dat_o  [7]),
-    .wb_err_o  (wb_err_o  [7]),
-    .wb_rst_i  (wb_rst_i  [7]),
-    .wb_clk_i  (wb_clk_i  [7]),
+    .wb_cyc_i  (wb_cyc_i  [8]),
+    .wb_stb_i  (wb_stb_i  [8]),
+    .wb_we_i   (wb_we_i   [8]),
+    .wb_adr_i  (wb_adr_i  [8]),
+    .wb_dat_i  (wb_dat_i  [8]),
+    .wb_sel_i  (wb_sel_i  [8]),
+    .wb_stall_o(wb_stall_o[8]),
+    .wb_ack_o  (wb_ack_o  [8]),
+    .wb_dat_o  (wb_dat_o  [8]),
+    .wb_err_o  (wb_err_o  [8]),
+    .wb_rst_i  (wb_rst_i  [8]),
+    .wb_clk_i  (wb_clk_i  [8]),
     
     .dma_cyc_i  (dma_cyc_i  [2]),
     .dma_stb_i  (dma_stb_i  [2]),
@@ -471,5 +527,8 @@ x2x_acc_top #(
     .dma_err_o  (dma_err_o  [2]),
     .dma_rst_i  (dma_rst_i  [2])
 );
+
+end
+
 
 endmodule

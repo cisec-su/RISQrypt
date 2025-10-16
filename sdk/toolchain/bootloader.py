@@ -41,7 +41,7 @@ if __name__ == "__main__":
             "-p", "--port",
             type=str,
             required=False,
-            default='/dev/ttyUSB1',
+            default='/dev/ttyUSB0',
             help="Serial Port"
         )
     parser.add_argument(
@@ -88,6 +88,13 @@ if __name__ == "__main__":
             help="Terminator string"
         )
 
+    parser.add_argument(
+            "-r", "--read",
+            action="store_true",
+            help="Only read without programming"
+        )
+
+
     args = parser.parse_args()
 
     ser = serial.Serial(args.port, baudrate=args.baudrate, timeout=args.timeout)
@@ -100,11 +107,12 @@ if __name__ == "__main__":
 
 
     try:
-        time.sleep(1)
-        send_data(ser, "-p")
-        time.sleep(1)
-        read_data(ser, args.done)
-        send_file_via_uart(ser, args.file, chunk_size=args.chunk_size, sleep_time=args.sleep_time)
+        if not args.read:
+            time.sleep(1)
+            send_data(ser, "-p")
+            time.sleep(1)
+            read_data(ser, args.done)
+            send_file_via_uart(ser, args.file, chunk_size=args.chunk_size, sleep_time=args.sleep_time)
 
         while(True):
             read_data(ser, args.done)

@@ -13,6 +13,7 @@ SRC += $(TOOLCHAIN_DIR)/start.s
 SRC += $(LIB_DIR)/util.c
 SRC += $(LIB_DIR)/uart.c
 SRC += $(LIB_DIR)/timer.c
+SRC += $(LIB_DIR)/gpio.c
 SRC += $(LIB_DIR)/keccak.c
 SRC += $(LIB_DIR)/ntt_lite.c
 SRC += $(LIB_DIR)/x2x.c
