@@ -41,6 +41,8 @@ localparam CTRL_TX_ST_BIT   = 1;
 
 localparam CTRL_TRIGGER_BIT = 0;
 
+localparam FIFO_ADDR_WIDTH = $clog2(FIFO_BSIZE);
+
 // ctrl signals
 reg rx_st;
 reg tx_st;
@@ -225,38 +227,40 @@ cw305_usb_reg_fe #(
 
 
 async_fifo #(
-    .WIDTH(8),
-    .DEPTH(FIFO_BSIZE)
+    .DSIZE      (8),
+    .ASIZE      (FIFO_ADDR_WIDTH),
+    .FALLTHROUGH("FALSE"        )
 ) fifo_i (
-    .wr_clk (usb_clk_buf ),
-    .wr_rst (wb_rst_i    ),
-    .din    (fifo_i_din  ),
-    .wr_en  (fifo_i_wr_en),
-    .full   (fifo_i_full ),
+    .wclk  (usb_clk_buf ),
+    .wrst_n(~wb_rst_i   ),
+    .wdata (fifo_i_din  ),
+    .winc  (fifo_i_wr_en),
+    .wfull (fifo_i_full ),
 
-    .rd_clk (wb_clk_i    ),
-    .rd_rst (wb_rst_i    ),
-    .dout   (fifo_i_dout ),
-    .rd_en  (fifo_i_rd_en),
-    .empty  (fifo_i_empty)
+    .rclk  (wb_clk_i    ),
+    .rrst_n(~wb_rst_i   ),
+    .rdata (fifo_i_dout ),
+    .rinc  (fifo_i_rd_en),
+    .rempty(fifo_i_empty)
 );
 
 
 async_fifo #(
-    .WIDTH(8),
-    .DEPTH(FIFO_BSIZE)
+    .DSIZE      (8),
+    .ASIZE      (FIFO_ADDR_WIDTH),
+    .FALLTHROUGH("FALSE"        )
 ) fifo_o (
-    .wr_clk (wb_clk_i    ),
-    .wr_rst (wb_rst_i    ),
-    .din    (fifo_o_din  ),
-    .wr_en  (fifo_o_wr_en),
-    .full   (fifo_o_full ),
+    .wclk   (wb_clk_i    ),
+    .wrst_n (~wb_rst_i   ),
+    .wdata  (fifo_o_din  ),
+    .winc   (fifo_o_wr_en),
+    .wfull  (fifo_o_full ),
 
-    .rd_clk (usb_clk_buf ),
-    .rd_rst (wb_rst_i    ),
-    .dout   (fifo_o_dout ),
-    .rd_en  (fifo_o_rd_en),
-    .empty  (fifo_o_empty)
+    .rclk   (usb_clk_buf ),
+    .rrst_n (~wb_rst_i   ),
+    .rdata  (fifo_o_dout ),
+    .rinc   (fifo_o_rd_en),
+    .rempty (fifo_o_empty)
 );
 
 
