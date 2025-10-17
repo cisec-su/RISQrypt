@@ -1,11 +1,23 @@
 module fpga_top
     (
-        input                   M100_clk_i,
-        input                   reset_i   ,
-        input                   rx_i      ,
-        output                  tx_o      ,
-        output                  led       ,
-        output [GPIO_WIDTH-1:0] gpio
+        input                       clk_i  ,
+        input                       reset_i,
+        input                       rx_i   ,
+        output                      tx_o   ,
+        output                      led    ,
+        output     [GPIO_WIDTH-1:0] gpio
+
+`ifdef CW305
+       ,input                       usb_clk    ,
+        inout                 [7:0] usb_data   ,
+        input  [USB_ADDR_WIDTH-1:0] usb_addr   ,
+        input                       usb_rdn    ,
+        input                       usb_wrn    ,
+        input                       usb_cen    ,
+        input                       usb_trigger,
+        output                      tio_clkout ,
+        output                      tio_trigger
+`endif
     );
 
 
@@ -16,8 +28,13 @@ module fpga_top
 parameter MODE = 0;////////////////////////////////////
 ///////////////////////////////////////////////////////
 
-
-parameter SYS_CLK_FREQ   = 10000000;
+`ifdef CW305
+parameter SYS_CLK_FREQ     = 20000000;
+parameter USB_ADDR_WIDTH   = 21      ;
+parameter CW305_FIFO_BSIZE = 128     ;
+`else
+parameter SYS_CLK_FREQ   = 50000000;
+`endif
 parameter UART_BAUD      = 9600    ;
 parameter GPIO_WIDTH     = 8       ;
 
@@ -54,13 +71,21 @@ parameter KECCAK_END     = 32'h1004_005F;
 parameter X2X_START      = 32'h1004_0060;
 parameter X2X_END        = 32'h1004_009F;
 
+parameter CW305_START    = 32'h1004_1000;
+parameter CW305_END      = 32'h1004_1003;
+
 
 localparam NUM_DMA_ACCS  = (MODE == 2)? 3 : (MODE == 1)? 2 : 0;
 localparam NUM_DMA_ACCS_ = (NUM_DMA_ACCS == 0) ? 1 : NUM_DMA_ACCS; // to avoid zero-width arrays
-localparam NUM_SLAVES    = 6 + NUM_DMA_ACCS;
+`ifdef CW305
+localparam CW305_SLAVES  = 1;
+`else
+localparam CW305_SLAVES  = 0;
+`endif
+localparam NUM_SLAVES    = 6 + NUM_DMA_ACCS + CW305_SLAVES;
 
 
-wire clk_i;
+wire clk;
 wire loader_reset;
 wire reset;
 wire irq_ack_o;
@@ -68,6 +93,10 @@ wire bootloader_en;
 wire mtip;
 wire rx_irq_o;
 wire [7:0] rx_byte;
+
+`ifdef CW305
+wire clk_i_bufg, clk_i_buf;
+`endif
 
 
 //Wishbone master interface signals for core
@@ -146,22 +175,25 @@ assign slave_adr_end  [4] = TIMER_END   ;
 assign slave_adr_begin[5] = GPIO_START  ;
 assign slave_adr_end  [5] = GPIO_END    ;
 
-if (MODE == 1 || MODE == 2) begin
-assign slave_adr_begin[6] = NTT_START   ;
-assign slave_adr_end  [6] = NTT_END     ;
+assign slave_adr_begin[6] = CW305_START ;
+assign slave_adr_end  [6] = CW305_END   ;
 
-assign slave_adr_begin[7] = KECCAK_START;
-assign slave_adr_end  [7] = KECCAK_END  ;
+if (MODE == 1 || MODE == 2) begin
+assign slave_adr_begin[7] = NTT_START   ;
+assign slave_adr_end  [7] = NTT_END     ;
+
+assign slave_adr_begin[8] = KECCAK_START;
+assign slave_adr_end  [8] = KECCAK_END  ;
 end
 
 if (MODE == 2) begin
-assign slave_adr_begin[8] = X2X_START   ;
-assign slave_adr_end  [8] = X2X_END     ;
+assign slave_adr_begin[9] = X2X_START   ;
+assign slave_adr_end  [9] = X2X_END     ;
 end
 
 
 assign inst_wb_rst_i   = ~reset;
-assign inst_wb_clk_i   = clk_i ;
+assign inst_wb_clk_i   = clk   ;
 
 
 for (genvar i = 0; i < NUM_SLAVES; i = i + 1)
@@ -176,7 +208,7 @@ begin
         assign wb_rst_i[i] = ~reset_i;
     else
         assign wb_rst_i[i] = ~reset;
-    assign wb_clk_i[i] = clk_i;
+    assign wb_clk_i[i] = clk;
 end
 
 
@@ -215,7 +247,7 @@ begin
     end
 end
 
-assign data_wb_clk_i   = clk_i;
+assign data_wb_clk_i   = clk;
 assign data_wb_rst_i   = ~reset;
 
 
@@ -227,19 +259,32 @@ end
 assign reset = loader_reset & reset_i;
 assign led   = bootloader_en;
 
+
+
+`ifdef
 clk_wiz_0 clkwiz0
 (
-   .clk_out1(clk_i     ),
+   .clk_out1(clk       ),
    .reset   (1'b0      ),
    .clk_in1 (M100_clk_i)
 );
+`else
+IBUFG clkibuf (
+    .I(clk_i     ),
+    .O(clk_i_bufg)
+);
+BUFG clkbuf(
+    .I(clk_i_bufg),
+    .O(clk       )
+);
+`endif
 
 
 core_wb #(
     .reset_vector(ROM_START)
 ) core0 (
     .reset_i(reset),
-    .clk_i  (clk_i),
+    .clk_i  (clk  ),
     
     .data_wb_cyc_o  (data_wb_cyc_o  ),
     .data_wb_stb_o  (data_wb_stb_o  ),
@@ -437,18 +482,18 @@ if (MODE == 1 || MODE == 2) begin
 ntt_lite_acc_top #(
     .BASE_ADDR(NTT_START)
 ) ntt_lite_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [6]),
-    .wb_stb_i  (wb_stb_i  [6]),
-    .wb_we_i   (wb_we_i   [6]),
-    .wb_adr_i  (wb_adr_i  [6]),
-    .wb_dat_i  (wb_dat_i  [6]),
-    .wb_sel_i  (wb_sel_i  [6]),
-    .wb_stall_o(wb_stall_o[6]),
-    .wb_ack_o  (wb_ack_o  [6]),
-    .wb_dat_o  (wb_dat_o  [6]),
-    .wb_err_o  (wb_err_o  [6]),
-    .wb_rst_i  (wb_rst_i  [6]),
-    .wb_clk_i  (wb_clk_i  [6]),
+    .wb_cyc_i  (wb_cyc_i  [7]),
+    .wb_stb_i  (wb_stb_i  [7]),
+    .wb_we_i   (wb_we_i   [7]),
+    .wb_adr_i  (wb_adr_i  [7]),
+    .wb_dat_i  (wb_dat_i  [7]),
+    .wb_sel_i  (wb_sel_i  [7]),
+    .wb_stall_o(wb_stall_o[7]),
+    .wb_ack_o  (wb_ack_o  [7]),
+    .wb_dat_o  (wb_dat_o  [7]),
+    .wb_err_o  (wb_err_o  [7]),
+    .wb_rst_i  (wb_rst_i  [7]),
+    .wb_clk_i  (wb_clk_i  [7]),
     
     .dma_cyc_i  (dma_cyc_i  [0]),
     .dma_stb_i  (dma_stb_i  [0]),
@@ -468,18 +513,18 @@ keccak_acc_top #(
     .BASE_ADDR(KECCAK_START),
     .SHARES   (MODE        )
 ) keccak_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [7]),
-    .wb_stb_i  (wb_stb_i  [7]),
-    .wb_we_i   (wb_we_i   [7]),
-    .wb_adr_i  (wb_adr_i  [7]),
-    .wb_dat_i  (wb_dat_i  [7]),
-    .wb_sel_i  (wb_sel_i  [7]),
-    .wb_stall_o(wb_stall_o[7]),
-    .wb_ack_o  (wb_ack_o  [7]),
-    .wb_dat_o  (wb_dat_o  [7]),
-    .wb_err_o  (wb_err_o  [7]),
-    .wb_rst_i  (wb_rst_i  [7]),
-    .wb_clk_i  (wb_clk_i  [7]),
+    .wb_cyc_i  (wb_cyc_i  [8]),
+    .wb_stb_i  (wb_stb_i  [8]),
+    .wb_we_i   (wb_we_i   [8]),
+    .wb_adr_i  (wb_adr_i  [8]),
+    .wb_dat_i  (wb_dat_i  [8]),
+    .wb_sel_i  (wb_sel_i  [8]),
+    .wb_stall_o(wb_stall_o[8]),
+    .wb_ack_o  (wb_ack_o  [8]),
+    .wb_dat_o  (wb_dat_o  [8]),
+    .wb_err_o  (wb_err_o  [8]),
+    .wb_rst_i  (wb_rst_i  [8]),
+    .wb_clk_i  (wb_clk_i  [8]),
     
     .dma_cyc_i  (dma_cyc_i  [1]),
     .dma_stb_i  (dma_stb_i  [1]),
@@ -502,18 +547,18 @@ if (MODE == 2) begin
 x2x_acc_top #(
     .BASE_ADDR(X2X_START)
 ) x2x_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [8]),
-    .wb_stb_i  (wb_stb_i  [8]),
-    .wb_we_i   (wb_we_i   [8]),
-    .wb_adr_i  (wb_adr_i  [8]),
-    .wb_dat_i  (wb_dat_i  [8]),
-    .wb_sel_i  (wb_sel_i  [8]),
-    .wb_stall_o(wb_stall_o[8]),
-    .wb_ack_o  (wb_ack_o  [8]),
-    .wb_dat_o  (wb_dat_o  [8]),
-    .wb_err_o  (wb_err_o  [8]),
-    .wb_rst_i  (wb_rst_i  [8]),
-    .wb_clk_i  (wb_clk_i  [8]),
+    .wb_cyc_i  (wb_cyc_i  [9]),
+    .wb_stb_i  (wb_stb_i  [9]),
+    .wb_we_i   (wb_we_i   [9]),
+    .wb_adr_i  (wb_adr_i  [9]),
+    .wb_dat_i  (wb_dat_i  [9]),
+    .wb_sel_i  (wb_sel_i  [9]),
+    .wb_stall_o(wb_stall_o[9]),
+    .wb_ack_o  (wb_ack_o  [9]),
+    .wb_dat_o  (wb_dat_o  [9]),
+    .wb_err_o  (wb_err_o  [9]),
+    .wb_rst_i  (wb_rst_i  [9]),
+    .wb_clk_i  (wb_clk_i  [9]),
     
     .dma_cyc_i  (dma_cyc_i  [2]),
     .dma_stb_i  (dma_stb_i  [2]),
@@ -530,5 +575,37 @@ x2x_acc_top #(
 
 end
 
+`ifdef CW305
+
+cw305_wb #(
+    .BASE_ADDR     (CW305_START     ),
+    .USB_ADDR_WIDTH(USB_ADDR_WIDTH  ),
+    .FIFO_BSIZE    (CW305_FIFO_BSIZE)
+) cw305_inst (
+    .wb_cyc_i  (wb_cyc_i  [NUM_SLAVES-1]),
+    .wb_stb_i  (wb_stb_i  [NUM_SLAVES-1]),
+    .wb_we_i   (wb_we_i   [NUM_SLAVES-1]),
+    .wb_adr_i  (wb_adr_i  [NUM_SLAVES-1]),
+    .wb_dat_i  (wb_dat_i  [NUM_SLAVES-1]),
+    .wb_sel_i  (wb_sel_i  [NUM_SLAVES-1]),
+    .wb_stall_o(wb_stall_o[NUM_SLAVES-1]),
+    .wb_ack_o  (wb_ack_o  [NUM_SLAVES-1]),
+    .wb_dat_o  (wb_dat_o  [NUM_SLAVES-1]),
+    .wb_err_o  (wb_err_o  [NUM_SLAVES-1]),
+    .wb_rst_i  (wb_rst_i  [NUM_SLAVES-1]),
+    .wb_clk_i  (wb_clk_i  [NUM_SLAVES-1]),
+
+    .usb_clk    (usb_clk      ),
+    .usb_data   (usb_data     ),
+    .usb_addr   (usb_addr     ),
+    .usb_rdn    (usb_rdn      ),
+    .usb_wrn    (usb_wrn      ),
+    .usb_cen    (usb_cen      ),
+    .usb_trigger(usb_trigger  ),
+    .tio_clkout (tio_clkout   ),
+    .tio_trigger(tio_trigger  )
+);
+
+`endif
 
 endmodule

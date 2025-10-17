@@ -12,7 +12,7 @@ typedef const volatile uint32_t O;
 
 
 typedef struct {
-    IO  input;
+    O   input;
     IO  output;
     IO  direction;
 } gpio_regs_t;

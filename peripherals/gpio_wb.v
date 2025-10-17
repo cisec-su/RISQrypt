@@ -1,41 +1,42 @@
 module gpio_wb #
     (
         parameter BASE_ADDR = 32'h40000000,
-        parameter WIDTH = 8
+        parameter WIDTH     = 8
     )
     (
         // inout wire [WIDTH-1:0]  gpio,
-		output     [WIDTH-1:0]  gpio,
-        input                   wb_clk_i,         // clock
-        input                   wb_rst_i,         // reset 
-        input                   wb_cyc_i,         // cycle
-        input                   wb_stb_i,         // strobe
-        input       [31:0]      wb_adr_i,         // address adr_i[1]
-        input                   wb_we_i,          // write enable
-        input       [ 3:0]      wb_sel_i,
-        input       [31:0]      wb_dat_i,         // data output
-        output reg  [31:0]      wb_dat_o,         // data input
-        output reg              wb_ack_o,         // normal bus termination
-        output                  wb_stall_o,       // stall
-        output                  wb_err_o          // error
+        input                   wb_clk_i  ,         
+        input                   wb_rst_i  ,          
+        input                   wb_cyc_i  ,         
+        input                   wb_stb_i  ,         
+        input           [31:0]  wb_adr_i  ,         
+        input                   wb_we_i   ,          
+        input           [ 3:0]  wb_sel_i  ,
+        input           [31:0]  wb_dat_i  ,         
+        output reg      [31:0]  wb_dat_o  ,         
+        output reg              wb_ack_o  ,         
+        output                  wb_stall_o, 
+        output                  wb_err_o  ,
+        
+        output     [WIDTH-1:0]  gpio
     );
 
-localparam INPUT_ADDR      = 8'h00; // Offset for input register
-localparam OUTPUT_ADDR     = 8'h04; // Offset for output_addr register
-localparam DIRECTION_ADDR  = 8'h08; // Offset for direction_addr register
+localparam INPUT_ADDR      = 8'h00;
+localparam OUTPUT_ADDR     = 8'h04;
+localparam DIRECTION_ADDR  = 8'h08;
 
 
-wire [WIDTH-1:0 ] input_reg;
-reg  [WIDTH-1:0 ] output_reg;
-reg  [WIDTH-1:0 ] direction_reg;
+wire [WIDTH-1:0 ] input_mx;
+reg  [WIDTH-1:0 ] output_q;
+reg  [WIDTH-1:0 ] direction_q;
 wire valid;
 
 
 for (genvar i = 0; i < WIDTH; i = i + 1) begin
-    // assign gpio[i]      = direction_reg[i] ? output_reg[i] : 1'bz;
-    // assign input_reg[i] = direction_reg[i] ? 1'b0 : gpio[i];
-    assign gpio[i]      = output_reg[i];
-    assign input_reg[i] = 1'b0;
+    // assign gpio[i]      = direction_q[i] ? output_q[i] : 1'bz;
+    // assign input_mx[i] = direction_q[i] ? 1'b0 : gpio[i];
+    assign gpio[i]     = output_q[i];
+    assign input_mx[i] = 1'b0;
 end
 
 
@@ -45,13 +46,13 @@ assign wb_err_o   = 1'b0;
 
 always @(posedge wb_clk_i or posedge wb_rst_i) begin
     if (wb_rst_i) begin
-        direction_reg <= 0;
-        output_reg <= 0;
+        direction_q <= 0;
+        output_q <= 0;
     end
     else if (valid && wb_we_i) begin
         case (wb_adr_i - BASE_ADDR)
-            OUTPUT_ADDR    : output_reg    <= wb_dat_i [WIDTH-1:0];
-            DIRECTION_ADDR : direction_reg <= wb_dat_i [WIDTH-1:0];
+            OUTPUT_ADDR    : output_q    <= wb_dat_i [WIDTH-1:0];
+            DIRECTION_ADDR : direction_q <= wb_dat_i [WIDTH-1:0];
             default : ;
         endcase
     end
@@ -64,9 +65,9 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
     end
     else if (valid && (!wb_we_i)) begin
         case (wb_adr_i - BASE_ADDR)
-            INPUT_ADDR      : wb_dat_o <= input_reg;
-            OUTPUT_ADDR     : wb_dat_o <= output_reg;
-            DIRECTION_ADDR  : wb_dat_o <= direction_reg;
+            INPUT_ADDR      : wb_dat_o <= input_mx;
+            OUTPUT_ADDR     : wb_dat_o <= output_q;
+            DIRECTION_ADDR  : wb_dat_o <= direction_q;
             default         : wb_dat_o <= 0;
         endcase
     end

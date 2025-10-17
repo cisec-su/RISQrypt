@@ -10,8 +10,8 @@
 
 #include "uart_regs.h"
 
-#define UART_0_BASE_ADDR          ((uint32_t) 0x10008010)
-#define UART_0_REGS               ((uart_regs_t*) UART_0_BASE_ADDR)
+#define UART_BASE_ADDR            ((uint32_t) 0x10008010)
+#define UART_REGS                 ((uart_regs_t*) UART_BASE_ADDR)
 
 
 #include "timer_regs.h"

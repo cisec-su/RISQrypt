@@ -1,7 +1,7 @@
 #Constraints for NEXYS-A7 FPGA Board
 
 #100MHz input clock
-set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { M100_clk_i }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
+set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk_i }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
 #create_clock -add -name clk_in1 -period 10.00 -waveform {0 5} [get_ports {M100_clk_i}];
 #create_generated_clock -name clk_div_1 -source [get_ports M100_clk_i] -divide_by 2 [get_nets { clk_i }]
 
