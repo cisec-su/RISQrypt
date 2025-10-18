@@ -1,12 +1,12 @@
-PROJ = cw305_example
+PROJ = cw305_driver_example
 
-TOOLCHAIN_DIR = ../../../sdk/toolchain
+TOOLCHAIN_DIR = ../../../../sdk/toolchain
 
-LIB_DIR = ../../../sdk/lib
+LIB_DIR = ../../../../sdk/lib
 
-CW305_DRIVER_DIR = ../driver
+CW305_DRIVER_DIR = ../../driver
 
-SRC = cw305_example.c
+SRC = cw305_driver_example.c
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

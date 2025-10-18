@@ -1,0 +1,3 @@
+SRC += $(SIMPLESERIAL_DIR)/simpleserial.c
+INC += -I$(SIMPLESERIAL_DIR)
+CFLAGS += -DSS_VER=1
