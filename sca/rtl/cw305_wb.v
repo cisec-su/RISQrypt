@@ -1,3 +1,5 @@
+`include "cw305_addr.vh"
+
 module cw305_wb
    #(
         parameter BASE_ADDR      = 32'h00000000,
@@ -31,15 +33,16 @@ module cw305_wb
         output                      tio_trigger
     );
 
-localparam TX_SEL      = 0;
-localparam RX_SEL      = 1;
-localparam CTRL_SEL    = 2;
-localparam TRIGGER_SEL = 3;
+localparam TX_SEL   = 0;
+localparam RX_SEL   = 1;
+localparam ST_SEL   = 2;
+localparam SCA_SEL  = 3;
 
-localparam CTRL_RX_ST_BIT   = 0;
-localparam CTRL_TX_ST_BIT   = 1;
+localparam ST_RX_BIT  = 0;
+localparam ST_TX_BIT  = 1;
 
-localparam CTRL_TRIGGER_BIT = 0;
+localparam SCA_TRIGGER_BIT = 0;
+localparam SCA_DONE_BIT    = 1;
 
 localparam FIFO_ADDR_WIDTH = $clog2(FIFO_BSIZE);
 
@@ -58,12 +61,13 @@ wire isout;
 wire [7:0] usb_dout;
 wire [BYTE_CNT_SIZE-1:0] reg_bytecnt;
 wire [7:0] reg_datao;
-wire [7:0] reg_datai;
+reg  [7:0] reg_datai;
 wire reg_read;
 reg  reg_read_q;
 wire reg_read_pulse;
 wire reg_write;
 wire usb_clk_buf, usb_clk_bufg;
+wire [USB_ADDR_WIDTH-1:BYTE_CNT_SIZE] reg_address;
 
 // fifo-o signals
 wire fifo_o_full;
@@ -82,6 +86,12 @@ wire [7:0] fifo_i_dout;
 wire fifo_i_rd_en;
 wire fifo_i_wr_en;
 
+
+// done signals
+wire wb_done_q;
+wire wb_set_done;
+wire usb_done_q;
+wire usb_read_done;
 
 
 //////////////////////////// wishbone ///////////////////////////////////
@@ -117,12 +127,13 @@ assign wb_dat_o[TX_SEL*8 +: 8] = 8'd0;
 
 assign wb_dat_o[RX_SEL*8 +: 8] = fifo_i_dout;
 
-assign wb_dat_o[CTRL_SEL*8 + CTRL_RX_ST_BIT] = rx_st;
-assign wb_dat_o[CTRL_SEL*8 + CTRL_TX_ST_BIT] = tx_st;
-assign wb_dat_o[CTRL_SEL*8 + 7 : CTRL_SEL*8 + CTRL_TX_ST_BIT + 1] = 6'd0;
+assign wb_dat_o[ST_SEL*8 + ST_RX_BIT] = rx_st;
+assign wb_dat_o[ST_SEL*8 + ST_TX_BIT] = tx_st;
+assign wb_dat_o[ST_SEL*8 + 7 : ST_SEL*8 + ST_TX_BIT + 1] = 6'd0;
 
-assign wb_dat_o[TRIGGER_SEL*8 + CTRL_TRIGGER_BIT] = trigger_q;
-assign wb_dat_o[TRIGGER_SEL*8 + 7 : TRIGGER_SEL*8 + CTRL_TRIGGER_BIT + 1] = 7'd0;
+assign wb_dat_o[SCA_SEL*8 + SCA_TRIGGER_BIT] = trigger_q;
+assign wb_dat_o[SCA_SEL*8 + SCA_DONE_BIT   ] = wb_done_q;
+assign wb_dat_o[SCA_SEL*8 + 7 : SCA_SEL*8 + SCA_DONE_BIT + 1] = 6'd0;
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -137,7 +148,7 @@ assign fifo_i_rd_en = valid_r & wb_sel_i[RX_SEL];
 
 assign fifo_o_din   = wb_dat_i[TX_SEL*8 +: 8];
 assign fifo_o_wr_en = valid_w & wb_sel_i[TX_SEL];
-assign fifo_o_rd_en = reg_read_pulse;
+assign fifo_o_rd_en = reg_read_pulse && (reg_address == `ADDR_DATA);
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -147,9 +158,16 @@ assign fifo_o_rd_en = reg_read_pulse;
 //////////////////////////////// usb ////////////////////////////////////
 
 assign usb_data  = isout ? usb_dout : 8'bZ;
-assign reg_datai = fifo_o_dout;
 
 assign reg_read_pulse = reg_read & ~reg_read_q;
+
+always @(posedge usb_clk_buf) begin
+    case (reg_address)
+        `ADDR_DONE : reg_datai <= {8{usb_done_q}};
+        `ADDR_DATA : reg_datai <= fifo_o_dout;
+        default    : reg_datai <= fifo_o_dout;
+    endcase
+end
 
 always @(posedge usb_clk_buf or posedge wb_rst_i) begin
     if (wb_rst_i)
@@ -170,9 +188,17 @@ assign tio_trigger = trigger_q;
 always @(posedge wb_clk_i or posedge wb_rst_i) begin
     if (wb_rst_i)
         trigger_q <= 1'b0;
-    else if (valid_w & wb_sel_i[TRIGGER_SEL])
-        trigger_q <= wb_dat_i[TRIGGER_SEL*8 + CTRL_TRIGGER_BIT];
+    else if (valid_w & wb_sel_i[SCA_SEL])
+        trigger_q <= wb_dat_i[SCA_SEL*8 + SCA_TRIGGER_BIT];
 end
+
+/////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////// done ///////////////////////////////////
+
+assign wb_set_done = (valid_w && wb_sel_i[SCA_SEL]) ? wb_dat_i[SCA_SEL*8 + SCA_DONE_BIT] : 1'b0;
+assign usb_read_done = (reg_address == `ADDR_DONE) && usb_done_q && reg_read_pulse; 
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -222,7 +248,8 @@ cw305_usb_reg_fe #(
     .reg_datao               (reg_datao  ), 
     .reg_datai               (reg_datai  ),
     .reg_read                (reg_read   ), 
-    .reg_write               (reg_write  )
+    .reg_write               (reg_write  ),
+    .reg_address             (reg_address)
 );
 
 
@@ -248,7 +275,7 @@ async_fifo #(
 async_fifo #(
     .DSIZE      (8),
     .ASIZE      (FIFO_ADDR_WIDTH),
-    .FALLTHROUGH("FALSE"        )
+    .FALLTHROUGH("TRUE"         )
 ) fifo_o (
     .wclk   (wb_clk_i    ),
     .wrst_n (~wb_rst_i   ),
@@ -261,6 +288,20 @@ async_fifo #(
     .rdata  (fifo_o_dout ),
     .rinc   (fifo_o_rd_en),
     .rempty (fifo_o_empty)
+);
+
+
+async_reg u_flag (
+    .set_clk   (wb_clk_i     ),
+    .set_rst   (wb_rst_i     ),
+    .set_cond  (wb_set_done  ),
+
+    .clr_clk   (usb_clk_buf  ),
+    .clr_rst   (wb_rst_i     ),
+    .clr_cond  (usb_read_done),
+
+    .flag_set  (wb_done_q    ),
+    .flag_clr  (usb_done_q   )
 );
 
 
