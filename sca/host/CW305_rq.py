@@ -46,6 +46,8 @@ class CW305_rq(CW305, SimpleSerial):
         self.last_key = bytearray([0]*16)
         self.target_name = 'CW305_RISQrypt'
 
+        self.done_seen = False
+
     def slurp_defines(self, defines_files=None):
         raise NotImplementedError(f"SLURP is not implemented for {self.target_name} target")
 
@@ -73,10 +75,12 @@ class CW305_rq(CW305, SimpleSerial):
     def is_done(self):
         """Check if FPGA is done"""
         if self.check_done:
-            while(True):
+            if not self.done_seen:
                 status = self.fpga_read(1, 1)
                 if status[0] == 0xff:
-                    break
+                    self.done_seen = True
+                else:
+                    return False
             return True
         else:
             return True
@@ -96,7 +100,13 @@ class CW305_rq(CW305, SimpleSerial):
     def read(self, num_char = 0, timeout=250):
         return self.fpga_read(self.REG_DATA, num_char).decode()
 
+    def simpleserial_wait_ack(self, timeout=500):
+        while not self.is_done():
+            pass
+        return SimpleSerial.simpleserial_wait_ack(self, timeout=timeout)
+
     def simpleserial_write(self, cmd, data, end='\n'):
+        self.done_seen = False
         SimpleSerial.simpleserial_write(self, cmd, data, end=end)
 
     def simpleserial_read(self, cmd, pay_len, end='\n', timeout=250, ack=True):

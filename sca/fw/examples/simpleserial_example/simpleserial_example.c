@@ -23,7 +23,7 @@
 #include "simpleserial.h"
 
 
-#define VERBOSE
+// #define VERBOSE
 
 uint8_t key[16];
 volatile uint8_t ct[16];
@@ -67,8 +67,7 @@ uint8_t get_pt(uint8_t* pt, uint8_t len)
 		ct[i] = pt[i] + key[i];
     }
 
-    cw305_done_set_trigger_down();
-    simpleserial_put('r', 16, (uint8_t*) pt);
+    simpleserial_put('r', 16, (uint8_t*) ct);
 
     return 0x00;
 }
@@ -92,6 +91,8 @@ int main(void)
     simpleserial_addcmd('p', 16, get_pt);
     simpleserial_addcmd('k', 16, get_key);
 
-    while(1)
+    while(1) {
         simpleserial_get();
+        cw305_done_set_trigger_down();
+    }
 }
