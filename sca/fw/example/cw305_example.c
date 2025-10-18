@@ -1,28 +1,27 @@
 #include "util.h"
 #include "cw305.h"
 
-
-#define USE_DONE
-
+#ifndef BUFF_LEN
+#define BUFF_LEN 32
+#endif
 
 int main () {
 
 #ifdef USE_DONE
     volatile int i;
 #endif
-    const int buff_len = 33;
-    char buffer[buff_len + 1];
-    buffer[buff_len] = '\0';
+    char buffer[BUFF_LEN + 1];
+    buffer[BUFF_LEN] = '\0';
 
     print_string("CW305 Communication Example\n\n");
     cw305_trigger_down();
 
     while (1) {
-        cw305_receive_string(buffer, buff_len);
+        cw305_receive_string(buffer, BUFF_LEN);
         print_string("Received from CW305: \n");
         print_string(buffer);
         print_string("\n");
-        cw305_transmit_string(buffer, buff_len);
+        cw305_transmit_string(buffer, BUFF_LEN);
 #ifdef USE_DONE
         cw305_done_set();
 #else

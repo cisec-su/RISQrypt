@@ -33,23 +33,15 @@ set_property PACKAGE_PIN A13 [get_ports rx_i]
 
 
 #Switch's
-# set_property PACKAGE_PIN J16 [get_ports j16_sel]
-# set_property PACKAGE_PIN K16 [get_ports k16_sel]
-# set_property PACKAGE_PIN L14 [get_ports l14_sel]
-# set_property PACKAGE_PIN K15 [get_ports k15_sel]
 set_property PACKAGE_PIN R1 [get_ports reset_i]
 
 #PLL Connections
 set_property PACKAGE_PIN N13 [get_ports clk_i]
-#set_property PACKAGE_PIN E12 [get_ports pll_clk2]
 
 ######## 20-Pin Connector
 
 set_property PACKAGE_PIN T14 [get_ports tio_trigger]
-
 set_property PACKAGE_PIN M16 [get_ports tio_clkout]
-
-# set_property PACKAGE_PIN N14 [get_ports tio_clkin]
 
 ####### USB Connector
 
@@ -96,19 +88,11 @@ set_property PACKAGE_PIN A5 [get_ports usb_trigger]
 
 create_clock -period 10.000  -name usb_clk -waveform {0.000 5.000}  [get_nets usb_clk]
 create_clock -period 50.000  -name clk_i   -waveform {0.000 25.000} [get_nets clk_i  ]
-# create_clock -period 10.000 -name tio_clkin -waveform {0.000 5.000} [get_nets tio_clkin]
-# create_clock -period 100.000 -name M100_clk_i -waveform {0.000 50.000} [get_nets M100_clk_i]
-
-# create_generated_clock -name clk_out1_clk_wiz_0 \
-#                        -source [get_pins clkwiz0/inst/clk_in1] \
-#                                [get_pins clkwiz0/inst/clk_out1]
 
 set_clock_groups -asynchronous \
                  -group [get_clocks usb_clk] \
                  -group [get_clocks clk_i  ]
 
-# both input clocks have same properties so there is no point in doing timing analysis for both:
-# set_case_analysis 1 [get_pins U_clocks/CCLK_MUX/S]
 
 # # No spec for these, seems sensible:
 set_input_delay -clock usb_clk -add_delay 2.000 [get_ports usb_addr]
@@ -118,19 +102,9 @@ set_input_delay -clock usb_clk -add_delay 2.000 [get_ports usb_cen]
 set_input_delay -clock usb_clk -add_delay 2.000 [get_ports usb_rdn]
 set_input_delay -clock usb_clk -add_delay 2.000 [get_ports usb_wrn]
 
-# set_input_delay -clock usb_clk -add_delay 0.000 [get_ports j16_sel]
-# set_input_delay -clock usb_clk -add_delay 0.000 [get_ports k16_sel]
-# set_input_delay -clock [get_clocks usb_clk] -add_delay 0.500 [get_ports pushbutton]
-
-# set_output_delay -clock usb_clk 0.000 [get_ports led1]
-# set_output_delay -clock usb_clk 0.000 [get_ports led2]
-# set_output_delay -clock usb_clk 0.000 [get_ports led3]
 set_output_delay -clock usb_clk 0.000 [get_ports usb_data]
 set_output_delay -clock usb_clk 0.000 [get_ports tio_trigger]
 set_output_delay -clock usb_clk 0.000 [get_ports tio_clkout]
-# set_false_path -to [get_ports led1]
-# set_false_path -to [get_ports led2]
-# set_false_path -to [get_ports led3]
 set_false_path -to [get_ports usb_data]
 set_false_path -to [get_ports tio_trigger]
 set_false_path -to [get_ports tio_clkout]

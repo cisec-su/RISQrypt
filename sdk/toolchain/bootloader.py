@@ -94,6 +94,12 @@ if __name__ == "__main__":
             help="Only read without programming"
         )
 
+    parser.add_argument(
+            "-q", "--quiet",
+            action="store_true",
+            help="Only program without reading"
+        )
+
 
     args = parser.parse_args()
 
@@ -114,7 +120,7 @@ if __name__ == "__main__":
             read_data(ser, args.done)
             send_file_via_uart(ser, args.file, chunk_size=args.chunk_size, sleep_time=args.sleep_time)
 
-        while(True):
+        while(True and not args.quiet):
             read_data(ser, args.done)
 
 
