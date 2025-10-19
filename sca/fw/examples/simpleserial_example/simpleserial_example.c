@@ -35,16 +35,16 @@ uint8_t get_key(uint8_t* k, uint8_t len)
     print_string("SimpleSerial::get_key command received\n");
 #endif
 
-	for (uint8_t i = 0; i < 16; i++) {
-		key[i] = k[i];
-	}
+    for (uint8_t i = 0; i < 16; i++) {
+        key[i] = k[i];
+    }
 
 #ifdef VERBOSE
     print_string("Key set to: ");
     print_hex(k, len, 0);
     print_string("\n");
 #endif
-	return 0x00;
+    return 0x00;
 }
 
 uint8_t get_pt(uint8_t* pt, uint8_t len)
@@ -59,12 +59,12 @@ uint8_t get_pt(uint8_t* pt, uint8_t len)
     cw305_trigger_up();
 
 
-	for (uint8_t i = 0; i < 16; i++) {
-		ct[i] = pt[i] + key[i];
-		ct[i] = 0;
-		ct[i] = pt[i] + key[i];
-		ct[i] = 0;
-		ct[i] = pt[i] + key[i];
+    for (uint8_t i = 0; i < 16; i++) {
+        ct[i] = pt[i] + key[i];
+        ct[i] = 0;
+        ct[i] = pt[i] + key[i];
+        ct[i] = 0;
+        ct[i] = pt[i] + key[i];
     }
 
     simpleserial_put('r', 16, (uint8_t*) ct);
@@ -87,7 +87,7 @@ int main(void)
     // putch('o');
     // putch('\n');
 
-	simpleserial_init();
+    simpleserial_init();
     simpleserial_addcmd('p', 16, get_pt);
     simpleserial_addcmd('k', 16, get_key);
 

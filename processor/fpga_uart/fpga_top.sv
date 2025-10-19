@@ -25,7 +25,7 @@ module fpga_top
 //////////////// 0: Crypto disabled......./////////////
 //////////////// 1: Crypto enabled w/out masking...////
 //////////////// 2: Crypto enabled  with masking...////
-parameter MODE = 0;////////////////////////////////////
+parameter MODE = 2;////////////////////////////////////
 ///////////////////////////////////////////////////////
 
 `ifdef CW305
@@ -78,11 +78,11 @@ parameter CW305_END      = 32'h1004_1003;
 localparam NUM_DMA_ACCS  = (MODE == 2)? 3 : (MODE == 1)? 2 : 0;
 localparam NUM_DMA_ACCS_ = (NUM_DMA_ACCS == 0) ? 1 : NUM_DMA_ACCS; // to avoid zero-width arrays
 `ifdef CW305
-localparam CW305_SLAVES  = 1;
+localparam CW305_SLAVE   = 1;
 `else
-localparam CW305_SLAVES  = 0;
+localparam CW305_SLAVE   = 0;
 `endif
-localparam NUM_SLAVES    = 6 + NUM_DMA_ACCS + CW305_SLAVES;
+localparam NUM_SLAVES    = 6 + NUM_DMA_ACCS + CW305_SLAVE;
 
 
 wire clk;
@@ -175,21 +175,23 @@ assign slave_adr_end  [4] = TIMER_END   ;
 assign slave_adr_begin[5] = GPIO_START  ;
 assign slave_adr_end  [5] = GPIO_END    ;
 
-assign slave_adr_begin[6] = CW305_START ;
-assign slave_adr_end  [6] = CW305_END   ;
-
 if (MODE == 1 || MODE == 2) begin
-assign slave_adr_begin[7] = NTT_START   ;
-assign slave_adr_end  [7] = NTT_END     ;
+assign slave_adr_begin[6] = NTT_START   ;
+assign slave_adr_end  [6] = NTT_END     ;
 
-assign slave_adr_begin[8] = KECCAK_START;
-assign slave_adr_end  [8] = KECCAK_END  ;
+assign slave_adr_begin[7] = KECCAK_START;
+assign slave_adr_end  [7] = KECCAK_END  ;
 end
 
 if (MODE == 2) begin
-assign slave_adr_begin[9] = X2X_START   ;
-assign slave_adr_end  [9] = X2X_END     ;
+assign slave_adr_begin[8] = X2X_START   ;
+assign slave_adr_end  [8] = X2X_END     ;
 end
+
+`ifdef CW305
+assign slave_adr_begin[NUM_SLAVES-1] = CW305_START ;
+assign slave_adr_end  [NUM_SLAVES-1] = CW305_END   ;
+`endif
 
 
 assign inst_wb_rst_i   = ~reset;
@@ -482,18 +484,18 @@ if (MODE == 1 || MODE == 2) begin
 ntt_lite_acc_top #(
     .BASE_ADDR(NTT_START)
 ) ntt_lite_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [7]),
-    .wb_stb_i  (wb_stb_i  [7]),
-    .wb_we_i   (wb_we_i   [7]),
-    .wb_adr_i  (wb_adr_i  [7]),
-    .wb_dat_i  (wb_dat_i  [7]),
-    .wb_sel_i  (wb_sel_i  [7]),
-    .wb_stall_o(wb_stall_o[7]),
-    .wb_ack_o  (wb_ack_o  [7]),
-    .wb_dat_o  (wb_dat_o  [7]),
-    .wb_err_o  (wb_err_o  [7]),
-    .wb_rst_i  (wb_rst_i  [7]),
-    .wb_clk_i  (wb_clk_i  [7]),
+    .wb_cyc_i  (wb_cyc_i  [6]),
+    .wb_stb_i  (wb_stb_i  [6]),
+    .wb_we_i   (wb_we_i   [6]),
+    .wb_adr_i  (wb_adr_i  [6]),
+    .wb_dat_i  (wb_dat_i  [6]),
+    .wb_sel_i  (wb_sel_i  [6]),
+    .wb_stall_o(wb_stall_o[6]),
+    .wb_ack_o  (wb_ack_o  [6]),
+    .wb_dat_o  (wb_dat_o  [6]),
+    .wb_err_o  (wb_err_o  [6]),
+    .wb_rst_i  (wb_rst_i  [6]),
+    .wb_clk_i  (wb_clk_i  [6]),
     
     .dma_cyc_i  (dma_cyc_i  [0]),
     .dma_stb_i  (dma_stb_i  [0]),
@@ -513,18 +515,18 @@ keccak_acc_top #(
     .BASE_ADDR(KECCAK_START),
     .SHARES   (MODE        )
 ) keccak_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [8]),
-    .wb_stb_i  (wb_stb_i  [8]),
-    .wb_we_i   (wb_we_i   [8]),
-    .wb_adr_i  (wb_adr_i  [8]),
-    .wb_dat_i  (wb_dat_i  [8]),
-    .wb_sel_i  (wb_sel_i  [8]),
-    .wb_stall_o(wb_stall_o[8]),
-    .wb_ack_o  (wb_ack_o  [8]),
-    .wb_dat_o  (wb_dat_o  [8]),
-    .wb_err_o  (wb_err_o  [8]),
-    .wb_rst_i  (wb_rst_i  [8]),
-    .wb_clk_i  (wb_clk_i  [8]),
+    .wb_cyc_i  (wb_cyc_i  [7]),
+    .wb_stb_i  (wb_stb_i  [7]),
+    .wb_we_i   (wb_we_i   [7]),
+    .wb_adr_i  (wb_adr_i  [7]),
+    .wb_dat_i  (wb_dat_i  [7]),
+    .wb_sel_i  (wb_sel_i  [7]),
+    .wb_stall_o(wb_stall_o[7]),
+    .wb_ack_o  (wb_ack_o  [7]),
+    .wb_dat_o  (wb_dat_o  [7]),
+    .wb_err_o  (wb_err_o  [7]),
+    .wb_rst_i  (wb_rst_i  [7]),
+    .wb_clk_i  (wb_clk_i  [7]),
     
     .dma_cyc_i  (dma_cyc_i  [1]),
     .dma_stb_i  (dma_stb_i  [1]),
@@ -547,18 +549,18 @@ if (MODE == 2) begin
 x2x_acc_top #(
     .BASE_ADDR(X2X_START)
 ) x2x_acc_top_inst (
-    .wb_cyc_i  (wb_cyc_i  [9]),
-    .wb_stb_i  (wb_stb_i  [9]),
-    .wb_we_i   (wb_we_i   [9]),
-    .wb_adr_i  (wb_adr_i  [9]),
-    .wb_dat_i  (wb_dat_i  [9]),
-    .wb_sel_i  (wb_sel_i  [9]),
-    .wb_stall_o(wb_stall_o[9]),
-    .wb_ack_o  (wb_ack_o  [9]),
-    .wb_dat_o  (wb_dat_o  [9]),
-    .wb_err_o  (wb_err_o  [9]),
-    .wb_rst_i  (wb_rst_i  [9]),
-    .wb_clk_i  (wb_clk_i  [9]),
+    .wb_cyc_i  (wb_cyc_i  [8]),
+    .wb_stb_i  (wb_stb_i  [8]),
+    .wb_we_i   (wb_we_i   [8]),
+    .wb_adr_i  (wb_adr_i  [8]),
+    .wb_dat_i  (wb_dat_i  [8]),
+    .wb_sel_i  (wb_sel_i  [8]),
+    .wb_stall_o(wb_stall_o[8]),
+    .wb_ack_o  (wb_ack_o  [8]),
+    .wb_dat_o  (wb_dat_o  [8]),
+    .wb_err_o  (wb_err_o  [8]),
+    .wb_rst_i  (wb_rst_i  [8]),
+    .wb_clk_i  (wb_clk_i  [8]),
     
     .dma_cyc_i  (dma_cyc_i  [2]),
     .dma_stb_i  (dma_stb_i  [2]),

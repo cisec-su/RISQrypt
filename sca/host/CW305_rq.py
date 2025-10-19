@@ -1,4 +1,4 @@
-from time import time
+import time
 from chipwhisperer.capture.targets._base import TargetTemplate
 from chipwhisperer.hardware.naeusb.naeusb import packuint32
 
