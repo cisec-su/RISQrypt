@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include "util.h"
 #include "cw305.h"
-#include "simpleserial.h"
+#include "simpleserial_cw305_rq.h"
 
 
 // #define VERBOSE
@@ -91,8 +91,7 @@ int main(void)
     simpleserial_addcmd('p', 16, get_pt);
     simpleserial_addcmd('k', 16, get_key);
 
-    while(1) {
-        simpleserial_get();
-        cw305_done_set_trigger_down();
-    }
+    while(1)
+        simpleserial_cw305_rq_get();
+
 }

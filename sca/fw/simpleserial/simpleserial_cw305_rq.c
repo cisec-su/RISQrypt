@@ -1,6 +1,6 @@
 // simpleserial.c
 
-#include "simpleserial.h"
+#include "simpleserial_cw305_rq.h"
 #include <stdint.h>
 #include "cw305.h"
 
@@ -450,6 +450,13 @@ void simpleserial_put(char c, uint8_t size, uint8_t* output)
 
 	// Write trailing '\n'
 	putch('\n');
+}
+
+
+void simpleserial_cw305_rq_get(void)
+{
+	simpleserial_get();
+	cw305_done_set_trigger_down();
 }
 
 #endif

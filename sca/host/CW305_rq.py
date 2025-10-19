@@ -1,3 +1,4 @@
+from time import time
 from chipwhisperer.capture.targets._base import TargetTemplate
 from chipwhisperer.hardware.naeusb.naeusb import packuint32
 
@@ -47,6 +48,7 @@ class CW305_rq(CW305, SimpleSerial):
         self.target_name = 'CW305_RISQrypt'
 
         self.done_seen = False
+        self.wait_done_sleep = 0.0001
 
     def slurp_defines(self, defines_files=None):
         raise NotImplementedError(f"SLURP is not implemented for {self.target_name} target")
@@ -100,9 +102,16 @@ class CW305_rq(CW305, SimpleSerial):
     def read(self, num_char = 0, timeout=250):
         return self.fpga_read(self.REG_DATA, num_char).decode()
 
-    def simpleserial_wait_ack(self, timeout=500):
+    def _wait_done_with_timeout(self, timeout=250):
+        ctr = 0
         while not self.is_done():
-            pass
+            time.sleep(self.wait_done_sleep)
+            ctr += 1
+            if ctr > timeout * (1/self.wait_done_sleep):
+                raise TimeoutError("Timeout waiting for DONE signal from target")
+
+    def simpleserial_wait_ack(self, timeout=500):
+        self._wait_done_with_timeout(timeout=timeout)
         return SimpleSerial.simpleserial_wait_ack(self, timeout=timeout)
 
     def simpleserial_write(self, cmd, data, end='\n'):
@@ -110,4 +119,5 @@ class CW305_rq(CW305, SimpleSerial):
         SimpleSerial.simpleserial_write(self, cmd, data, end=end)
 
     def simpleserial_read(self, cmd, pay_len, end='\n', timeout=250, ack=True):
+        self._wait_done_with_timeout(timeout=timeout)
         return SimpleSerial.simpleserial_read(self, cmd, pay_len, end=end, ack=ack)

@@ -29,7 +29,7 @@ parameter MODE = 0;////////////////////////////////////
 ///////////////////////////////////////////////////////
 
 `ifdef CW305
-parameter SYS_CLK_FREQ     = 20000000;
+parameter SYS_CLK_FREQ     = 10000000;
 parameter USB_ADDR_WIDTH   = 21      ;
 parameter CW305_FIFO_BSIZE = 128     ;
 `else

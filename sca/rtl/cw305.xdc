@@ -86,8 +86,8 @@ set_property PACKAGE_PIN A3 [get_ports usb_cen]
 set_property PACKAGE_PIN A5 [get_ports usb_trigger]
 
 
-create_clock -period 10.000  -name usb_clk -waveform {0.000 5.000}  [get_nets usb_clk]
-create_clock -period 50.000  -name clk_i   -waveform {0.000 25.000} [get_nets clk_i  ]
+create_clock -period 10.000   -name usb_clk -waveform {0.000 5.000 } [get_nets usb_clk]
+create_clock -period 100.000  -name clk_i   -waveform {0.000 50.000} [get_nets clk_i  ]
 
 set_clock_groups -asynchronous \
                  -group [get_clocks usb_clk] \

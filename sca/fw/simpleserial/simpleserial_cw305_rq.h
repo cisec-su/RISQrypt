@@ -57,6 +57,13 @@ int simpleserial_addcmd(char c, unsigned int len, uint8_t (*fp)(uint8_t*, uint8_
 // - Data was too short or too long
 void simpleserial_get(void);
 
+//////////////////////////////////////////////////////////////////////////////////////
+// A variant of simpleserial_get() that also handles CW305 DONE and TRIGGER signals
+// After processing a command, it sets DONE high and sets TRIGGER low
+void simpleserial_cw305_rq_get(void);
+//////////////////////////////////////////////////////////////////////////////////////
+
+
 // Write some data to the serial port
 // Prepends the character c to the start of the line
 // Example: simpleserial_put('r', 16, ciphertext)
