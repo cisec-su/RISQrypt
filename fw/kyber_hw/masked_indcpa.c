@@ -42,6 +42,7 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
     masked_poly_getnoise_eta2(&mepp, coins, &nonce);
     poly_init_ntt();
     masked_polyvec_ntt(&msp);
+    poly_init_zeta();
 
     for (i = 0; i < KYBER_K; i++) {
         masked_polyvec_pointwise_acc_invntt_i(&mbp, &msp, &at[i], i);
@@ -86,7 +87,7 @@ void masked_indcpa_dec(masked_msg m,
     
     masked_gadgets_init_q();
     masked_polyvec_mask(&mskpv, &skpv);
-
+    poly_init_zeta();
     masked_polyvec_pointwise_acc_invntt(&mp, &mskpv, &bp);
 
     masked_poly_sub_tomsg(m, &v, &mp);

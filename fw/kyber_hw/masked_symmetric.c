@@ -39,5 +39,5 @@ void masked_sha3_512(masked_ptr dst, const masked_ptr src, size_t len) {
     keccak_absorb((uint32_t*) src[0], (uint32_t*) src[1], len >> 2);
     t = SHA3_PAD;
     keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], SHA3_512_RATE_HASH_SIZE >> 2);
+    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], SHA3_512_HASH_SIZE >> 2);
 }

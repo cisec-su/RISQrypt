@@ -87,7 +87,7 @@ void unpack_sk(polyvec *sk, const uint8_t packedsk[KYBER_INDCPA_SECRETKEYBYTES])
 void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES], polyvec *b, poly *v)
 {
   polyvec_compress(r, b);
-  poly_compress(r+KYBER_POLYVECCOMPRESSEDBYTES, v);
+  // poly_compress(r+KYBER_POLYVECCOMPRESSEDBYTES, v);
 }
 
 /*************************************************

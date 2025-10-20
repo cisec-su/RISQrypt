@@ -96,24 +96,41 @@ void polyvec_ntt(polyvec *r)
 }
 
 
-static void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt)
+void polyvec_unpack_ntt(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES])
 {
   unsigned int i;
-  poly t;
-  poly_init_zeta();
+  for(i=0;i<KYBER_K;i++) {
+    ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) (a + i*KYBER_POLYVECCOMPRESSEDBYTES/3), KYBER_DU);
+    ntt_lite_decompress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DU);
+    poly_init_ntt();
+    ntt_lite_forward_ntt((uint32_t*) &r->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+  }
+}
+
+
+static void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw)
+{
+  unsigned int i;
+  uint32_t *dst;
+
+  if (tohw)
+    dst = NTT_LITE_OUTPUT_DIS;
+  else
+    dst = (uint32_t*) r->coeffs;
+
   ntt_lite_pwm((uint32_t*) r->coeffs, (uint32_t*) &a->vec[0].coeffs, (uint32_t*) &b->vec[0].coeffs);
 
   for(i = 1; i < KYBER_K; i++) {
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
-    if ((i == (KYBER_K - 1)) & intt) {
-      ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
+    if ((i == (KYBER_K - 1)) && (tohw || intt)) {
+      ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);
     } else {
       ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
     }
   }
   if (intt) {
     poly_init_invntt();  
-    ntt_lite_backward_ntt((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_backward_ntt(dst, NTT_LITE_INPUT_DIS);
   }
 }
 
@@ -131,13 +148,40 @@ static void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec 
 **************************************************/
 void polyvec_pointwise_acc_invntt(poly *r, const polyvec *a, const polyvec *b)
 {
-  polyvec_pointwise_acc_core(r, a, b, 1);
+  polyvec_pointwise_acc_core(r, a, b, 1, 0);
 }
 
 
+void polyvec_pointwise_acc_invntt_tohw(poly *r, const polyvec *a, const polyvec *b)
+{
+  polyvec_pointwise_acc_core(r, a, b, 1, 1);
+}
+
 void polyvec_pointwise_acc(poly *r, const polyvec *a, const polyvec *b)
 {
-  polyvec_pointwise_acc_core(r, a, b, 0);
+  polyvec_pointwise_acc_core(r, a, b, 0, 0);
+}
+
+
+void polyvec_pointwise_acc_invntt_frombytes_tohw(poly *r, const uint8_t a[KYBER_POLYVECBYTES], const polyvec *b)
+{
+  unsigned int i;
+  uint32_t *dst;
+  
+  ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, 12);
+  ntt_lite_pwm_twforward_dis((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[0].coeffs);
+
+  for(i = 1; i < KYBER_K; i++) {
+    ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) (a + i*(KYBER_POLYBYTES)), 12);
+    ntt_lite_pwm_twforward_dis(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[i].coeffs);
+    if (i == (KYBER_K - 1)) {
+      ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);
+    } else {
+      ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
+    }
+  }
+  poly_init_invntt();  
+  ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
 }
 
 
@@ -155,4 +199,15 @@ void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b)
   unsigned int i;
   for(i=0;i<KYBER_K;i++)
     poly_add(&r->vec[i], &a->vec[i], &b->vec[i]);
+}
+
+
+void polyvec_add_pack(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a, const polyvec *b)
+{
+  unsigned int i;
+  for(i=0;i<KYBER_K;i++) {
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
+    ntt_lite_compress(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, KYBER_DU);
+    ntt_lite_encode((uint32_t*) (r + i*(KYBER_POLYVECCOMPRESSEDBYTES/3)), NTT_LITE_INPUT_DIS, KYBER_DU);
+  }
 }

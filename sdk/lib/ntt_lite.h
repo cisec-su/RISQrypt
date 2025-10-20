@@ -37,6 +37,8 @@ int ntt_lite_backward_ntt(uint32_t *dst,  const uint32_t *src);
 
 int ntt_lite_pwm(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
+int ntt_lite_pwm_twforward_dis(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+
 int ntt_lite_mul_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
 int ntt_lite_add(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
