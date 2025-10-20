@@ -10,26 +10,38 @@ def send_file_via_uart(ser, file_path, chunk_size=1024, sleep_time=0.01):
 
         file_size = file.seek(0, 2)  # Move the cursor to the end of the file
         file.seek(0)  # Move the cursor to the start of the file
+
+        int_size = file_size.to_bytes(4, byteorder='little')
+        ser.write(int_size)
+
         with tqdm(total=file_size, unit='B', unit_scale=True, desc=file_path) as pbar:
             while chunk := file.read(chunk_size):
                 ser.write(chunk)
                 time.sleep(sleep_time)  # Adjust this delay as needed
                 pbar.update(len(chunk))
             
-    print("File transmission complete.")
+    print(f"File transmission complete for {file_path}.")
     
-        
+
+def send_inst_data_via_uart(ser, file_path, chunk_size=1024, sleep_time=0.01):
+    inst_file = file_path + ".inst.bin"
+    data_file = file_path + ".data.bin"
+    send_file_via_uart(ser, inst_file, chunk_size, sleep_time)
+    send_file_via_uart(ser, data_file, chunk_size, sleep_time)
+
+
+
 def send_data(ser, data):
     if ser.is_open:
         ser.write(data.encode('utf-8'))
         print(f"Sent: {data}")
 
-def read_data(ser, done):
+def read_data(ser, done=None):
     if ser.is_open:
         incoming_data = ser.readline().decode('utf-8').strip()
         if incoming_data:
             print(f"{incoming_data}")
-            if done in incoming_data:
+            if done is not None and done in incoming_data:
                 ser.close()
                 exit(0)
 
@@ -55,7 +67,7 @@ if __name__ == "__main__":
             "-f", "--file",
             type=str,
             required=False,
-            default='../examples/uart_example/uart_example.bin',
+            default='../examples/uart_example/uart_example',
             help="File to send"
         )
     parser.add_argument(
@@ -117,8 +129,9 @@ if __name__ == "__main__":
             time.sleep(1)
             send_data(ser, "-p")
             time.sleep(1)
-            read_data(ser, args.done)
-            send_file_via_uart(ser, args.file, chunk_size=args.chunk_size, sleep_time=args.sleep_time)
+            read_data(ser)
+            send_inst_data_via_uart(ser, args.file, chunk_size=args.chunk_size, sleep_time=args.sleep_time)
+            read_data(ser)
 
         while(True and not args.quiet):
             read_data(ser, args.done)

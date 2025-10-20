@@ -5,7 +5,8 @@
 
 
 #define BOOTLOADER_BASE_ADDR      ((uint32_t) 0x00000020)
-#define PROGRAM_BASE_ADDR         ((uint32_t) 0x00001000)
+#define INST_BASE_ADDR            ((uint32_t) 0x00001000)
+#define DATA_BASE_ADDR            ((uint32_t) 0x00010000)
 
 
 #include "uart_regs.h"

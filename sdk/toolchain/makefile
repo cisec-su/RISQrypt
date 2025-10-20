@@ -31,7 +31,8 @@ _CFLAGS = $(CFLAGS) $(OPTIMIZATION) $(INC) $(LIB_INC) -march=rv32im -mabi=ilp32 
 build:
 	@echo "$(_CFLAGS)"
 	$(CC32)-gcc $(SRC) $(_CFLAGS)
-	$(CC32)-objcopy -O binary -j .init -j .text -j .rodata -j .data $(PROJ).elf $(PROJ).bin
+	$(CC32)-objcopy -O binary -j .init   -j .text $(PROJ).elf $(PROJ).inst.bin
+	$(CC32)-objcopy -O binary -j .rodata -j .data $(PROJ).elf $(PROJ).data.bin
 	$(ROM_GEN) $(PROJ).bin $(PROJ).mem 
 	@if [ -n "$(OBJ_DUMP)" ]; then \
 		$(CC32)-objdump -d $(PROJ).elf > $(PROJ).txt; \
