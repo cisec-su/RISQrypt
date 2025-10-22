@@ -45,7 +45,7 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
 }
 
 
-int x2x_seed(uint32_t *seed)
+int x2x_seed(uint32_t seed[2])
 {
 
     if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {

@@ -22,10 +22,14 @@
 #include "cw305.h"
 #include "simpleserial_cw305_rq.h"
 #include "indcpa.h"
+#ifdef MASK_EN
+#include "x2x.h"
+#include "masked_indcpa.h"
+#endif
 #include "symmetric.h"
 
 
-// #define VERBOSE
+//#define VERBOSE
 #define KEYGEN_RETURN_HASH
 #define OUTPUT_SIZE 16
 #define DEC_RETURN_MSG
@@ -34,7 +38,11 @@
 uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES];
 uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES];
 uint8_t c [KYBER_INDCPA_BYTES         ];
+#ifdef MASK_EN
+masked_msg m; 
+#else
 uint8_t m [KYBER_INDCPA_MSGBYTES      ];
+#endif
 
 uint8_t rng_buffer[KYBER_SYMBYTES];
 
@@ -59,7 +67,7 @@ uint8_t get_key(uint8_t* k, uint8_t len)
     print_string("\n");
 #endif
 
-    for (uint8_t i = 0; i < KYBER_SYMBYTES; i++) {
+    for (size_t i = 0; i < KYBER_SYMBYTES; i++) {
         rng_buffer[i] = k[i];
     }
 
@@ -100,15 +108,27 @@ uint8_t get_pt(uint8_t* pt, uint8_t len)
 #endif
 
     cw305_trigger_up();
+#ifdef MASK_EN
+    masked_indcpa_dec(m, c, sk);
+#else
     indcpa_dec(m, c, sk);
+#endif
 
 #ifdef DEC_RETURN_MSG
-    simpleserial_put('r', OUTPUT_SIZE, (uint8_t*) m);
+#ifdef MASK_EN
+    for (size_t i = 0; i < OUTPUT_SIZE; i++) {
+        m[0][i] ^= m[1][i];
+    }
+    simpleserial_put('r', OUTPUT_SIZE, (uint8_t*) m[0]);
+#else
+    simpleserial_put('r', OUTPUT_SIZE, m);
+#endif
+
 #endif
 
 #ifdef VERBOSE
     print_string("decrypted message: ");
-    print_hex(m, KYBER_INDCPA_MSGBYTES, 0);
+    print_hex(m[0], KYBER_INDCPA_MSGBYTES, 0);
     print_string("\n");
 #endif
 
@@ -118,8 +138,18 @@ uint8_t get_pt(uint8_t* pt, uint8_t len)
 
 int main(void)
 {
+#if MASK_EN
+    uint32_t seed[] = {0xdeadbeef, 0x21212424};
+#endif
+
     cw305_trigger_down();
     print_string("Kyber CPAPKE Dec\n");
+
+#if MASK_EN
+#ifndef PRNG_OFF
+    x2x_seed(seed);
+#endif
+#endif
 
     simpleserial_init();
     simpleserial_addcmd('p', 16, get_pt);

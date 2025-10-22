@@ -67,28 +67,56 @@ int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
 }
 
 
-void masked_indcpa_dec(masked_msg m,
-                      const uint8_t c[KYBER_INDCPA_BYTES],
-                      const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
+void masked_indcpa_dec_init(masked_polyvec *mskpv,
+                            const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
     unsigned int i;
-    polyvec bp, skpv;
-    poly v;
-    masked_poly mp;
-    masked_polyvec mskpv;
+    polyvec skpv;
                                             
     poly_init_q();
+    unpack_sk(&skpv, sk);
+
+    masked_gadgets_init_q();
+    masked_polyvec_mask(mskpv, &skpv);
+}
+
+
+void masked_indcpa_dec_core(masked_msg mm,
+                            const uint8_t c[KYBER_INDCPA_BYTES],
+                            const masked_polyvec *mskpv) {
+    unsigned int i;
+    polyvec bp;
+    poly v;
+    masked_poly mp;
 
     unpack_ciphertext(&bp, &v, c);
 
-    unpack_sk(&skpv, sk);
-
     poly_init_ntt();
     polyvec_ntt(&bp);
-    
-    masked_gadgets_init_q();
-    masked_polyvec_mask(&mskpv, &skpv);
-    poly_init_zeta();
-    masked_polyvec_pointwise_acc_invntt(&mp, &mskpv, &bp);
 
-    masked_poly_sub_tomsg(m, &v, &mp);
+    poly_init_zeta();
+    masked_polyvec_pointwise_acc_invntt(&mp, mskpv, &bp);
+    masked_poly_sub_tomsg(mm, &v, &mp);
+}
+
+
+void masked_indcpa_dec_finish(uint8_t m[KYBER_INDCPA_MSGBYTES],
+                              const masked_msg mm) {
+    unsigned int i;
+    for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
+        m[i] = mm[0][i];
+        for (unsigned int j = 1; j < MASKING_N; j++) {
+            m[i] ^= mm[j][i];
+        }
+    }
+}
+
+
+void masked_indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
+                      const uint8_t c[KYBER_INDCPA_BYTES],
+                      const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
+    masked_polyvec mskpv;
+    masked_msg mm;
+    masked_indcpa_dec_init(&mskpv, sk);
+    masked_indcpa_dec_core(mm, c, &mskpv);
+    masked_indcpa_dec_finish(m, mm);
 }

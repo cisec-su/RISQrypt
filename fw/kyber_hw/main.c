@@ -267,6 +267,7 @@ void  test_masked_cbd() {
 }
 
 
+masked_polyvec mskpv;
 
 void test_masked_indcpa_dec() {
 
@@ -275,7 +276,8 @@ void test_masked_indcpa_dec() {
 
     BENCH_START() 
 
-    masked_indcpa_dec(mm, c, sk);
+    masked_indcpa_dec_init(&mskpv, sk);
+    masked_indcpa_dec_core(mm, c, &mskpv);
 
     BENCH_END(MASKED_INDCPA_DEC)
 

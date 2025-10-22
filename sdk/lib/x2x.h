@@ -17,7 +17,7 @@
 
 int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_type, uint32_t dual_mode, uint32_t rej_sample);
 
-int x2x_seed(uint32_t *seed);
+int x2x_seed(uint32_t seed[2]);
 
 int x2x_a2b(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src0, unsigned int len);
 

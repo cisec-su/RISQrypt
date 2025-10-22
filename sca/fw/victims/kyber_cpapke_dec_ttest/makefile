@@ -1,4 +1,4 @@
-PROJ = kyber_cpapke_dec_ss
+PROJ = kyber_cpapke_dec_ttest
 
 TOOLCHAIN_DIR = ../../../../sdk/toolchain
 
@@ -10,13 +10,19 @@ SIMPLESERIAL_DIR = ../../simpleserial
 
 KYBER_HW_DIR = ../../../../fw/kyber_hw
 
-SRC = kyber_cpapke_dec_ss.c
+SRC = kyber_cpapke_dec_ttest.c
 SRC += $(KYBER_HW_DIR)/indcpa.c
 SRC += $(KYBER_HW_DIR)/poly.c
 SRC += $(KYBER_HW_DIR)/polyvec.c
 SRC += $(KYBER_HW_DIR)/pack.c
 SRC += $(KYBER_HW_DIR)/symmetric.c
 SRC += $(KYBER_HW_DIR)/cbd.c
+SRC += $(KYBER_HW_DIR)/masked_indcpa.c
+SRC += $(KYBER_HW_DIR)/masked_poly.c
+SRC += $(KYBER_HW_DIR)/masked_polyvec.c
+SRC += $(KYBER_HW_DIR)/masked_symmetric.c
+SRC += $(KYBER_HW_DIR)/masked_cbd.c
+SRC += $(KYBER_HW_DIR)/masked_gadgets.c
 
 INC = -I$(KYBER_HW_DIR)
 
@@ -26,6 +32,9 @@ ifdef KYBER_K
 CFLAGS += -DKYBER_K=$(KYBER_K)
 endif
 
+ifdef PRNG_OFF
+CFLAGS += -DPRNG_OFF
+endif
 
 OPTIMIZATION = -O3
 
