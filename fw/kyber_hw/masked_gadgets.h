@@ -16,6 +16,8 @@ void masked_gadgets_init_q();
 
 void masked_gadgets_mask_polyvec(masked_polyvec *r, const polyvec *a);
 
+void masked_gadgets_mask_doublesym(uint8_t r[MASKING_N][KYBER_SYMBYTES * 2], const uint8_t a[KYBER_SYMBYTES * 2]);
+
 void masked_gadgets_init_2k(uint32_t p);
 
 void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a);
@@ -31,8 +33,6 @@ void masked_gadgets_B2A_qm_u32(masked_poly_u32 *r, const masked_poly_u32 *a);
 void masked_gadgets_B2A_qm_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u32 *a);
 
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a);
-
-void masked_gadgets_mask_poly(masked_poly *r, const poly *a);
 
 void masked_gadgets_exp_u32(masked_u32 r, masked_u32 a);
 

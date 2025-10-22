@@ -11,7 +11,7 @@
 
 
 
-int masked_indcpa_enc_cmp(uint8_t c[KYBER_INDCPA_BYTES],
+int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
                           const masked_msg m,
                           const uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
                           const masked_sym coins) {
@@ -99,24 +99,10 @@ void masked_indcpa_dec_core(masked_msg mm,
 }
 
 
-void masked_indcpa_dec_finish(uint8_t m[KYBER_INDCPA_MSGBYTES],
-                              const masked_msg mm) {
-    unsigned int i;
-    for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
-        m[i] = mm[0][i];
-        for (unsigned int j = 1; j < MASKING_N; j++) {
-            m[i] ^= mm[j][i];
-        }
-    }
-}
-
-
-void masked_indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
-                      const uint8_t c[KYBER_INDCPA_BYTES],
-                      const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
+void masked_indcpa_dec(masked_msg mm,
+                       const uint8_t c[KYBER_INDCPA_BYTES],
+                       const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
     masked_polyvec mskpv;
-    masked_msg mm;
     masked_indcpa_dec_init(&mskpv, sk);
     masked_indcpa_dec_core(mm, c, &mskpv);
-    masked_indcpa_dec_finish(m, mm);
 }

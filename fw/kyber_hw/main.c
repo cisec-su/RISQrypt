@@ -346,7 +346,7 @@ void test_masked_indcca() {
 
     masked_crypto_kem_dec(K_, c_cca, sk_cca);
 
-    BENCH_END(INDCCA_DEC)
+    BENCH_END(MASKED_INDCCA_DEC)
 
     TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
 

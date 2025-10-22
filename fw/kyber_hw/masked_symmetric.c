@@ -61,3 +61,14 @@ void masked_sha3_512(masked_ptr dst, const masked_ptr src, size_t len) {
     masked_sha3_512_finish();
     masked_keccak_squeeze(dst, SHA3_512_HASH_SIZE);
 }
+
+
+void masked_kdf(masked_ss dst, const masked_sym key_material, const uint8_t h_ct[KYBER_SYMBYTES]) {
+    volatile uint32_t t;
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
+    keccak_absorb((uint32_t*) key_material[0], (uint32_t*) key_material[1], KYBER_SYMBYTES >> 2);
+    keccak_absorb_public((uint32_t*) h_ct, KYBER_SYMBYTES >> 2);
+    t = SHAKE_PAD;
+    keccak_finish((uint32_t*) &t);
+    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], KYBER_SSBYTES >> 2);
+}

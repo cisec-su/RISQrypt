@@ -34,6 +34,14 @@ void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a
 }
 
 
+void masked_polyvec_pointwise_acc_invntt_tohw(masked_poly *r, const masked_polyvec *a, const polyvec *b) {
+    int i;
+    for (i = (MASKING_N - 1); i >= 0; i--) {
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, (i == 0));
+    }
+}
+
+
 void masked_polyvec_add(masked_polyvec *r, const masked_polyvec *a, const masked_polyvec *b) {
     unsigned int i, j;
     for (i = 0; i < MASKING_N; i++) {

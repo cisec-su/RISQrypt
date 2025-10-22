@@ -21,13 +21,18 @@ void masked_gadgets_mask_polyvec(masked_polyvec *r, const polyvec *a) {
 }
 
 
+void masked_gadgets_mask_doublesym(uint8_t r[MASKING_N][KYBER_SYMBYTES * 2], const uint8_t a[KYBER_SYMBYTES * 2]) {
+    x2x_b_share((uint32_t*) r[0], (uint32_t*) r[1], (uint32_t*) a, KYBER_SYMBYTES >> 1);
+}
+
+
 void masked_gadgets_init_2k(uint32_t p) {
-    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, 0);
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_EN, X2X_REJ_SAMPLE_DIS);
 }
 
 
 void masked_gadgets_init_2k_u32(uint32_t p) {
-    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, 0);
+    x2x_set_modulus(p, 0, X2X_MODULUS_POW2, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_DIS);
 }
 
 

@@ -2,94 +2,96 @@
 #include <stdint.h>
 #include "params.h"
 #include "symmetric.h"
+#include "masked_gadgets.h"
 #include "masked_symmetric.h"
 #include "verify.h"
 #include "masked_indcpa.h"
 #include "masked_kem.h"
 
 
-void unmask_and_print(uint8_t m[2][32], const char* label) {
-        uint8_t unmasked[32];
-        for (size_t i = 0; i < 32; i++) {
-                unmasked[i] = m[0][i] ^ m[1][i];
-        }
-        print_string(label);
-        print_string(": ");
-        print_hex(unmasked, 32, 0);
-        print_string("\n");
+void masked_crypto_kem_dec_init(masked_polyvec *mskpv,
+                                uint8_t mhz[MASKING_N][KYBER_SYMBYTES * 2],
+                                const unsigned char *sk) {
+    uint8_t *hz;
+    masked_indcpa_dec_init(mskpv, sk);    
+    hz = (uint8_t*) (sk + KYBER_SECRETKEYBYTES - 2 * KYBER_SYMBYTES);
+    masked_gadgets_init_2k(0xFFFF);
+    masked_gadgets_mask_doublesym(mhz, hz);
 }
 
 
-void just_print(uint8_t m[32], const char* label) {
-        print_string(label);
-        print_string(": ");
-        print_hex(m, 32, 0);
-        print_string("\n");
-}
+#define FLAT_TO_PTR_LOOP(SRC) for (i = 0; i < MASKING_N; i++) { \
+                                  ptr[i] = SRC[i]; } \
 
 
-int masked_crypto_kem_dec(unsigned char *ss,
-                          const unsigned char *ct,
-                          const unsigned char *sk)
-{
-    size_t i, j;
+int masked_crypto_kem_dec_core(masked_ss mss,
+                               const unsigned char *ct,
+                               const unsigned char *pk,
+                               const masked_polyvec *mskpv,
+                               const uint8_t mhz[MASKING_N][KYBER_SYMBYTES * 2]) {
+
+    size_t i;
     int fail;
     masked_msg mm;
-    masked_msg temp;
-    uint8_t mk[MASKING_N][KYBER_SYMBYTES * 2];
+    masked_sym mk;
     masked_sym mcoins;
     masked_ptr ptr;
+    uint8_t *h_ct = mcoins[0];
 
-    const uint8_t *pk = sk+KYBER_INDCPA_SECRETKEYBYTES;
-    masked_indcpa_dec(mm, ct, sk);
+    masked_indcpa_dec_core(mm, ct, mskpv);
 
     ///////// ( K', r') = G(m'||h)
-    for (i = 0; i < MASKING_N; i++) {
-        ptr[i] = mm[i];
-    }
+    FLAT_TO_PTR_LOOP(mm)
     masked_hash_g_init();
     masked_hash_g_core(ptr, KYBER_INDCPA_MSGBYTES);
-    for(i = 0; i < KYBER_SYMBYTES; i++) {
-        temp[0][i] = sk[KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES+i];
-        temp[1][i] = 0;
-    }
-    for (i = 0; i < MASKING_N; i++) {
-        ptr[i] = temp[i];
-    }
+    FLAT_TO_PTR_LOOP((uint8_t*) mhz)
     masked_hash_g_core(ptr, KYBER_INDCPA_MSGBYTES);
     masked_hash_g_finish();
-    for (i = 0; i < MASKING_N; i++) {
-        ptr[i] = mk[i];
-    }
+    FLAT_TO_PTR_LOOP(mk)
     masked_hash_g_squeezehalf(ptr);
-    for (i = 0; i < MASKING_N; i++) {
-        ptr[i] = mcoins[i];
-    }
+    FLAT_TO_PTR_LOOP(mcoins)
     masked_hash_g_squeezehalf(ptr);
     ////////////////////////////////
 
     fail = masked_indcpa_enc_cmp(ct, mm, pk, mcoins);
 
-    hash_h(mk[0] + KYBER_SYMBYTES, ct, KYBER_CIPHERTEXTBYTES);
+    hash_h(h_ct, ct, KYBER_CIPHERTEXTBYTES);
 
-    // masked cmov
-    cmov(mk[0], sk + KYBER_SECRETKEYBYTES - KYBER_SYMBYTES, KYBER_SYMBYTES, fail);
-    // temp, will change
-    for (i = 0; i < KYBER_SYMBYTES; i++) {
-        mm[0][i] = 0;
-    }
-    for (i = 1; i < MASKING_N; i++) {
-        cmov(mk[i], mm[0], KYBER_SYMBYTES, fail);
+    for (i = 0; i < MASKING_N; i++) {
+        cmov(mk[i], mhz[i] + KYBER_SYMBYTES, KYBER_SYMBYTES, fail);
     }
 
-    // unmasking masked_kr
-    for (i = 1; i < MASKING_N; i++) {
-        for (j = 0; j < KYBER_SYMBYTES; j++) {
-            mk[0][j] ^= mk[i][j];
+    masked_kdf(mss, mk, h_ct);
+
+    return 0;
+}
+
+
+int masked_crypto_kem_dec_finish(unsigned char *ss,
+                                 const masked_ss mss) {
+    size_t i, j;
+
+    for (i = 0; i < MASKING_N; i++) {
+        for (j = 0; j < KYBER_SSBYTES; j++) {
+            ss[j] = (i == 0) ? mss[0][j] : mss[i][j] ^ ss[j];
         }
     }
 
-    kdf(ss, mk[0], KYBER_SYMBYTES * 2);
+    return 0;
+}
 
+
+
+int masked_crypto_kem_dec(unsigned char *ss,
+                          const unsigned char *ct,
+                          const unsigned char *sk) {
+
+    masked_polyvec mskpv;
+    uint8_t mhz[MASKING_N][KYBER_SYMBYTES * 2];
+    uint8_t *pk = (uint8_t*) (sk + KYBER_INDCPA_SECRETKEYBYTES);
+    masked_ss mss;
+    masked_crypto_kem_dec_init(&mskpv, mhz, sk);
+    masked_crypto_kem_dec_core(mss, ct, pk, &mskpv, mhz);
+    masked_crypto_kem_dec_finish(ss, mss);
     return 0;
 }
