@@ -15,9 +15,14 @@ module x2x_acc_rng
         input                         ctrl_data_type,// 0 -> power-of-two, 1 -> prime
         input                 [ 4:0]  log_modulus   ,
         input                         ctrl_rej_samp ,
+        input                         ctrl_prng_off ,
         output reg [PARAM_WIDTH-1:0]  x2x_fresh_rnd_shares      [RND_SHARES_2SHARE    -1:0],
         output reg [  BOX_WIDTH-1:0]  x2x_fresh_rnd_shares_8bit [RND_SHARES_2SHARE_BOX-1:0],
-        output                        rnd_ready 
+        output                        rnd_ready,
+        output [31:0]                 rand0,
+        output [31:0]                 rand1,
+        output [31:0]                 rand2,
+        output [31:0]                 rand3
     );
 
 
@@ -50,7 +55,7 @@ Trivium #(
     .output_bits(256)
 ) RNG1 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd1),
@@ -61,7 +66,7 @@ Trivium #(
     .output_bits(256)
 ) RNG2 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd2),
@@ -72,7 +77,7 @@ Trivium #(
     .output_bits(256)
 ) RNG3 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd3),
@@ -80,32 +85,32 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(224)
 ) RNG4 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd4),
-    .stream_out(stream_out4)
+    .stream_out({stream_out4, rand0, rand1})
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(224)
 ) RNG5 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd5),
-    .stream_out(stream_out5)
+    .stream_out({stream_out5, rand2, rand3})
 );
 
 Trivium #(
     .output_bits(160)
 ) RNG6 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd6),
@@ -116,7 +121,7 @@ Trivium #(
     .output_bits(160)
 ) RNG7 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd7),
@@ -127,7 +132,7 @@ Trivium #(
     .output_bits(160)
 ) RNG8 (
     .clk(clk),
-    .rst(rst_n),
+    .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd8),

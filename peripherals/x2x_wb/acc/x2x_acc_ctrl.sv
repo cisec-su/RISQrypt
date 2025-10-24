@@ -1,7 +1,8 @@
 module x2x_acc_ctrl 
    #(
-        parameter SHARES    = 2           ,
-        parameter BASE_ADDR = 32'h1004_0060
+        parameter SHARES      = 2            ,
+        parameter BASE_ADDR   = 32'h1004_0060,
+        parameter PRNG_OFF_EN = 0
     )
     (    
         input                    clk                   ,
@@ -31,7 +32,8 @@ module x2x_acc_ctrl
         output reg [      63:0]  seed                  ,     // (Write)
         output reg               load_seed             ,     // (Write/Self-Clear)
         output reg [31:0]        modulus               ,
-
+        output reg               prng_off              ,     // (Write/Self-Clear)
+        
         input                    busy                  ,     // Busy status input
         input                    seed_ip               ,
         input                    done                        // Done status input
@@ -51,7 +53,6 @@ localparam DOUT_PTR_ADDR_END   = DOUT_PTR_ADDR_START + ((SHARES - 1) << 2);     
 
 // Bit-fields for ctrl register
 localparam CTRL_START_BIT      = 0;
-localparam CTRL_RESET_BIT      = 1;
 localparam CTRL_CONV_MODE_BIT  = 2;
 localparam CTRL_DATA_TYPE_BIT  = 3;   //readback
 localparam CTRL_DUAL_MODE_BIT  = 4;   //readback
@@ -62,6 +63,7 @@ localparam CTRL_LOG_STRIDE_LSB = 13;
 localparam CTRL_LOG_STRIDE_MSB = 15;
 localparam CTRL_ONE_BIT_MODE   = 11; 
 localparam CTRL_REJ_SAMP_BIT   = 12;
+localparam CTRL_PRNG_OFF_BIT   = 28;
 localparam CTRL_SEED_IP_BIT    = 29;
 localparam CTRL_BUSY_BIT       = 30;
 localparam CTRL_DONE_BIT       = 31;
@@ -94,6 +96,22 @@ always @(posedge clk or negedge rst_n) begin
         start <= 1'd0;
     end
 end
+
+if (PRNG_OFF_EN) begin
+    // PRNG OFF (Self-Clear)
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            prng_off <= 1'd0;
+        end
+        else if (we && (addr_offset == CTRL_ADDR)) begin
+            prng_off <= wdata[CTRL_PRNG_OFF_BIT];
+        end
+        else begin
+            prng_off <= 1'd0;
+        end
+    end
+end
+
 
 // CONV_MODE
 always @(posedge clk or negedge rst_n) begin

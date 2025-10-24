@@ -2,9 +2,8 @@ module x2x_acc_top
    #(
         parameter BASE_ADDR       = 32'h1004_0050,
         parameter SHARES          = 2           ,
-        parameter SLICES_PARALLEL = 16          ,
-        parameter LESS_RAND       = 1           ,
-        parameter LOGL            = 10
+        parameter LOGL            = 10          ,
+        parameter PRNG_OFF_EN     = 0
     )
     (
         // wishbone
@@ -100,6 +99,8 @@ wire [4:0] log_modulus;
 wire [2:0] log_stride;
 wire rej_samp;
 wire seed_ip;
+wire ctrl_prng_off;
+wire fsm_prng_off;
 
 // fsm <-> dma
 wire [31:0] mem_addr;
@@ -121,8 +122,10 @@ wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES_2SHARE - 1:
 
 assign modulus_twoc = (32'hFFFFFFFF ^ modulus) + 1;
 
+assign fsm_prng_off = (PRNG_OFF_EN) ? ctrl_prng_off : 1'b0;
+
 X2X_32b_2SHARE_HALFCYCLE_STREAM #(
-    .HALFCYCLE          (0              ),
+    .HALFCYCLE          (1              ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
     .N_SHARES           (2              ),
     .RND_SHARES         (RND_SHARES_2SHARE),
@@ -191,6 +194,7 @@ x2x_acc_fsm #(
     .log_modulus(log_modulus),  ///////////
     .log_stride(log_stride),  ///////////
     .ctrl_rej_samp(rej_samp),////////// 
+    .ctrl_prng_off(fsm_prng_off),
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
     .mem_re          (mem_re           ),
@@ -270,8 +274,9 @@ x2x_acc_wb x2x_acc_wb_inst (
 
 
 x2x_acc_ctrl #(
-    .BASE_ADDR (BASE_ADDR),
-    .SHARES    (SHARES   )
+    .BASE_ADDR  (BASE_ADDR  ),
+    .SHARES     (SHARES     ),
+    .PRNG_OFF_EN(PRNG_OFF_EN)
 ) x2x_acc_ctrl_inst (
     .clk       (clk       ),
     .rst_n     (rst_n     ),
@@ -302,6 +307,7 @@ x2x_acc_ctrl #(
     .load_seed (load_seed ),
     .busy      (busy      ),
     .seed_ip   (seed_ip),//////
+    .prng_off  (ctrl_prng_off),
     .done      (done      )
 );
 
