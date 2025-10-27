@@ -1,2 +1,3 @@
 SRC += $(CW305_DRIVER_DIR)/cw305.c
+SRC += $(CW305_DRIVER_DIR)/x2x_prng.c
 INC += -I$(CW305_DRIVER_DIR)

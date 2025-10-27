@@ -29,11 +29,13 @@ parameter MODE = 2;////////////////////////////////////
 ///////////////////////////////////////////////////////
 
 `ifdef CW305
-parameter SYS_CLK_FREQ     = 10000000;
+parameter SYS_CLK_FREQ     = 40000000;
 parameter USB_ADDR_WIDTH   = 21      ;
 parameter CW305_FIFO_BSIZE = 128     ;
+parameter PRNG_OFF_EN      = 1       ;
 `else
 parameter SYS_CLK_FREQ   = 50000000;
+parameter PRNG_OFF_EN    = 0       ;
 `endif
 parameter UART_BAUD      = 9600    ;
 parameter GPIO_WIDTH     = 8       ;
@@ -263,14 +265,7 @@ assign led   = bootloader_en;
 
 
 
-`ifdef
-clk_wiz_0 clkwiz0
-(
-   .clk_out1(clk       ),
-   .reset   (1'b0      ),
-   .clk_in1 (M100_clk_i)
-);
-`else
+`ifdef CW305
 IBUFG clkibuf (
     .I(clk_i     ),
     .O(clk_i_bufg)
@@ -278,6 +273,13 @@ IBUFG clkibuf (
 BUFG clkbuf(
     .I(clk_i_bufg),
     .O(clk       )
+);
+`else
+clk_wiz_0 clkwiz0
+(
+   .clk_out1(clk  ),
+   .reset   (1'b0 ),
+   .clk_in1 (clk_i)
 );
 `endif
 
@@ -547,7 +549,8 @@ end
 if (MODE == 2) begin
 
 x2x_acc_top #(
-    .BASE_ADDR(X2X_START)
+    .BASE_ADDR  (X2X_START  ),
+    .PRNG_OFF_EN(PRNG_OFF_EN)
 ) x2x_acc_top_inst (
     .wb_cyc_i  (wb_cyc_i  [8]),
     .wb_stb_i  (wb_stb_i  [8]),
@@ -576,6 +579,80 @@ x2x_acc_top #(
 );
 
 end
+
+
+// /*
+// module wb_bus
+//    #(  
+//         parameter NUM_SLAVES = 1,
+//         parameter SHIFT      = 1
+//     )
+//     (
+//         input         wb_clk_i     [NUM_SLAVES-1:0],
+//         input         wb_cyc_i     [NUM_SLAVES-1:0],
+//         input         wb_stb_i     [NUM_SLAVES-1:0],
+//         input         wb_we_i      [NUM_SLAVES-1:0],
+//         input  [31:0] wb_adr_i     [NUM_SLAVES-1:0],
+//         input  [31:0] wb_dat_i     [NUM_SLAVES-1:0],
+//         input  [ 3:0] wb_sel_i     [NUM_SLAVES-1:0],
+//         input         wb_rst_i     [NUM_SLAVES-1:0],
+//         input         wb_stall_o   [NUM_SLAVES-1:0],
+//         input         wb_ack_o     [NUM_SLAVES-1:0],
+//         input  [31:0] wb_dat_o     [NUM_SLAVES-1:0],
+//         input         wb_err_o     [NUM_SLAVES-1:0],
+
+//         output        wb_cyc_i_d   [NUM_SLAVES-1:0],
+//         output        wb_stb_i_d   [NUM_SLAVES-1:0],
+//         output        wb_we_i_d    [NUM_SLAVES-1:0],
+//         output [31:0] wb_adr_i_d   [NUM_SLAVES-1:0],
+//         output [31:0] wb_dat_i_d   [NUM_SLAVES-1:0],
+//         output [ 3:0] wb_sel_i_d   [NUM_SLAVES-1:0],
+//         output        wb_rst_i_d   [NUM_SLAVES-1:0],
+//         output        wb_stall_o_d [NUM_SLAVES-1:0],
+//         output        wb_ack_o_d   [NUM_SLAVES-1:0],
+//         output [31:0] wb_dat_o_d   [NUM_SLAVES-1:0],
+//         output        wb_err_o_d   [NUM_SLAVES-1:0]
+//     );
+// */
+
+// if (NUM_DMA_ACCS > 0) begin
+
+// for (genvar i = 0; i < NUM_DMA_ACCS; i = i + 1) begin
+//     assign dma_clk_i[i] = clk_i;
+// end
+
+// wb_bus #(
+//     .NUM_SLAVES(NUM_DMA_ACCS),
+//     .SHIFT(1)
+// ) wb_bus_dma (
+//     .wb_clk_i    (dma_clk_i    ),
+//     .wb_cyc_i    (dma_cyc_i    ),
+//     .wb_stb_i    (dma_stb_i    ),
+//     .wb_we_i     (dma_we_i     ),
+//     .wb_adr_i    (dma_adr_i    ),
+//     .wb_dat_i    (dma_dat_i    ),
+//     .wb_sel_i    (dma_sel_i    ),
+//     .wb_rst_i    (dma_rst_i    ),
+//     .wb_stall_o  (dma_stall_o  ),
+//     .wb_ack_o    (dma_ack_o    ),
+//     .wb_dat_o    (dma_dat_o    ),
+//     .wb_err_o    (dma_err_o    ),
+    
+//     .wb_cyc_o    (dma_cyc_i_d  ),
+//     .wb_stb_o    (dma_stb_i_d  ),
+//     .wb_we_o     (dma_we_i_d   ),
+//     .wb_adr_o    (dma_adr_i_d  ),
+//     .wb_dat_o    (dma_dat_i_d  ),
+//     .wb_sel_o    (dma_sel_i_d  ),
+//     .wb_rst_o    (dma_rst_i_d  ),
+//     .wb_stall_i  (dma_stall_o_d),
+//     .wb_ack_i    (dma_ack_o_d  ),
+//     .wb_dat_i    (dma_dat_o_d  ),
+//     .wb_err_i    (dma_err_o_d  )
+// );
+
+// end
+
 
 `ifdef CW305
 

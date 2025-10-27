@@ -10,6 +10,9 @@ SIMPLESERIAL_DIR = ../../simpleserial
 
 KYBER_HW_DIR = ../../../../fw/kyber_hw
 
+VICTIMS_COMMONS_DIR = ../victims_commons
+
+
 SRC = kyber_poly_tomsg_ttest.c
 SRC += $(KYBER_HW_DIR)/indcpa.c
 SRC += $(KYBER_HW_DIR)/poly.c
@@ -26,14 +29,15 @@ SRC += $(KYBER_HW_DIR)/masked_gadgets.c
 SRC += $(KYBER_HW_DIR)/kem.c
 SRC += $(KYBER_HW_DIR)/masked_kem.c
 SRC += $(KYBER_HW_DIR)/verify.c
+SRC += $(VICTIMS_COMMONS_DIR)/victims_commons_util.c
+SRC += $(VICTIMS_COMMONS_DIR)/victims_commons_kyber.c
 
-INC = -I$(KYBER_HW_DIR)
+INC = -I$(KYBER_HW_DIR) -I$(VICTIMS_COMMONS_DIR)
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
-ifdef KYBER_K
-CFLAGS += -DKYBER_K=$(KYBER_K)
-endif
+CFLAGS += -DKYBER_K=3
+# CFLAGS += -DVERBOSE
 
 
 OPTIMIZATION = -O3
