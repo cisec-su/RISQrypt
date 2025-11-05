@@ -60,33 +60,7 @@ module x2x_acc_fsm
         input      [PARAM_WIDTH - 1 : 0]             x2x_converted_data [2 - 1 : 0][N_SHARES - 1:0]
     );
 
-wire rnd_ready;
 
-
-x2x_acc_rng #(
-        .PARAM_WIDTH(PARAM_WIDTH),
-        .BOX_WIDTH(BOX_WIDTH),
-        .RND_SHARES_2SHARE(RND_SHARES_2SHARE),
-        .RND_SHARES_2SHARE_BOX(RND_SHARES_2SHARE_BOX)
-) x2x_acc_rng (
-        .clk(clk),
-        .rst_n(rst_n),
-        .modulus(modulus),
-        .ctrl_seed(ctrl_seed),
-        .ctrl_load_seed(ctrl_load_seed),
-        .ctrl_conv_mode(ctrl_conv_mode), 
-        .ctrl_data_type(ctrl_data_type), 
-        .log_modulus(log_modulus),  
-        .ctrl_rej_samp(ctrl_rej_samp),
-        .ctrl_prng_off(ctrl_prng_off),
-        .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
-        .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
-        .rnd_ready(rnd_ready),
-        .rand0(rand0),
-        .rand1(rand1),
-        .rand2(rand2),
-        .rand3(rand3)
-    );
 
 
 
@@ -152,15 +126,13 @@ reg reg0_rsel;
 reg reg1_rsel;
 reg [31:0] reg_s0r;
 reg [31:0] reg_s1r;
-wire [31:0] rand0;
-wire [31:0] rand1;
 
-wire [31:0] rand2;
-wire [31:0] rand3;
 reg [31:0] reg_s0w;
 reg [31:0] reg_s1w;
 reg write_s0_q;
 reg write_s1_q;
+
+wire rnd_ready;
 
 
 wire dualprime;
@@ -178,6 +150,27 @@ assign input_data_len = ctrl_data_len;
 wire [LOGL-1:0] output_data_len;
 assign output_data_len = ctrl_one_bit_mode ? (1 << ctrl_data_len) : ctrl_data_len;
 
+
+x2x_acc_rng #(
+        .PARAM_WIDTH(PARAM_WIDTH),
+        .BOX_WIDTH(BOX_WIDTH),
+        .RND_SHARES_2SHARE(RND_SHARES_2SHARE),
+        .RND_SHARES_2SHARE_BOX(RND_SHARES_2SHARE_BOX)
+) x2x_acc_rng (
+        .clk(clk),
+        .rst_n(rst_n),
+        .modulus(modulus),
+        .ctrl_seed(ctrl_seed),
+        .ctrl_load_seed(ctrl_load_seed),
+        .ctrl_conv_mode(ctrl_conv_mode), 
+        .ctrl_data_type(ctrl_data_type), 
+        .log_modulus(log_modulus),  
+        .ctrl_rej_samp(ctrl_rej_samp),
+        .ctrl_prng_off(ctrl_prng_off),
+        .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
+        .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
+        .rnd_ready(rnd_ready)
+    );
 
 
 always @(posedge clk or negedge rst_n) begin
@@ -761,11 +754,11 @@ always @(posedge clk or negedge rst_n) begin
     end
     else begin
         case(reg0_rsel)
-            0: reg_s0r <= rand0;
+            0: reg_s0r <= 0;
             1: reg_s0r <= shares[0][ctr_block_r];
         endcase
         case(reg1_rsel)
-            0: reg_s1r <= rand1;
+            0: reg_s1r <= 0;
             1: reg_s1r <= shares[1][ctr_block_r];
         endcase    
     end
@@ -779,11 +772,11 @@ always @(posedge clk or negedge rst_n) begin
     end
     else begin
         case(write_s0)
-            0: reg_s0w <= rand2;
+            0: reg_s0w <= 0;
             1: reg_s0w <= mem_i_data;
         endcase
         case(write_s1)
-            0: reg_s1w <= rand3;
+            0: reg_s1w <= 0;
             1: reg_s1w <= mem_i_data;
         endcase    
     end

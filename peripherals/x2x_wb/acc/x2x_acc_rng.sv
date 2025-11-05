@@ -18,11 +18,7 @@ module x2x_acc_rng
         input                         ctrl_prng_off ,
         output reg [PARAM_WIDTH-1:0]  x2x_fresh_rnd_shares      [RND_SHARES_2SHARE    -1:0],
         output reg [  BOX_WIDTH-1:0]  x2x_fresh_rnd_shares_8bit [RND_SHARES_2SHARE_BOX-1:0],
-        output                        rnd_ready,
-        output [31:0]                 rand0,
-        output [31:0]                 rand1,
-        output [31:0]                 rand2,
-        output [31:0]                 rand3
+        output                        rnd_ready
     );
 
 
@@ -92,7 +88,7 @@ Trivium #(
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd4),
-    .stream_out({stream_out4, rand0, rand1})
+    .stream_out(stream_out4)
 );
 
 Trivium #(
@@ -103,7 +99,7 @@ Trivium #(
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd5),
-    .stream_out({stream_out5, rand2, rand3})
+    .stream_out(stream_out5)
 );
 
 Trivium #(
