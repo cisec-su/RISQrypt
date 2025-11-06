@@ -13,12 +13,16 @@ module x2x_acc_rng
         input                         ctrl_load_seed,
         input                         ctrl_conv_mode,// 0 -> A2B, 1 -> B2A
         input                         ctrl_data_type,// 0 -> power-of-two, 1 -> prime
+        input                         ctrl_dual_mode,
         input                 [ 4:0]  log_modulus   ,
         input                         ctrl_rej_samp ,
         input                         ctrl_prng_off ,
         output reg [PARAM_WIDTH-1:0]  x2x_fresh_rnd_shares      [RND_SHARES_2SHARE    -1:0],
         output reg [  BOX_WIDTH-1:0]  x2x_fresh_rnd_shares_8bit [RND_SHARES_2SHARE_BOX-1:0],
-        output                        rnd_ready
+        output                        rnd_x2x_ready,
+        output reg [31:0]             rnd_ref,
+        output reg                    rnd_ref_ready
+        
     );
 
 
@@ -27,9 +31,9 @@ wire [255:0] stream_out2;
 wire [159:0] stream_out3; 
 wire [159:0] stream_out4; 
 wire [159:0] stream_out5; 
-wire [159:0] stream_out6; 
-wire [159:0] stream_out7; 
-wire [159:0] stream_out8;  
+wire [191:0] stream_out6; 
+wire [191:0] stream_out7; 
+wire [191:0] stream_out8;  
 
 wire [PARAM_WIDTH-1:0] modulus_mask;
 wire [PARAM_WIDTH  :0] modulus_int;
@@ -37,14 +41,14 @@ wire [PARAM_WIDTH  :0] modulus_int;
 reg  [RND_SHARES_2SHARE-1:0] data_ready;
 
 
-assign modulus_mask = (ctrl_data_type == 0) ? modulus                     :
+assign modulus_mask = (ctrl_data_type == 0) ? (modulus - 1)                 :
                       (ctrl_rej_samp      ) ? (1 << (log_modulus - 1)) - 1:
                                               (1 << log_modulus)       - 1;
 
 assign modulus_int = (ctrl_data_type) ?    {1'b0, modulus} : 
                                         {1'b0, modulus} + 1;
 
-assign rnd_ready = (data_ready == 0); // TODO : will be parametric*/
+assign rnd_x2x_ready = (data_ready == 0); // TODO : will be parametric*/
 
 
 Trivium #(
@@ -70,7 +74,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(256)
+    .output_bits(256)// WHY 256
 ) RNG3 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -81,7 +85,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(224)
+    .output_bits(160)
 ) RNG4 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -92,7 +96,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(224)
+    .output_bits(160)
 ) RNG5 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -103,7 +107,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(192)
 ) RNG6 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -114,7 +118,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(192)
 ) RNG7 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -125,7 +129,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(192)
 ) RNG8 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -194,6 +198,38 @@ for(genvar j = 0; j < RND_SHARES_2SHARE_BOX ; j = j + 1) begin
             x2x_fresh_rnd_shares_8bit[j] = stream_out1[(BOX_WIDTH*(j+1)-1):(BOX_WIDTH*j)]; 
         else
             x2x_fresh_rnd_shares_8bit[j] = stream_out2[(BOX_WIDTH*((j-RND_SHARES_2SHARE_BOX/2)+1)-1):(BOX_WIDTH*(j-RND_SHARES_2SHARE_BOX/2))];     
+    end
+end
+
+always @(*)
+begin
+    if(!ctrl_data_type && ctrl_dual_mode)
+    begin
+        rnd_ref = {(stream_out6[191:176] & modulus_mask[15:0]),(stream_out6[175:160] & modulus_mask[15:0])};
+        rnd_ref_ready = 1;
+    end
+    else
+    begin
+        if((stream_out6[191:160] & modulus_mask) < modulus_int)
+        begin
+            rnd_ref = (stream_out6[191:160] & modulus_mask);
+            rnd_ref_ready = 1; 
+        end
+        else if((stream_out7[191:160] & modulus_mask) < modulus_int)
+        begin
+            rnd_ref = (stream_out7[191:160] & modulus_mask);
+            rnd_ref_ready = 1;
+        end
+        else if((stream_out8[191:160] & modulus_mask) < modulus_int)
+        begin
+            rnd_ref = (stream_out8[191:160] & modulus_mask);
+            rnd_ref_ready = 1;
+        end
+        else
+        begin
+            rnd_ref = 0;
+            rnd_ref_ready = 0;
+        end
     end
 end
 

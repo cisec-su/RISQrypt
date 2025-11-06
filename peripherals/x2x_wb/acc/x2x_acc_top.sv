@@ -101,6 +101,7 @@ wire rej_samp;
 wire seed_ip;
 wire ctrl_prng_off;
 wire fsm_prng_off;
+wire [1:0] opcode;
 
 // fsm <-> dma
 wire [31:0] mem_addr;
@@ -120,37 +121,45 @@ wire [BOX_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_8bit   [RND_SHARES_2SHARE_BOX - 
 wire [PARAM_WIDTH - 1 : 0] x2x_original_data    [2 - 1 : 0][N_SHARES_2SHARE - 1:0];
 wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES_2SHARE - 1:0];
 
+wire [31:0] rnd_ref;
+
 assign modulus_twoc = (32'hFFFFFFFF ^ modulus) + 1;
 
 assign fsm_prng_off = (PRNG_OFF_EN) ? ctrl_prng_off : 1'b0;
 
-X2X_32b_2SHARE_HALFCYCLE_STREAM #(
-    .HALFCYCLE          (1              ),
+x2x_acc_op_core #(
+    .HALFCYCLE          (0              ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
     .N_SHARES           (2              ),
     .RND_SHARES         (RND_SHARES_2SHARE),
     .RND_SHARES_BOX    (RND_SHARES_2SHARE_BOX),
-    .BOX_WIDTH (BOX_WIDTH)
-) x2x_inst (
+    .BOX_WIDTH (BOX_WIDTH),
+    .RND_SHARES_2SHARE(RND_SHARES_2SHARE),
+    .RND_SHARES_2SHARE_BOX(RND_SHARES_2SHARE_BOX)
+) x2x_acc_op_core (
     .clk                    (clk           ),
     .rst_n                  (rst_n         ),
     // x2x <- ctrl
-    .conversion_mode        (x2x_conv_mode),
-    .data_type_mode         (x2x_data_type),
+    .conv_mode        (x2x_conv_mode),
+    .data_type         (x2x_data_type),
     .dual_mode              (x2x_dual_mode & !x2x_data_type),
     // x2x <-> fsm
-    .valid_data             (x2x_valid_data),
-    .ready_data             (x2x_ready_data),
+    .valid_data          (x2x_valid_data),
+    .ready_data          (x2x_ready_data),
     .ready_result           (x2x_ready_result),
     .valid_result           (x2x_valid_result),
     
     .modulus(modulus),
     .modulus_twoc(modulus_twoc),
+    .log_modulus(log_modulus),
         
-    .fresh_rnd_shares       (x2x_fresh_rnd_shares),//TBC
-    .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),//TBC
+    .x2x_fresh_rnd_shares       (x2x_fresh_rnd_shares),//TBC
+    .x2x_fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),//TBC
     .original_data          (x2x_original_data),
-    .converted_data         (x2x_converted_data)
+    .converted_data         (x2x_converted_data),
+    .opcode(opcode),
+    
+    .rnd_ref(rnd_ref)
 );
 
         
@@ -195,6 +204,7 @@ x2x_acc_fsm #(
     .log_stride(log_stride),  ///////////
     .ctrl_rej_samp(rej_samp),////////// 
     .ctrl_prng_off(fsm_prng_off),
+    .opcode(opcode),
     // fsm <-> dma
     .mem_addr        (mem_addr         ),
     .mem_re          (mem_re           ),
@@ -213,7 +223,8 @@ x2x_acc_fsm #(
     .x2x_fresh_rnd_shares       (x2x_fresh_rnd_shares),
     .x2x_fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),
     .x2x_original_data          (x2x_original_data),
-    .x2x_converted_data         (x2x_converted_data)
+    .x2x_converted_data         (x2x_converted_data),
+    .rnd_ref(rnd_ref)
 );
 
 
@@ -298,6 +309,7 @@ x2x_acc_ctrl #(
     .log_modulus(log_modulus),  ///////////
     .log_stride(log_stride),  ///////////
     .rej_samp(rej_samp),//////////   
+    .opcode(opcode),
         
     .din_addr  (din_addr  ),
     .dout_addr (dout_addr ),

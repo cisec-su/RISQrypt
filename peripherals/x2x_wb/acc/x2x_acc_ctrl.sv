@@ -24,6 +24,7 @@ module x2x_acc_ctrl
         output reg [4:0]         log_modulus,  
         output reg [2:0]         log_stride, 
         output reg               rej_samp,
+        output reg [1:0]         opcode,  
         
         // data address registers
         output reg [      31:0]  din_addr  [0:SHARES-1],     // (Write)
@@ -63,6 +64,8 @@ localparam CTRL_LOG_STRIDE_LSB = 13;
 localparam CTRL_LOG_STRIDE_MSB = 15;
 localparam CTRL_ONE_BIT_MODE   = 11; 
 localparam CTRL_REJ_SAMP_BIT   = 12;
+localparam CTRL_OPCODE_LSB     = 16; 
+localparam CTRL_OPCODE_MSB     = 17;
 localparam CTRL_PRNG_OFF_BIT   = 28;
 localparam CTRL_SEED_IP_BIT    = 29;
 localparam CTRL_BUSY_BIT       = 30;
@@ -201,6 +204,15 @@ always @(posedge clk or negedge rst_n) begin
     //else if (we && (addr_offset == CTRL_ADDR)) begin
         //mask_mode <= wdata[CTRL_MASK_DATA_BIT];
     //end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        opcode <= 2'b01;
+    end
+    else if (we && (addr_offset == CTRL_ADDR)) begin
+        opcode <= wdata[CTRL_OPCODE_MSB:CTRL_OPCODE_LSB];
+    end
 end
 
 
