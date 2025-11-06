@@ -71,6 +71,14 @@ typedef struct
 #define X2X_CTRL_LOG_STRIDE_M     ((uint32_t) 0x7)
 #define X2X_CTRL_LOG_STRIDE_V     (X2X_CTRL_LOG_STRIDE_M << X2X_CTRL_LOG_STRIDE_S)
 
+#define X2X_CTRL_CMD_S            ((uint32_t) 16)
+#define X2X_CTRL_CMD_M            ((uint32_t) 0x3)
+#define X2X_CTRL_CMD_V            (X2X_CTRL_CMD_M << X2X_CTRL_CMD_S)
+#define X2X_CTRL_CMD_PRNG         (((uint32_t) 0x0) << X2X_CTRL_CMD_S)
+#define X2X_CTRL_CMD_X2X          (((uint32_t) 0x1) << X2X_CTRL_CMD_S)
+#define X2X_CTRL_CMD_REF          (((uint32_t) 0x2) << X2X_CTRL_CMD_S)
+#define X2X_CTRL_CMD_X2XREF       (((uint32_t) 0x3) << X2X_CTRL_CMD_S)
+
 #define X2X_CTRL_SEED_BUSY_S      ((uint32_t) 29)
 #define X2X_CTRL_SEED_BUSY_M      ((uint32_t) 0x1)
 #define X2X_CTRL_SEED_BUSY_V      (X2X_CTRL_SEED_BUSY_M << X2X_CTRL_SEED_BUSY_S)
