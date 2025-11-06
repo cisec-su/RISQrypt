@@ -27,6 +27,8 @@ int ntt_lite_set_mu(const uint32_t *mu, uint32_t mode);
 
 int ntt_lite_set_bound(uint32_t bound);
 
+int ntt_lite_set_clr();
+
 int ntt_lite_load_twiddle(const uint32_t *psi);
 
 int ntt_lite_load_zeta(const uint32_t *zeta);
@@ -66,7 +68,6 @@ int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d);
 int ntt_lite_decompress(uint32_t *dst, const uint32_t *src, uint32_t d);
 
 int ntt_lite_decompress_floor(uint32_t *dst, const uint32_t *src, uint32_t d);
-
 
 int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src);
 

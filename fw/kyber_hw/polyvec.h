@@ -34,7 +34,7 @@ void polyvec_unpack_ntt(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES
 
 #define polyvec_pointwise_acc_core \
         KYBER_NAMESPACE(_polyvec_pointwise_acc_core)
-void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw);
+void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw, int clr);
 
 #define polyvec_pointwise_acc_invntt \
         KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt)

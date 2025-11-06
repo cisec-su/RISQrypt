@@ -145,11 +145,14 @@ static void masked_poly_sub_tomsg_core(masked_msg msg, const poly *a, masked_pol
         }
         ntt_lite_set_q(q);
         ntt_lite_set_mu(mu, NTT_LITE_MODE_POLY);
+        if (i != (MASKING_N - 1))
+            ntt_lite_set_clr();
         ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
     }
 
     ntt_lite_set_bound(alpha_dual);
     ntt_lite_set_q(d_dual);
+    ntt_lite_set_clr();
     ntt_lite_add_const((uint32_t*) b->share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
 
     masked_gadgets_init_2k(0xFFFF);

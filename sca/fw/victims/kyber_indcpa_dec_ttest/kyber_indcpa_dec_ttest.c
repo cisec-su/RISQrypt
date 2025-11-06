@@ -3,11 +3,11 @@
 #include "util.h"
 #include "cw305.h"
 #include "simpleserial_cw305_rq.h"
+#include "indcpa.h"
 #include "x2x.h"
-#include "ntt_lite.h"
 #include "x2x_prng.h"
 #include "masked_gadgets.h"
-#include "masked_poly.h"
+#include "masked_indcpa.h"
 #include "symmetric.h"
 #include "timer.h"
 #include "victims_commons_kyber.h"
@@ -15,48 +15,45 @@
 
 
 #define CIPHERGEN_RETURN_HASH
-#define OUTPUT_SIZE 0
-#define SLEEP_LOOP 1024
+#define CIPHERGEN_OUTPUT_SIZE 16
+//#define RETURN_OUTPUT
+#define SLEEP_LOOP (2048)
 
 
-poly poly_a;
-masked_poly poly_b;
-masked_poly poly_b_dummy;
-masked_msg mm;
-uint8_t temp_buffer[KYBER_SYMBYTES];
+uint8_t c [KYBER_INDCPA_BYTES];
+masked_msg mm; 
+uint8_t m[MASKING_N]; 
+uint8_t rng_buffer[KYBER_SYMBYTES];
+masked_polyvec mskpv;
+masked_polyvec mskpv_dummy;
 
 
 
-uint8_t get_poly(uint8_t* p, uint8_t len)
+
+uint8_t get_key(uint8_t* k, uint8_t len)
 {
 #ifdef VERBOSE
     uint32_t time;
-    print_string("SimpleSerial::get_poly command received\n");
-    print_string("p: ");
-    print_hex(p, len, 0);
+    print_string("SimpleSerial::get_key command received\n");
+    print_string("k: ");
+    print_hex(k, len, 0);
     print_string("\n");
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    /////////////////////// zero public input ///////////////////////
-    for (size_t i = 0; i < KYBER_N; i++) {
-        poly_a.coeffs[i] = 0;
-    }
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
     /////////////////////// real input masking //////////////////////
-    vck_masked_poly_from_seed(&poly_b, p);
+    vck_masked_polyvec_from_seed(&mskpv, k);
 #ifdef VERBOSE
-    vck_print_poly_shares(&poly_b, "Poly");
+    vck_print_polyvec_shares(&mskpv, "Masked SKVEC");
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     //////////////////// dummy input masking ////////////////////////
     for (size_t i = 0; i < len; i++) {
-        p[i] = 0;
+        k[i] = 0;
     }
-    vck_masked_poly_from_seed(&poly_b_dummy, p);
-    (void) poly_b_dummy;
+    vck_masked_polyvec_from_seed(&mskpv_dummy, k);
+    (void) mskpv_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     ////////////////////// initialize modules ///////////////////////
@@ -65,6 +62,10 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
+    vcu_ntt_lite_reset_state();
+    for (int i = 0; i < KYBER_INDCPA_BYTES; i++){
+        c[i] = 1;
+    }
     vcu_sleep(SLEEP_LOOP);
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -74,10 +75,10 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     timer_reset();
     timer_start();
 #endif
-    masked_poly_sub_tomsg(mm, &poly_a, &poly_b);
+    masked_indcpa_dec_core(mm, c, &mskpv);
 #ifdef VERBOSE
     time = timer_read();
-    print_string("masked_poly_sub_tomsg time: ");
+    print_string("masked_indcpa dec time: ");
     print_u32(time);
     print_string("\n");
 #endif
@@ -89,23 +90,24 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// masked output ///////////////////////
-#if OUTPUT_SIZE > 0
-    for (size_t i = 0; i < OUTPUT_SIZE/2; i++) {
-        temp_buffer[i] = mm[0][i];
-        temp_buffer[i + OUTPUT_SIZE/2] = mm[1][i];
+#ifdef RETURN_OUTPUT
+    for (size_t i = 0; i < MASKING_N; i++) {
+        for (size_t j = 1; j < KYBER_INDCPA_MSGBYTES; j++) {
+            mm[i][0] ^= mm[i][j];
+        }
+        m[i] = mm[i][0];
     }
-    simpleserial_put('r', OUTPUT_SIZE, temp_buffer);
+    simpleserial_put('r', MASKING_N, (uint8_t*) m);
 #else
+    (void) mm;
     simpleserial_put('r', 0, NULL);
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
 #ifdef VERBOSE
-    print_string("SimpleSerial::get_key done\n Message shares: \n");
-    print_hex(mm[0], KYBER_INDCPA_MSGBYTES, 0);
-    print_string("\n");
-    print_hex(mm[1], KYBER_INDCPA_MSGBYTES, 0);
+    print_string("decrypted message: ");
+    print_hex(m, sizeof(m), 0);
     print_string("\n");
 #endif
 
@@ -113,16 +115,43 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
 }
 
 
+// uint8_t get_ct(uint8_t* pt, uint8_t len)
+// {
+// #ifdef VERBOSE
+//     print_string("SimpleSerial::get_ct command received\n");
+//     print_string("pt: ");
+//     print_hex(pt, len, 0);
+//     print_string("\n");
+// #endif
+
+//     shake256(c, KYBER_INDCPA_BYTES, pt, len);
+
+// #ifdef CIPHERGEN_RETURN_HASH
+//     simpleserial_put('r', CIPHERGEN_OUTPUT_SIZE, c);
+// #endif
+
+// #ifdef VERBOSE
+//     print_string("ct set to: ");
+//     print_hex(c, 16, 0);
+//     print_string("...");
+//     print_hex(c + KYBER_INDCPA_BYTES - 16, 16, 0);
+//     print_string("\n");
+// #endif
+
+//     return 0x00;
+// }
+
+
 int main(void)
 {
     cw305_trigger_down();
-    print_string("Kyber PolyToMsg Dec\n");
-
+    print_string("Kyber CPAPKE Dec\n");
 
     simpleserial_init();
     simpleserial_addcmd('l', 0, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
-    simpleserial_addcmd('p', KYBER_SYMBYTES, get_poly);
+    // simpleserial_addcmd('k', 16, get_ct);
+    simpleserial_addcmd('p', KYBER_SYMBYTES, get_key);
 
     while(1)
         simpleserial_cw305_rq_get();

@@ -90,10 +90,12 @@ class TTestTraceCollector:
         if freq > 10E6:
             assert self.scope.adc_test() == 'pass', "ADC test failed!"
 
-    def build_fw(self):
+    def build_fw(self, verbose=False):
+        cmd = "make" if not verbose else "make VERBOSE=1"
         subprocess.run(
-            ["make"],
+            cmd,
             cwd=self.fw_dir(),
+            shell=True,
             check=True
         )
 
@@ -111,7 +113,7 @@ class TTestTraceCollector:
     def check_output(self, func):
         raise NotImplementedError("Please implement check_output to use output checking")
 
-    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False):
+    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween=False):
         if prng_off:
             self.set_prng_off()
         else:
@@ -148,5 +150,12 @@ class TTestTraceCollector:
                 assert self.check_output(ret.textout, seed), "Output mismatch!"
             es_writer_1.write_samples(np.array(ret.wave))
             es_writer_1.write_metadata('s', np.frombuffer(seed))
+            #dummy input
+            if dummy_inbetween:
+                dummy_seed = os.urandom(self.input_len)
+                ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
+                if not ret:
+                    print("Failed capture")
+                    continue
         es_writer_0.close()
         es_writer_1.close()

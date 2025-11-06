@@ -29,7 +29,7 @@ void masked_polyvec_pointwise_acc_invntt_i(masked_polyvec *r, const masked_polyv
 void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a, const polyvec *b) {
     unsigned int i;
     for (i = 0; i < MASKING_N; i++) {
-        polyvec_pointwise_acc_invntt(&(r->share[i]), &(a->share[i]), b);
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, 0, 1);
     }
 }
 
@@ -37,7 +37,7 @@ void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a
 void masked_polyvec_pointwise_acc_invntt_tohw(masked_poly *r, const masked_polyvec *a, const polyvec *b) {
     int i;
     for (i = (MASKING_N - 1); i >= 0; i--) {
-        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, (i == 0));
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, (i == 0), 1);
     }
 }
 

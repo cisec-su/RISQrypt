@@ -8,7 +8,7 @@
 
 /* WARNING: init function must be called before every core to use a fresh sharing of the secret key.
    alternatively, one can use mask refreshing before every core call */
-#define masked_crypto_kem_dec KYBER_NAMESPACE(_masked_dec_init)
+#define masked_crypto_kem_dec_init KYBER_NAMESPACE(_masked_dec_init)
 void masked_crypto_kem_dec_init(masked_polyvec *mskpv,
                                 uint8_t mhz[MASKING_N][KYBER_SYMBYTES * 2],
                                 const unsigned char *sk);

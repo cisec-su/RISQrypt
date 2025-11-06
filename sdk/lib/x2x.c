@@ -28,7 +28,6 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
 
     logm_flag = (log_modulus & X2X_CTRL_LOG_MODULUS_M) << X2X_CTRL_LOG_MODULUS_S;
     
-    X2X_REGS->ctrl |= X2X_CTRL_RESET_V;
 
     if (modulus_type == X2X_MODULUS_POW2) {
         X2X_REGS->ctrl = X2X_CTRL_DATA_TYPE_POW2 | dual_flag | logm_flag | rej_flag;
@@ -61,11 +60,15 @@ int x2x_seed(uint32_t seed[2])
 
 static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t share, uint32_t b2a_1bit, uint32_t log_stride)
 {
-    if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
+    uint32_t ctrl;
+    ctrl = X2X_REGS->ctrl;
+    if (ctrl & X2X_CTRL_BUSY_V) {
         return -1;
     }
 
-    while ((X2X_REGS->ctrl & X2X_CTRL_SEED_BUSY_V));
+    while (ctrl & X2X_CTRL_SEED_BUSY_V) {
+        ctrl = X2X_REGS->ctrl;
+    }
 
     X2X_REGS->data_len = len;
     X2X_REGS->din_addr[0] = (uint32_t) src_0;

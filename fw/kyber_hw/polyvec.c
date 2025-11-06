@@ -108,7 +108,7 @@ void polyvec_unpack_ntt(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES
 }
 
 
-void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw)
+void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw, int clr)
 {
   unsigned int i;
   uint32_t *dst;
@@ -122,6 +122,8 @@ void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int
 
   for(i = 1; i < KYBER_K; i++) {
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
+    if ((i == (KYBER_K - 1)) && clr)
+      ntt_lite_set_clr();
     if ((i == (KYBER_K - 1)) && (tohw || intt)) {
       ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);
     } else {
@@ -148,18 +150,18 @@ void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int
 **************************************************/
 void polyvec_pointwise_acc_invntt(poly *r, const polyvec *a, const polyvec *b)
 {
-  polyvec_pointwise_acc_core(r, a, b, 1, 0);
+  polyvec_pointwise_acc_core(r, a, b, 1, 0, 0);
 }
 
 
 void polyvec_pointwise_acc_invntt_tohw(poly *r, const polyvec *a, const polyvec *b)
 {
-  polyvec_pointwise_acc_core(r, a, b, 1, 1);
+  polyvec_pointwise_acc_core(r, a, b, 1, 1, 0);
 }
 
 void polyvec_pointwise_acc(poly *r, const polyvec *a, const polyvec *b)
 {
-  polyvec_pointwise_acc_core(r, a, b, 0, 0);
+  polyvec_pointwise_acc_core(r, a, b, 0, 0, 0);
 }
 
 

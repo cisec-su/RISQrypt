@@ -37,7 +37,9 @@ INC = -I$(KYBER_HW_DIR) -I$(VICTIMS_COMMONS_DIR)
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
 CFLAGS += -DKYBER_K=3
-# CFLAGS += -DVERBOSE
+ifdef VERBOSE
+CFLAGS += -DVERBOSE
+endif
 
 
 OPTIMIZATION = -O3

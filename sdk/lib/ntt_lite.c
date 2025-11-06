@@ -102,6 +102,15 @@ int ntt_lite_set_bound(uint32_t bound) {
 }
 
 
+int ntt_lite_set_clr() {
+
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_SET_CLR;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    return 0;
+}
+
+
 static int ntt_lite_load_twiddle_core_op(const uint32_t *psi, uint32_t op, uint32_t op_switch) {
 
     NTT_LITE_REGS->din_addr = (uint32_t) psi;

@@ -16,8 +16,8 @@ class TTestAnalysis:
         self.ttest.run(container)
         self.num_traces = num_traces
 
-    def plot_means(self, plot0=True, plot1=True, put_title=True, put_legend=True, num_traces=1000):
-        if num_traces < len(self.ths_0.samples):
+    def plot_means(self, plot0=True, plot1=True, put_title=True, put_legend=True, num_traces=None):
+        if num_traces is None or num_traces > len(self.ths_0.samples):
             num_traces = len(self.ths_0.samples)
         step = len(self.ths_0.samples) // num_traces
         if len(self.ths_0.samples) % num_traces != 0:
