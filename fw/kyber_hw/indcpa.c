@@ -36,8 +36,6 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
   randombytes(buf, KYBER_SYMBYTES);
   hash_g(buf, buf, KYBER_SYMBYTES);
 
-  gen_a(a, publicseed);
-
   for(i=0;i<KYBER_K;i++)
     poly_getnoise_eta1(&skpv.vec[i], noiseseed, nonce++);
   for(i=0;i<KYBER_K;i++)
@@ -49,13 +47,12 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
 
   // matrix-vector multiplication
   for(i=0;i<KYBER_K;i++) {
-    polyvec_pointwise_acc(&pkpv.vec[i], &a[i], &skpv);
+    polyvec_pointwise_acc_fromseed_add_tobytes(pk + i*KYBER_POLYBYTES, publicseed, i, &skpv, &e.vec[i]);
   }
 
-  polyvec_add(&pkpv, &pkpv, &e);
-
   pack_sk(sk, &skpv);
-  pack_pk(pk, &pkpv, publicseed);
+  for(i=0;i<KYBER_SYMBYTES;i++)
+    pk[i+KYBER_POLYVECBYTES] = publicseed[i];
 }
 
 /*************************************************
@@ -93,8 +90,6 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
       seed[i] = pk[i+KYBER_POLYVECBYTES];  
   poly_frommsg(&k, m);
 
-  gen_at(at, seed);
-
   for(i = 0; i < KYBER_K; i++)
     poly_getnoise_eta1(sp.vec+i, coins, nonce++);
 
@@ -107,7 +102,7 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
 
   // // matrix-vector multiplication
   for(i = 0; i < KYBER_K; i++) {
-    polyvec_pointwise_acc_invntt_tohw(&bp.vec[i], &at[i], &sp);
+    polyvec_pointwise_acc_invntt_fromseed_tohw(&bp.vec[i], seed, i, &sp);
     poly_add_pack_du_fromhw(c + i*(KYBER_POLYVECCOMPRESSEDBYTES/KYBER_K), &ep.vec[i]);
   }
 

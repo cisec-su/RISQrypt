@@ -105,6 +105,10 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
 
     masked_gadgets_init_q_carrier();
     x2x_prng_read_nonzero(rng_buffer, buffer_len);
+    // x2x_prng_read(rng_buffer, buffer_len);
+    // for (j = 0; j < buffer_len; j++) {
+    //     rng_buffer[j] = 1;
+    // }
 
     ntt_lite_set_ctrl(1, 32, NTT_LITE_MODE_SINGLE);
 

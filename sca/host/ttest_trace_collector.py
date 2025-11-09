@@ -155,7 +155,7 @@ class TTestTraceCollector:
             es_writer_1.write_metadata('s', np.frombuffer(seed))
             #dummy input
             if dummy_inbetween:
-                dummy_seed = self.set_input(os.urandom(self.input_lenn//2), prng_off)
+                dummy_seed = self.set_input(os.urandom(self.input_len//2), prng_off)
                 ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
                 if not ret:
                     print("Failed capture")

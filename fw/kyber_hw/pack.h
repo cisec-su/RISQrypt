@@ -23,6 +23,9 @@ void unpack_ciphertext(polyvec *b, poly *v, const uint8_t c[KYBER_INDCPA_BYTES])
 #define gen_matrix KYBER_NAMESPACE(_gen_matrix)
 void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed);
 
+#define gen_poly_tohw KYBER_NAMESPACE(_gen_poly_tohw)
+void gen_poly_tohw(const uint8_t seed[KYBER_SYMBYTES], unsigned int i, unsigned int j, int transposed);
+
 #define gen_a(A,B)  gen_matrix(A,B,0)
 #define gen_at(A,B) gen_matrix(A,B,1)
 

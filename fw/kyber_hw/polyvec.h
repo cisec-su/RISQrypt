@@ -56,6 +56,14 @@ void polyvec_pointwise_acc_invntt_tohw(poly *r, const polyvec *a, const polyvec 
         KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt_frombytes_tohw)
 void polyvec_pointwise_acc_invntt_frombytes_tohw(poly *r, const uint8_t a[KYBER_POLYVECBYTES], const polyvec *b);
 
+#define polyvec_pointwise_acc_fromseed_add_tobytes \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_fromseed_add_tobytes)
+void polyvec_pointwise_acc_fromseed_add_tobytes(uint8_t r[KYBER_POLYBYTES], const uint8_t seed[KYBER_SYMBYTES], int nonce_j, const polyvec *b, poly *e);
+
+#define polyvec_pointwise_acc_invntt_fromseed_tohw \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt_fromseed_tohw)
+void polyvec_pointwise_acc_invntt_fromseed_tohw(poly *r, const uint8_t seed[KYBER_SYMBYTES], int nonce_j, const polyvec *b);
+
 #define polyvec_add KYBER_NAMESPACE(_polyvec_add)
 void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b);
 

@@ -108,6 +108,10 @@ void unpack_ciphertext(polyvec *b, poly *v, const uint8_t c[KYBER_INDCPA_BYTES])
 }
 
 
+
+
+
+
 /*************************************************
 * Name:        gen_matrix
 *
@@ -146,4 +150,18 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
     }
   }
   poly_set_inv2();
+}
+
+
+
+void gen_poly_tohw(const uint8_t seed[KYBER_SYMBYTES], unsigned int i, unsigned int j, int transposed)
+{
+  uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
+  xof_init();
+  if(transposed)
+    xof_absorb(seed, i, j);
+  else
+    xof_absorb(seed, j, i);
+  xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
+  ntt_lite_rejsamp(NTT_LITE_OUTPUT_DIS, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
 }

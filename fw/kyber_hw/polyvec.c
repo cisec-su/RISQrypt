@@ -2,8 +2,9 @@
 #include "ntt_lite.h"
 #include "params.h"
 #include "poly.h"
+#include "symmetric.h"
 #include "polyvec.h"
-
+#include "pack.h"
 
 /*************************************************
 * Name:        polyvec_compress
@@ -136,6 +137,42 @@ void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int
   }
 }
 
+#define GEN_MATRIX_NBLOCKS ((12*KYBER_N/8*(1 << 12)/KYBER_Q \
+                             + XOF_BLOCKBYTES)/XOF_BLOCKBYTES)
+
+void polyvec_pointwise_acc_fromseed_core(poly *r, const uint8_t seed[KYBER_SYMBYTES], int j, const polyvec *b, int intt, int tohw, int clr, int transposed)
+{
+  unsigned int i;
+  uint32_t *dst;
+
+  if (tohw)
+    dst = NTT_LITE_OUTPUT_DIS;
+  else
+    dst = (uint32_t*) r->coeffs;
+
+  ntt_lite_set_bound((KYBER_Q << 16) | (KYBER_Q));
+  ntt_lite_set_inv2((GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES) >> 2);
+  gen_poly_tohw(seed, j, 0, transposed);
+  ntt_lite_pwm_twforward_dis((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[0].coeffs);
+
+  for(i = 1; i < KYBER_K; i++) {
+    gen_poly_tohw(seed, j, i, transposed);
+    ntt_lite_pwm_twforward_dis(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[i].coeffs);
+    if ((i == (KYBER_K - 1)) && clr)
+      ntt_lite_set_clr();
+    if ((i == (KYBER_K - 1)) && (tohw || intt)) {
+      ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);
+    } else {
+      ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
+    }
+  }
+  poly_set_inv2();
+  if (intt) {
+    poly_init_invntt();
+    ntt_lite_backward_ntt(dst, NTT_LITE_INPUT_DIS);
+  }
+}
+
 
 
 /*************************************************
@@ -152,6 +189,22 @@ void polyvec_pointwise_acc_invntt(poly *r, const polyvec *a, const polyvec *b)
 {
   polyvec_pointwise_acc_core(r, a, b, 1, 0, 0);
 }
+
+
+void polyvec_pointwise_acc_fromseed_add_tobytes(uint8_t r[KYBER_POLYBYTES], const uint8_t seed[KYBER_SYMBYTES], int nonce_j, const polyvec *b, poly *e)
+{
+  poly temp;
+  polyvec_pointwise_acc_fromseed_core(&temp, seed, nonce_j, b, 0, 1, 0, 0);
+  ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) e->coeffs);
+  poly_tobytes_fromhw(r);
+}
+
+
+void polyvec_pointwise_acc_invntt_fromseed_tohw(poly *r, const uint8_t seed[KYBER_SYMBYTES], int nonce_j, const polyvec *b)
+{
+  polyvec_pointwise_acc_fromseed_core(r, seed, nonce_j, b, 1, 1, 0, 1);
+}
+
 
 
 void polyvec_pointwise_acc_invntt_tohw(poly *r, const polyvec *a, const polyvec *b)

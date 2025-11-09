@@ -73,6 +73,22 @@ void poly_tobytes(uint8_t r[KYBER_POLYBYTES], poly *a)
   ntt_lite_encode((uint32_t*) r, (uint32_t*) a->coeffs, 12);
 }
 
+
+/*************************************************
+* Name:        poly_tobytes
+*
+* Description: Serialization of a polynomial
+*
+* Arguments:   - uint8_t *r: pointer to output byte array
+*                            (needs space for KYBER_POLYBYTES bytes)
+*              - poly *a:    pointer to input polynomial
+**************************************************/
+void poly_tobytes_fromhw(uint8_t r[KYBER_POLYBYTES])
+{
+  ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, 12);
+}
+
+
 /*************************************************
 * Name:        poly_frombytes
 *

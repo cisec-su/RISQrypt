@@ -24,6 +24,9 @@ void poly_decompress(poly *r, const uint8_t a[KYBER_POLYCOMPRESSEDBYTES]);
 #define poly_tobytes KYBER_NAMESPACE(_poly_tobytes)
 void poly_tobytes(uint8_t r[KYBER_POLYBYTES], poly *a);
 
+#define poly_tobytes_fromhw KYBER_NAMESPACE(_poly_tobytes_fromhw)
+void poly_tobytes_fromhw(uint8_t r[KYBER_POLYBYTES]);
+
 #define poly_frombytes KYBER_NAMESPACE(_poly_frombytes)
 void poly_frombytes(poly *r, const uint8_t a[KYBER_POLYBYTES]);
 
