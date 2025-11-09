@@ -113,6 +113,12 @@ class TTestTraceCollector:
     def check_output(self, func):
         raise NotImplementedError("Please implement check_output to use output checking")
 
+    def set_input(self, seed, prng_off=False):
+        seed_mask = os.urandom(self.input_len//2) if not prng_off else bytes([0]*(self.input_len//2))
+        seed_temp = bytes([(seed[i] ^ seed_mask[i]) for i in range(self.input_len//2)])
+        seed_full = seed_temp + seed_mask
+        return seed_full
+
     def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween=False):
         if prng_off:
             self.set_prng_off()
@@ -127,9 +133,7 @@ class TTestTraceCollector:
         const_seed = os.urandom(self.input_len//2)
         for _ in tnrange(N, desc='Capturing traces'):
             # const input
-            const_seed_mask = os.urandom(self.input_len//2) if not prng_off else bytes([0]*(self.input_len//2))
-            const_seed_temp = bytes([(const_seed[i] ^ const_seed_mask[i]) for i in range(self.input_len//2)])
-            const_seed_full = const_seed_temp + const_seed_mask
+            const_seed_full = self.set_input(const_seed, prng_off)
             ret = cw.capture_trace(self.scope, self.target, const_seed_full, None)
             if not ret:
                 print("Failed capture")
@@ -140,8 +144,7 @@ class TTestTraceCollector:
             es_writer_0.write_metadata('s', np.frombuffer(const_seed))
             # rand input
             seed = os.urandom(self.input_len//2)
-            seed_mask = os.urandom(self.input_len//2) if not prng_off else bytes([0]*(self.input_len//2))
-            seed_full = seed + seed_mask
+            seed_full = self.set_input(seed, prng_off)
             ret = cw.capture_trace(self.scope, self.target, seed_full, None)
             if not ret:
                 print("Failed capture")
@@ -152,7 +155,7 @@ class TTestTraceCollector:
             es_writer_1.write_metadata('s', np.frombuffer(seed))
             #dummy input
             if dummy_inbetween:
-                dummy_seed = os.urandom(self.input_len)
+                dummy_seed = self.set_input(os.urandom(self.input_lenn//2), prng_off)
                 ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
                 if not ret:
                     print("Failed capture")

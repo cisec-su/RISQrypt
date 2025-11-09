@@ -3,11 +3,20 @@
 
 #include <stdint.h>
 #include "params.h"
+#include "symmetric.h"
 
 typedef struct {
   int32_t coeffs[N];
 } poly;
 
+
+#define POLY_UNIFORM_NBLOCKS ((768 + STREAM128_BLOCKBYTES - 1)/STREAM128_BLOCKBYTES)
+
+#if ETA == 2
+#define POLY_UNIFORM_ETA_NBLOCKS ((136 + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
+#elif ETA == 4
+#define POLY_UNIFORM_ETA_NBLOCKS ((227 + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
+#endif
 
 #define poly_add DILITHIUM_NAMESPACE(poly_add)
 void poly_add(poly *c, const poly *a, const poly *b);

@@ -17,6 +17,8 @@ void vck_print_poly_shares(const masked_poly *mp, const char *label);
 
 void vck_print_polyvec_shares(const masked_polyvec *mpv, const char *label);
 
+void vck_print_msg_shares(const masked_msg mm, const char *label);
+
 void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[KYBER_SYMBYTES]);
 
 

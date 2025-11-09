@@ -18,6 +18,6 @@ typedef uint8_t masked_ss[MASKING_N][KYBER_SSBYTES];
 
 typedef uint8_t *masked_ptr[MASKING_N];
 
-typedef uint32_t masked_u32[MASKING_N];
+typedef uint32_t masked_u32[MASKING_N][2]; // to avoid transitional leakage, a dummy element is added
 
 #endif

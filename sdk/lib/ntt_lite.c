@@ -111,6 +111,15 @@ int ntt_lite_set_clr() {
 }
 
 
+int ntt_lite_set_clr_with_twiddle() {
+
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_SET_CLR | NTT_LITE_CTRL_OP_SWITCH_EN_V;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    return 0;
+}
+
+
 static int ntt_lite_load_twiddle_core_op(const uint32_t *psi, uint32_t op, uint32_t op_switch) {
 
     NTT_LITE_REGS->din_addr = (uint32_t) psi;
@@ -364,6 +373,31 @@ int ntt_lite_cbd(uint32_t *dst, const uint32_t *src, uint32_t d) {
 }
 
 
+int ntt_lite_rejsamp(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t center) {
+    uint32_t center_int;
+    
+    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+        return -1;
+    }
+
+    if (center == NTT_LITE_REJSAMP_CENTER_EN) {
+        center_int = NTT_LITE_CTRL_RHS_CONST_EN_V;
+    } else {
+        center_int = 0;
+    }
+
+    NTT_LITE_REGS->din_addr = (uint32_t) src;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | NTT_LITE_CTRL_RHS_CONST_EN_V;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START | NTT_LITE_CTRL_OP_REJSAMP | (d << NTT_LITE_CTRL_D_S) | center_int;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    return 0;
+}
+
+
 int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d) {
 
     uint32_t cmd;
@@ -435,7 +469,21 @@ int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src) {
     }
 
     return 0;
-}    
+}
+
+
+int ntt_lite_read_twiddle(uint32_t *dst) {
+
+    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+        return -1;
+    }
+
+    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_READ_TWIDDLE;
+    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    return 0;
+}
 
 
 int ntt_lite_chknorm(const uint32_t *src) {

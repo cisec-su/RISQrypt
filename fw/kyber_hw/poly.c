@@ -165,6 +165,12 @@ void poly_init_q() {
   ntt_lite_load_q(q, mu, 7, 12, inv2, NTT_LITE_MODE_POLY);
 }
 
+void poly_set_inv2() {
+  const uint32_t inv2 = 0x06810681;
+  ntt_lite_set_inv2(inv2);
+}
+
+
 void poly_init_ntt() {
 	ntt_lite_load_twiddle((uint32_t*) psi);
 }

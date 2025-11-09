@@ -58,7 +58,7 @@ int x2x_seed(uint32_t seed[2])
 }
 
 
-static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t share, uint32_t b2a_1bit, uint32_t log_stride)
+static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t share, uint32_t b2a_1bit, uint32_t log_stride, uint32_t cmd)
 {
     uint32_t ctrl;
     ctrl = X2X_REGS->ctrl;
@@ -78,7 +78,7 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     X2X_REGS->dout_addr[0] = (uint32_t) dst_0;
     X2X_REGS->dout_addr[1] = (uint32_t) dst_1;
 
-    X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | share | b2a_1bit | log_stride | X2X_CTRL_CMD_X2X;
+    X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | share | b2a_1bit | log_stride | cmd;
 
     while (!(X2X_REGS->ctrl & X2X_CTRL_DONE_V));
 
@@ -88,28 +88,52 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
 
 int x2x_a2b(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_A2B, 0, 0, 0);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_A2B, 0, 0, 0, X2X_CTRL_CMD_X2X);
 }
 
 
 int x2x_b2a(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, 0, 0);
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, 0, 0, X2X_CTRL_CMD_X2X);
 }
 
 int x2x_b2a_1bit(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, uint32_t log_stride, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, X2X_CTRL_B2A_BIT_EN_V, (log_stride << X2X_CTRL_LOG_STRIDE_S));
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, X2X_CTRL_B2A_BIT_EN_V, (log_stride << X2X_CTRL_LOG_STRIDE_S), X2X_CTRL_CMD_X2X);
 }
 
 
 int x2x_b_share(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_SHARE_V, 0, 0);
+    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_A2B, X2X_CTRL_SRC_SHARE_V, 0, 0, X2X_CTRL_CMD_X2X);
 }
 
 
 int x2x_a_share(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len)
 {
-    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_B2A, X2X_CTRL_SRC_SHARE_V, 0, 0);
+    return x2x_core(dst_1, dst_0, 0x0, src, len, X2X_CTRL_CONV_MODE_B2A, X2X_CTRL_SRC_SHARE_V, 0, 0, X2X_CTRL_CMD_X2X);
+}
+
+
+int x2x_b_ref(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
+{
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_B2A, 0, 0, 0, X2X_CTRL_CMD_REF);
+}
+
+
+int x2x_a_ref(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len)
+{
+    return x2x_core(dst_1, dst_0, src_1, src_0, len, X2X_CTRL_CONV_MODE_A2B, 0, 0, 0, X2X_CTRL_CMD_REF);
+}
+
+
+int x2x_prng_read(uint32_t *dst, unsigned int len)
+{
+    return x2x_core(dst, 0x0, 0x0, 0x0, len, 0, 0, 0, 0, X2X_CTRL_CMD_PRNG);
+}
+
+
+int x2x_prng_read_nonzero(uint32_t *dst, unsigned int len)
+{
+    return x2x_core(dst, 0x0, 0x0, 0x0, len, 0, X2X_CTRL_SRC_SHARE_V, 0, 0, X2X_CTRL_CMD_PRNG);
 }

@@ -69,6 +69,9 @@ void poly_sub_tomsg_fromhw(uint8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a);
 #define poly_init_q KYBER_NAMESPACE(_poly_init_q)
 void poly_init_q();
 
+#define poly_set_inv2 KYBER_NAMESPACE(_poly_set_inv2)
+void poly_set_inv2();
+
 #define poly_set_ctrl KYBER_NAMESPACE(_poly_set_ctrl)
 void poly_set_ctrl();
 

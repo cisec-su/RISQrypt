@@ -92,120 +92,73 @@ void masked_gadgets_B2A_qm_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u
 }
 
 
-// https://eprint.iacr.org/2021/1615.pdf alg.17
-void masked_gadgets_mul_u32(masked_u32 r, masked_u32 a, masked_u32 b, uint32_t rand) {
-#if MASKING_N != 2
-#error "This implementation requires MASKING_N = 2"
-#endif    
-    unsigned int i,j;
-    uint32_t t;
-    // t = a[0]*b[1] + rand;
-    // t = t + a[1]*b[0];
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, &a[0], &b[1]);
-    ntt_lite_add(&t, NTT_LITE_INPUT_DIS, &rand);
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, &a[1], &b[0]);
-    ntt_lite_add(&t, NTT_LITE_INPUT_DIS, &t);
-    // r[0] = (a[0] * b[0]) - rand;
-    // r[1] = (a[1] * b[1]) + t;
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, &a[0], &b[0]);
-    ntt_lite_sub(&r[0], NTT_LITE_INPUT_DIS, &rand);
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, &a[1], &b[1]);
-    ntt_lite_add(&r[1], NTT_LITE_INPUT_DIS, &t);
-
-}
-
-
-
-// https://eprint.iacr.org/2021/1615.pdf alg.18
-void masked_gadgets_exp_u32(masked_u32 r, masked_u32 a) {
-#if MASKING_N != 2
-#error "This implementation requires MASKING_N = 2"
-#endif      
-    unsigned int i,j;
-    uint32_t buf[63];
-    uint32_t t[MASKING_N];
-    const uint32_t mu[2] = {MU_EXP_L, MU_EXP_H};
-    const uint32_t mask = 0x7FFFFFFF; // Q_EXP is very close to 2**31
-
-    ntt_lite_load_q(Q_EXP, mu, 0, 32, 1, NTT_LITE_MODE_SINGLE);
-
-    for (i = 0; i < MASKING_N; i++) {
-        r[i] = a[i];
-    }
-
-    randombytes((uint8_t*) buf, sizeof(buf));
-
-    for (i = 0; i < (sizeof(buf) / sizeof(uint32_t)); i++) {
-        buf[i] = buf[i] & mask;
-    }
-
-    // uses 48 random words
-    for (i = 0; i < 24; i++) {
-        // mask refresh and square
-        ntt_lite_add(&t[0], &r[0], &buf[i]);
-        ntt_lite_sub(&t[1], &r[1], &buf[i]);
-        masked_gadgets_mul_u32(r, r, t, buf[24 + i]);
-    }
-
-    // multiply
-    masked_gadgets_mul_u32(r, r, a, buf[48]);
-
-    // uses 14 random words
-    for (i = 0; i < 7; i++) {
-        // mask refresh and square
-        ntt_lite_add(&t[0], &r[0], &buf[49 + i]);
-        ntt_lite_sub(&t[1], &r[1], &buf[49 + i]);
-        masked_gadgets_mul_u32(r, r, t, buf[56 + i]);
-    }
-
-}
-
-
 // https://eprint.iacr.org/2021/1615.pdf alg.1
 int masked_gadgets_zero_test_mul(masked_u32 a) {
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif      
     unsigned int i, j;
-    volatile uint32_t t[MASKING_N << 1];
-    uint32_t buf[MASKING_N];
-    uint32_t *src_ptr, *dst_ptr;
     const int buffer_len = 16;
-    uint32_t zero_buffer[buffer_len];
-    uint32_t rng_buffer[2][buffer_len];
+    uint32_t rng_buffer[16];
+    uint32_t t[MASKING_N][16];
+    uint32_t *src;
 
 
-    for (i = 0; i < buffer_len; i++) {
-        zero_buffer[i] = 0;
-    }
     masked_gadgets_init_q_carrier();
-    x2x_a_share(rng_buffer[0], rng_buffer[1], zero_buffer, buffer_len);
+    x2x_prng_read_nonzero(rng_buffer, buffer_len);
+    // print_string("rng_buffer: ");
+    // print_u32_arr(rng_buffer, buffer_len);
+    // print_string("\n");
 
-    ntt_lite_set_ctrl(LOG_MASKING_N + 1, 32, NTT_LITE_MODE_SINGLE);
+    ntt_lite_set_ctrl(1, 32, NTT_LITE_MODE_SINGLE);
 
+    // print_string("a[0]: ");
+    // print_u32_arr(a[0], 2);
+    // print_string("\n");
+    // print_string("a[1]: ");
+    // print_u32_arr(a[1], 2);
+    // print_string("\n");
+
+
+    // TODO: process all shares in same cmd for ntt-lite. we need x2x length flexibility first.
 
     for (i = 0; i < MASKING_N; i++) {
-        t[ i << 1     ] = a[i]; // to avoid transitional leakage
-        t[(i << 1) + 1] = 0;
-    }
-
-    for (i = 0; i < MASKING_N; i++) {
-        if (i == 0) {
-            src_ptr = (uint32_t*) &t[0];
-        }
-        else {
-            src_ptr = NTT_LITE_INPUT_DIS;
-        }
-
-        ntt_lite_set_bound(rng_buffer[0][i]);
-        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, src_ptr, NTT_LITE_INPUT_DIS);
+        ntt_lite_set_bound(0);
+        ntt_lite_set_bound(rng_buffer[i << 1]);
         for (j = 0; j < MASKING_N; j++) {
-            t[(j << 1)] = rng_buffer[j][i + MASKING_N];
+            if (i == 0) {
+                src = (uint32_t*) &a[j][0];
+            }
+            else {
+                src = t[j];
+            }
+            ntt_lite_mul_const(t[j], src, NTT_LITE_INPUT_DIS);
         }
-        ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) t);
+        // print_string("before ref. t[0]: ");
+        // print_u32_arr(t[0], 16);
+        // print_string("\n");        
+        // print_string("t[1]: ");
+        // print_u32_arr(t[1], 16);
+        // print_string("\n");                
+        x2x_b_ref(t[1], t[0], t[1], t[0], 16);
+        // print_string("after ref. t[0]: ");
+        // print_u32_arr(t[0], 16);
+        // print_string("\n");        
+        // print_string("t[1]: ");
+        // print_u32_arr(t[1], 16);
+        // print_string("\n");                
     }
 
-    ntt_lite_sum((uint32_t*) &t[0], NTT_LITE_INPUT_DIS);
+    if (MASKING_N > 2) {
+        ntt_lite_add(NTT_LITE_OUTPUT_DIS, t[0], t[1]);
+        for (i = 2; i < MASKING_N - 1; i++) {
+            ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, t[i]);
+        }
+        ntt_lite_add(t[0], NTT_LITE_INPUT_DIS, t[MASKING_N - 1]);
+    }
+    else {
+        ntt_lite_add(t[0], t[0], t[1]);
+    }
 
     return (t[0] != 0);
 }
@@ -225,11 +178,11 @@ void masked_gadgets_unmask_u32(uint32_t *r, const masked_u32 a) {
             dst = r;
         }
         if (i == 1) {
-            src = (uint32_t*) &a[0];
+            src = (uint32_t*) a[0];
         }
         else {
-            src = NTT_LITE_INPUT_DIS;;
+            src = NTT_LITE_INPUT_DIS;
         }
-        ntt_lite_add(dst, src, &a[i]);
+        ntt_lite_add(dst, src, a[i]);
     }
 }

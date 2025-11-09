@@ -17,7 +17,7 @@ void vck_print_poly_shares(const masked_poly *mp, const char *label) {
     print_u32_arr((uint32_t*) mp->share[0].coeffs + KYBER_N/2 - 8, 8);
     print_string("\n");
     print_string(label);
-    print_string("Share 1 Coeffs: ");
+    print_string(" Share 1 Coeffs: ");
     print_u32_arr((uint32_t*) mp->share[1].coeffs, 8);
     print_u32_arr((uint32_t*) mp->share[1].coeffs + KYBER_N/2 - 8, 8);
     print_string("\n");
@@ -40,7 +40,7 @@ void vck_print_polyvec_shares(const masked_polyvec *mpv, const char *label) {
         print_string("[");
         print_u32_int(i);
         print_string("]");
-        print_string("Share 1 Coeffs: ");
+        print_string(" Share 1 Coeffs: ");
         print_u32_arr((uint32_t*) mpv->share[1].vec[i].coeffs, 8);
         print_u32_arr((uint32_t*) mpv->share[1].vec[i].coeffs + KYBER_N/2 - 8, 8);
         print_string("\n");
@@ -59,7 +59,6 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 
     unsigned int i;
     uint32_t pad;
-    masked_ptr src_ptr = {(uint8_t*) src, (uint8_t*) (src + (KYBER_SYMBYTES >> 1))};
     uint32_t t[MASKING_N][POLY_SAMPLE_BYTES >> 2];
 
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
@@ -130,26 +129,24 @@ void vck_masked_polyvec_from_seed(masked_polyvec *dst, const uint8_t src[KYBER_S
 void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[KYBER_SYMBYTES]) {
     unsigned int i;
     uint32_t pad;
-    masked_ptr src_ptr = {(uint8_t*) src, (uint8_t*) (src + (KYBER_SYMBYTES >> 1))};
 
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
     keccak_absorb((uint32_t*) src, (uint32_t*) (src + (KYBER_SYMBYTES >> 1)), KYBER_SYMBYTES >> 3);
     pad = SHAKE_PAD;
     keccak_finish((uint32_t*) &pad);
-    keccak_squeeze(dst[0], dst[1], KYBER_INDCPA_MSGBYTES >> 2);
+    keccak_squeeze((uint32_t*) (dst[0]), (uint32_t*) (dst[1]), KYBER_SYMBYTES >> 2);
 }
 
 
-
-void vck_print_msg_shares(const masked_msg *mm, const char *label) {
+void vck_print_msg_shares(const masked_msg mm, const char *label) {
 #ifdef VERBOSE
     print_string(label);
     print_string(" Share 0: ");
-    print_u32_arr((uint32_t*) mm[0], KYBER_INDCPA_MSGBYTES);
+    print_hex(mm[0], KYBER_INDCPA_MSGBYTES, 0);
     print_string("\n");
     print_string(label);
-    print_string("Share 1: ");
-    print_u32_arr((uint32_t*) mm[1], KYBER_INDCPA_MSGBYTES);
+    print_string(" Share 1: ");
+    print_hex(mm[1], KYBER_INDCPA_MSGBYTES, 0);
     print_string("\n");
 #endif
 }

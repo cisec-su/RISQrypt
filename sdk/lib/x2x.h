@@ -29,5 +29,13 @@ int x2x_b_share(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int le
 
 int x2x_a_share(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src, unsigned int len);
 
+int x2x_b_ref(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len);
+
+int x2x_a_ref(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len);
+
+int x2x_prng_read(uint32_t *dst, unsigned int len);
+
+int x2x_prng_read_nonzero(uint32_t *dst, unsigned int len);
+
 
 #endif

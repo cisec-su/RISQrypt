@@ -14,6 +14,7 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
     const uint32_t mu[2] = {0x13afb7, 0x13afb7};
     
     for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_set_clr_with_twiddle();
         ntt_lite_decode((uint32_t*) &a->share[i], (uint32_t*) msg[i], 1);
     }
 
@@ -24,6 +25,7 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
     ntt_lite_set_bound(q_half_ceil_dual);
 
     for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_set_clr();
         ntt_lite_mul_const((uint32_t*) &a->share[i], (uint32_t*) &a->share[i], NTT_LITE_INPUT_DIS);
     }
 
@@ -47,9 +49,23 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     uint32_t t[KYBER_N];
     masked_poly_u32 mpu32;
     uint32_t *dst;
+    poly temp;
 
+    // poly_init_q();
+    // print_string("bef mpu32 a[0]:  \n");
+    // print_u32_arr(a[0]->coeffs, 128);
+    // print_string("bef mpu32 a[1]:  \n");
+    // print_u32_arr(a[1]->coeffs, 128);
+    // print_string("temp: \n");
+    // ntt_lite_decode(temp.coeffs, (uint32_t*) b, d);
+    // print_u32_arr(temp.coeffs, 128);
+    // print_string("temp dec: \n");
+    // ntt_lite_decompress(temp.coeffs, temp.coeffs, d);
+    // print_u32_arr(temp.coeffs, 128);
+    // while(1);
 
     ntt_lite_load_q(q, mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
+
 
     for (i = 0; i < MASKING_N; i++) {
         if (i == MASKING_N - 1) {
@@ -59,6 +75,9 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
             dst = (uint32_t*) mpu32.share[i].coeffs;
         }
         ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a[i]->coeffs, 16);
+        if (i != (MASKING_N - 1)) {
+            ntt_lite_set_clr_with_twiddle();
+        }
         ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
     }
 
@@ -72,6 +91,7 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) b, d);
     ntt_lite_decompress_floor(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, 0);
     ntt_lite_set_q(1 << d_);
+    ntt_lite_set_clr_with_twiddle();
     ntt_lite_sub_rev((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) mpu32.share[MASKING_N - 1].coeffs);
 
     if (init_a2b) {

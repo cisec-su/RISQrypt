@@ -8,11 +8,11 @@ module fpga_top_tb;
 
     // Instantiate the DUT (Device Under Test)
     fpga_top dut (
-        .M100_clk_i(M100_clk_i),
+        .clk_i(M100_clk_i),
         .reset_i(reset_i),
         .rx_i(),        // Unconnected
-        .tx_o(),        // Unconnected
-        .led1(), .led2(), .led4() // Ignored outputs
+        .tx_o()        // Unconnected
+//        .led1(), .led2(), .led4() // Ignored outputs
     );
 
     // Generate the clock signal

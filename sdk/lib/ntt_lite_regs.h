@@ -56,6 +56,7 @@ typedef struct
 #define NTT_LITE_CTRL_OP_CHKNORM           (((uint32_t) 0xB) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_MAKEHINT          (((uint32_t) 0xC) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_CBD               (((uint32_t) 0xD) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_REJSAMP           (((uint32_t) 0xE) << NTT_LITE_CTRL_OP_S)
 
 #define NTT_LITE_CTRL_OP_SWITCH_EN_S       ((uint32_t) 12 )
 #define NTT_LITE_CTRL_OP_SWITCH_EN_M       ((uint32_t) 0x1)

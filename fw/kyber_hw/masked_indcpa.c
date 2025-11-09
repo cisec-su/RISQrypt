@@ -23,7 +23,7 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
     masked_polyvec mskpv, msp, mep, mbp;
     masked_poly_u32 mpu32;
     masked_polyvec_u32 mpvu32;
-    masked_u32 t1, t0;
+    masked_u32 t0;
     uint32_t t;
     uint8_t seed[KYBER_SYMBYTES];
 
@@ -58,6 +58,22 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
     masked_poly_sub_compress(&mpu32, &mv, c + KYBER_POLYVECCOMPRESSEDBYTES);
 
     masked_gadgets_init_q_carrier();
+    // print_string("bef mpvu32 share[0] vec[0]: ");
+    // print_u32_arr(mpvu32.share[0].vec[0].coeffs, 128);
+    // print_string("bef mpvu32 share[1] vec[0]: ");
+    // print_u32_arr(mpvu32.share[1].vec[0].coeffs, 128);
+    // print_string("bef mpvu32 share[0] vec[1]: ");
+    // print_u32_arr(mpvu32.share[0].vec[1].coeffs, 128);
+    // print_string("bef mpvu32 share[1] vec[1]: ");
+    // print_u32_arr(mpvu32.share[1].vec[1].coeffs, 128);
+    // print_string("bef mpvu32 share[0] vec[2]: ");
+    // print_u32_arr(mpvu32.share[0].vec[2].coeffs, 128);
+    // print_string("bef mpvu32 share[1] vec[2]: ");
+    // print_u32_arr(mpvu32.share[1].vec[2].coeffs, 128);
+    // print_string("bef mpu32 share[0]: ");
+    // print_u32_arr(mpu32.share[0].coeffs, 128);
+    // print_string("bef mpu32 share[1]: ");
+    // print_u32_arr(mpu32.share[1].coeffs, 128);
     masked_gadgets_B2A_qm_u32_vec(&mpvu32, &mpvu32);
     masked_gadgets_B2A_qm_u32(&mpu32, &mpu32);
 
