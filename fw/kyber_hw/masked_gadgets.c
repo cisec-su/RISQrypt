@@ -103,24 +103,12 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
     uint32_t t[MASKING_N][16];
     uint32_t *src;
 
-
     masked_gadgets_init_q_carrier();
     x2x_prng_read_nonzero(rng_buffer, buffer_len);
-    // print_string("rng_buffer: ");
-    // print_u32_arr(rng_buffer, buffer_len);
-    // print_string("\n");
 
     ntt_lite_set_ctrl(1, 32, NTT_LITE_MODE_SINGLE);
 
-    // print_string("a[0]: ");
-    // print_u32_arr(a[0], 2);
-    // print_string("\n");
-    // print_string("a[1]: ");
-    // print_u32_arr(a[1], 2);
-    // print_string("\n");
-
-
-    // TODO: process all shares in same cmd for ntt-lite. we need x2x length flexibility first.
+    // // TODO: process all shares in same cmd for ntt-lite. we need x2x length flexibility first.
 
     for (i = 0; i < MASKING_N; i++) {
         ntt_lite_set_bound(0);
@@ -134,33 +122,20 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
             }
             ntt_lite_mul_const(t[j], src, NTT_LITE_INPUT_DIS);
         }
-        // print_string("before ref. t[0]: ");
-        // print_u32_arr(t[0], 16);
-        // print_string("\n");        
-        // print_string("t[1]: ");
-        // print_u32_arr(t[1], 16);
-        // print_string("\n");                
-        x2x_b_ref(t[1], t[0], t[1], t[0], 16);
-        // print_string("after ref. t[0]: ");
-        // print_u32_arr(t[0], 16);
-        // print_string("\n");        
-        // print_string("t[1]: ");
-        // print_u32_arr(t[1], 16);
-        // print_string("\n");                
+        x2x_a_ref(t[1], t[0], t[1], t[0], 16);
     }
 
-    if (MASKING_N > 2) {
-        ntt_lite_add(NTT_LITE_OUTPUT_DIS, t[0], t[1]);
-        for (i = 2; i < MASKING_N - 1; i++) {
-            ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, t[i]);
-        }
-        ntt_lite_add(t[0], NTT_LITE_INPUT_DIS, t[MASKING_N - 1]);
+#if MASKING_N > 2
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, t[0], t[1]);
+    for (i = 2; i < MASKING_N - 1; i++) {
+        ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, t[i]);
     }
-    else {
-        ntt_lite_add(t[0], t[0], t[1]);
-    }
+    ntt_lite_add(t[0], NTT_LITE_INPUT_DIS, t[MASKING_N - 1]);
+#else
+    ntt_lite_add(t[0], t[0], t[1]);
+#endif
 
-    return (t[0] != 0);
+    return (t[0][0] != 0);
 }
 
 

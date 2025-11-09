@@ -109,17 +109,6 @@ void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const mas
     const uint32_t mu[2] = {MU_EXP_L, MU_EXP_H};
     uint32_t *src;
 
-    // print_string("bef a[0]: ");
-    // print_u32_arr(r[0], 2);
-    // print_string("\n");
-    // print_string("bef a[1]: ");
-    // print_u32_arr(r[1], 2);
-    // print_string("\n");
-    // r[0][0] = 0;
-    // r[0][1] = 0;
-    // r[1][0] = 0;
-    // r[1][1] = 0;
-
     ntt_lite_load_q(Q_EXP, mu, 8, 32, 0, NTT_LITE_MODE_SINGLE);
 
     for (j = 0; j < MASKING_N; j++) {
@@ -134,12 +123,5 @@ void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const mas
         }
         ntt_lite_sum(&(r[j][0]), NTT_LITE_INPUT_DIS);
     }
-
-    // print_string("aft. a[0]: ");
-    // print_u32_arr(r[0], 2);
-    // print_string("\n");
-    // print_string("aft. a[1]: ");
-    // print_u32_arr(r[1], 2);
-    // print_string("\n");
 
 }
