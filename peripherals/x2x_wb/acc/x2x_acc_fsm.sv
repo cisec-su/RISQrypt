@@ -1,3 +1,5 @@
+`include "x2x_acc.vh"
+
 
 module x2x_acc_fsm
    #(
@@ -55,6 +57,8 @@ module x2x_acc_fsm
         output reg              x2x_ready_result           , 
         input                   x2x_valid_result           , 
         
+        output reg              x2x_valid_rng              ,
+        
         output [PARAM_WIDTH - 1 : 0]             x2x_fresh_rnd_shares   [RND_SHARES_2SHARE - 1 : 0]    ,
         output [BOX_WIDTH-1:0]            x2x_fresh_rnd_shares_8bit [RND_SHARES_2SHARE_BOX - 1 : 0] ,
         output reg [PARAM_WIDTH - 1 : 0]             x2x_original_data [2 - 1 : 0] [N_SHARES - 1:0]        ,
@@ -108,6 +112,14 @@ reg ctr_block_w_rst, ctr_block_w_inc;
 reg [LOGL-1:0] ctr_iter;
 reg ctr_iter_rst, ctr_iter_inc;
 
+reg [31:0] ctr_onebit_addr_off_0, ctr_onebit_addr_off_1;
+reg ctr_onebit_addr_off_0_rst, ctr_onebit_addr_off_0_inc;
+reg ctr_onebit_addr_off_1_rst, ctr_onebit_addr_off_1_inc;
+
+wire [31:0] onebit_inc_amount;
+assign onebit_inc_amount = ctrl_dual_mode ? (ctrl_data_len >> (log_stride + 1)) : (ctrl_data_len >> log_stride);
+
+
 reg [11:0] ctr_trivium;
 
 reg [31:0] bit_calc;
@@ -154,10 +166,10 @@ wire rnd_x2x_ready;
 always @(*)
 begin
     case(opcode)
-    2'b00: rnd_ready = rnd_ref_ready;
-    2'b01: rnd_ready = rnd_x2x_ready;
-    2'b10: rnd_ready = rnd_ref_ready;
-    2'b11: rnd_ready = rnd_ref_ready & rnd_x2x_ready;
+    `X2X_CMD_PRNG  : rnd_ready = rnd_ref_ready;
+    `X2X_CMD_X2X   : rnd_ready = rnd_x2x_ready;
+    `X2X_CMD_REF   : rnd_ready = rnd_ref_ready;
+    `X2X_CMD_REFX2X: rnd_ready = rnd_ref_ready & rnd_x2x_ready;
     endcase
 end
 
@@ -177,6 +189,7 @@ x2x_acc_rng #(
         .ctrl_dual_mode(ctrl_dual_mode),
         .log_modulus(log_modulus),  
         .ctrl_rej_samp(ctrl_rej_samp),
+        .ctrl_nonzero(ctrl_share_mode),
         .ctrl_prng_off(ctrl_prng_off),
         .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
         .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
@@ -216,10 +229,15 @@ always @(*) begin
     ctr_block_w_inc = 1'b0;
     ctr_iter_rst = 1'b0;
     ctr_iter_inc = 1'b0;
+    ctr_onebit_addr_off_0_rst = 1'b0;
+    ctr_onebit_addr_off_0_inc = 1'b0;
+    ctr_onebit_addr_off_1_rst = 1'b0;
+    ctr_onebit_addr_off_1_inc = 1'b0;
     write_s0 = 0;
     write_s1 = 0;
     x2x_valid_data = 0;
     x2x_ready_result = 0;
+    x2x_valid_rng = 0;    
     
     x2x_original_data[0][0] = 0;
     x2x_original_data[0][1] = 0;
@@ -404,13 +422,13 @@ always @(*) begin
             if(ctrl_one_bit_mode)
             begin
                 if(ctrl_dual_mode)
-                    bit_calc = ctr_block_r << log_stride ; //((((ctr_array << 1) + ctr_block_r)& 5'h1f) << log_stride);
+                    bit_calc = ((((ctr_array << 1)+ ctr_block_r) & 6'h3f) << log_stride);
                 else
                     bit_calc = (((ctr_array + ctr_block_r) & 6'h3f) << log_stride);
                 
-                bit_index = (bit_calc[5:0] + bit_calc[31:6]) & 5'h1f;
-                x2x_original_data[0][0] = {{(PARAM_WIDTH - 1){1'b0}}, shares_one_bit[0][bit_index[5]][bit_index]};
-                x2x_original_data[0][1] = {{(PARAM_WIDTH - 1){1'b0}}, shares_one_bit[1][bit_index[5]][bit_index]};
+                bit_index = (bit_calc[5:0] + bit_calc[31:6]) & 6'h3f;
+                x2x_original_data[0][0] = {{(PARAM_WIDTH - 1){1'b0}}, shares_one_bit[0][bit_index[5]][bit_index[4:0]]};
+                x2x_original_data[0][1] = {{(PARAM_WIDTH - 1){1'b0}}, shares_one_bit[1][bit_index[5]][bit_index[4:0]]};
             end
             else
                 begin
@@ -526,6 +544,7 @@ always @(*) begin
     ST_MASK_WAIT:
     begin
         x2x_ready_result = 1;
+        x2x_valid_rng = rnd_ready;
         if(x2x_valid_result)
         begin
             if(ctrl_one_bit_mode)
@@ -616,12 +635,28 @@ always @(*) begin
         if(ctrl_one_bit_mode)
         begin
             addr_offset = (ctr_array + ctr_block_r_q);
-            
             if(ctrl_dual_mode)
-                mem_addr = ctrl_dout_addr[0] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + (((addr_offset[4:0] >> (5 - log_stride)) * (ctrl_data_len >> (log_stride + 1))))) << 2);
+            begin
+                if((addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) == ((1 << (5 - log_stride)) - 1))
+                begin
+                    if((addr_offset[4:0] >> (5 - log_stride)) == ((1 << log_stride)-1))
+                       ctr_onebit_addr_off_0_rst = 1; 
+                    else
+                       ctr_onebit_addr_off_0_inc = 1;
+                end
+                mem_addr = ctrl_dout_addr[0] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + ctr_onebit_addr_off_0) << 2);
+            end
             else 
-                mem_addr = ctrl_dout_addr[0] + (((addr_offset[31:6] << (6 - log_stride)) + (addr_offset[5:0] & ((1 << (6 - log_stride)) - 1)) + (((addr_offset[5:0] >> (6 - log_stride)) * (ctrl_data_len >> log_stride)))) << 2);
-  
+            begin
+                if((addr_offset[5:0] & ((1 << (6 - log_stride)) - 1)) == ((1 << (6 - log_stride)) - 1))
+                begin
+                    if((addr_offset[5:0] >> (6 - log_stride)) == ((1 << log_stride)-1))
+                       ctr_onebit_addr_off_0_rst = 1; 
+                    else
+                       ctr_onebit_addr_off_0_inc = 1;
+                end
+                mem_addr = ctrl_dout_addr[0] + (((addr_offset[31:6] << (6 - log_stride)) + (addr_offset[5:0] & ((1 << (6 - log_stride)) - 1)) + ctr_onebit_addr_off_0) << 2);
+            end
             if(mem_o_ready)
             begin
                 if(ctr_block_r_q == (BURST_LEN - 1))
@@ -673,11 +708,28 @@ always @(*) begin
         if(ctrl_one_bit_mode)
         begin
 			addr_offset = (ctr_array + ctr_block_r_q);
-			if(ctrl_dual_mode)
-				mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + (((addr_offset[4:0] >> (5 - log_stride)) * (ctrl_data_len >> (log_stride + 1))))) << 2);
-			else 
-				mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:6] << (6 - log_stride)) + (addr_offset[5:0] & ((1 << (6 - log_stride)) - 1)) + (((addr_offset[5:0] >> (6 - log_stride)) * (ctrl_data_len >> log_stride)))) << 2);
-		
+		    if(ctrl_dual_mode)
+            begin
+                if((addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) == ((1 << (5 - log_stride)) - 1))
+                begin
+                    if((addr_offset[4:0] >> (5 - log_stride)) == ((1 << log_stride)-1))
+                       ctr_onebit_addr_off_1_rst = 1; 
+                    else
+                       ctr_onebit_addr_off_1_inc = 1;
+                end
+                mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:5] << (5 - log_stride)) + (addr_offset[4:0] & ((1 << (5 - log_stride)) - 1)) + ctr_onebit_addr_off_1) << 2);
+            end
+            else 
+            begin
+                if((addr_offset[5:0] & ((1 << (6 - log_stride)) - 1)) == ((1 << (6 - log_stride)) - 1))
+                begin
+                    if((addr_offset[5:0] >> (6 - log_stride)) == ((1 << log_stride)-1))
+                       ctr_onebit_addr_off_1_rst = 1; 
+                    else
+                       ctr_onebit_addr_off_1_inc = 1;
+                end
+                mem_addr = ctrl_dout_addr[1] + (((addr_offset[31:6] << (6 - log_stride)) + (addr_offset[5:0] & ((1 << (6 - log_stride)) - 1)) + ctr_onebit_addr_off_1) << 2);
+            end
 			if(mem_o_ready)
 			begin
 				if(ctr_block_r_q == (BURST_LEN - 1))
@@ -762,6 +814,8 @@ always @(*) begin
                 ctr_block_r_rst = 1;
                 ctr_array_rst = 1; 
                 ctr_iter_rst = 1;
+                ctr_onebit_addr_off_0_rst = 1; 
+                ctr_onebit_addr_off_1_rst = 1; 
                 fsm_next_state = ST_IDLE;
                 ctrl_done = 1;
           
@@ -831,6 +885,8 @@ always @(posedge clk or negedge rst_n) begin
     
 end
 
+
+
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         ctr_block_r <= {LOGN{1'b0}};
@@ -879,8 +935,33 @@ always @(posedge clk or negedge rst_n) begin
     else if (ctr_iter_inc) begin
         ctr_iter <= ctr_iter + 1;
     end
-    
 end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        ctr_onebit_addr_off_0 <= 32'd0;
+    end
+    else if (ctr_onebit_addr_off_0_rst) begin
+        ctr_onebit_addr_off_0 <= 32'd0;
+    end
+    else if (ctr_onebit_addr_off_0_inc) begin
+        ctr_onebit_addr_off_0 <= ctr_onebit_addr_off_0 + onebit_inc_amount;
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        ctr_onebit_addr_off_1 <= 32'd0;
+    end
+    else if (ctr_onebit_addr_off_1_rst) begin
+        ctr_onebit_addr_off_1 <= 32'd0;
+    end
+    else if (ctr_onebit_addr_off_1_inc) begin
+        ctr_onebit_addr_off_1 <= ctr_onebit_addr_off_1 + onebit_inc_amount;
+    end
+end
+
+
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -892,7 +973,6 @@ always @(posedge clk or negedge rst_n) begin
     else begin
         ctr_trivium <= 0;
     end
-    
 end
 
 always @(posedge clk or negedge rst_n) begin

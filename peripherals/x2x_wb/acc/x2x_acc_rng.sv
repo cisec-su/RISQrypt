@@ -16,6 +16,7 @@ module x2x_acc_rng
         input                         ctrl_dual_mode,
         input                 [ 4:0]  log_modulus   ,
         input                         ctrl_rej_samp ,
+        input                         ctrl_nonzero,
         input                         ctrl_prng_off ,
         output reg [PARAM_WIDTH-1:0]  x2x_fresh_rnd_shares      [RND_SHARES_2SHARE    -1:0],
         output reg [  BOX_WIDTH-1:0]  x2x_fresh_rnd_shares_8bit [RND_SHARES_2SHARE_BOX-1:0],
@@ -41,12 +42,12 @@ wire [PARAM_WIDTH  :0] modulus_int;
 reg  [RND_SHARES_2SHARE-1:0] data_ready;
 
 
-assign modulus_mask = (ctrl_data_type == 0) ? (modulus - 1)                 :
+assign modulus_mask = (ctrl_data_type == 0) ? (modulus)                   :
                       (ctrl_rej_samp      ) ? (1 << (log_modulus - 1)) - 1:
                                               (1 << log_modulus)       - 1;
 
-assign modulus_int = (ctrl_data_type) ?    {1'b0, modulus} : 
-                                        {1'b0, modulus} + 1;
+assign modulus_int = (ctrl_data_type) ?    {1'b0, modulus}    : 
+                                           {1'b0, modulus} + 1;
 
 assign rnd_x2x_ready = (data_ready == 0); // TODO : will be parametric*/
 
@@ -74,7 +75,7 @@ Trivium #(
 );
 
 Trivium #(
-    .output_bits(256)// WHY 256
+    .output_bits(160)
 ) RNG3 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
@@ -210,17 +211,17 @@ begin
     end
     else
     begin
-        if((stream_out6[191:160] & modulus_mask) < modulus_int)
+        if(((stream_out6[191:160] & modulus_mask) < modulus_int) && (!ctrl_nonzero || ((stream_out6[191:160] & modulus_mask) != 0 )))
         begin
             rnd_ref = (stream_out6[191:160] & modulus_mask);
             rnd_ref_ready = 1; 
         end
-        else if((stream_out7[191:160] & modulus_mask) < modulus_int)
+        else if(((stream_out7[191:160] & modulus_mask) < modulus_int) && (!ctrl_nonzero || ((stream_out7[191:160] & modulus_mask) != 0 )))
         begin
             rnd_ref = (stream_out7[191:160] & modulus_mask);
             rnd_ref_ready = 1;
         end
-        else if((stream_out8[191:160] & modulus_mask) < modulus_int)
+        else if(((stream_out8[191:160] & modulus_mask) < modulus_int) && (!ctrl_nonzero || ((stream_out8[191:160] & modulus_mask) != 0 )))
         begin
             rnd_ref = (stream_out8[191:160] & modulus_mask);
             rnd_ref_ready = 1;
@@ -232,6 +233,5 @@ begin
         end
     end
 end
-
 
 endmodule

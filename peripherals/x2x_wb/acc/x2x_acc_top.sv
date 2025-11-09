@@ -115,6 +115,7 @@ wire x2x_valid_data;
 wire x2x_ready_data;
 wire x2x_ready_result;
 wire x2x_valid_result;
+wire x2x_valid_rng;
 wire [PARAM_WIDTH - 1 : 0] x2x_fresh_rnd_shares        [RND_SHARES_2SHARE - 1 : 0];
 wire [BOX_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_8bit   [RND_SHARES_2SHARE_BOX - 1 : 0];
 
@@ -148,6 +149,7 @@ x2x_acc_op_core #(
     .ready_data          (x2x_ready_data),
     .ready_result           (x2x_ready_result),
     .valid_result           (x2x_valid_result),
+    .valid_rng              (x2x_valid_rng),
     
     .modulus(modulus),
     .modulus_twoc(modulus_twoc),

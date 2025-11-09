@@ -9,6 +9,7 @@ module x2x_acc_refresh
         input                   dual_mode,
         input                   data_type,
         input                   valid_data,
+        input                   x2x_dis,
         input [31:0]            modulus,
           
         output reg [31:0]       A_out,
@@ -19,8 +20,8 @@ module x2x_acc_refresh
 wire [31:0] xor1_in, xor2_in;
 wire [31:0] xor1_out, xor2_out;
 
-assign xor1_in = (!conv_mode) ? A_in : 32'd0;
-assign xor2_in = (!conv_mode) ? B_in : 32'd0;
+assign xor1_in = (conv_mode) ? A_in : 32'd0;
+assign xor2_in = (conv_mode) ? B_in : 32'd0;
 
 x2x_acc_xor xor1
 (
@@ -41,8 +42,8 @@ wire [31:0] add_out, sub_out;
 wire [31:0] modulus_int;
 wire [31:0] modulus_int_h;
 
-assign add_in = (conv_mode) ? A_in : 32'd0;
-assign sub_in = (conv_mode) ? B_in : 32'd0;
+assign add_in = (!conv_mode) ? A_in : 32'd0;
+assign sub_in = (!conv_mode) ? B_in : 32'd0;
 
 assign modulus_int_h = (!data_type) ? (modulus + 1) : modulus;
 assign modulus_int = (dual_mode) ? {modulus_int_h[15:0],modulus_int_h[15:0]} : modulus_int_h;
@@ -76,16 +77,16 @@ begin
         B_out <= 0;
         valid_result <= 0; 
     end
-    else 
+    else if(!valid_result || valid_data || x2x_dis)
     begin
         valid_result <= valid_data;
         case(conv_mode)
-        0://B
+        1://B
         begin
             A_out <= xor1_out;
             B_out <= xor2_out;
         end
-        1://A
+        0://A
         begin
             A_out <= add_out;
             B_out <= sub_out;

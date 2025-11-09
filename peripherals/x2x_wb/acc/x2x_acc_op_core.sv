@@ -1,3 +1,5 @@
+`include "x2x_acc.vh"
+
 
 module x2x_acc_op_core
    #(
@@ -28,6 +30,8 @@ module x2x_acc_op_core
     input logic ready_result,   // ready to accept new B/A shares and transfer
     output reg valid_result,  // valid B/A shares ready for output
     
+    input logic valid_rng,     // valid A/B shares ready for input
+    
     input logic conv_mode,    // 0 -> A2B, 1 -> B2A
     input logic data_type,     // 0 -> power-of-two, 1 -> prime
     input logic dual_mode,          // 0 -> single input, 1 -> dual input
@@ -54,6 +58,7 @@ wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES - 1:0];
 wire [PARAM_WIDTH - 1 : 0] x2x_converted_data_raw   [2 - 1 : 0][N_SHARES - 1:0];
 
 wire x2x_valid_result;
+reg x2x_valid_data;
 
 wire [31:0] modulus_int, modulus_mask;
 assign modulus_int = (data_type) ? modulus : (modulus + 1);
@@ -74,7 +79,7 @@ X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .data_type_mode         (data_type),
     .dual_mode              (dual_mode),
     // x2x <-> fsm
-    .valid_data             (valid_data),
+    .valid_data             (x2x_valid_data),
     .ready_data             (ready_data),
     .ready_result           (ready_result),
     .valid_result           (x2x_valid_result),
@@ -88,11 +93,7 @@ X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .converted_data         (x2x_converted_data_raw)
 );
 
-/*assign x2x_converted_data[0][0] = (!data_type) ? (x2x_converted_data_raw[0][0] & modulus) : x2x_converted_data_raw[0][0];
-assign x2x_converted_data[0][1] = (!data_type) ? (x2x_converted_data_raw[0][1] & modulus) : x2x_converted_data_raw[0][1];
-assign x2x_converted_data[1][0] = (!data_type) ? (x2x_converted_data_raw[1][0] & modulus) : x2x_converted_data_raw[1][0];
-assign x2x_converted_data[1][1] = (!data_type) ? (x2x_converted_data_raw[1][1] & modulus) : x2x_converted_data_raw[1][1];
-*/
+
 assign x2x_converted_data[0][0] = (x2x_converted_data_raw[0][0] & modulus_mask);
 assign x2x_converted_data[0][1] = (x2x_converted_data_raw[0][1] & modulus_mask);
 assign x2x_converted_data[1][0] = (x2x_converted_data_raw[1][0] & modulus_mask);
@@ -128,27 +129,11 @@ x2x_acc_refresh refresh(
     
     .valid_data(refresh_valid_data),
     .valid_result(refresh_valid_result),
+    .x2x_dis(!opcode[0]),
     .A_out(refresh_data_out1),
     .B_out(refresh_data_out2)
 );
 
-
-
-reg [31:0] sr_data_in;
-wire [31:0] sr_data_out;
-
-x2x_acc_shiftreg_module #(
-    .N_STAGES(N_STAGES),
-    .DATA (32),
-    .HALFCYCLE (HALFCYCLE)
-) sr (
-    .clk(clk),
-    .rst_n(rst_n),
-    .conv_mode(conv_mode),
-    .data_type(data_type),
-    .data_in(sr_data_in),
-    .data_out(sr_data_out)
-);
 
 always @(*)
 begin
@@ -168,10 +153,10 @@ begin
     refresh_data_in2 = 0;
     refresh_rnd_ref = 0;
     refresh_valid_data = 0;
-
-    sr_data_in = 0;
     
-    if(opcode == 2'b00)
+    x2x_valid_data = 0;
+    
+    if(opcode == `X2X_CMD_PRNG)
     begin
         valid_result = randgen_valid_result;
         if(dual_mode && !data_type)
@@ -183,7 +168,7 @@ begin
             converted_data[0][1] = randgen_data_out;
     end
     
-    else if(opcode == 2'b01)
+    else if(opcode == `X2X_CMD_X2X)
     begin
         x2x_original_data[0][0] = original_data[0][0];
         x2x_original_data[0][1] = original_data[0][1];
@@ -195,10 +180,11 @@ begin
         converted_data[1][0] = x2x_converted_data[1][0];
         converted_data[1][1] = x2x_converted_data[1][1];
         
+        x2x_valid_data = valid_data;
         valid_result = x2x_valid_result;
     end
     
-    else if(opcode == 2'b10)
+    else if(opcode == `X2X_CMD_REF)
     begin
         if(dual_mode && !data_type)
         begin
@@ -222,36 +208,38 @@ begin
         valid_result = refresh_valid_result;
     end
     
-    else if(opcode == 2'b11)
+    else if(opcode == `X2X_CMD_REFX2X)
     begin
-        x2x_original_data[0][0] = original_data[0][0];
-        x2x_original_data[0][1] = original_data[0][1];
-        x2x_original_data[1][0] = original_data[1][0];
-        x2x_original_data[1][1] = original_data[1][1];
-        
         if(dual_mode && !data_type)
         begin
-            refresh_data_in1 = {x2x_converted_data[1][0][15:0],x2x_converted_data[0][0][15:0]};
-            refresh_data_in2 = {x2x_converted_data[1][1][15:0],x2x_converted_data[0][1][15:0]};
-            refresh_valid_data = x2x_valid_result;
-            converted_data[0][0] = refresh_data_out1[15:0];
-            converted_data[0][1] = refresh_data_out2[15:0];
-            converted_data[1][0] = refresh_data_out1[31:16];
-            converted_data[1][1] = refresh_data_out2[31:16];
+            refresh_data_in1 = {original_data[1][0][15:0],original_data[0][0][15:0]};
+            refresh_data_in2 = {original_data[1][1][15:0],original_data[0][1][15:0]};
+            
+            x2x_original_data[0][0] = refresh_data_out1[15:0];
+            x2x_original_data[0][1] = refresh_data_out2[15:0];
+            x2x_original_data[1][0] = refresh_data_out1[31:16];
+            x2x_original_data[1][1] = refresh_data_out2[31:16];
         end
         else
         begin
-            refresh_data_in1 = x2x_converted_data[0][0];
-            refresh_data_in2 = x2x_converted_data[0][1];
-            refresh_valid_data = x2x_valid_result;
-            converted_data[0][0] = refresh_data_out1;
-            converted_data[0][1] = refresh_data_out2;
+            refresh_data_in1 = original_data[0][0];
+            refresh_data_in2 = original_data[0][1];
+            
+            x2x_original_data[0][0] = refresh_data_out1;
+            x2x_original_data[0][1] = refresh_data_out2;
         end
         
-        sr_data_in = rnd_ref;
-        refresh_rnd_ref = sr_data_out;
+        converted_data[0][0] = x2x_converted_data[0][0];
+        converted_data[0][1] = x2x_converted_data[0][1];
+        converted_data[1][0] = x2x_converted_data[1][0];
+        converted_data[1][1] = x2x_converted_data[1][1];
         
-        valid_result = refresh_valid_result;
+        refresh_rnd_ref = rnd_ref;
+        refresh_valid_data = valid_data;
+        
+        x2x_valid_data = refresh_valid_result & (valid_data || valid_rng);
+        valid_result = x2x_valid_result;
+        
         
     end
     
