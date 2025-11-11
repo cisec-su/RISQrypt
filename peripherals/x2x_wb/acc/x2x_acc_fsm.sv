@@ -30,6 +30,8 @@ module x2x_acc_fsm
         input      [      31:0] ctrl_data_len              ,
         input      [      63:0] ctrl_seed             , 
         input      [31:0] modulus,
+		input [31:0] modulus_complement,
+        input [31:0] modulus_half,								
         input                   ctrl_load_seed             ,
         input ctrl_share_mode,
         input ctrl_dual_mode,
@@ -136,11 +138,6 @@ reg dualprime_msh, dualprime_comp;
 wire dualprime;
 assign dualprime = ctrl_dual_mode & ctrl_data_type;
 
-wire [PARAM_WIDTH-1:0] modulus_half;
-assign modulus_half = modulus >> 1;
- 
-wire [PARAM_WIDTH-1:0] modulus_complement;
-assign modulus_complement = (32'hFFFFFFFF ^ modulus) + 1;
 
 wire [LOGL-1:0] input_data_len;
 assign input_data_len = ctrl_data_len;
@@ -189,7 +186,7 @@ x2x_acc_rng #(
         .ctrl_dual_mode(ctrl_dual_mode),
         .log_modulus(log_modulus),  
         .ctrl_rej_samp(ctrl_rej_samp),
-        .ctrl_nonzero(ctrl_share_mode),
+        .ctrl_nonzero(ctrl_share_mode && (opcode == `X2X_CMD_PRNG)),
         .ctrl_prng_off(ctrl_prng_off),
         .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
         .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
@@ -436,12 +433,12 @@ always @(*) begin
                 begin
                     if(!ctrl_conv_mode & !ctrl_arith_mode & ctrl_data_type) // A2B Unsigned
                     begin
-                        if((shares[0][ctr_block_r][31:16] > modulus_half) & opcode[0]) 
+                        if((shares[0][ctr_block_r][31:16] > modulus_half) & (opcode == `X2X_CMD_X2X)) 
                             x2x_original_data[0][0] = shares[0][ctr_block_r][31:16] + modulus_complement;
                         else
                             x2x_original_data[0][0] = shares[0][ctr_block_r][31:16];
                             
-                        if((shares[1][ctr_block_r][31:16] > modulus_half) & opcode[0]) 
+                        if((shares[1][ctr_block_r][31:16] > modulus_half) & (opcode == `X2X_CMD_X2X)) 
                             x2x_original_data[0][1] = shares[1][ctr_block_r][31:16] + modulus_complement;
                         else 
                             x2x_original_data[0][1] = shares[1][ctr_block_r][31:16];
@@ -456,12 +453,12 @@ always @(*) begin
                 begin
                     if(!ctrl_conv_mode & !ctrl_arith_mode & ctrl_data_type) // A2B Unsigned
                     begin
-                        if((shares[0][ctr_block_r][15:0] > modulus_half) & opcode[0])  
+                        if((shares[0][ctr_block_r][15:0] > modulus_half) & (opcode == `X2X_CMD_X2X))  
                             x2x_original_data[0][0] = shares[0][ctr_block_r][15:0] + modulus_complement;
                         else
                             x2x_original_data[0][0] = shares[0][ctr_block_r][15:0];
                             
-                        if((shares[1][ctr_block_r][15:0] > modulus_half) & opcode[0]) 
+                        if((shares[1][ctr_block_r][15:0] > modulus_half) & (opcode == `X2X_CMD_X2X)) 
                             x2x_original_data[0][1] = shares[1][ctr_block_r][15:0] + modulus_complement;
                         else 
                             x2x_original_data[0][1] = shares[1][ctr_block_r][15:0];
@@ -476,12 +473,12 @@ always @(*) begin
                 begin
                     if(!ctrl_conv_mode & !ctrl_arith_mode  & ctrl_data_type) // A2B Unsigned
                     begin
-                        if((shares[0][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half) & opcode[0]) 
+                        if((shares[0][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half) & (opcode == `X2X_CMD_X2X)) 
                             x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0] + modulus_complement;
                         else
                             x2x_original_data[0][0] = shares[0][ctr_block_r][PARAM_WIDTH-1:0];
                             
-                        if((shares[1][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half) & opcode[0]) 
+                        if((shares[1][ctr_block_r][PARAM_WIDTH-1:0] > modulus_half) & (opcode == `X2X_CMD_X2X)) 
                             x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0] + modulus_complement;
                         else
                             x2x_original_data[0][1] = shares[1][ctr_block_r][PARAM_WIDTH-1:0];

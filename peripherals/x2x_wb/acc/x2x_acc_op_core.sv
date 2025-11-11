@@ -37,7 +37,8 @@ module x2x_acc_op_core
     input logic dual_mode,          // 0 -> single input, 1 -> dual input
     
     input logic [PARAM_WIDTH - 1 : 0]   modulus,
-    input logic [PARAM_WIDTH - 1 : 0]   modulus_twoc,
+    input logic [PARAM_WIDTH - 1 : 0]   modulus_complement,
+    input logic [PARAM_WIDTH - 1 : 0]   modulus_half,													 
     input logic [4 : 0]   log_modulus,
     //output logic dual_mode_out,     // 0 -> single output, 1 -> dual output
     
@@ -85,7 +86,7 @@ X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .valid_result           (x2x_valid_result),
     
     .modulus(modulus_int),
-    .modulus_twoc(modulus_twoc),
+    .modulus_twoc(modulus_complement),
         
     .fresh_rnd_shares       (x2x_fresh_rnd_shares),//TBC
     .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),//TBC
@@ -128,6 +129,7 @@ x2x_acc_refresh refresh(
     .modulus        (modulus),
     
     .valid_data(refresh_valid_data),
+	.valid_rng(valid_rng),					  
     .valid_result(refresh_valid_result),
     .x2x_dis(!opcode[0]),
     .A_out(refresh_data_out1),
@@ -225,8 +227,23 @@ begin
             refresh_data_in1 = original_data[0][0];
             refresh_data_in2 = original_data[0][1];
             
-            x2x_original_data[0][0] = refresh_data_out1;
-            x2x_original_data[0][1] = refresh_data_out2;
+			if(!conv_mode & data_type) // A2B Unsigned
+            begin
+                if(refresh_data_out1 > modulus_half) 
+                    x2x_original_data[0][0] = refresh_data_out1 + modulus_complement;
+                else
+                    x2x_original_data[0][0] = refresh_data_out1;
+                    
+                if(refresh_data_out2 > modulus_half) 
+                    x2x_original_data[0][1] = refresh_data_out2 + modulus_complement;
+                else 
+                    x2x_original_data[0][1] = refresh_data_out2;
+            end
+            else
+            begin
+                x2x_original_data[0][0] = refresh_data_out1;
+                x2x_original_data[0][1] = refresh_data_out2;
+            end  
         end
         
         converted_data[0][0] = x2x_converted_data[0][0];

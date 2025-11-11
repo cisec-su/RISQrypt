@@ -9,6 +9,7 @@ module x2x_acc_refresh
         input                   dual_mode,
         input                   data_type,
         input                   valid_data,
+		input                   valid_rng,								  
         input                   x2x_dis,
         input [31:0]            modulus,
           
@@ -77,7 +78,7 @@ begin
         B_out <= 0;
         valid_result <= 0; 
     end
-    else if(!valid_result || valid_data || x2x_dis)
+    else if(!valid_result || (valid_data || valid_rng) || x2x_dis)
     begin
         valid_result <= valid_data;
         case(conv_mode)

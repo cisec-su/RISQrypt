@@ -124,8 +124,11 @@ wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES_2SHARE - 1:
 
 wire [31:0] rnd_ref;
 
-assign modulus_twoc = (32'hFFFFFFFF ^ modulus) + 1;
+wire [31:0] modulus_complement;
+assign modulus_complement = (32'hFFFFFFFF ^ modulus) + 1;
 
+wire [PARAM_WIDTH-1:0] modulus_half;
+assign modulus_half = modulus >> 1;
 assign fsm_prng_off = (PRNG_OFF_EN) ? ctrl_prng_off : 1'b0;
 
 x2x_acc_op_core #(
@@ -152,7 +155,8 @@ x2x_acc_op_core #(
     .valid_rng              (x2x_valid_rng),
     
     .modulus(modulus),
-    .modulus_twoc(modulus_twoc),
+    .modulus_complement(modulus_complement),
+    .modulus_half(modulus_half),
     .log_modulus(log_modulus),
         
     .x2x_fresh_rnd_shares       (x2x_fresh_rnd_shares),//TBC
@@ -195,6 +199,8 @@ x2x_acc_fsm #(
     .ctrl_data_len   (data_len         ),
     .ctrl_seed  (seed        ),
     .modulus (modulus),
+	.modulus_complement(modulus_complement),
+    .modulus_half(modulus_half),										
     .ctrl_load_seed  (load_seed        ),
     .ctrl_share_mode(share_mode),
     .ctrl_arith_mode(arith_mode),
@@ -221,6 +227,7 @@ x2x_acc_fsm #(
     .x2x_ready_data             (x2x_ready_data),
     .x2x_ready_result           (x2x_ready_result),
     .x2x_valid_result           (x2x_valid_result),
+	.x2x_valid_rng           (x2x_valid_rng),										 
    
     .x2x_fresh_rnd_shares       (x2x_fresh_rnd_shares),
     .x2x_fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),
