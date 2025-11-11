@@ -159,7 +159,7 @@ void polyvec_pointwise_acc_fromseed_core(poly *r, const uint8_t seed[KYBER_SYMBY
     gen_poly_tohw(seed, j, i, transposed);
     ntt_lite_pwm_twforward_dis(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[i].coeffs);
     if ((i == (KYBER_K - 1)) && clr)
-      ntt_lite_set_clr();
+      ntt_lite_set_clr_with_twiddle();
     if ((i == (KYBER_K - 1)) && (tohw || intt)) {
       ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);
     } else {

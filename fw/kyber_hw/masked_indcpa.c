@@ -45,14 +45,10 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
     poly_init_zeta();
 
     for (i = 0; i < KYBER_K; i++) {
-        masked_polyvec_pointwise_acc_invntt_i(&mbp, &msp, &at[i], i);
+        masked_polyvec_pointwise_acc_invntt_add_i(&mbp, &msp, &at[i], &mep, i);
     }
 
-    masked_polyvec_pointwise_acc_invntt(&mv, &msp, &pkpv);
-
-    masked_polyvec_add(&mbp, &mbp, &mep);
-
-    masked_poly_add_chain(&mv, &mv, &mepp, &mk);
+    masked_polyvec_pointwise_acc_invntt_addchain(&mv, &msp, &pkpv, &mepp, &mk);
     
     masked_polyvec_sub_compress(&mpvu32, &mbp, c);
     masked_poly_sub_compress(&mpu32, &mv, c + KYBER_POLYVECCOMPRESSEDBYTES);

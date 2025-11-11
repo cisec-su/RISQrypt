@@ -51,19 +51,6 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     uint32_t *dst;
     poly temp;
 
-    // poly_init_q();
-    // print_string("bef mpu32 a[0]:  \n");
-    // print_u32_arr(a[0]->coeffs, 128);
-    // print_string("bef mpu32 a[1]:  \n");
-    // print_u32_arr(a[1]->coeffs, 128);
-    // print_string("temp: \n");
-    // ntt_lite_decode(temp.coeffs, (uint32_t*) b, d);
-    // print_u32_arr(temp.coeffs, 128);
-    // print_string("temp dec: \n");
-    // ntt_lite_decompress(temp.coeffs, temp.coeffs, d);
-    // print_u32_arr(temp.coeffs, 128);
-    // while(1);
-
     ntt_lite_load_q(q, mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
 
 

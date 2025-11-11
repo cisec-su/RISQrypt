@@ -77,7 +77,7 @@ typedef struct
 #define X2X_CTRL_CMD_PRNG         (((uint32_t) 0x0) << X2X_CTRL_CMD_S)
 #define X2X_CTRL_CMD_X2X          (((uint32_t) 0x1) << X2X_CTRL_CMD_S)
 #define X2X_CTRL_CMD_REF          (((uint32_t) 0x2) << X2X_CTRL_CMD_S)
-#define X2X_CTRL_CMD_X2XREF       (((uint32_t) 0x3) << X2X_CTRL_CMD_S)
+#define X2X_CTRL_CMD_REFX2X       (((uint32_t) 0x3) << X2X_CTRL_CMD_S)
 
 #define X2X_CTRL_SEED_BUSY_S      ((uint32_t) 29)
 #define X2X_CTRL_SEED_BUSY_M      ((uint32_t) 0x1)
