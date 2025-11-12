@@ -90,8 +90,8 @@ void masked_indcpa_dec_core(masked_msg mm,
     polyvec_ntt(&bp);
 
     poly_init_zeta();
-    masked_polyvec_pointwise_acc_invntt(&mp, mskpv, &bp);
-    masked_poly_sub_tomsg(mm, &v, &mp);
+    masked_polyvec_pointwise_acc_invntt_sub(&mp, mskpv, &bp, &v);
+    masked_poly_tomsg(mm, &mp);
 }
 
 

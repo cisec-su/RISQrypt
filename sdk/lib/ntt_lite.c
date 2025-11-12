@@ -236,42 +236,6 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
     return 0;
 }
 
-int ntt_lite_pwm_twforward_dis(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
-    
-    uint32_t cmd;
-    uint32_t out_dis;
-    uint32_t op;
-    uint32_t rhs_const;
-    uint32_t op_switch;
-
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
-        return -1;
-    }
-
-    op = NTT_LITE_CTRL_OP_PWM;
-    rhs_const = 0;
-    op_switch = 0;
-
-    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-
-    if (rhs != NTT_LITE_INPUT_DIS) {
-        ntt_lite_load_twiddle_core(rhs, rhs_const);
-    }
-
-    if (lhs == NTT_LITE_INPUT_DIS) {
-        cmd = NTT_LITE_CTRL_CMD_START;
-    } else {
-        cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
-        NTT_LITE_REGS->din_addr = (uint32_t) lhs;
-    }
-
-    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_PWM | rhs_const | op_switch;
-
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
-
-    return 0;
-}
-
 
 int ntt_lite_pwm(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
     return ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_PWM, 0, 0);
@@ -345,13 +309,8 @@ static int ntt_lite_decode_core(uint32_t *dst, const uint32_t *src, uint32_t d, 
     }
 
     NTT_LITE_REGS->din_addr = (uint32_t) src;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | NTT_LITE_CTRL_OP_SWITCH_EN_V | (d << NTT_LITE_CTRL_D_S);
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
-
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START | op | (d << NTT_LITE_CTRL_D_S);
-
-
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | (d << NTT_LITE_CTRL_D_S) | op;
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     return 0;
@@ -387,11 +346,8 @@ int ntt_lite_rejsamp(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t ce
     }
 
     NTT_LITE_REGS->din_addr = (uint32_t) src;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | NTT_LITE_CTRL_RHS_CONST_EN_V;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
-
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START | NTT_LITE_CTRL_OP_REJSAMP | (d << NTT_LITE_CTRL_D_S) | center_int;
+    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | NTT_LITE_CTRL_OP_REJSAMP | (d << NTT_LITE_CTRL_D_S) | center_int;
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     return 0;

@@ -45,6 +45,23 @@ void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a
 }
 
 
+void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyvec *a, const polyvec *b, const poly *c) {
+    unsigned int i;
+    
+    ntt_lite_set_bound(0);
+    for (i = 0; i < MASKING_N; i++) {
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, 1, 0);
+        ntt_lite_set_clr_with_twiddle();
+        if (i == 0) {
+            ntt_lite_sub_rev((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, (uint32_t*) c->coeffs);
+        }
+        else {
+            ntt_lite_sub_rev_const((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+        }
+    }
+}
+
+
 void masked_polyvec_pointwise_acc_invntt_addchain(masked_poly *r, const masked_polyvec *a, const polyvec *b, const masked_poly *c, const masked_poly *d) {
     unsigned int i;
     for (i = 0; i < MASKING_N; i++) {

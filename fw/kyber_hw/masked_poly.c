@@ -110,15 +110,13 @@ void masked_poly_sub_compress_du(poly_u32 *r[MASKING_N], const poly *a[MASKING_N
 /* https://eprint.iacr.org/2022/158: Algorithm 15
  * Distinctively, we use mod c+alpha+1 during decompress.
  */
-static void masked_poly_sub_tomsg_core(masked_msg msg, const poly *a, masked_poly *b, int from_hw) {
+void masked_poly_tomsg(masked_msg msg, masked_poly *b) {
 #if (MASKING_N != 2)
 #error "This implementation requires MASKING_N = 2"
 #endif
     unsigned int i;
     const uint32_t q = ((KYBER_Q << 1) << 16) | (KYBER_Q << 1);
     const uint32_t mu[2] = {0x9d7db, 0x9d7db};
-    const uint32_t q_init = (KYBER_Q << 16) | KYBER_Q;
-    const uint32_t mu_init[2] = {0x13afb7, 0x13afb7};
     const uint32_t alpha = 12 + LOG_MASKING_N;
     const uint32_t alpha_dual = ((1 << (alpha - 1)) << 16) | (1 << (alpha - 1));
     const uint32_t d_ = alpha + 2;
@@ -126,35 +124,19 @@ static void masked_poly_sub_tomsg_core(masked_msg msg, const poly *a, masked_pol
     uint32_t *dst, *src;
     
 
-    ntt_lite_set_bound(0);
+    ntt_lite_set_q(q);
+    ntt_lite_set_mu(mu, NTT_LITE_MODE_POLY);
+
     for (i = 0; i < MASKING_N; i++) {
-        if (i == 0 && from_hw) {
-            src = NTT_LITE_INPUT_DIS;
-        }
-        else {
-            src = (uint32_t*) b->share[0].coeffs;
-        }
         if (i == MASKING_N - 1) {
             dst = NTT_LITE_OUTPUT_DIS;
         }
         else {
             dst = (uint32_t*) b->share[i].coeffs;
         }
-        if (i != 0) {
-            ntt_lite_set_q(q_init);
-            ntt_lite_set_mu(mu_init, NTT_LITE_MODE_POLY);
-        }
-        if (i == 0) {
-            ntt_lite_sub_rev(NTT_LITE_OUTPUT_DIS, src, (uint32_t*) a->coeffs);
-        }
-        else {
-            ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) b->share[i].coeffs, NTT_LITE_INPUT_DIS);
-        }
-        ntt_lite_set_q(q);
-        ntt_lite_set_mu(mu, NTT_LITE_MODE_POLY);
         if (i != (MASKING_N - 1))
             ntt_lite_set_clr();
-        ntt_lite_compress(dst, NTT_LITE_INPUT_DIS, d_);
+        ntt_lite_compress(dst, (uint32_t*) b->share[i].coeffs, d_);
     }
 
     ntt_lite_set_bound(alpha_dual);
@@ -172,16 +154,6 @@ static void masked_poly_sub_tomsg_core(masked_msg msg, const poly *a, masked_pol
         ntt_lite_decompress_floor(NTT_LITE_OUTPUT_DIS, (uint32_t*) b->share[i].coeffs, alpha);
         ntt_lite_encode((uint32_t*) msg[i], NTT_LITE_INPUT_DIS, 1);
     }
-}
-
-
-void masked_poly_sub_tomsg(masked_msg msg, const poly *a, masked_poly *b) {
-    masked_poly_sub_tomsg_core(msg, a, b, 0);
-}
-
-
-void masked_poly_sub_tomsg_fromhw(masked_msg msg, const poly *a, masked_poly *b) {
-    masked_poly_sub_tomsg_core(msg, a, b, 1);
 }
 
 

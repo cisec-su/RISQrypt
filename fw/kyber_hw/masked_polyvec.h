@@ -24,6 +24,9 @@ void masked_polyvec_pointwise_acc_invntt_i(masked_polyvec *r, const masked_polyv
 #define masked_polyvec_pointwise_acc_invntt KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt)
 void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a, const polyvec *b);
 
+#define masked_polyvec_pointwise_acc_invntt_sub KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_sub)
+void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyvec *a, const polyvec *b, const poly *c);
+
 #define masked_polyvec_pointwise_acc_invntt_tohw KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_tohw)
 void masked_polyvec_pointwise_acc_invntt_tohw(masked_poly *r, const masked_polyvec *a, const polyvec *b);
 

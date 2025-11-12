@@ -139,9 +139,9 @@ void test_masked_poly_msg() {
 
     BENCH_START()
 
-    masked_poly_sub_tomsg(mm, &a, &mpoly_0);
+    masked_poly_tomsg(mm, &mpoly_0);
 
-    BENCH_END(MASKED_POLY_SUB_TOMSG)
+    BENCH_END(MASKED_POLY_TOMSG)
 
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
