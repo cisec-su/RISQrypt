@@ -2,6 +2,7 @@
 #include "x2x.h"
 #include "keccak.h"
 #include "masked_symmetric.h"
+#include "masked_gadgets.h"
 #ifdef VERBOSE
 #include "util.h"
 #endif
@@ -59,7 +60,7 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 
     unsigned int i;
     uint32_t pad;
-    uint32_t t[MASKING_N][POLY_SAMPLE_BYTES >> 2];
+    static uint32_t t[MASKING_N][POLY_SAMPLE_BYTES >> 2];
 
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
     keccak_absorb((uint32_t*) src, (uint32_t*) (src + (KYBER_SYMBYTES >> 1)), KYBER_SYMBYTES >> 3);
@@ -104,6 +105,8 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 #endif
         ntt_lite_encode(dst[i], NTT_LITE_INPUT_DIS, 16);        
     }
+    masked_gadgets_init_q();
+    x2x_a_ref(dst[1], dst[0], dst[1], dst[0], KYBER_N/2);
     vcu_ntt_lite_reset_state();
 }
 
@@ -126,15 +129,13 @@ void vck_masked_polyvec_from_seed(masked_polyvec *dst, const uint8_t src[KYBER_S
 }
 
 
-void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[KYBER_SYMBYTES]) {
-    unsigned int i;
-    uint32_t pad;
-
+void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[KYBER_SYMBYTES], uint8_t nonce) {
+    volatile uint32_t pad;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
     keccak_absorb((uint32_t*) src, (uint32_t*) (src + (KYBER_SYMBYTES >> 1)), KYBER_SYMBYTES >> 3);
-    pad = SHAKE_PAD;
+    pad = (SHAKE_PAD << 8) | ((uint32_t) nonce);
     keccak_finish((uint32_t*) &pad);
-    keccak_squeeze((uint32_t*) (dst[0]), (uint32_t*) (dst[1]), KYBER_SYMBYTES >> 2);
+    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], KYBER_INDCPA_MSGBYTES >> 2);
 }
 
 

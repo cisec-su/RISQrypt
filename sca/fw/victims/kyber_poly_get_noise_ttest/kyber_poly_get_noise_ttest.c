@@ -3,56 +3,60 @@
 #include "util.h"
 #include "cw305.h"
 #include "simpleserial_cw305_rq.h"
-#include "x2x.h"
-#include "ntt_lite.h"
-#include "x2x_prng.h"
-#include "masked_gadgets.h"
 #include "masked_poly.h"
-#include "symmetric.h"
+#include "masked_gadgets.h"
 #include "timer.h"
 #include "victims_commons_kyber.h"
 #include "victims_commons_util.h"
 
 
 #define CIPHERGEN_RETURN_HASH
-#define OUTPUT_SIZE 0
-#define SLEEP_LOOP 1024
+#define CIPHERGEN_OUTPUT_SIZE 16
+//#define RETURN_OUTPUT
+#define SLEEP_LOOP (2048)
 
 
-masked_poly poly_b;
-masked_msg mm;
-masked_msg mm_dummy;
+masked_sym mcoins;
+masked_poly r;
+masked_sym mcoins_dummy;
+masked_poly r_dummy;
 
 
-uint8_t get_poly(uint8_t* p, uint8_t len)
+
+uint8_t get_key(uint8_t* k, uint8_t len)
 {
+    int ret;
+    uint8_t nonce = 0;
 #ifdef VERBOSE
     uint32_t time;
-    print_string("SimpleSerial::get_poly command received\n");
-    print_string("p: ");
-    print_hex(p, len, 0);
+    print_string("SimpleSerial::get_key command received\n");
+    print_string("k: ");
+    print_hex(k, len, 0);
     print_string("\n");
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////// real input masking //////////////////////
-    vck_masked_msg_from_seed(mm, p, 0);
+    vck_masked_msg_from_seed(mcoins, k, 0);
 #ifdef VERBOSE
-    vck_print_msg_shares(mm, "MM");
+    vck_print_msg_shares(mcoins, "MCoins");
 #endif
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
-    //////////////////// dummy input masking ////////////////////////
-    for (size_t i = 0; i < len; i++) {
-        p[i] = 0;
-    }
-    vck_masked_msg_from_seed(mm_dummy, p, 0);
-    (void) mm_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     ////////////////////// initialize modules ///////////////////////
     poly_init_q();
     masked_gadgets_init_q();
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    //////////////////// dummy input masking ////////////////////////
+    for (int i = 0; i < len; i++){
+        k[i] = 0;
+    }
+    vck_masked_msg_from_seed(mcoins_dummy, k, 0);
+    memset(mcoins_dummy, 0x0, sizeof(mcoins_dummy));
+    masked_poly_getnoise_eta2(&r_dummy, mcoins_dummy, &nonce);
+    (void) r_dummy;
+    vcu_ntt_lite_reset_state();
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
@@ -65,14 +69,14 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     timer_reset();
     timer_start();
 #endif
-    masked_poly_frommsg(&poly_b, mm);
+    masked_poly_getnoise_eta2(&r, mcoins, &nonce);
 #ifdef VERBOSE
     time = timer_read();
-    print_string("masked_poly_sub_frommsg time: ");
+    print_string("masked_poly_getnoise_eta2 time: ");
     print_u32(time);
-    print_string("\n");
+    print_string("\n\n\n\n");
 #endif
-    (void) mm;
+    (void) r;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
@@ -84,10 +88,6 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-#ifdef VERBOSE
-    print_string("SimpleSerial::get_key done\n");
-    vck_print_poly_shares(&poly_b, "Poly shares");
-#endif
 
     return 0x00;
 }
@@ -96,13 +96,12 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
 int main(void)
 {
     cw305_trigger_down();
-    print_string("Kyber PolyFromMsg Dec\n");
-
+    print_string("Kyber PolyGetNoise\n");
 
     simpleserial_init();
     simpleserial_addcmd('l', 0, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
-    simpleserial_addcmd('p', KYBER_SYMBYTES, get_poly);
+    simpleserial_addcmd('p', KYBER_SYMBYTES, get_key);
 
     while(1)
         simpleserial_cw305_rq_get();

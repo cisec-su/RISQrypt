@@ -6,7 +6,7 @@
 #include "x2x_prng.h"
 #include "util.h"
 
-const static uint32_t zero[128] = {0};
+const static uint32_t zero[256] = {0};
 
 
 void vcu_ntt_lite_reset_state(void) {

@@ -59,13 +59,16 @@ uint8_t get_key(uint8_t* k, uint8_t len)
     ////////////////////// initialize modules ///////////////////////
     poly_init_q();
     masked_gadgets_init_q();
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////// sleep ///////////////////////////////
     vcu_ntt_lite_reset_state();
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    ////////////////////// const public input ///////////////////////
     for (int i = 0; i < KYBER_INDCPA_BYTES; i++){
         c[i] = 1;
     }
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////// sleep ///////////////////////////////
     vcu_sleep(SLEEP_LOOP);
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -115,33 +118,6 @@ uint8_t get_key(uint8_t* k, uint8_t len)
 }
 
 
-// uint8_t get_ct(uint8_t* pt, uint8_t len)
-// {
-// #ifdef VERBOSE
-//     print_string("SimpleSerial::get_ct command received\n");
-//     print_string("pt: ");
-//     print_hex(pt, len, 0);
-//     print_string("\n");
-// #endif
-
-//     shake256(c, KYBER_INDCPA_BYTES, pt, len);
-
-// #ifdef CIPHERGEN_RETURN_HASH
-//     simpleserial_put('r', CIPHERGEN_OUTPUT_SIZE, c);
-// #endif
-
-// #ifdef VERBOSE
-//     print_string("ct set to: ");
-//     print_hex(c, 16, 0);
-//     print_string("...");
-//     print_hex(c + KYBER_INDCPA_BYTES - 16, 16, 0);
-//     print_string("\n");
-// #endif
-
-//     return 0x00;
-// }
-
-
 int main(void)
 {
     cw305_trigger_down();
@@ -150,7 +126,6 @@ int main(void)
     simpleserial_init();
     simpleserial_addcmd('l', 0, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
-    // simpleserial_addcmd('k', 16, get_ct);
     simpleserial_addcmd('p', KYBER_SYMBYTES, get_key);
 
     while(1)

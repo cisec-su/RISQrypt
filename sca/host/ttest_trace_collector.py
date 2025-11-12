@@ -10,13 +10,20 @@ import subprocess
 
 
 class TTestTraceCollector:
-    def __init__(self, proj_name, label=None, input_len=32, output_len=16):
+    def __init__(self, proj_name, label=None, input_len=32, output_len=16, offset=0):
         self.proj_name = proj_name
         self.label = label
         self.input_len = input_len
         self.output_len = output_len
         self.bootloader = "python3 ../../sdk/toolchain/bootloader.py"
         self.bs_file = "../vivado/risqrypt_cw305.runs/impl_1/fpga_top.bit"
+        self.offset = offset
+        self.scope = None
+
+    def set_offset(self, offset):
+        self.offset = offset
+        if self.scope is not None:
+            self.scope.adc.offset = offset
 
     def fw_dir(self):
         return f"../fw/victims/{self.proj_name}"
@@ -39,9 +46,9 @@ class TTestTraceCollector:
 
     def ths_name(self, random, prng_off=False, N=1000):
         if self.label is not None:
-            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_{self.label}"
+            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}_{self.label}"
         else:
-            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}"
+            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}"
 
     def read_ths(self, N=5000, prng_off=False):
         filename_0 = self.ths_name(random=0, prng_off=prng_off, N=N)
@@ -57,7 +64,7 @@ class TTestTraceCollector:
         return TTestAnalysis(ths_0, ths_1)
 
     def default_setup(self, freq, gain, samples, mul=4):
-        self.scope.adc.offset = 0
+        self.scope.adc.offset = self.offset
         self.scope.adc.basic_mode = "rising_edge"
         self.scope.trigger.triggers = "tio4"
         self.scope.io.tio1 = "serial_rx"
@@ -119,7 +126,7 @@ class TTestTraceCollector:
         seed_full = seed_temp + seed_mask
         return seed_full
 
-    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween=False):
+    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False):
         if prng_off:
             self.set_prng_off()
         else:
@@ -142,6 +149,13 @@ class TTestTraceCollector:
                 assert self.check_output(ret.textout, const_seed), "Output mismatch!"
             es_writer_0.write_samples(np.array(ret.wave))
             es_writer_0.write_metadata('s', np.frombuffer(const_seed))
+            #dummy input
+            if dummy_inbetween_0:
+                dummy_seed = self.set_input(os.urandom(self.input_len//2), prng_off)
+                ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
+                if not ret:
+                    print("Failed capture")
+                    continue
             # rand input
             seed = os.urandom(self.input_len//2)
             seed_full = self.set_input(seed, prng_off)
@@ -154,7 +168,7 @@ class TTestTraceCollector:
             es_writer_1.write_samples(np.array(ret.wave))
             es_writer_1.write_metadata('s', np.frombuffer(seed))
             #dummy input
-            if dummy_inbetween:
+            if dummy_inbetween_1:
                 dummy_seed = self.set_input(os.urandom(self.input_len//2), prng_off)
                 ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
                 if not ret:
