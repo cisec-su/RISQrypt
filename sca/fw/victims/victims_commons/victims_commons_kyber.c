@@ -10,6 +10,26 @@
 #include "victims_commons_util.h"
 
 
+#define POLY_SAMPLE_BYTES (KYBER_N * sizeof(uint32_t))
+
+
+void vck_print_poly_unmasked(const masked_poly *mp, const char *label) {
+#ifdef VERBOSE
+    poly temp;
+    unsigned int i;
+
+    for (i = 0; i < KYBER_N; i++) {
+        temp.coeffs[i] = (mp->share[0].coeffs[i] + mp->share[1].coeffs[i]) % KYBER_Q;
+    }
+    print_string(label);
+    print_string(" Unmasked Coeffs: ");
+    print_u32_arr((uint32_t*) temp.coeffs, 8);
+    print_u32_arr((uint32_t*) temp.coeffs + KYBER_N/2 - 8, 8);
+    print_string("\n");
+#endif
+}
+
+
 void vck_print_poly_shares(const masked_poly *mp, const char *label) {
 #ifdef VERBOSE
     print_string(label);
@@ -83,11 +103,11 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 #ifdef VERBOSE
     print_string("Poly t Share 0 Coeffs: ");
     print_u32_arr((uint32_t*) t[0], 8);
-    print_u32_arr((uint32_t*) t[0] + KYBER_N - 8, 8);
+    print_u32_arr((uint32_t*) t[0] + KYBER_N/2 - 8, 8);
     print_string("\n");
     print_string("Poly t Share 1 Coeffs: ");
     print_u32_arr((uint32_t*) t[1], 8);
-    print_u32_arr((uint32_t*) t[1] + KYBER_N - 8, 8);
+    print_u32_arr((uint32_t*) t[1] + KYBER_N/2 - 8, 8);
     print_string("\n");
 #endif
 
@@ -98,7 +118,7 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
         ntt_lite_mul_const(t[i], t[i], NTT_LITE_INPUT_DIS);
         print_string("Poly Reduced32 Share Coeffs: ");
         print_u32_arr((uint32_t*) t[i], 8);
-        print_u32_arr((uint32_t*) t[i] + KYBER_N - 8, 8);
+        print_u32_arr((uint32_t*) t[i] + KYBER_N/2 - 8, 8);
         print_string("\n");
 #else
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, t[i], NTT_LITE_INPUT_DIS);
@@ -114,6 +134,9 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 void vck_masked_poly_from_seed(masked_poly *dst, const uint8_t src[KYBER_SYMBYTES]) {
     uint32_t *dst_ptr[MASKING_N] = {(uint32_t*) dst->share[0].coeffs, (uint32_t*) dst->share[1].coeffs};
     vck_masked_poly_from_seed_core(dst_ptr, src, 0x0);
+#ifdef VERBOSE
+    vck_print_poly_unmasked(dst, "Poly Masked");
+#endif
 }
 
 

@@ -3,30 +3,23 @@
 #include "util.h"
 #include "cw305.h"
 #include "simpleserial_cw305_rq.h"
-#include "x2x.h"
-#include "ntt_lite.h"
-#include "x2x_prng.h"
 #include "masked_gadgets.h"
 #include "masked_poly.h"
-#include "symmetric.h"
 #include "timer.h"
-#include "victims_commons_kyber.h"
+#include "victims_commons_dilithium.h"
 #include "victims_commons_util.h"
 
 
 #define CIPHERGEN_RETURN_HASH
-#define OUTPUT_SIZE 0
 #define SLEEP_LOOP 1024
 
 
-poly poly_a;
-masked_poly poly_b;
-masked_poly poly_b_dummy;
-masked_msg mm;
-masked_msg mm_dummy;
-uint8_t temp_buffer[KYBER_SYMBYTES];
-
-
+masked_poly a;
+masked_poly r;
+poly b;
+masked_poly a_dummy;
+masked_poly r_dummy;
+poly b_dummy;
 
 uint8_t get_poly(uint8_t* p, uint8_t len)
 {
@@ -40,9 +33,9 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////// real input masking //////////////////////
-    vck_masked_poly_from_seed(&poly_b, p);
+    vcd_masked_poly_gamma2_from_seed(&a, p);
 #ifdef VERBOSE
-    vck_print_poly_shares(&poly_b, "Poly");
+    vcd_print_poly_shares(&a, "Poly");
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -50,9 +43,11 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     for (size_t i = 0; i < len; i++) {
         p[i] = 0;
     }
-    vck_masked_poly_from_seed(&poly_b_dummy, p);
-    masked_poly_tomsg(mm_dummy, &poly_b_dummy);
-    (void) mm_dummy;
+    vcd_masked_poly_gamma2_from_seed(&a_dummy, p);
+    memset(&a_dummy, 0, sizeof(a_dummy));
+    masked_poly_decompose(&b_dummy, &r_dummy, &a_dummy);
+    (void) r_dummy;
+    (void) b_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     ////////////////////// initialize modules ///////////////////////
@@ -70,14 +65,15 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     timer_reset();
     timer_start();
 #endif
-    masked_poly_tomsg(mm, &poly_b);
+    masked_poly_decompose(&b, &r, &a);
 #ifdef VERBOSE
     time = timer_read();
-    print_string("masked_poly_tomsg time: ");
+    print_string("masked_poly_decompose time: ");
     print_u32(time);
     print_string("\n");
 #endif
-    (void) mm;
+    (void) r;
+    (void) b;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
@@ -85,23 +81,19 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// masked output ///////////////////////
-#if OUTPUT_SIZE > 0
-    for (size_t i = 0; i < OUTPUT_SIZE/2; i++) {
-        temp_buffer[i] = mm[0][i];
-        temp_buffer[i + OUTPUT_SIZE/2] = mm[1][i];
-    }
-    simpleserial_put('r', OUTPUT_SIZE, temp_buffer);
-#else
     simpleserial_put('r', 0, NULL);
-#endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
 #ifdef VERBOSE
     print_string("SimpleSerial::get_key done\n Message shares: \n");
-    print_hex(mm[0], KYBER_INDCPA_MSGBYTES, 0);
+    print_string("Poly r Share 0 Coeffs: ");
+    print_u32_arr((uint32_t*) r.share[0].coeffs, 8);
+    print_u32_arr((uint32_t*) r.share[0].coeffs + N - 8, 8);
     print_string("\n");
-    print_hex(mm[1], KYBER_INDCPA_MSGBYTES, 0);
+    print_string("Poly r Share 1 Coeffs: ");
+    print_u32_arr((uint32_t*) r.share[1].coeffs, 8);
+    print_u32_arr((uint32_t*) r.share[1].coeffs + N - 8, 8);
     print_string("\n");
 #endif
 
@@ -111,15 +103,28 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
 
 int main(void)
 {
-    cw305_trigger_down();
-    print_string("Kyber PolyToMsg Dec\n");
+    // cw305_trigger_down();
+    // print_string("Dilithium PolyDecompose Dec\n");
 
 
-    simpleserial_init();
-    simpleserial_addcmd('l', 0, vcu_prng_on);
-    simpleserial_addcmd('g', 0, vcu_prng_off);
-    simpleserial_addcmd('p', KYBER_SYMBYTES, get_poly);
+    // simpleserial_init();
+    // simpleserial_addcmd('l', 0, vcu_prng_on);
+    // simpleserial_addcmd('g', 0, vcu_prng_off);
+    // simpleserial_addcmd('p', VCD_SEED_LEN, get_poly);
 
-    while(1)
-        simpleserial_cw305_rq_get();
+    // while(1)
+    //     simpleserial_cw305_rq_get();
+
+    vcu_prng_on(NULL, 0);
+    uint8_t seed[VCD_SEED_LEN] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    //uint8_t seed[VCD_SEED_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    //uint8_t seed[VCD_SEED_LEN] = {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2};
+    for (int i = 0; i < 1; i++) {
+        print_string("Iteration ");
+        print_u32_int(i);
+        print_string("\n");
+        get_poly(seed, VCD_SEED_LEN);
+        seed[i & 0x1f]++;
+    }
+
 }

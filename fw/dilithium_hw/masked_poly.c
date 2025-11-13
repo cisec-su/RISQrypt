@@ -57,37 +57,18 @@ void masked_poly_invntt(masked_poly *r) {
 void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint16_t nonce) {
     unsigned int i;
     uint8_t buf[MASKING_N][POLYZ_PACKEDBYTES];
-    uint32_t rhs = GAMMA1;
-    uint32_t *rhs_ptr;
-    for (i = 0; i < POLYZ_PACKEDBYTES; i++) {
-        buf[0][i] = 0xff;
-    }
-    for (i = 0; i < POLYZ_PACKEDBYTES; i++) {
-        buf[1][i] = 0xff;
-    }
 
     dilithium_masked_shake256_absorb_nonce((masked_flat_ptr) buf, POLYZ_PACKEDBYTES, (masked_flat_ptr) rhoprime, CRHBYTES, nonce);
-    // print_hex(buf[0], POLYZ_PACKEDBYTES, 0);
-    // print_string("\n");
-    // print_hex(buf[1], POLYZ_PACKEDBYTES, 0);
-    // print_string("\n");
+
     for(i = 0; i < MASKING_N; i++) {
         ntt_lite_decode((uint32_t*) y->share[i].coeffs, (uint32_t*) buf[i], LOG_GAMMA1);
     }
 
     masked_gadgets_B2A_q(y, y);
-
+    ntt_lite_set_bound(GAMMA1);
     for(i = 0; i < MASKING_N; i++) {
-        if (i == 2) {
-            rhs_ptr = NTT_LITE_INPUT_DIS;
-        }
-        else {
-            rhs_ptr = &rhs;
-        }
-        if (i == 1) {
-            rhs = 0;
-        }
-        ntt_lite_sub_rev_const((uint32_t*) y->share[i].coeffs, (uint32_t*) y->share[i].coeffs, rhs_ptr);
+        ntt_lite_sub_rev_const((uint32_t*) y->share[i].coeffs, (uint32_t*) y->share[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_set_bound(0);
     }
 
 }
@@ -237,6 +218,7 @@ void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
         else {
             dst = (uint32_t*) &temp.share[i].coeffs;
         }
+        ntt_lite_set_clr();
         ntt_lite_mul_const(dst, (uint32_t*) &v->share[i].coeffs, NTT_LITE_INPUT_DIS);
         if (i == 0) {
             ntt_lite_set_bound((Q - 1) >> 1);
@@ -264,12 +246,12 @@ void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
     poly_init_q();
     ntt_lite_set_bound(GAMMA2 << 1);
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v1->coeffs, NTT_LITE_INPUT_DIS);
-
+    ntt_lite_set_clr_with_twiddle();
     ntt_lite_sub_rev((uint32_t*) &v0->share[0].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &v->share[0].coeffs);
+    ntt_lite_set_bound(0);
     for (i = 1; i < MASKING_N; i++) {
-        for (j = 0; j < N; j++) {
-            v0->share[i].coeffs[j] = v->share[i].coeffs[j];
-        }
+        ntt_lite_set_clr();
+        ntt_lite_add_const(v0->share[i].coeffs, v->share[i].coeffs, NTT_LITE_INPUT_DIS);
     }
 
 

@@ -46,9 +46,9 @@ class TTestTraceCollector:
 
     def ths_name(self, random, prng_off=False, N=1000):
         if self.label is not None:
-            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}_{self.label}"
+            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}_{self.label}.ets"
         else:
-            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}"
+            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}.ets"
 
     def read_ths(self, N=5000, prng_off=False):
         filename_0 = self.ths_name(random=0, prng_off=prng_off, N=N)
@@ -151,7 +151,7 @@ class TTestTraceCollector:
             es_writer_0.write_metadata('s', np.frombuffer(const_seed))
             #dummy input
             if dummy_inbetween_0:
-                dummy_seed = self.set_input(os.urandom(self.input_len//2), prng_off)
+                dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
                 ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
                 if not ret:
                     print("Failed capture")
@@ -169,7 +169,7 @@ class TTestTraceCollector:
             es_writer_1.write_metadata('s', np.frombuffer(seed))
             #dummy input
             if dummy_inbetween_1:
-                dummy_seed = self.set_input(os.urandom(self.input_len//2), prng_off)
+                dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
                 ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
                 if not ret:
                     print("Failed capture")
