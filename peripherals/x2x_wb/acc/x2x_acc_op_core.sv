@@ -54,7 +54,8 @@ module x2x_acc_op_core
     input logic [31:0] rnd_ref
 );
 
-reg [PARAM_WIDTH - 1 : 0] x2x_original_data    [2 - 1 : 0][N_SHARES - 1:0];
+reg [PARAM_WIDTH - 1 : 0] x2x_original_data_raw    [2 - 1 : 0][N_SHARES - 1:0];
+wire [PARAM_WIDTH - 1 : 0] x2x_original_data [1:0][1:0];
 wire [PARAM_WIDTH - 1 : 0] x2x_converted_data   [2 - 1 : 0][N_SHARES - 1:0];
 wire [PARAM_WIDTH - 1 : 0] x2x_converted_data_raw   [2 - 1 : 0][N_SHARES - 1:0];
 
@@ -103,6 +104,16 @@ assign x2x_converted_data[1][1] = (x2x_converted_data_raw[1][1] & modulus_mask);
 wire randgen_valid_result;
 wire [31:0] randgen_data_out;
 
+
+assign x2x_original_data[0][0] = ((!conv_mode & data_type) & (x2x_original_data_raw[0][0] > modulus_half)) ?
+                                     (x2x_original_data_raw[0][0] + modulus_complement) :
+                                     x2x_original_data_raw[0][0];
+assign x2x_original_data[0][1] = ((!conv_mode & data_type) & (x2x_original_data_raw[0][1] > modulus_half)) ?
+                                     (x2x_original_data_raw[0][1] + modulus_complement) :
+                                     x2x_original_data_raw[0][1];
+assign x2x_original_data[1][0] = x2x_original_data_raw[1][0];
+assign x2x_original_data[1][1] = x2x_original_data_raw[1][1];
+
 x2x_acc_randgen randgen(
     .clk(clk),
     .rst_n(rst_n),
@@ -139,10 +150,10 @@ x2x_acc_refresh refresh(
 
 always @(*)
 begin
-    x2x_original_data[0][0] = 0;
-    x2x_original_data[0][1] = 0;
-    x2x_original_data[1][0] = 0;
-    x2x_original_data[1][1] = 0;
+    x2x_original_data_raw[0][0] = 0;
+    x2x_original_data_raw[0][1] = 0;
+    x2x_original_data_raw[1][0] = 0;
+    x2x_original_data_raw[1][1] = 0;
     
     converted_data[0][0] = 0;
     converted_data[0][1] = 0;
@@ -172,10 +183,10 @@ begin
     
     else if(opcode == `X2X_CMD_X2X)
     begin
-        x2x_original_data[0][0] = original_data[0][0];
-        x2x_original_data[0][1] = original_data[0][1];
-        x2x_original_data[1][0] = original_data[1][0];
-        x2x_original_data[1][1] = original_data[1][1];
+        x2x_original_data_raw[0][0] = original_data[0][0];
+        x2x_original_data_raw[0][1] = original_data[0][1];
+        x2x_original_data_raw[1][0] = original_data[1][0];
+        x2x_original_data_raw[1][1] = original_data[1][1];
         
         converted_data[0][0] = x2x_converted_data[0][0];
         converted_data[0][1] = x2x_converted_data[0][1];
@@ -217,17 +228,17 @@ begin
             refresh_data_in1 = {original_data[1][0][15:0],original_data[0][0][15:0]};
             refresh_data_in2 = {original_data[1][1][15:0],original_data[0][1][15:0]};
             
-            x2x_original_data[0][0] = refresh_data_out1[15:0];
-            x2x_original_data[0][1] = refresh_data_out2[15:0];
-            x2x_original_data[1][0] = refresh_data_out1[31:16];
-            x2x_original_data[1][1] = refresh_data_out2[31:16];
+            x2x_original_data_raw[0][0] = refresh_data_out1[15:0];
+            x2x_original_data_raw[0][1] = refresh_data_out2[15:0];
+            x2x_original_data_raw[1][0] = refresh_data_out1[31:16];
+            x2x_original_data_raw[1][1] = refresh_data_out2[31:16];
         end
         else
         begin
             refresh_data_in1 = original_data[0][0];
             refresh_data_in2 = original_data[0][1];
             
-			if(!conv_mode & data_type) // A2B Unsigned
+			/*if(!conv_mode & data_type) // A2B Unsigned
             begin
                 if(refresh_data_out1 > modulus_half) 
                     x2x_original_data[0][0] = refresh_data_out1 + modulus_complement;
@@ -240,10 +251,10 @@ begin
                     x2x_original_data[0][1] = refresh_data_out2;
             end
             else
-            begin
-                x2x_original_data[0][0] = refresh_data_out1;
-                x2x_original_data[0][1] = refresh_data_out2;
-            end  
+            begin*/
+                x2x_original_data_raw[0][0] = refresh_data_out1;
+                x2x_original_data_raw[0][1] = refresh_data_out2;
+            //end  
         end
         
         converted_data[0][0] = x2x_converted_data[0][0];
