@@ -61,11 +61,13 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     ////////////////////// trigger and action ///////////////////////
     cw305_trigger_up();
+    // vcu_sleep(25000);
 #ifdef VERBOSE
     timer_reset();
     timer_start();
 #endif
     masked_poly_decompose(&b, &r, &a);
+    (void) a;
 #ifdef VERBOSE
     time = timer_read();
     print_string("masked_poly_decompose time: ");
@@ -103,28 +105,15 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
 
 int main(void)
 {
-    // cw305_trigger_down();
-    // print_string("Dilithium PolyDecompose Dec\n");
+    cw305_trigger_down();
+    print_string("Dilithium PolyDecompose Dec\n");
 
 
-    // simpleserial_init();
-    // simpleserial_addcmd('l', 0, vcu_prng_on);
-    // simpleserial_addcmd('g', 0, vcu_prng_off);
-    // simpleserial_addcmd('p', VCD_SEED_LEN, get_poly);
+    simpleserial_init();
+    simpleserial_addcmd('l', 0, vcu_prng_on);
+    simpleserial_addcmd('g', 0, vcu_prng_off);
+    simpleserial_addcmd('p', VCD_SEED_LEN, get_poly);
 
-    // while(1)
-    //     simpleserial_cw305_rq_get();
-
-    vcu_prng_on(NULL, 0);
-    uint8_t seed[VCD_SEED_LEN] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-    //uint8_t seed[VCD_SEED_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    //uint8_t seed[VCD_SEED_LEN] = {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2};
-    for (int i = 0; i < 1; i++) {
-        print_string("Iteration ");
-        print_u32_int(i);
-        print_string("\n");
-        get_poly(seed, VCD_SEED_LEN);
-        seed[i & 0x1f]++;
-    }
-
+    while(1)
+        simpleserial_cw305_rq_get();
 }

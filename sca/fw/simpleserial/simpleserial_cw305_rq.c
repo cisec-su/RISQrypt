@@ -3,7 +3,7 @@
 #include "simpleserial_cw305_rq.h"
 #include <stdint.h>
 #include "cw305.h"
-
+#include "string.h"
 
 
 uint8_t getch(void)
@@ -375,7 +375,8 @@ int simpleserial_addcmd_flags(char c, unsigned int len, uint8_t (*fp)(uint8_t*, 
 void simpleserial_get(void)
 {
 	char ascii_buf[2*MAX_SS_LEN];
-	uint8_t data_buf[MAX_SS_LEN];
+	static uint8_t data_buf[MAX_SS_LEN];
+	static uint8_t data_buf_dummy[MAX_SS_LEN];
 	char c;
 
 	// Find which command we're receiving
@@ -425,6 +426,14 @@ void simpleserial_get(void)
 	// Check for illegal characters here
 	if(hex_decode(commands[cmd].len, ascii_buf, data_buf))
 		return;
+
+	/////////////////////////////////////////////////////////////
+	////////////// dummy processing to clear input data /////////
+	memset(ascii_buf, '0', commands[cmd].len << 1);
+	hex_decode(commands[cmd].len, ascii_buf, data_buf_dummy);
+	(void) data_buf_dummy;
+	/////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 
 	// Callback
 	uint8_t ret[1];

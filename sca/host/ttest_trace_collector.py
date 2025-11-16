@@ -9,6 +9,12 @@ from .ttest_analysis import TTestAnalysis
 import subprocess
 
 
+import sys
+
+sys.path.append('../../../../../PhD/high_order_non_profiled/scaredcu/')
+
+import scaredcu as scaredcu
+
 class TTestTraceCollector:
     def __init__(self, proj_name, label=None, input_len=32, output_len=16, offset=0):
         self.proj_name = proj_name
@@ -58,9 +64,22 @@ class TTestTraceCollector:
         print(ths_0)
         print(ths_1)
         return ths_0, ths_1
+    
+    def read_ths_gpu(self, N=5000, prng_off=False):
+        filename_0 = self.ths_name(random=0, prng_off=prng_off, N=N)
+        ths_0 = scaredcu.estraces.ets_format.read_ths_from_ets_file(filename_0)
+        filename_1 = self.ths_name(random=1, prng_off=prng_off, N=N)
+        ths_1 = scaredcu.estraces.ets_format.read_ths_from_ets_file(filename_1)
+        print(ths_0)
+        print(ths_1)
+        return ths_0, ths_1
 
     def get_analysis_obj(self, N=5000, prng_off=False):
         ths_0, ths_1 = self.read_ths(N=N, prng_off=prng_off)
+        return TTestAnalysis(ths_0, ths_1, filename=f"{self.proj_name}_N{N}_prngoff{int(prng_off)}_o{self.offset}")
+    
+    def get_analysis_obj_gpu(self, N=5000, prng_off=False):
+        ths_0, ths_1 = self.read_ths_gpu(N=N, prng_off=prng_off)
         return TTestAnalysis(ths_0, ths_1)
 
     def default_setup(self, freq, gain, samples, mul=4):
@@ -126,7 +145,7 @@ class TTestTraceCollector:
         seed_full = seed_temp + seed_mask
         return seed_full
 
-    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False):
+    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False, rand2rand=False):
         if prng_off:
             self.set_prng_off()
         else:
@@ -140,6 +159,8 @@ class TTestTraceCollector:
         const_seed = os.urandom(self.input_len//2)
         for _ in tnrange(N, desc='Capturing traces'):
             # const input
+            if rand2rand:
+                const_seed = os.urandom(self.input_len//2)
             const_seed_full = self.set_input(const_seed, prng_off)
             ret = cw.capture_trace(self.scope, self.target, const_seed_full, None)
             if not ret:

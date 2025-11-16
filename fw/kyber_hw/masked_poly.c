@@ -46,10 +46,8 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     const uint32_t alpha_shift = (1 << (alpha));
     const uint32_t alpha_m1_shift = (1 << (alpha - 1));
     const uint32_t d_ = alpha + 1 + d;
-    uint32_t t[KYBER_N];
     masked_poly_u32 mpu32;
     uint32_t *dst;
-    poly temp;
 
     ntt_lite_load_q(q, mu, 8, 13, inv2, NTT_LITE_MODE_SINGLE);
 

@@ -1,14 +1,15 @@
 import scared
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 
 class TTestAnalysis:
-    def __init__(self, ths_0, ths_1):
+    def __init__(self, ths_0, ths_1, filename):
         self.ths_0 = ths_0
         self.ths_1 = ths_1
         self.ttest = scared.ttest.TTestAnalysis()
+        self.filename = filename
 
     def run_ttest(self, num_traces=None, chunk=5000):
         if num_traces is None:
@@ -27,11 +28,11 @@ class TTestAnalysis:
             step += 1
         fig, ax = plt.subplots()
         if plot0:
-             mean_trace_0 = np.mean(self.ths_0.samples[::step], axis=0)
-             ax.plot(mean_trace_0, label='Class 0 Mean')
+             self.mean_trace_0 = np.mean(self.ths_0.samples[::step], axis=0)
+             ax.plot(self.mean_trace_0, label='Class 0 Mean')
         if plot1:
-             mean_trace_1 = np.mean(self.ths_1.samples[::step], axis=0)
-             ax.plot(mean_trace_1, label='Class 1 Mean')
+             self.mean_trace_1 = np.mean(self.ths_1.samples[::step], axis=0)
+             ax.plot(self.mean_trace_1, label='Class 1 Mean')
         if put_legend:
             fig.legend()
         if put_title:
@@ -66,3 +67,13 @@ class TTestAnalysis:
             plt.title(f'T-Test Results ({self.num_traces} traces)')
         if plt_show:
             plt.show()
+
+    def save_ttest_results(self):
+        np.save('ttest_results/'+ self.filename + '_ttest.npy', self.ttest.result)
+        np.save('ttest_results/'+ self.filename + '_mean0.npy', self.mean_trace_0)
+        np.save('ttest_results/'+ self.filename + '_mean1.npy', self.mean_trace_1)
+
+    def load_ttest_results(self):
+        self.ttest.result = np.load('ttest_results/'+ self.filename + '_ttest.npy')
+        self.mean_trace_0 = np.load('ttest_results/'+ self.filename + '_mean0.npy')
+        self.mean_trace_1 = np.load('ttest_results/'+ self.filename + '_mean1.npy')

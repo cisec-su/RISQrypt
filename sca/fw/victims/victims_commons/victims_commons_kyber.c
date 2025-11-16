@@ -13,23 +13,6 @@
 #define POLY_SAMPLE_BYTES (KYBER_N * sizeof(uint32_t))
 
 
-void vck_print_poly_unmasked(const masked_poly *mp, const char *label) {
-#ifdef VERBOSE
-    poly temp;
-    unsigned int i;
-
-    for (i = 0; i < KYBER_N; i++) {
-        temp.coeffs[i] = (mp->share[0].coeffs[i] + mp->share[1].coeffs[i]) % KYBER_Q;
-    }
-    print_string(label);
-    print_string(" Unmasked Coeffs: ");
-    print_u32_arr((uint32_t*) temp.coeffs, 8);
-    print_u32_arr((uint32_t*) temp.coeffs + KYBER_N/2 - 8, 8);
-    print_string("\n");
-#endif
-}
-
-
 void vck_print_poly_shares(const masked_poly *mp, const char *label) {
 #ifdef VERBOSE
     print_string(label);
@@ -76,6 +59,8 @@ static void vck_poly_init_q_uniform32() {
   ntt_lite_load_q(q, mu, 8, 12, 1, NTT_LITE_MODE_SINGLE);
 }
 
+
+
 static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8_t src[KYBER_SYMBYTES], uint8_t nonce) {
 
     unsigned int i;
@@ -97,8 +82,13 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
     print_string("\n");
 #endif
 
-    x2x_set_modulus(3329, 12, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_EN);
-    x2x_b2a((uint32_t*) t[1], (uint32_t*) t[0], (uint32_t*) t[1], (uint32_t*) t[0], KYBER_N);
+    poly_init_q();
+    for(i = 0; i < MASKING_N; i++) {
+        ntt_lite_decode(t[i], t[i], 12);
+    }
+
+    masked_gadgets_init_q();
+    x2x_b2a((uint32_t*) t[1], (uint32_t*) t[0], (uint32_t*) t[1], (uint32_t*) t[0], KYBER_N/2);
 
 #ifdef VERBOSE
     print_string("Poly t Share 0 Coeffs: ");
@@ -111,36 +101,22 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
     print_string("\n");
 #endif
 
-    vck_poly_init_q_uniform32();
-    ntt_lite_set_bound(0x1);
-    for (i = 0; i < MASKING_N; i++) {
-#ifdef VERBOSE
-        ntt_lite_mul_const(t[i], t[i], NTT_LITE_INPUT_DIS);
-        print_string("Poly Reduced32 Share Coeffs: ");
-        print_u32_arr((uint32_t*) t[i], 8);
-        print_u32_arr((uint32_t*) t[i] + KYBER_N/2 - 8, 8);
-        print_string("\n");
-#else
-        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, t[i], NTT_LITE_INPUT_DIS);
-#endif
-        ntt_lite_encode(dst[i], NTT_LITE_INPUT_DIS, 16);        
-    }
-    masked_gadgets_init_q();
-    x2x_a_ref(dst[1], dst[0], dst[1], dst[0], KYBER_N/2);
+    x2x_a_ref(dst[1], dst[0], t[1], t[0], KYBER_N/2);
     vcu_ntt_lite_reset_state();
 }
 
 
-void vck_masked_poly_from_seed(masked_poly *dst, const uint8_t src[KYBER_SYMBYTES]) {
-    uint32_t *dst_ptr[MASKING_N] = {(uint32_t*) dst->share[0].coeffs, (uint32_t*) dst->share[1].coeffs};
-    vck_masked_poly_from_seed_core(dst_ptr, src, 0x0);
-#ifdef VERBOSE
-    vck_print_poly_unmasked(dst, "Poly Masked");
-#endif
+void vck_masked_poly_from_seed(masked_poly *dst, const uint8_t src[VCK_SEED_LEN]) {
+    size_t j;
+    uint32_t *dst_ptr[MASKING_N];
+    for (j = 0; j < MASKING_N; j++) {
+        dst_ptr[j] = (uint32_t*) dst->share[j].coeffs;
+    }
+    vck_masked_poly_from_seed_core(dst_ptr, src, 0x00);
 }
 
 
-void vck_masked_polyvec_from_seed(masked_polyvec *dst, const uint8_t src[KYBER_SYMBYTES]) {
+void vck_masked_polyvec_from_seed(masked_polyvec *dst, const uint8_t src[VCK_SEED_LEN]) {
     size_t i, j;
     uint32_t *dst_ptr[MASKING_N];
     for (i = 0; i < KYBER_K; i++) {
@@ -152,7 +128,41 @@ void vck_masked_polyvec_from_seed(masked_polyvec *dst, const uint8_t src[KYBER_S
 }
 
 
-void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[KYBER_SYMBYTES], uint8_t nonce) {
+static void vck_print_poly_unmasked_core(const uint16_t *mp[MASKING_N]) {
+#ifdef VERBOSE
+    poly temp;
+    unsigned int i;
+
+    for (i = 0; i < KYBER_N; i++) {
+        temp.coeffs[i] = (mp[0][i] + mp[1][i]) % KYBER_Q;
+    }
+    print_u32_arr((uint32_t*) temp.coeffs, 8);
+    print_u32_arr((uint32_t*) temp.coeffs + KYBER_N/2 - 8, 8);
+    print_string("\n");
+#endif
+}
+
+
+void vck_print_polyvec_unmasked(const masked_polyvec *mpv, const char *label) {
+    size_t i;
+    const uint16_t *src_ptr[MASKING_N];
+    for (i = 0; i < KYBER_K; i++) {
+        for (size_t j = 0; j < MASKING_N; j++) {
+            src_ptr[j] = (uint16_t*) mpv->share[j].vec[i].coeffs;
+        }
+#ifdef VERBOSE
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_string(" Coeffs: ");
+#endif
+        vck_print_poly_unmasked_core(src_ptr);
+    }
+}
+
+
+void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[VCK_SEED_LEN], uint8_t nonce) {
     volatile uint32_t pad;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
     keccak_absorb((uint32_t*) src, (uint32_t*) (src + (KYBER_SYMBYTES >> 1)), KYBER_SYMBYTES >> 3);

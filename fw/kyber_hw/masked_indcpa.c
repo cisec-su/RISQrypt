@@ -65,7 +65,6 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
 
 void masked_indcpa_dec_init(masked_polyvec *mskpv,
                             const uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES]) {
-    unsigned int i;
     polyvec skpv;
                                             
     poly_init_q();
@@ -79,7 +78,6 @@ void masked_indcpa_dec_init(masked_polyvec *mskpv,
 void masked_indcpa_dec_core(masked_msg mm,
                             const uint8_t c[KYBER_INDCPA_BYTES],
                             const masked_polyvec *mskpv) {
-    unsigned int i;
     polyvec bp;
     poly v;
     masked_poly mp;

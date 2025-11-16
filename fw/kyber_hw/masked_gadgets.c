@@ -100,7 +100,7 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
     unsigned int i, j;
     const int buffer_len = 16;
     uint32_t rng_buffer[16];
-    uint32_t t[MASKING_N][16];
+    static uint32_t t[MASKING_N][16];
     uint32_t *src;
 
     masked_gadgets_init_q_carrier();

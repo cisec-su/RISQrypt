@@ -3,9 +3,6 @@
 #include "util.h"
 #include "cw305.h"
 #include "simpleserial_cw305_rq.h"
-#include "indcpa.h"
-#include "x2x.h"
-#include "kem.h"
 #include "masked_kem.h"
 #include "symmetric.h"
 #include "masked_gadgets.h"
@@ -14,8 +11,6 @@
 #include "victims_commons_util.h"
 
 
-#define CIPHERGEN_RETURN_HASH
-#define OUTPUT_SIZE 4
 #define SLEEP_LOOP 4096
 
 
@@ -26,7 +21,7 @@ masked_ss mss;
 masked_polyvec mskpv;
 uint8_t mhz[MASKING_N][KYBER_SYMBYTES * 2];
 masked_polyvec mskpv_dummy;
-
+masked_ss mss_dummy;
 
 uint8_t get_key(uint8_t* k, uint8_t len)
 {
@@ -39,10 +34,25 @@ uint8_t get_key(uint8_t* k, uint8_t len)
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
+    ///////////////////// const public input ////////////////////////
+    for (int i = 0; i < KYBER_CIPHERTEXTBYTES; i++){
+        c[i] = 1;
+    }
+    for (int i = 0; i < KYBER_PUBLICKEYBYTES; i++){
+        pk[i] = 3;
+    }
+    for (int i = 0; i < MASKING_N; i++){
+        for (int j = 0; j < KYBER_SYMBYTES * 2; j++){
+            mhz[i][j] = 1;
+        }
+    }
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     /////////////////////// real input masking //////////////////////
     vck_masked_polyvec_from_seed(&mskpv, k);
 #ifdef VERBOSE
     vck_print_polyvec_shares(&mskpv, "Masked SKVEC");
+    vck_print_polyvec_unmasked(&mskpv, "Unmasked SKVEC");
 #endif
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -51,28 +61,22 @@ uint8_t get_key(uint8_t* k, uint8_t len)
         k[i] = 0;
     }
     vck_masked_polyvec_from_seed(&mskpv_dummy, k);
-    (void) mskpv_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    ////////////////////// initialize modules ///////////////////////
+    ////////////////////// dummy process ////////////////////////////
     poly_init_q();
     masked_gadgets_init_q();
+    masked_crypto_kem_dec_core(mss_dummy, c, pk, &mskpv_dummy, mhz);
+    (void) mss_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
-    vcu_ntt_lite_reset_state();
-    for (int i = 0; i < KYBER_CIPHERTEXTBYTES; i++){
-        c[i] = 1;
-    }
-    for (int i = 0; i < KYBER_PUBLICKEYBYTES; i++){
-        pk[i] = 1;
-    }
-    for (int i = 0; i < MASKING_N; i++){
-        for (int j = 0; j < KYBER_SYMBYTES * 2; j++){
-            mhz[i][j] = 1;
-        }
-    }
     vcu_sleep(SLEEP_LOOP);
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////// action //////////////////////////////
+    poly_init_q();
+    masked_gadgets_init_q();
     cw305_trigger_up();
 #ifdef VERBOSE
     timer_reset();
@@ -86,9 +90,6 @@ uint8_t get_key(uint8_t* k, uint8_t len)
     print_string("\n");
 #endif
     (void) mss;
-    for (volatile size_t i = 0; i < SLEEP_LOOP; i++) {
-        (void) i;
-    }
 
     simpleserial_put('r', 0, NULL);
 
@@ -103,12 +104,12 @@ uint8_t get_key(uint8_t* k, uint8_t len)
 int main(void)
 {
     cw305_trigger_down();
-    print_string("Kyber CPAPKE Dec\n");
+    print_string("Kyber IndCCA Dec\n");
 
     simpleserial_init();
     simpleserial_addcmd('l', 0, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
-    simpleserial_addcmd('p', KYBER_SYMBYTES, get_key);
+    simpleserial_addcmd('p', VCK_SEED_LEN, get_key);
 
     while(1)
         simpleserial_cw305_rq_get();
