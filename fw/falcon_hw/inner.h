@@ -524,6 +524,21 @@ extern const uint8_t Zf(max_sig_bits)[];
 
 /* ==================================================================== */
 /*
+ * Hardware accelerator initialization functions for NTT operations.
+ */
+// Forward declarations for HW functions
+void poly_init_q(void);
+void poly_init_ntt(void);
+void poly_init_invntt(void);
+void falcon_to_hw_format(uint32_t *dst, const uint16_t *src, size_t n);
+void hw_to_falcon_format(uint16_t *dst, const uint32_t *src, size_t n);
+void mq_NTT(uint16_t *a, unsigned logn);
+void mq_iNTT(uint16_t *a, unsigned logn);
+void mq_poly_montymul_ntt(uint16_t *f, const uint16_t *g, unsigned logn);
+void mq_poly_sub(uint16_t *f, const uint16_t *g, unsigned logn);
+void mq_poly_tomonty(uint16_t *f, unsigned logn);
+/* ==================================================================== */
+/*
  * Support functions used for both signature generation and signature
  * verification (common.c).
  */
