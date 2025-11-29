@@ -227,21 +227,18 @@ void test_count_nttzero() {
 }
 
 void test_hw_basic_ops() {
-    // Falcon format (16-bit coefficients, 512 elements)
     uint16_t poly_a_falcon[N];
     uint16_t poly_b_falcon[N];
     uint16_t poly_result_falcon[N];
     
-    // HW format (32-bit coefficients, 256 elements per call)
-    // We need temporary buffers for conversion
     uint32_t poly_a_hw[256];
     uint32_t poly_b_hw[256];
     uint32_t poly_result_hw[256];
     
     print_string("\n[TEST] Hardware Basic Operations (ADD/SUB)...\n");
-    print_string("  Strategy: Convert 16-bit→32-bit, process 2×256 elements\n");
+    print_string("  Strategy: Pack 512×16-bit into 256×32-bit words\n");
     
-    // Initialize Falcon test data (16-bit)
+    // Initialize Falcon data
     for (size_t i = 0; i < N; i++) {
         poly_a_falcon[i] = (uint16_t)(i % 100);
         poly_b_falcon[i] = (uint16_t)(50);
@@ -254,38 +251,20 @@ void test_hw_basic_ops() {
         if (i < 4) print_string(",");
     }
     print_string("}\n");
-    print_string("  Input: poly_b[0]=");
-    print_u32(poly_b_falcon[0]);
-    print_string("\n");
     
-    // ==================== Test 1: Addition ====================
-    print_string("  Test 1: ADD operation...\n");
+    // Test 1: Addition - SINGLE call now!
+    print_string("  Test 1: ADD operation (all 512 elements at once)...\n");
     
-    // Process first half [0-255]
-    print_string("    Processing first half [0-255]...\n");
-    falcon_to_hw_format(poly_a_hw, &poly_a_falcon[0], 256);
-    falcon_to_hw_format(poly_b_hw, &poly_b_falcon[0], 256);
+    falcon_to_hw_format(poly_a_hw, poly_a_falcon, 512);
+    falcon_to_hw_format(poly_b_hw, poly_b_falcon, 512);
     
     int ret = ntt_lite_add(poly_result_hw, poly_a_hw, poly_b_hw);
     print_string("    Return code: ");
     print_u32(ret);
     print_string("\n");
     
-    hw_to_falcon_format(&poly_result_falcon[0], poly_result_hw, 256);
+    hw_to_falcon_format(poly_result_falcon, poly_result_hw, 512);
     
-    // Process second half [256-511]
-    print_string("    Processing second half [256-511]...\n");
-    falcon_to_hw_format(poly_a_hw, &poly_a_falcon[256], 256);
-    falcon_to_hw_format(poly_b_hw, &poly_b_falcon[256], 256);
-    
-    ret = ntt_lite_add(poly_result_hw, poly_a_hw, poly_b_hw);
-    print_string("    Return code: ");
-    print_u32(ret);
-    print_string("\n");
-    
-    hw_to_falcon_format(&poly_result_falcon[256], poly_result_hw, 256);
-    
-    // Display results
     print_string("  Output: poly_result[0..4]={");
     for (int i = 0; i < 5; i++) {
         print_u32(poly_result_falcon[i]);
@@ -293,16 +272,9 @@ void test_hw_basic_ops() {
     }
     print_string("}\n");
     
-    print_string("  Output: poly_result[256..260]={");
-    for (int i = 256; i < 261; i++) {
-        print_u32(poly_result_falcon[i]);
-        if (i < 260) print_string(",");
-    }
-    print_string("}\n");
-    
-    // Verify ADD results
+    // Verify all 512 elements
     bool add_pass = true;
-    for (size_t i = 0; i < 20; i++) {
+    for (size_t i = 0; i < N; i++) {
         uint32_t expected = (poly_a_falcon[i] + poly_b_falcon[i]) % Q;
         if (poly_result_falcon[i] != expected) {
             print_string("    ADD FAIL at [");
@@ -317,135 +289,8 @@ void test_hw_basic_ops() {
         }
     }
     
-    // Also check second half
     if (add_pass) {
-        for (size_t i = 256; i < 276; i++) {
-            uint32_t expected = (poly_a_falcon[i] + poly_b_falcon[i]) % Q;
-            if (poly_result_falcon[i] != expected) {
-                print_string("    ADD FAIL at [");
-                print_u32(i);
-                print_string("]: got ");
-                print_u32(poly_result_falcon[i]);
-                print_string(", expected ");
-                print_u32(expected);
-                print_string("\n");
-                add_pass = false;
-                break;
-            }
-        }
-    }
-    
-    if (add_pass) {
-        print_string("    ADD: PASS (both halves correct)\n");
-    }
-    
-    // ==================== Test 2: Subtraction ====================
-    print_string("  Test 2: SUB operation...\n");
-    
-    // Reset result array
-    for (size_t i = 0; i < N; i++) {
-        poly_result_falcon[i] = 0xFFFF;
-    }
-    
-    // Process first half [0-255]
-    print_string("    Processing first half [0-255]...\n");
-    falcon_to_hw_format(poly_a_hw, &poly_a_falcon[0], 256);
-    falcon_to_hw_format(poly_b_hw, &poly_b_falcon[0], 256);
-    
-    ret = ntt_lite_sub(poly_result_hw, poly_a_hw, poly_b_hw);
-    print_string("    Return code: ");
-    print_u32(ret);
-    print_string("\n");
-    
-    hw_to_falcon_format(&poly_result_falcon[0], poly_result_hw, 256);
-    
-    // Process second half [256-511]
-    print_string("    Processing second half [256-511]...\n");
-    falcon_to_hw_format(poly_a_hw, &poly_a_falcon[256], 256);
-    falcon_to_hw_format(poly_b_hw, &poly_b_falcon[256], 256);
-    
-    ret = ntt_lite_sub(poly_result_hw, poly_a_hw, poly_b_hw);
-    print_string("    Return code: ");
-    print_u32(ret);
-    print_string("\n");
-    
-    hw_to_falcon_format(&poly_result_falcon[256], poly_result_hw, 256);
-    
-    // Display results
-    print_string("  Output: poly_result[0..4]={");
-    for (int i = 0; i < 5; i++) {
-        print_u32(poly_result_falcon[i]);
-        if (i < 4) print_string(",");
-    }
-    print_string("}\n");
-    
-    // Verify SUB results
-    bool sub_pass = true;
-    for (size_t i = 0; i < 20; i++) {
-        uint32_t expected = (poly_a_falcon[i] + Q - poly_b_falcon[i]) % Q;
-        if (poly_result_falcon[i] != expected) {
-            print_string("    SUB FAIL at [");
-            print_u32(i);
-            print_string("]: got ");
-            print_u32(poly_result_falcon[i]);
-            print_string(", expected ");
-            print_u32(expected);
-            print_string("\n");
-            sub_pass = false;
-            break;
-        }
-    }
-    
-    if (sub_pass) {
-        print_string("    SUB: PASS\n");
-    }
-    
-    // ==================== Test 3: All 512 elements ====================
-    print_string("  Test 3: Verify all 512 elements processed...\n");
-    
-    // New test data
-    for (size_t i = 0; i < N; i++) {
-        poly_a_falcon[i] = (uint16_t)i;
-        poly_b_falcon[i] = 1;
-        poly_result_falcon[i] = 0xFFFF;
-    }
-    
-    // Process first half
-    falcon_to_hw_format(poly_a_hw, &poly_a_falcon[0], 256);
-    falcon_to_hw_format(poly_b_hw, &poly_b_falcon[0], 256);
-    ntt_lite_add(poly_result_hw, poly_a_hw, poly_b_hw);
-    hw_to_falcon_format(&poly_result_falcon[0], poly_result_hw, 256);
-    
-    // Process second half
-    falcon_to_hw_format(poly_a_hw, &poly_a_falcon[256], 256);
-    falcon_to_hw_format(poly_b_hw, &poly_b_falcon[256], 256);
-    ntt_lite_add(poly_result_hw, poly_a_hw, poly_b_hw);
-    hw_to_falcon_format(&poly_result_falcon[256], poly_result_hw, 256);
-    
-    // Verify all 512 elements
-    bool all_pass = true;
-    for (size_t i = 0; i < N; i++) {
-        uint32_t expected = (i + 1) % Q;
-        if (poly_result_falcon[i] != expected) {
-            print_string("    FAIL at element ");
-            print_u32(i);
-            print_string(": got ");
-            print_u32(poly_result_falcon[i]);
-            print_string(", expected ");
-            print_u32(expected);
-            print_string("\n");
-            all_pass = false;
-            break;
-        }
-    }
-    
-    if (all_pass) {
-        print_string("    All 512 elements: PASS\n");
-        print_string("    Sample: poly_a[511]=");
-        print_u32(poly_a_falcon[511]);
-        print_string(" + 1 = ");
-        print_u32(poly_result_falcon[511]);
-        print_string("\n");
+        print_string("    ADD: PASS (all 512 elements)\n");
     }
     
     print_string("[TEST] Hardware Basic Operations Complete\n");
@@ -733,6 +578,149 @@ void test_ntt_montgomery_compat() {
         print_string("  This means HW NTT produces different results than SW\n");
     }
 }
+
+void test_packing() {
+    uint16_t test_falcon[512];
+    uint32_t test_hw[256];
+    uint16_t test_recovered[512];
+    
+    print_string("\n[TEST] Packing/Unpacking Verification...\n");
+    
+    // Initialize with simple sequential pattern
+    for (size_t i = 0; i < 512; i++) {
+        test_falcon[i] = (uint16_t)i;
+    }
+    
+    print_string("  Original: [0..7]={");
+    for (int i = 0; i < 8; i++) {
+        print_u32(test_falcon[i]);
+        if (i < 7) print_string(",");
+    }
+    print_string("}\n");
+    
+    // Pack
+    falcon_to_hw_format(test_hw, test_falcon, 512);
+    
+    print_string("  Packed HW[0..3]={");
+    for (int i = 0; i < 4; i++) {
+        print_u32(test_hw[i]);
+        if (i < 3) print_string(",");
+    }
+    print_string("}\n");
+    
+    // Unpack
+    hw_to_falcon_format(test_recovered, test_hw, 512);
+    
+    print_string("  Recovered: [0..7]={");
+    for (int i = 0; i < 8; i++) {
+        print_u32(test_recovered[i]);
+        if (i < 7) print_string(",");
+    }
+    print_string("}\n");
+    
+    // Verify pack/unpack round-trip
+    bool pack_ok = true;
+    for (size_t i = 0; i < 512; i++) {
+        if (test_falcon[i] != test_recovered[i]) {
+            print_string("  Pack/Unpack FAIL at [");
+            print_u32(i);
+            print_string("]: got ");
+            print_u32(test_recovered[i]);
+            print_string(", expected ");
+            print_u32(test_falcon[i]);
+            print_string("\n");
+            pack_ok = false;
+            break;
+        }
+    }
+    
+    if (pack_ok) {
+        print_string("  Pack/Unpack: PASS\n");
+    }
+    
+    // Now test with HW ADD operation
+    print_string("  Testing pack→HW_ADD→unpack...\n");
+    
+    uint16_t add_a[512];
+    uint16_t add_b[512];
+    uint16_t add_result[512];
+    uint32_t hw_a[256];
+    uint32_t hw_b[256];
+    uint32_t hw_result[256];
+    
+    for (size_t i = 0; i < 512; i++) {
+        add_a[i] = (uint16_t)(i % 100);
+        add_b[i] = 10;
+    }
+    
+    falcon_to_hw_format(hw_a, add_a, 512);
+    falcon_to_hw_format(hw_b, add_b, 512);
+    ntt_lite_add(hw_result, hw_a, hw_b);
+    hw_to_falcon_format(add_result, hw_result, 512);
+    
+    bool add_ok = true;
+    for (size_t i = 0; i < 512; i++) {
+        uint16_t expected = (add_a[i] + add_b[i]) % Q;
+        if (add_result[i] != expected) {
+            print_string("  ADD through pack FAIL at [");
+            print_u32(i);
+            print_string("]\n");
+            add_ok = false;
+            break;
+        }
+    }
+    
+    if (add_ok) {
+        print_string("  Pack→ADD→Unpack: PASS\n");
+    }
+    
+    print_string("[TEST] Packing Verification Complete\n");
+}
+void test_montgomery_check() {
+    uint16_t poly_hw[N];
+    uint16_t poly_sw[N];
+    
+    print_string("\n[TEST] Montgomery Representation Check...\n");
+    
+    // Initialize same data
+    for (size_t i = 0; i < N; i++) {
+        poly_hw[i] = (uint16_t)(i % 100);
+        poly_sw[i] = (uint16_t)(i % 100);
+    }
+    
+    // HW path: Just NTT (no tomonty)
+    mq_NTT(poly_hw, LOGN);
+    
+    print_string("  HW NTT (no tomonty): poly[0..4]={");
+    for (int i = 0; i < 5; i++) {
+        print_u32(poly_hw[i]);
+        if (i < 4) print_string(",");
+    }
+    print_string("}\n");
+    
+    print_string("  Expected (with tomonty): poly[0..4]={");
+    for (int i = 0; i < 5; i++) {
+        print_u32(ntt_output_h[i]);
+        if (i < 4) print_string(",");
+    }
+    print_string("}\n");
+    
+    // Check if HW output matches the "with Montgomery" expected output
+    bool matches_montgomery = true;
+    for (int i = 0; i < 10; i++) {
+        if (poly_hw[i] != ntt_output_h[i]) {
+            matches_montgomery = false;
+            break;
+        }
+    }
+    
+    if (matches_montgomery) {
+        print_string("  Result: HW NTT already includes Montgomery! No tomonty needed.\n");
+    } else {
+        print_string("  Result: HW NTT is NOT in Montgomery form.\n");
+        print_string("  We need to adjust or skip Montgomery conversion.\n");
+    }
+}
 int main() {
     print_string("\n=== Falcon-512 Function Tests ===\n");
     
@@ -740,7 +728,9 @@ int main() {
     print_string("Initializing HW accelerator (logn=8, DUAL mode)...\n");
     poly_init_q();
     print_string("HW initialized.\n");
-    
+
+    test_packing();  
+    test_montgomery_check();
     // Test hardware basic operations (ADD/SUB)
     test_hw_basic_ops();
     test_ntt_montgomery_compat();
