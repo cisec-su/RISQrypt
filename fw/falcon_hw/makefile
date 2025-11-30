@@ -6,6 +6,7 @@ LIB_DIR = ../../sdk/lib
 SRC  = main.c
 SRC += vrfy.c
 SRC += common.c
+SRC += falcon.c
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

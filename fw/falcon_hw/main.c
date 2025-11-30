@@ -6,6 +6,37 @@
 #include "util.h"
 #include "falcon_testvectors.h"
 
+
+/* If FALCON_ERR_* constants are missing after commenting falcon.h, define them here: */
+#ifndef FALCON_ERR_FORMAT
+#define FALCON_ERR_RANDOM     -1
+#define FALCON_ERR_SIZE       -2
+#define FALCON_ERR_FORMAT     -3
+#define FALCON_ERR_BADSIG     -4
+#define FALCON_ERR_BADARG     -5
+#endif
+/* --- API Bridge Definitions --- */
+
+/* INCREASED SIZE to prevent stack overflow */
+#ifndef FALCON_H__
+typedef struct { uint64_t opaque[64]; } shake256_context;
+#endif
+
+#define FALCON_SIG_COMPRESSED   1
+#define FALCON_SIG_PADDED       2
+#define FALCON_SIG_CT           3
+
+/* API Prototypes */
+int falcon_verify_start(shake256_context *hash_data, const void *sig, size_t sig_len);
+void shake256_inject(shake256_context *sc, const void *data, size_t len);
+int falcon_verify_finish(const void *sig, size_t sig_len, int sig_type, 
+                        const void *pubkey, size_t pubkey_len, 
+                        shake256_context *hash_data, void *tmp, size_t tmp_len);
+int falcon_verify(const void *sig, size_t sig_len, int sig_type,
+                 const void *pubkey, size_t pubkey_len,
+                 const void *data, size_t data_len,
+                 void *tmp, size_t tmp_len);
+/* ------------------------------ */
 // Falcon-512 parameters
 #define CRYPTO_SECRETKEYBYTES   1281
 #define CRYPTO_PUBLICKEYBYTES   897
@@ -32,7 +63,6 @@ void test_to_ntt_monty() {
     } else {
         print_string("FAIL (output mismatch)\n");
         
-        // İlk 5 elemanı karşılaştır
         print_string("First 5 element comparison:\n");
         for (int i = 0; i < 5; i++) {
             print_string("[");
@@ -47,8 +77,7 @@ void test_to_ntt_monty() {
                 print_string(" FAIL\n");
             }
         }
-        
-        // Toplam hata sayısını hesapla
+                
         int error_count = 0;
         for (size_t i = 0; i < N; i++) {
             if (poly[i] != ntt_output_h[i]) {
@@ -61,8 +90,7 @@ void test_to_ntt_monty() {
         print_string("/");
         print_u32(N);
         print_string("\n");
-        
-        // İlk 5 hatayı göster
+                
         if (error_count > 0) {
             print_string("First 5 errors:\n");
             int shown = 0;
@@ -223,9 +251,43 @@ void test_count_nttzero() {
     }
 }
 
+/* --- Updated test function --- */
+void test_falcon_verify_api() {
+    shake256_context hd;
+    int result;
+    
+    /* Use ALIGNED stack buffers */
+    uint64_t sig_store[100]; /* 800 bytes */
+    uint64_t pk_store[120];  /* 960 bytes */
+    uint8_t *sig_buf = (uint8_t *)sig_store;
+    uint8_t *pk_buf  = (uint8_t *)pk_store;
+
+    /* Prepare dummy data */
+    memset(sig_buf, 0, 800);
+    memset(pk_buf, 0, 960);
+    sig_buf[0] = 0x39; /* Padded + LogN=9 */
+    pk_buf[0]  = 0x09; /* LogN=9 */
+
+    print_string("[TEST] falcon_verify_api (Streaming)... \n");
+    
+    /* Call the safe debug version */
+    result = falcon_verify_start(&hd, sig_buf, 666);
+    
+    /* If it crashes before this line, check the DEBUG prints */
+    shake256_inject(&hd, test_msg, sizeof(test_msg));
+    
+    result = falcon_verify_finish(sig_buf, 666, FALCON_SIG_PADDED,
+                                pk_buf, 897, 
+                                &hd, tmp_buffer, sizeof(tmp_buffer));
+    
+    print_string("Complete (Result: ");
+    print_u32((uint32_t)result);
+    print_string(")\n");
+}
+
 int main() {
     print_string("\n=== Falcon-512 Function Tests ===\n");
-    
+    test_falcon_verify_api();
     // Run tests
     test_to_ntt_monty();
     test_compute_public();
@@ -234,7 +296,6 @@ int main() {
     test_verify_raw();
     test_verify_recover();
     test_count_nttzero();
-    
     print_string("\n=== All Tests Completed ===\n");
     return 0;
 }
