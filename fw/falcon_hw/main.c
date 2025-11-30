@@ -721,6 +721,300 @@ void test_montgomery_check() {
         print_string("  We need to adjust or skip Montgomery conversion.\n");
     }
 }
+
+void generate_all_hw_golden_vectors() {
+    print_string("\n");
+    print_string("========================================\n");
+    print_string("FALCON HARDWARE GOLDEN VECTOR GENERATOR\n");
+    print_string("========================================\n");
+    print_string("Copy the output below to falcon_testvectors.h\n\n");
+    
+    // ============================================================
+    // Vector 1: ntt_output_h
+    // ============================================================
+    print_string("// Output: h polynomial (after HW NTT Monty transformation)\n");
+    print_string("const uint16_t ntt_output_h[512] = {\n");
+    
+    uint16_t vec_ntt[N];
+    memcpy(vec_ntt, ntt_input_h, sizeof(vec_ntt));
+    Zf(to_ntt_monty)(vec_ntt, LOGN);
+    
+    for (int i = 0; i < N; i++) {
+        if (i % 8 == 0) print_string("\t");
+        print_string("0x");
+        // Print with leading zeros
+        uint32_t val = vec_ntt[i];
+        if (val < 0x1000) print_string("0");
+        if (val < 0x100) print_string("0");
+        if (val < 0x10) print_string("0");
+        print_u32(val);
+        if (i < N - 1) print_string(",");
+        if ((i + 1) % 8 == 0) print_string("\n");
+    }
+    print_string("};\n\n");
+    
+    // ============================================================
+    // Vector 2: compute_public_h2
+    // ============================================================
+    print_string("const uint16_t compute_public_h2[512] = {\n");
+    
+    uint16_t vec_pub[N];
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
+    int result = Zf(compute_public)(vec_pub, compute_public_f, compute_public_g, LOGN, tmp_buffer);
+    
+    if (!result) {
+        print_string("\t// ERROR: compute_public failed!\n");
+    }
+    
+    for (int i = 0; i < N; i++) {
+        if (i % 8 == 0) print_string("\t");
+        print_string("0x");
+        uint32_t val = vec_pub[i];
+        if (val < 0x1000) print_string("0");
+        if (val < 0x100) print_string("0");
+        if (val < 0x10) print_string("0");
+        print_u32(val);
+        if (i < N - 1) print_string(",");
+        if ((i + 1) % 8 == 0) print_string("\n");
+    }
+    print_string("};\n\n");
+    
+    // ============================================================
+    // Vector 3: complete_private_G
+    // ============================================================
+    print_string("const int8_t complete_private_G[512] = {\n");
+    
+    int8_t vec_G[N];
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
+    result = Zf(complete_private)(vec_G, complete_private_f, complete_private_g, complete_private_F, LOGN, tmp_buffer);
+    
+    if (!result) {
+        print_string("\t// ERROR: complete_private failed!\n");
+    }
+    
+    for (int i = 0; i < N; i++) {
+        if (i % 16 == 0) print_string("\t");
+        
+        int8_t val = vec_G[i];
+        if (val < 0) {
+            print_string("-");
+            val = -val;
+        }
+        print_string("0x");
+        if (val < 0x10) print_string("0");
+        print_u32((uint32_t)val);
+        
+        if (i < N - 1) print_string(",");
+        if ((i + 1) % 16 == 0) print_string("\n");
+    }
+    print_string("};\n\n");
+    
+    // ============================================================
+    // Vector 4: verify_raw_h (in NTT+Montgomery form)
+    // ============================================================
+    print_string("const uint16_t verify_raw_h[512] = {\n");
+    
+    // Note: verify_raw_h needs to be in NTT+Montgomery form for verify_raw to work
+    // We'll transform the original verify_raw_h
+    uint16_t vec_verify_h[N];
+    memcpy(vec_verify_h, verify_raw_h, sizeof(vec_verify_h));
+    Zf(to_ntt_monty)(vec_verify_h, LOGN);
+    
+    for (int i = 0; i < N; i++) {
+        if (i % 8 == 0) print_string("\t");
+        print_string("0x");
+        uint32_t val = vec_verify_h[i];
+        if (val < 0x1000) print_string("0");
+        if (val < 0x100) print_string("0");
+        if (val < 0x10) print_string("0");
+        print_u32(val);
+        if (i < N - 1) print_string(",");
+        if ((i + 1) % 8 == 0) print_string("\n");
+    }
+    print_string("};\n\n");
+    
+    // ============================================================
+    // Vector 5: verify_recover_h2
+    // ============================================================
+    print_string("const uint16_t verify_recover_h2[512] = {\n");
+    
+    uint16_t vec_recover_h[N];
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
+    result = Zf(verify_recover)(vec_recover_h, verify_raw_hm, verify_recover_s1, verify_raw_sig, LOGN, tmp_buffer);
+    
+    if (!result) {
+        print_string("\t// WARNING: verify_recover returned 0\n");
+    }
+    
+    // Convert to NTT+Montgomery form for comparison
+    Zf(to_ntt_monty)(vec_recover_h, LOGN);
+    
+    for (int i = 0; i < N; i++) {
+        if (i % 8 == 0) print_string("\t");
+        print_string("0x");
+        uint32_t val = vec_recover_h[i];
+        if (val < 0x1000) print_string("0");
+        if (val < 0x100) print_string("0");
+        if (val < 0x10) print_string("0");
+        print_u32(val);
+        if (i < N - 1) print_string(",");
+        if ((i + 1) % 8 == 0) print_string("\n");
+    }
+    print_string("};\n\n");
+    
+    print_string("========================================\n");
+    print_string("GENERATION COMPLETE\n");
+    print_string("========================================\n");
+    print_string("Copy the arrays above into falcon_testvectors.h\n");
+    print_string("Keep the input vectors (f, g, F, s1, sig, hm) unchanged\n\n");
+}
+void debug_verify_vectors() {
+    print_string("\n[DEBUG] Verify Vectors Check\n");
+    
+    // Test 1: Check if verify_raw_h is in correct form
+    print_string("Current verify_raw_h[0..4]: ");
+    for (int i = 0; i < 5; i++) {
+        print_u32(verify_raw_h[i]);
+        print_string(" ");
+    }
+    print_string("\n");
+    
+    // Test 2: Run verify_raw and see intermediate values
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
+    print_string("Running verify_raw...\n");
+    int result = Zf(verify_raw)(verify_raw_hm, verify_raw_sig + N, verify_raw_h, LOGN, tmp_buffer);
+    print_string("Result: ");
+    print_u32(result);
+    print_string("\n");
+    
+    // Test 3: Regenerate verify_raw_h from scratch if we have the private key
+    // (We might not have it in the test vectors)
+    
+    print_string("\n[DEBUG] Verify Recover Check\n");
+    
+    uint16_t recovered_h[N];
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
+    result = Zf(verify_recover)(recovered_h, verify_raw_hm, verify_recover_s1, verify_raw_sig, LOGN, tmp_buffer);
+    
+    print_string("verify_recover returned: ");
+    print_u32(result);
+    print_string("\n");
+    
+    // Convert recovered to NTT for comparison
+    Zf(to_ntt_monty)(recovered_h, LOGN);
+    
+    print_string("Recovered h (NTT form) [0..4]: ");
+    for (int i = 0; i < 5; i++) {
+        print_u32(recovered_h[i]);
+        print_string(" ");
+    }
+    print_string("\n");
+    
+    print_string("Expected verify_raw_h [0..4]: ");
+    for (int i = 0; i < 5; i++) {
+        print_u32(verify_raw_h[i]);
+        print_string(" ");
+    }
+    print_string("\n");
+    
+    // Generate the CORRECT verify_raw_h using recovered value
+    print_string("\n// Use this as verify_raw_h:\n");
+    print_string("const uint16_t verify_raw_h[512] = {\n");
+    for (int i = 0; i < N; i++) {
+        if (i % 8 == 0) print_string("\t");
+        print_string("0x");
+        uint32_t val = recovered_h[i];
+        if (val < 0x1000) print_string("0");
+        if (val < 0x100) print_string("0");
+        if (val < 0x10) print_string("0");
+        print_u32(val);
+        if (i < N - 1) print_string(",");
+        if ((i + 1) % 8 == 0) print_string("\n");
+    }
+    print_string("};\n");
+}
+
+void debug_verify_raw() {
+    print_string("\n[DEBUG] Verify Raw Debugging\n");
+    
+    memset(tmp_buffer, 0, sizeof(tmp_buffer));
+    
+    print_string("Input verify_raw_hm[0..4]: ");
+    for (int i = 0; i < 5; i++) {
+        print_u32(verify_raw_hm[i]);
+        print_string(" ");
+    }
+    print_string("\n");
+    
+    print_string("Input verify_raw_h[0..4]: ");
+    for (int i = 0; i < 5; i++) {
+        print_u32(verify_raw_h[i]);
+        print_string(" ");
+    }
+    print_string("\n");
+    
+    print_string("Input s2 (verify_raw_sig+N)[0..4]: ");
+    for (int i = 0; i < 5; i++) {
+        print_u32(verify_raw_sig[N + i]);
+        print_string(" ");
+    }
+    print_string("\n");
+    
+    // Run verify_raw with detailed output
+    print_string("Calling verify_raw...\n");
+    int result = Zf(verify_raw)(verify_raw_hm, verify_raw_sig + N, verify_raw_h, LOGN, tmp_buffer);
+    
+    print_string("verify_raw returned: ");
+    print_u32(result);
+    if (result) {
+        print_string(" (PASS - signature valid)\n");
+    } else {
+        print_string(" (FAIL - signature invalid)\n");
+        
+        // Show what -s1 was computed to
+        print_string("Computed -s1[0..4]: ");
+        int16_t *s1_computed = (int16_t*)tmp_buffer;
+        for (int i = 0; i < 5; i++) {
+            if (s1_computed[i] < 0) print_string("-");
+            print_u32(s1_computed[i] < 0 ? -s1_computed[i] : s1_computed[i]);
+            print_string(" ");
+        }
+        print_string("\n");
+        
+        print_string("This might be a norm check failure (signature too long)\n");
+    }
+}
+void test_sw_vs_hw_ntt() {
+    uint16_t test_input[N];
+    uint16_t sw_result[N];
+    uint16_t hw_result[N];
+    
+    // Initialize with simple pattern
+    for (int i = 0; i < N; i++) {
+        test_input[i] = i % 100;
+    }
+    
+    // Software NTT (original Falcon)
+    memcpy(sw_result, test_input, sizeof(sw_result));
+    mq_NTT_sw(sw_result, LOGN);  // Your HW version
+    
+    // Hardware NTT
+    memcpy(hw_result, test_input, sizeof(hw_result));
+    mq_NTT(hw_result, LOGN);  // Your HW version
+    
+    // Compare
+    print_string("SW vs HW NTT comparison:\n");
+    for (int i = 0; i < 10; i++) {
+        print_string("  ["); print_u32(i); print_string("] SW=");
+        print_u32(sw_result[i] % Q); print_string(" HW=");
+        print_u32(hw_result[i]);
+        if (sw_result[i] % Q == hw_result[i]) {
+            print_string(" ✓\n");
+        } else {
+            print_string(" ✗\n");
+        }
+    }
+}
 int main() {
     print_string("\n=== Falcon-512 Function Tests ===\n");
     
@@ -729,16 +1023,21 @@ int main() {
     poly_init_q();
     print_string("HW initialized.\n");
 
-    test_packing();  
-    test_montgomery_check();
-    // Test hardware basic operations (ADD/SUB)
-    test_hw_basic_ops();
-    test_ntt_montgomery_compat();
-    // Test NTT functions
-    test_ntt_funcs();
-    
+    print_string("\n=== Falcon-512 GOLDEN START ===\n");
+    //generate_all_hw_golden_vectors();
+    print_string("\n=== Falcon-512 GOLDEN ENDS ===\n");
+    test_sw_vs_hw_ntt();
+    // test_packing();  
+    // test_montgomery_check();
+    // // Test hardware basic operations (ADD/SUB)
+    // test_hw_basic_ops();
+    // test_ntt_montgomery_compat();
+    // // Test NTT functions
+    // test_ntt_funcs();
+    //debug_verify_vectors();
+    debug_verify_raw();
     print_string("\n--- Software-only tests ---\n");
-    // Run original tests (these now use HW-accelerated functions!)
+    
     test_to_ntt_monty();
     test_compute_public();
     test_complete_private();

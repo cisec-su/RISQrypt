@@ -31,6 +31,8 @@
 
 #include "inner.h"
 #include "ntt_lite.h"
+#include "uart.h"
+#include "util.h"
 /* ===================================================================== */
 /*
  * Constants for NTT.
@@ -367,62 +369,62 @@ mq_div_12289(uint32_t x, uint32_t y)
 }
 
 
-/*
- * Compute NTT on a ring element using hardware acceleration.
- * Packs 512×16-bit coefficients into 256×32-bit values for HW processing.
- */
+// HW-accelerated NTT (no Montgomery)
 void
 mq_NTT(uint16_t *a, unsigned logn)
 {
 	uint32_t temp_hw[256];
 	
-	/* Hardware accelerator uses logn=8 in DUAL mode.
-	 * Pack 512 Falcon coefficients into 256 32-bit values.
-	 */
-	
-	// Load NTT twiddle factors
 	poly_init_ntt();
-	
-	// Pack all 512 coefficients into 256 32-bit words
 	falcon_to_hw_format(temp_hw, a, 512);
-	
-	// Single HW NTT call processes all 512 elements
 	ntt_lite_forward_ntt(temp_hw, temp_hw);
-	
-	// Unpack back to 512 16-bit coefficients
 	hw_to_falcon_format(a, temp_hw, 512);
 }
-
 /*
- * Compute the inverse NTT on a ring element using hardware acceleration.
- * Processes 512 elements as 256 packed 32-bit values.
+ * Compute NTT on a ring element.
  */
+void
+mq_NTT_sw(uint16_t *a, unsigned logn)
+{
+	size_t n, t, m;
+
+	n = (size_t)1 << logn;
+	t = n;
+	for (m = 1; m < n; m <<= 1) {
+		size_t ht, i, j1;
+
+		ht = t >> 1;
+		for (i = 0, j1 = 0; i < m; i ++, j1 += t) {
+			size_t j, j2;
+			uint32_t s;
+
+			s = GMb[m + i];
+			j2 = j1 + ht;
+			for (j = j1; j < j2; j ++) {
+				uint32_t u, v;
+
+				u = a[j];
+				v = mq_montymul(a[j + ht], s);
+				a[j] = (uint16_t)mq_add(u, v);
+				a[j + ht] = (uint16_t)mq_sub(u, v);
+			}
+		}
+		t = ht;
+	}
+}
+// HW-accelerated iNTT (no Montgomery)
 void
 mq_iNTT(uint16_t *a, unsigned logn)
 {
 	uint32_t temp_hw[256];
 	
-	/* Hardware accelerator uses logn=8 in DUAL mode.
-	 * Pack 512 Falcon coefficients into 256 32-bit values.
-	 */
-	
-	// Load inverse NTT twiddle factors
 	poly_init_invntt();
-	
-	// Pack all 512 coefficients into 256 32-bit words
 	falcon_to_hw_format(temp_hw, a, 512);
-	
-	// Single HW iNTT call processes all 512 elements
 	ntt_lite_backward_ntt(temp_hw, temp_hw);
-	
-	// Unpack back to 512 16-bit coefficients
 	hw_to_falcon_format(a, temp_hw, 512);
-
 }
 
-/*
- * Convert a polynomial (mod q) to Montgomery representation.
- */
+// SOFTWARE Montgomery conversion (keep original)
 void
 mq_poly_tomonty(uint16_t *f, unsigned logn)
 {
@@ -434,57 +436,38 @@ mq_poly_tomonty(uint16_t *f, unsigned logn)
 	}
 }
 
-/*
- * Multiply two polynomials together (NTT representation) using HW acceleration.
- * Result f*g is written over f.
- */
+// HW-accelerated pointwise multiplication
 void
 mq_poly_montymul_ntt(uint16_t *f, const uint16_t *g, unsigned logn)
 {
 	uint32_t temp_f[256];
 	uint32_t temp_g[256];
 	
-	// Pack both polynomials
 	falcon_to_hw_format(temp_f, f, 512);
 	falcon_to_hw_format(temp_g, g, 512);
-	
-	// Single pointwise multiplication
 	ntt_lite_pwm(temp_f, temp_f, temp_g);
-	
-	// Unpack result
 	hw_to_falcon_format(f, temp_f, 512);
 }
 
-/*
- * Subtract polynomial g from polynomial f using HW acceleration.
- */
+// HW-accelerated subtraction
 void
 mq_poly_sub(uint16_t *f, const uint16_t *g, unsigned logn)
 {
 	uint32_t temp_f[256];
 	uint32_t temp_g[256];
 	
-	// Pack both polynomials
 	falcon_to_hw_format(temp_f, f, 512);
 	falcon_to_hw_format(temp_g, g, 512);
-	
-	// Single subtraction
 	ntt_lite_sub(temp_f, temp_f, temp_g);
-	
-	// Unpack result
 	hw_to_falcon_format(f, temp_f, 512);
 }
 
-/* ===================================================================== */
-
-/* see inner.h */
+// Combined function: HW NTT + SW Montgomery
 void
 Zf(to_ntt_monty)(uint16_t *h, unsigned logn)
 {
-	poly_init_q();
-	poly_init_ntt();
-	mq_NTT(h, logn);
-	mq_poly_tomonty(h, logn);
+	mq_NTT(h, logn);           // HW-accelerated
+	mq_poly_tomonty(h, logn);  // Software Montgomery conversion
 }
 
 /* see inner.h */
@@ -567,49 +550,104 @@ Zf(compute_public)(uint16_t *h,
 /* see inner.h */
 int
 Zf(complete_private)(int8_t *G,
-	const int8_t *f, const int8_t *g, const int8_t *F,
-	unsigned logn, uint8_t *tmp)
+    const int8_t *f, const int8_t *g, const int8_t *F,
+    unsigned logn, uint8_t *tmp)
 {
-	size_t u, n;
-	uint16_t *t1, *t2;
+    size_t u, n;
+    uint16_t *t1, *t2;
 
-	n = (size_t)1 << logn;
-	t1 = (uint16_t *)tmp;
-	t2 = t1 + n;
-	for (u = 0; u < n; u ++) {
-		t1[u] = (uint16_t)mq_conv_small(g[u]);
-		t2[u] = (uint16_t)mq_conv_small(F[u]);
-	}
-	poly_init_ntt();
-	mq_NTT(t1, logn);
-	mq_NTT(t2, logn);
-	mq_poly_tomonty(t1, logn);
-	mq_poly_montymul_ntt(t1, t2, logn);
-	for (u = 0; u < n; u ++) {
-		t2[u] = (uint16_t)mq_conv_small(f[u]);
-	}
-	mq_NTT(t2, logn);
-	for (u = 0; u < n; u ++) {
-		if (t2[u] == 0) {
-			return 0;
-		}
-		t1[u] = (uint16_t)mq_div_12289(t1[u], t2[u]);
-	}
-	poly_init_invntt();
-	mq_iNTT(t1, logn);
-	for (u = 0; u < n; u ++) {
-		uint32_t w;
-		int32_t gi;
+    print_string("\n[DEBUG] Starting complete_private...\n");
 
-		w = t1[u];
-		w -= (Q & ~-((w - (Q >> 1)) >> 31));
-		gi = *(int32_t *)&w;
-		if (gi < -127 || gi > +127) {
-			return 0;
-		}
-		G[u] = (int8_t)gi;
-	}
-	return 1;
+    n = (size_t)1 << logn;
+    t1 = (uint16_t *)tmp;
+    t2 = t1 + n;
+
+    // 1. Check Input f
+    print_string("[DEBUG] Input f[0..7]: ");
+    for(int i=0; i<8; i++) {
+        print_u32((uint32_t)f[i]); // Cast to see raw value
+        print_string(" ");
+    }
+    print_string("\n");
+
+    for (u = 0; u < n; u ++) {
+        t1[u] = (uint16_t)mq_conv_small(g[u]);
+        t2[u] = (uint16_t)mq_conv_small(F[u]);
+    }
+
+    poly_init_ntt(); // Ensure HW tables loaded
+    
+    // Transform g and F
+    mq_NTT(t1, logn);
+    mq_NTT(t2, logn);
+    
+    // Compute g * F in t1
+    mq_poly_tomonty(t1, logn);
+    mq_poly_montymul_ntt(t1, t2, logn);
+
+    // Load f into t2
+    for (u = 0; u < n; u ++) {
+        t2[u] = (uint16_t)mq_conv_small(f[u]);
+    }
+
+    // Transform f -> NTT(f)
+    print_string("[DEBUG] Running NTT on f...\n");
+    mq_NTT(t2, logn);
+
+    // 2. Check NTT(f) output
+    print_string("[DEBUG] NTT(f) [0..7]: ");
+    for(int i=0; i<8; i++) {
+        print_u32((uint32_t)t2[i]);
+        print_string(" ");
+    }
+    print_string("\n");
+
+    // 3. Check for zeros and divide
+    int zero_count = 0;
+    for (u = 0; u < n; u ++) {
+        if (t2[u] == 0) {
+            if (zero_count < 5) { // Only print first 5 errors
+                print_string("[ERROR] f is 0 at index: ");
+                print_u32((uint32_t)u);
+                print_string("\n");
+            }
+            zero_count++;
+            // Don't return yet, let's see how many
+        } else {
+            t1[u] = (uint16_t)mq_div_12289(t1[u], t2[u]);
+        }
+    }
+
+    if (zero_count > 0) {
+        print_string("[FAIL] Total zeros in NTT(f): ");
+        print_u32((uint32_t)zero_count);
+        print_string("\n");
+        return 0;
+    }
+
+    poly_init_invntt(); // Ensure HW tables loaded
+    mq_iNTT(t1, logn);
+
+    for (u = 0; u < n; u ++) {
+        uint32_t w;
+        int32_t gi;
+
+        w = t1[u];
+        w -= (Q & ~-((w - (Q >> 1)) >> 31));
+        gi = *(int32_t *)&w;
+        if (gi < -127 || gi > +127) {
+            print_string("[ERROR] G value out of range at index ");
+            print_u32(u);
+            print_string(": ");
+            print_u32(w);
+            print_string("\n");
+            return 0;
+        }
+        G[u] = (int8_t)gi;
+    }
+    
+    print_string("[DEBUG] complete_private success!\n");
+    return 1;
 }
 
 /* see inner.h */
