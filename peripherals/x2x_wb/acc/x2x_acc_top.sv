@@ -3,7 +3,8 @@ module x2x_acc_top
         parameter BASE_ADDR       = 32'h1004_0050,
         parameter SHARES          = 2           ,
         parameter LOGL            = 10          ,
-        parameter PRNG_OFF_EN     = 0
+        parameter PRNG_OFF_EN     = 0           ,
+        parameter HALFCYCLE       = 1
     )
     (
         // wishbone
@@ -33,10 +34,7 @@ module x2x_acc_top
         output             dma_rst_i
     );
 
-localparam LOGS = $rtoi($ceil($clog2(SHARES)));
 localparam B    = 32;
-localparam N    = 1600 / B;
-localparam LOGN = $rtoi($ceil($clog2(N + 1)));
 
 /*localparam N_SHARES = 2;
 localparam N_STAGES = 4;
@@ -132,7 +130,7 @@ assign modulus_half = modulus >> 1;
 assign fsm_prng_off = (PRNG_OFF_EN) ? ctrl_prng_off : 1'b0;
 
 x2x_acc_op_core #(
-    .HALFCYCLE          (0              ),
+    .HALFCYCLE          (HALFCYCLE      ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
     .N_SHARES           (2              ),
     .RND_SHARES         (RND_SHARES_2SHARE),
@@ -177,14 +175,14 @@ x2x_acc_op_core #(
 x2x_acc_fsm #(
     .SHARES       (SHARES     ),
     .LOGL         (LOGL       ),
-    .B            (B          ),
     .PARAM_WIDTH  (PARAM_WIDTH),
     //.RND_SHARES   (RND_SHARES ),
     //.RND_SHARES_8bit   (RND_SHARES_8bit ),
     .N_SHARES     (N_SHARES_2SHARE   ),
     .RND_SHARES_2SHARE         (RND_SHARES_2SHARE),
     .RND_SHARES_2SHARE_BOX    (RND_SHARES_2SHARE_BOX),
-    .BOX_WIDTH (BOX_WIDTH)
+    .BOX_WIDTH (BOX_WIDTH),
+    .HALFCYCLE    (HALFCYCLE    )
 ) x2x_acc_fsm_inst (
     .clk             (clk              ),
     .rst_n           (rst_n            ),

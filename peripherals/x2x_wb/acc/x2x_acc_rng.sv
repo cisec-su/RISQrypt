@@ -36,138 +36,126 @@ wire [191:0] stream_out6;
 wire [191:0] stream_out7; 
 wire [191:0] stream_out8;  
 
-wire [PARAM_WIDTH-1:0] modulus_mask;
-wire [PARAM_WIDTH  :0] modulus_int;
+reg [PARAM_WIDTH-1:0] modulus_mask_c;
+reg [PARAM_WIDTH  :0] modulus_int_c;
+
+reg [PARAM_WIDTH-1:0] modulus_mask;
+reg [PARAM_WIDTH  :0] modulus_int;
 
 reg  [RND_SHARES_2SHARE-1:0] data_ready;
 
 
-assign modulus_mask = (ctrl_data_type == 0) ? (modulus)                   :
+assign modulus_mask_c = (ctrl_data_type == 0) ? (modulus)                   :
                       (ctrl_rej_samp      ) ? (1 << (log_modulus - 1)) - 1:
                                               (1 << log_modulus)       - 1;
 
-assign modulus_int = (ctrl_data_type) ?    {1'b0, modulus}    : 
+assign modulus_int_c = (ctrl_data_type) ?    {1'b0, modulus}    : 
                                            {1'b0, modulus} + 1;
+
+
+always @(posedge clk) begin
+   modulus_mask <= modulus_mask_c;
+   modulus_int  <= modulus_int_c;
+end
 
 assign rnd_x2x_ready = (data_ready == 0); // TODO : will be parametric*/
 
 
 Trivium #(
-    .output_bits(256)
+    .output_bits(261)
 ) RNG1 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd1),
-    .stream_out(stream_out1)
+    .stream_out({stream_out1, stream_out5[132:128]})
 );
 
 Trivium #(
-    .output_bits(256)
+    .output_bits(261)
 ) RNG2 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd2),
-    .stream_out(stream_out2)
+    .stream_out({stream_out2, stream_out5[137:133]})
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(261)
 ) RNG3 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd3),
-    .stream_out(stream_out3)
+    .stream_out({stream_out3, stream_out4[159:64], stream_out5[142:138]})
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(261)
 ) RNG4 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd4),
-    .stream_out(stream_out4)
+    .stream_out({stream_out6, stream_out4[63:0], stream_out5[147:143]})
 );
 
 Trivium #(
-    .output_bits(160)
+    .output_bits(262)
 ) RNG5 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd5),
-    .stream_out(stream_out5)
+    .stream_out({stream_out7, stream_out5[127:64], stream_out5[153:148]})
 );
 
 Trivium #(
-    .output_bits(192)
+    .output_bits(262)
 ) RNG6 (
     .clk(clk),
     .rst(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({16'd0, ctrl_seed}),
     .iv(80'd6),
-    .stream_out(stream_out6)
+    .stream_out({stream_out8, stream_out5[63:0], stream_out5[159:154]})
 );
-
-Trivium #(
-    .output_bits(192)
-) RNG7 (
-    .clk(clk),
-    .rst(rst_n & ~ctrl_prng_off),
-    .load(ctrl_load_seed),
-    .key({16'd0, ctrl_seed}),
-    .iv(80'd7),
-    .stream_out(stream_out7)
-);
-
-Trivium #(
-    .output_bits(192)
-) RNG8 (
-    .clk(clk),
-    .rst(rst_n & ~ctrl_prng_off),
-    .load(ctrl_load_seed),
-    .key({16'd0, ctrl_seed}),
-    .iv(80'd8),
-    .stream_out(stream_out8)
-);
-
 
 for(genvar j = 0; j < RND_SHARES_2SHARE; j = j + 1) begin
-    always @(*) begin
-        if(j < (RND_SHARES_2SHARE/2))
-        begin               
-            if((stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
-            begin
-                x2x_fresh_rnd_shares[j] = (stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
-                data_ready[j] = 0; 
-            end
-            else if((stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
-            begin
-                x2x_fresh_rnd_shares[j] = (stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
-                data_ready[j] = 0;
-            end
-            else if((stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
-            begin
-                x2x_fresh_rnd_shares[j] = (stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
-                data_ready[j] = 0;
-            end
-            else
-            begin
-                x2x_fresh_rnd_shares[j] = 0;
-                data_ready[j] = 1;
-            end
+    if(j < (RND_SHARES_2SHARE/2))
+    begin               
+        always @(*) begin
+                if((stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
+                begin
+                    x2x_fresh_rnd_shares[j] = (stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
+                    data_ready[j] = 0; 
+                end
+                else if((stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
+                begin
+                    x2x_fresh_rnd_shares[j] = (stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
+                    data_ready[j] = 0;
+                end
+                else if((stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
+                begin
+                    x2x_fresh_rnd_shares[j] = (stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
+                    data_ready[j] = 0;
+                end
+                else
+                begin
+                    x2x_fresh_rnd_shares[j] = 0;
+                    data_ready[j] = 1;
+                end
         end
-        else
-        begin               
+    end
+    else
+    begin
+        always @(*) begin
             if((stream_out6[(PARAM_WIDTH*((j-RND_SHARES_2SHARE/2)+1)-1):(PARAM_WIDTH*(j-RND_SHARES_2SHARE/2))] & modulus_mask) < modulus_int)
             begin
                 x2x_fresh_rnd_shares[j] = (stream_out6[(PARAM_WIDTH*((j-RND_SHARES_2SHARE/2)+1)-1):(PARAM_WIDTH*(j-RND_SHARES_2SHARE/2))] & modulus_mask);

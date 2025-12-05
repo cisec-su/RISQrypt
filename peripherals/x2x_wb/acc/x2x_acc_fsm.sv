@@ -4,7 +4,6 @@
 module x2x_acc_fsm
    #(
         parameter SHARES  = 2 ,
-        parameter B       = 32,
         parameter LOGL    = 10,
         parameter PARAM_WIDTH = 0,
         parameter RND_SHARES_8bit = 0,
@@ -14,7 +13,12 @@ module x2x_acc_fsm
         
         parameter RND_SHARES_2SHARE = 0,
         parameter RND_SHARES_2SHARE_BOX = 0,
-        parameter BOX_WIDTH = 0
+        parameter BOX_WIDTH = 0,
+        parameter HALFCYCLE = 1,
+        parameter FULLCYCLE_PRIME_LAT = 1,
+        parameter HALFCYCLE_PRIME_LAT = 3,
+        parameter FULLCYCLE_POW2_LAT = 7,
+        parameter HALFCYCLE_POW2_LAT = 9
     )
     (
         input                   clk                        ,
@@ -72,12 +76,6 @@ module x2x_acc_fsm
 
 
 
-localparam LOGS = $rtoi($ceil($clog2(SHARES)));
-localparam N    = 1600 / B;
-localparam LOGN = $rtoi($ceil($clog2(N + 1)));
-localparam RATE_SHIFT = $rtoi($ceil($clog2(64 / B)));
-
-
 localparam ST_IDLE                       = 4'd0;
 localparam ST_FETCH_DATA_0_0             = 4'd1;
 localparam ST_FETCH_DATA_0_1             = 4'd2;
@@ -98,6 +96,10 @@ localparam TRIVIUM_INIT_CC                = 12'd30;
 
 localparam WORD_PAD                       = 32-PARAM_WIDTH;
 localparam HALF_PAD                       = 32-PARAM_WIDTH;
+
+localparam PRIME_LAT = (HALFCYCLE) ? HALFCYCLE_PRIME_LAT : FULLCYCLE_PRIME_LAT;
+localparam POW2_LAT  = (HALFCYCLE) ? HALFCYCLE_POW2_LAT  : FULLCYCLE_POW2_LAT ;
+
 
 reg [3:0] fsm_state, fsm_next_state;
 reg [LOGL-1:0] ctr_array;
@@ -170,6 +172,9 @@ reg write_s1_q;
 reg rnd_ready;
 wire rnd_ref_ready;
 wire rnd_x2x_ready;
+
+wire rng_non_zero;
+
 always @(*)
 begin
     case(opcode)
@@ -179,6 +184,8 @@ begin
     `X2X_CMD_REFX2X: rnd_ready = rnd_ref_ready & rnd_x2x_ready;
     endcase
 end
+
+assign rng_non_zero = (opcode == `X2X_CMD_PRNG) ? ctrl_share_mode : 1'b0;
 
 x2x_acc_rng #(
         .PARAM_WIDTH(PARAM_WIDTH),
@@ -196,7 +203,7 @@ x2x_acc_rng #(
         .ctrl_dual_mode(ctrl_dual_mode),
         .log_modulus(log_modulus),  
         .ctrl_rej_samp(ctrl_rej_samp),
-        .ctrl_nonzero(ctrl_share_mode),
+        .ctrl_nonzero(rng_non_zero),
         .ctrl_prng_off(ctrl_prng_off),
         .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
         .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
@@ -207,7 +214,7 @@ x2x_acc_rng #(
 
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         fsm_state <= ST_IDLE;
     end else begin
@@ -396,7 +403,7 @@ always @(*) begin
             end
 	   end
 	      
-	    if(((opcode == `X2X_CMD_X2X)||(opcode == `X2X_CMD_REFX2X))  && !ctrl_one_bit_mode  && ((((ctr_block_r_reg + 1) < ctr_block_w_mem) && ctrl_data_type) || (((ctr_block_r_reg + 7) < ctr_block_w_mem) && !ctrl_data_type)  ) )
+	    if(((opcode == `X2X_CMD_X2X)||(opcode == `X2X_CMD_REFX2X))  && !ctrl_one_bit_mode  && ((((ctr_block_r_reg + PRIME_LAT) < ctr_block_w_mem) && ctrl_data_type) || (((ctr_block_r_reg + POW2_LAT) < ctr_block_w_mem) && !ctrl_data_type)  ) )
         begin
             if(dualprime)
             begin
@@ -470,7 +477,7 @@ always @(*) begin
 		end
 		
 		
-		if(((opcode == `X2X_CMD_X2X)||(opcode == `X2X_CMD_REFX2X)) && !ctrl_one_bit_mode  && ((((ctr_block_r_reg + 1) < ctr_block_w_mem) && ctrl_data_type) || (((ctr_block_r_reg + 7) < ctr_block_w_mem) && !ctrl_data_type)  ) )
+		if(((opcode == `X2X_CMD_X2X)||(opcode == `X2X_CMD_REFX2X)) && !ctrl_one_bit_mode  && ((((ctr_block_r_reg + PRIME_LAT) < ctr_block_w_mem) && ctrl_data_type) || (((ctr_block_r_reg + POW2_LAT) < ctr_block_w_mem) && !ctrl_data_type)  ) )
         begin
             if(dualprime)
             begin
@@ -905,7 +912,7 @@ always @(*) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         reg_s0r <= 0;
         reg_s1r <= 0;
@@ -923,7 +930,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         reg_s0w <= 0;
         reg_s1w <= 0;
@@ -947,12 +954,12 @@ always @(posedge clk) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
-        ctr_array <= {LOGN{1'b0}};
+        ctr_array <= {LOGL{1'b0}};
     end
     else if (ctr_array_rst) begin
-        ctr_array <= {LOGN{1'b0}};
+        ctr_array <= {LOGL{1'b0}};
     end
     else if (ctr_array_inc) begin
         ctr_array <= ctr_array + 1;
@@ -968,12 +975,12 @@ end
 
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
-        ctr_block_r_mem <= {LOGN{1'b0}};
+        ctr_block_r_mem <= {LOGL{1'b0}};
     end
     else if (ctr_block_r_mem_rst) begin
-        ctr_block_r_mem <= {LOGN{1'b0}};
+        ctr_block_r_mem <= {LOGL{1'b0}};
     end
     else if (ctr_block_r_mem_inc) begin
         ctr_block_r_mem <= ctr_block_r_mem + 1;
@@ -985,12 +992,12 @@ always @(posedge clk) begin
     ctr_block_r_mem_q <= ctr_block_r_mem;
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
-        ctr_block_r_reg <= {LOGN{1'b0}};
+        ctr_block_r_reg <= {LOGL{1'b0}};
     end
     else if (ctr_block_r_reg_rst) begin
-        ctr_block_r_reg <= {LOGN{1'b0}};
+        ctr_block_r_reg <= {LOGL{1'b0}};
     end
     else if (ctr_block_r_reg_inc) begin
         ctr_block_r_reg <= ctr_block_r_reg + 1;
@@ -1004,12 +1011,12 @@ end
 
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
-        ctr_block_w_mem <= {LOGN{1'b0}};
+        ctr_block_w_mem <= {LOGL{1'b0}};
     end
     else if (ctr_block_w_mem_rst) begin
-        ctr_block_w_mem <= {LOGN{1'b0}};
+        ctr_block_w_mem <= {LOGL{1'b0}};
     end
     else if (ctr_block_w_mem_inc) begin
         ctr_block_w_mem <= ctr_block_w_mem + 1;
@@ -1022,12 +1029,12 @@ always @(posedge clk) begin
     ctr_block_w_mem_q <= ctr_block_w_mem;
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
-        ctr_block_w_reg <= {LOGN{1'b0}};
+        ctr_block_w_reg <= {LOGL{1'b0}};
     end
     else if (ctr_block_w_reg_rst) begin
-        ctr_block_w_reg <= {LOGN{1'b0}};
+        ctr_block_w_reg <= {LOGL{1'b0}};
     end
     else if (ctr_block_w_reg_inc) begin
         ctr_block_w_reg <= ctr_block_w_reg + 1;
@@ -1041,19 +1048,19 @@ always @(posedge clk) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
-        ctr_iter <= {LOGN{1'b0}};
+        ctr_iter <= {LOGL{1'b0}};
     end
     else if (ctr_iter_rst) begin
-        ctr_iter <= {LOGN{1'b0}};
+        ctr_iter <= {LOGL{1'b0}};
     end
     else if (ctr_iter_inc) begin
         ctr_iter <= ctr_iter + 1;
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         ctr_onebit_addr_off_0 <= 32'd0;
     end
@@ -1065,7 +1072,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         ctr_onebit_addr_off_1 <= 32'd0;
     end
@@ -1079,7 +1086,7 @@ end
 
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         ctr_trivium <= 0;
     end
