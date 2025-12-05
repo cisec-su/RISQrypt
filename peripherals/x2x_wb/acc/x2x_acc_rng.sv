@@ -37,10 +37,10 @@ wire [191:0] stream_out7;
 wire [191:0] stream_out8;  
 
 reg [PARAM_WIDTH-1:0] modulus_mask_c;
-reg [PARAM_WIDTH  :0] modulus_int_c;
+reg [PARAM_WIDTH-1:0] modulus_int_c;
 
 reg [PARAM_WIDTH-1:0] modulus_mask;
-reg [PARAM_WIDTH  :0] modulus_int;
+reg [PARAM_WIDTH-1:0] modulus_int;
 
 reg  [RND_SHARES_2SHARE-1:0] data_ready;
 
@@ -131,26 +131,26 @@ for(genvar j = 0; j < RND_SHARES_2SHARE; j = j + 1) begin
     if(j < (RND_SHARES_2SHARE/2))
     begin               
         always @(*) begin
-                if((stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
-                begin
-                    x2x_fresh_rnd_shares[j] = (stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
-                    data_ready[j] = 0; 
-                end
-                else if((stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
-                begin
-                    x2x_fresh_rnd_shares[j] = (stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
-                    data_ready[j] = 0;
-                end
-                else if((stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
-                begin
-                    x2x_fresh_rnd_shares[j] = (stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
-                    data_ready[j] = 0;
-                end
-                else
-                begin
-                    x2x_fresh_rnd_shares[j] = 0;
-                    data_ready[j] = 1;
-                end
+            if((stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
+            begin
+                x2x_fresh_rnd_shares[j] = (stream_out3[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
+                data_ready[j] = 0; 
+            end
+            else if((stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
+            begin
+                x2x_fresh_rnd_shares[j] = (stream_out4[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
+                data_ready[j] = 0;
+            end
+            else if((stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask) < modulus_int)
+            begin
+                x2x_fresh_rnd_shares[j] = (stream_out5[(PARAM_WIDTH*(j+1)-1):(PARAM_WIDTH*j)] & modulus_mask);
+                data_ready[j] = 0;
+            end
+            else
+            begin
+                x2x_fresh_rnd_shares[j] = 0;
+                data_ready[j] = 1;
+            end
         end
     end
     else
@@ -182,11 +182,15 @@ end
 
 
 for(genvar j = 0; j < RND_SHARES_2SHARE_BOX ; j = j + 1) begin
-    always @(*) begin
-        if(j<(RND_SHARES_2SHARE_BOX/2))
+    if(j<(RND_SHARES_2SHARE_BOX/2)) begin
+        always @(*) begin
             x2x_fresh_rnd_shares_8bit[j] = stream_out1[(BOX_WIDTH*(j+1)-1):(BOX_WIDTH*j)]; 
-        else
+        end
+    end
+    else begin
+        always @(*) begin
             x2x_fresh_rnd_shares_8bit[j] = stream_out2[(BOX_WIDTH*((j-RND_SHARES_2SHARE_BOX/2)+1)-1):(BOX_WIDTH*(j-RND_SHARES_2SHARE_BOX/2))];     
+        end
     end
 end
 
