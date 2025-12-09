@@ -34,7 +34,7 @@ parameter USB_ADDR_WIDTH   = 21      ;
 parameter CW305_FIFO_BSIZE = 128     ;
 parameter PRNG_OFF_EN      = 1       ;
 `else
-parameter SYS_CLK_FREQ   = 50000000;
+parameter SYS_CLK_FREQ   = 61000000;
 parameter PRNG_OFF_EN    = 0       ;
 `endif
 parameter UART_BAUD      = 9600    ;
@@ -47,7 +47,7 @@ parameter RAM_INST_START = 32'h0000_0820;
 parameter RAM_INST_END   = 32'h0000_FFFF;
 
 parameter RAM_DATA_START = 32'h0001_0000;
-parameter RAM_DATA_END   = 32'h0003_FFFF;
+parameter RAM_DATA_END   = 32'h0002_FFFF;
 
 parameter MTIME_START    = 32'h2000_8000;
 parameter MTIME_END      = 32'h2000_800F;
