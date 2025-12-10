@@ -82,7 +82,7 @@ class TTestTraceCollector:
         ths_0, ths_1 = self.read_ths_gpu(N=N, prng_off=prng_off)
         return TTestAnalysis(ths_0, ths_1)
 
-    def default_setup(self, freq, gain, samples, mul=4):
+    def _default_setup(self, freq, gain, samples, mul=4):
         self.scope.adc.offset = self.offset
         self.scope.adc.basic_mode = "rising_edge"
         self.scope.trigger.triggers = "tio4"
@@ -113,8 +113,16 @@ class TTestTraceCollector:
         assert (self.scope.clock.adc_locked), "ADC failed to lock"
         self.scope.adc.samples = samples
         self.scope.gain.db = gain
-        if freq > 10E6:
-            assert self.scope.adc_test() == 'pass', "ADC test failed!"
+        return self.scope.adc_test() == 'pass'
+
+    def default_setup(self, freq, gain, samples, mul=4, retry=True):
+        setup_succ = self._default_setup(freq, gain, samples, mul)
+        if not setup_succ:
+            if retry:
+                self.scope.reset_fpga()
+                assert self._default_setup(freq, gain, samples, mul), "ADC test failed!"
+            else:
+                assert False, "ADC test failed!"
 
     def build_fw(self, verbose=False):
         cmd = "make" if not verbose else "make VERBOSE=1"
@@ -169,7 +177,7 @@ class TTestTraceCollector:
             if check_output:
                 assert self.check_output(ret.textout, const_seed), "Output mismatch!"
             es_writer_0.write_samples(np.array(ret.wave))
-            es_writer_0.write_metadata('s', np.frombuffer(const_seed))
+            es_writer_0.write_metadata('s', np.frombuffer(const_seed, dtype=np.uint8))
             #dummy input
             if dummy_inbetween_0:
                 dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
@@ -187,7 +195,7 @@ class TTestTraceCollector:
             if check_output:
                 assert self.check_output(ret.textout, seed), "Output mismatch!"
             es_writer_1.write_samples(np.array(ret.wave))
-            es_writer_1.write_metadata('s', np.frombuffer(seed))
+            es_writer_1.write_metadata('s', np.frombuffer(seed, dtype=np.uint8))
             #dummy input
             if dummy_inbetween_1:
                 dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
