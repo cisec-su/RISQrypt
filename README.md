@@ -1,3 +1,2 @@
-# HORNET-FHE
-
-Repository for Hornet RISC-V Core, with PQC and FHE support
+# RISQrypt
+Fast, Secure, and Agile HW/SW Co-Design for Post-Quantum Cryptography.

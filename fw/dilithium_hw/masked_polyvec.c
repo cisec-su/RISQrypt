@@ -88,11 +88,39 @@ void masked_polyvecl_uniform_gamma1(masked_polyvecl *y, const masked_crh rhoprim
 
 void masked_polyvecl_pointwise_acc(masked_poly *w, const polyvecl *u, const masked_polyvecl *v)
 {
-    unsigned int i;
+    unsigned int i, j, k;
+    uint32_t *dst, *rhs;
 
-    masked_poly_pointwise(w, &u->vec[0], &v->vec[0]);
-    for(i = 1; i < L; i++) {
-        masked_poly_pointwise_acc(w, &u->vec[i], &v->vec[i]);
+    for (j = 0; j < MASKING_N; j++) {
+        if (j & 0x1) {
+            k = L - 1;
+        }
+        else {
+            k = 0;
+        }
+        if (j > 0) {
+            rhs = NTT_LITE_INPUT_DIS;
+        }
+        else {
+            rhs = (uint32_t*) &u->vec[k].coeffs;
+        }
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->vec[k].share[j].coeffs, rhs);
+        for(i = 1; i < L; i++) {
+            if (j & 0x1) {
+                k = L - 1 - i;
+            }
+            else {
+                k = i;
+            }
+            if (i != (L - 1)) {
+                dst = NTT_LITE_OUTPUT_DIS;
+            }
+            else {
+                ntt_lite_set_clr();
+                dst = (uint32_t*) w->share[j].coeffs;
+            }
+            ntt_lite_mac(dst, (uint32_t*) &v->vec[k].share[j].coeffs, (uint32_t*) &u->vec[k].coeffs);
+        }
     }
 }
 

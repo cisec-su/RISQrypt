@@ -239,6 +239,24 @@ int ntt_lite_backward_ntt(uint32_t *dst, const uint32_t *src) {
 }
 
 
+int ntt_lite_mac(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+
+    if (lhs == NTT_LITE_INPUT_DIS) {
+        return -1;
+    }
+
+    if (rhs != NTT_LITE_INPUT_DIS) {
+        ntt_lite_load_twiddle_core(rhs, 0);
+    }
+
+    ret = ntt_lite_ntt_core(dst, lhs, NTT_LITE_CTRL_OP_MAC);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
 static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs, uint32_t op, uint32_t rhs_const, uint32_t op_switch) {
     
     uint32_t cmd;
