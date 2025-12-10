@@ -29,6 +29,13 @@ void polyvec_frombytes(polyvec *r, const uint8_t a[KYBER_POLYVECBYTES]);
 #define polyvec_ntt KYBER_NAMESPACE(_polyvec_ntt)
 void polyvec_ntt(polyvec *r);
 
+#define polyvec_unpack_ntt KYBER_NAMESPACE(_polyvec_unpack_ntt)
+void polyvec_unpack_ntt(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES]);
+
+#define polyvec_pointwise_acc_core \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_core)
+void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw, int clr);
+
 #define polyvec_pointwise_acc_invntt \
         KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt)
 void polyvec_pointwise_acc_invntt(poly *r,
@@ -40,6 +47,22 @@ void polyvec_pointwise_acc_invntt(poly *r,
 void polyvec_pointwise_acc(poly *r,
                            const polyvec *a,
                            const polyvec *b);
+
+#define polyvec_pointwise_acc_invntt_tohw \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt_tohw)
+void polyvec_pointwise_acc_invntt_tohw(poly *r, const polyvec *a, const polyvec *b);
+
+#define polyvec_pointwise_acc_invntt_frombytes_tohw \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt_frombytes_tohw)
+void polyvec_pointwise_acc_invntt_frombytes_tohw(poly *r, const uint8_t a[KYBER_POLYVECBYTES], const polyvec *b);
+
+#define polyvec_pointwise_acc_fromseed_add_tobytes \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_fromseed_add_tobytes)
+void polyvec_pointwise_acc_fromseed_add_tobytes(uint8_t r[KYBER_POLYBYTES], const uint8_t seed[KYBER_SYMBYTES], int nonce_j, const polyvec *b, poly *e);
+
+#define polyvec_pointwise_acc_invntt_fromseed_tohw \
+        KYBER_NAMESPACE(_polyvec_pointwise_acc_invntt_fromseed_tohw)
+void polyvec_pointwise_acc_invntt_fromseed_tohw(poly *r, const uint8_t seed[KYBER_SYMBYTES], int nonce_j, const polyvec *b);
 
 #define polyvec_add KYBER_NAMESPACE(_polyvec_add)
 void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b);

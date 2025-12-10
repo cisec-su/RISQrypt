@@ -1,13 +1,11 @@
-`ifndef KECCAK_VH
-`define KECCAK_VH
+`ifndef X2X_VH
+`define X2X_VH
 
 
-`define KECCAK_CMD_IDLE    4'd0
-`define KECCAK_CMD_ABSORB  4'd1
-`define KECCAK_CMD_SQUEEZE 4'd2
-`define KECCAK_CMD_PAD     4'd3
-`define KECCAK_CMD_RESEED  4'd4
-`define KECCAK_CMD_RESET   4'd15
+`define X2X_CMD_PRNG     2'd0
+`define X2X_CMD_X2X      2'd1
+`define X2X_CMD_REF      2'd2
+`define X2X_CMD_REFX2X   2'd3
 
 
 `endif

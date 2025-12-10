@@ -5,6 +5,7 @@
 #include "polyvec.h"
 #include "symmetric.h"
 #include "pack.h"
+#include "ntt_lite.h"
 
 /*************************************************
 * Name:        pack_pk
@@ -87,7 +88,7 @@ void unpack_sk(polyvec *sk, const uint8_t packedsk[KYBER_INDCPA_SECRETKEYBYTES])
 void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES], polyvec *b, poly *v)
 {
   polyvec_compress(r, b);
-  poly_compress(r+KYBER_POLYVECCOMPRESSEDBYTES, v);
+  // poly_compress(r+KYBER_POLYVECCOMPRESSEDBYTES, v);
 }
 
 /*************************************************
@@ -106,40 +107,10 @@ void unpack_ciphertext(polyvec *b, poly *v, const uint8_t c[KYBER_INDCPA_BYTES])
   poly_decompress(v, c+KYBER_POLYVECCOMPRESSEDBYTES);
 }
 
-/*************************************************
-* Name:        rej_uniform
-*
-* Description: Run rejection sampling on uniform random bytes to generate
-*              uniform random integers mod q
-*
-* Arguments:   - int16_t *r:          pointer to output buffer
-*              - unsigned int len:    requested number of 16-bit integers
-*                                     (uniform mod q)
-*              - const uint8_t *buf:  pointer to input buffer
-*                                     (assumed to be uniform random bytes)
-*              - unsigned int buflen: length of input buffer in bytes
-*
-* Returns number of sampled 16-bit integers (at most len)
-**************************************************/
-static unsigned int rej_uniform(int16_t *r, unsigned int len, const uint8_t *buf, unsigned int buflen)
-{
-  unsigned int ctr, pos;
-  uint16_t val0, val1;
 
-  ctr = pos = 0;
-  while(ctr < len && pos + 3 <= buflen) {
-    val0 = ((buf[pos+0] >> 0) | ((uint16_t)buf[pos+1] << 8)) & 0xFFF;
-    val1 = ((buf[pos+1] >> 4) | ((uint16_t)buf[pos+2] << 4)) & 0xFFF;
-    pos += 3;
 
-    if(val0 < KYBER_Q)
-      r[ctr++] = val0;
-    if(ctr < len && val1 < KYBER_Q)
-      r[ctr++] = val1;
-  }
 
-  return ctr;
-}
+
 
 /*************************************************
 * Name:        gen_matrix
@@ -162,7 +133,8 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
   unsigned int ctr, i, j, k;
   unsigned int buflen, off;
   uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
-
+  ntt_lite_set_inv2((GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES) >> 2);
+  ntt_lite_set_bound((KYBER_Q << 16) | (KYBER_Q));
   for(i=0;i<KYBER_K;i++) {
     for(j=0;j<KYBER_K;j++) {
 
@@ -174,18 +146,22 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
         xof_absorb(seed, j, i);
 
       xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
-
-      buflen = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
-      ctr = rej_uniform(a[i].vec[j].coeffs, KYBER_N, buf, buflen);
-
-      while(ctr < KYBER_N) {
-        off = buflen % 3;
-        for(k = 0; k < off; k++)
-          buf[k] = buf[buflen - off + k];
-        xof_squeezeblocks(buf + off, 1);
-        buflen = off + XOF_BLOCKBYTES;
-        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf, buflen);
-      }
+      ntt_lite_rejsamp((uint32_t*) a[i].vec[j].coeffs, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
     }
   }
+  poly_set_inv2();
+}
+
+
+
+void gen_poly_tohw(const uint8_t seed[KYBER_SYMBYTES], unsigned int i, unsigned int j, int transposed)
+{
+  uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
+  xof_init();
+  if(transposed)
+    xof_absorb(seed, i, j);
+  else
+    xof_absorb(seed, j, i);
+  xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
+  ntt_lite_rejsamp(NTT_LITE_OUTPUT_DIS, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
 }

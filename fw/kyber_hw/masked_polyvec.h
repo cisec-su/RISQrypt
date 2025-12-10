@@ -2,6 +2,7 @@
 #define MASKED_POLYVEC_H
 
 #include "masked.h"
+#include "masked_poly.h"
 #include "polyvec.h"
 
 
@@ -22,6 +23,18 @@ void masked_polyvec_pointwise_acc_invntt_i(masked_polyvec *r, const masked_polyv
 
 #define masked_polyvec_pointwise_acc_invntt KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt)
 void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a, const polyvec *b);
+
+#define masked_polyvec_pointwise_acc_invntt_sub KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_sub)
+void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyvec *a, const polyvec *b, const poly *c);
+
+#define masked_polyvec_pointwise_acc_invntt_tohw KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_tohw)
+void masked_polyvec_pointwise_acc_invntt_tohw(masked_poly *r, const masked_polyvec *a, const polyvec *b);
+
+#define masked_polyvec_pointwise_acc_invntt_add_i KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_add_i)
+void masked_polyvec_pointwise_acc_invntt_add_i(masked_polyvec *r, const masked_polyvec *a, const polyvec *b, const masked_polyvec *c, unsigned int i);
+
+#define masked_polyvec_pointwise_acc_invntt_addchain KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_addchain)
+void masked_polyvec_pointwise_acc_invntt_addchain(masked_poly *r, const masked_polyvec *a, const polyvec *b, const masked_poly *c, const masked_poly *d);
 
 #define masked_polyvec_sub_compress KYBER_NAMESPACE(_masked_polyvec_sub_compress)
 void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a, const uint8_t *b);

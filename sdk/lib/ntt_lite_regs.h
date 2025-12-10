@@ -33,6 +33,7 @@ typedef struct
 #define NTT_LITE_CTRL_CMD_LOAD_POLY        (((uint32_t) 0x4) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_READ_TWIDDLE     (((uint32_t) 0x5) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_LOAD_ZETA        (((uint32_t) 0x6) << NTT_LITE_CTRL_CMD_S)
+#define NTT_LITE_CTRL_CMD_SET_CLR          (((uint32_t) 0xF) << NTT_LITE_CTRL_CMD_S)
 
 #define NTT_LITE_CTRL_LOGN_S               ((uint32_t) 4  )
 #define NTT_LITE_CTRL_LOGN_M               ((uint32_t) 0xF)
@@ -55,6 +56,7 @@ typedef struct
 #define NTT_LITE_CTRL_OP_CHKNORM           (((uint32_t) 0xB) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_MAKEHINT          (((uint32_t) 0xC) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_CBD               (((uint32_t) 0xD) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_REJSAMP           (((uint32_t) 0xE) << NTT_LITE_CTRL_OP_S)
 
 #define NTT_LITE_CTRL_OP_SWITCH_EN_S       ((uint32_t) 12 )
 #define NTT_LITE_CTRL_OP_SWITCH_EN_M       ((uint32_t) 0x1)

@@ -1,0 +1,109 @@
+#include <stdint.h>
+#include <stdlib.h>
+#include "util.h"
+#include "cw305.h"
+#include "simpleserial_cw305_rq.h"
+#include "x2x.h"
+#include "ntt_lite.h"
+#include "x2x_prng.h"
+#include "masked_gadgets.h"
+#include "masked_poly.h"
+#include "symmetric.h"
+#include "timer.h"
+#include "victims_commons_kyber.h"
+#include "victims_commons_util.h"
+
+
+#define CIPHERGEN_RETURN_HASH
+#define OUTPUT_SIZE 0
+#define SLEEP_LOOP 1024
+
+
+masked_poly poly_b;
+masked_msg mm;
+masked_msg mm_dummy;
+
+
+uint8_t get_poly(uint8_t* p, uint8_t len)
+{
+#ifdef VERBOSE
+    uint32_t time;
+    print_string("SimpleSerial::get_poly command received\n");
+    print_string("p: ");
+    print_hex(p, len, 0);
+    print_string("\n");
+#endif
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////// real input masking //////////////////////
+    vck_masked_msg_from_seed(mm, p, 0);
+#ifdef VERBOSE
+    vck_print_msg_shares(mm, "MM");
+#endif
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    //////////////////// dummy input masking ////////////////////////
+    for (size_t i = 0; i < len; i++) {
+        p[i] = 0;
+    }
+    vck_masked_msg_from_seed(mm_dummy, p, 0);
+    (void) mm_dummy;
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    ////////////////////// initialize modules ///////////////////////
+    poly_init_q();
+    masked_gadgets_init_q();
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////// sleep ///////////////////////////////
+    vcu_sleep(SLEEP_LOOP);
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    ////////////////////// trigger and action ///////////////////////
+    cw305_trigger_up();
+#ifdef VERBOSE
+    timer_reset();
+    timer_start();
+#endif
+    masked_poly_frommsg(&poly_b, mm);
+#ifdef VERBOSE
+    time = timer_read();
+    print_string("masked_poly_sub_frommsg time: ");
+    print_u32(time);
+    print_string("\n");
+#endif
+    (void) mm;
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////// sleep ///////////////////////////////
+    vcu_sleep(SLEEP_LOOP);
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////// masked output ///////////////////////
+    simpleserial_put('r', 0, NULL);
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+#ifdef VERBOSE
+    print_string("SimpleSerial::get_key done\n");
+    vck_print_poly_shares(&poly_b, "Poly shares");
+#endif
+
+    return 0x00;
+}
+
+
+int main(void)
+{
+    cw305_trigger_down();
+    print_string("Kyber PolyFromMsg Dec\n");
+
+
+    simpleserial_init();
+    simpleserial_addcmd('l', 0, vcu_prng_on);
+    simpleserial_addcmd('g', 0, vcu_prng_off);
+    simpleserial_addcmd('p', KYBER_SYMBYTES, get_poly);
+
+    while(1)
+        simpleserial_cw305_rq_get();
+}

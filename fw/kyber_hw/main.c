@@ -5,6 +5,7 @@
 #include "util.h"
 #include "indcpa.h"
 #include "kem.h"
+#include "masked_kem.h"
 #include "masked_poly.h"
 #include "masked_cbd.h"
 #include "masked_gadgets.h"
@@ -138,9 +139,9 @@ void test_masked_poly_msg() {
 
     BENCH_START()
 
-    masked_poly_sub_tomsg(mm, &a, &mpoly_0);
+    masked_poly_tomsg(mm, &mpoly_0);
 
-    BENCH_END(MASKED_POLY_SUB_TOMSG)
+    BENCH_END(MASKED_POLY_TOMSG)
 
 
     for (i = 0; i < KYBER_INDCPA_MSGBYTES; i++) {
@@ -267,7 +268,6 @@ void  test_masked_cbd() {
 }
 
 
-
 void test_masked_indcpa_dec() {
 
     BENCH_INIT() 
@@ -335,6 +335,25 @@ void test_masked_indcpa_enc_cmp() {
 
 
 
+void test_masked_indcca() {
+
+    BENCH_INIT() 
+
+    crypto_kem_keypair(pk_cca, sk_cca);
+    crypto_kem_enc(c_cca, K, pk_cca);
+
+    BENCH_START()
+
+    masked_crypto_kem_dec(K_, c_cca, sk_cca);
+
+    BENCH_END(MASKED_INDCCA_DEC)
+
+    TEST_ASSERT_EQUAL_MEMORY(K_, K, KYBER_SSBYTES);
+
+}
+
+
+
 int main() {
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
@@ -349,5 +368,6 @@ int main() {
     RUN_TEST(test_masked_poly_compress);
     RUN_TEST(test_masked_indcpa_dec);
     RUN_TEST(test_masked_indcpa_enc_cmp);
+    RUN_TEST(test_masked_indcca);
     return(UnityEnd());
 }

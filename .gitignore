@@ -5,6 +5,7 @@ __pycache__/
 *.wcfg
 *.str
 *.bin
+*.mem
 *.rpt
 *.dcp
 *.bit
@@ -23,4 +24,5 @@ __pycache__/
 *.cache
 *.gen
 *.webtalk
+*.ets
 .vscode

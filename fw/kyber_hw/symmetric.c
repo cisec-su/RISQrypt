@@ -78,7 +78,7 @@ void sha3_256(uint8_t *dst, const uint8_t *src, size_t len) {
     keccak_absorb((uint32_t*) src, NULL, len >> 2);
     t = SHA3_PAD;
     keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*) dst, NULL, SHA3_256_RATE_HASH_SIZE >> 2);
+    keccak_squeeze((uint32_t*) dst, NULL, SHA3_256_HASH_SIZE >> 2);
 }
 
 
@@ -89,5 +89,23 @@ void sha3_512(uint8_t *dst, const uint8_t *src, size_t len) {
     keccak_absorb((uint32_t*) src, NULL, len >> 2);
     t = SHA3_PAD;
     keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*) dst, NULL, SHA3_512_RATE_HASH_SIZE >> 2);
+    keccak_squeeze((uint32_t*) dst, NULL, SHA3_512_HASH_SIZE >> 2);
+}
+
+
+void sha3_512_init() {
+    keccak_init(SHA3_512_RATE >> 3, KECCAK_MASK_DIS);
+}
+
+
+void keccak_core(const uint8_t *src, size_t len) {
+    keccak_absorb((uint32_t*) src, NULL, len >> 2);
+}
+
+
+void sha3_512_finish(uint8_t *dst) {
+    volatile uint32_t t;
+    t = SHA3_PAD;
+    keccak_finish((uint32_t*) &t);
+    keccak_squeeze((uint32_t*) dst, NULL, SHA3_512_HASH_SIZE >> 2);
 }

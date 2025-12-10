@@ -21,6 +21,7 @@ SRC += masked_poly.c
 SRC += masked_polyvec.c
 SRC += masked_cbd.c
 SRC += masked_symmetric.c
+SRC += masked_kem.c
 SRC += ../common/unity.c
 
 

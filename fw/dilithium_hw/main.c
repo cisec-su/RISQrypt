@@ -236,6 +236,32 @@ void dilithium_masked_sign() {
 }
 
 
+void dilithium_mean_masked_sign() {
+    size_t sig_len;
+    unsigned int log_test_num = 7;
+    unsigned int test_num = 1 << log_test_num;
+    int ret = 0;
+    
+    BENCH_INIT() 
+
+    BENCH_START() 
+
+    for (int i = 0; i < test_num; i++) {
+        msg[0] += 1;
+        ret += masked_crypto_sign_signature(sig_, &sig_len, msg, sizeof(msg), sk);
+        if (ret != 0) {
+            break;
+        }
+    }
+
+    BENCH_END_SHIFT(MASKED_SIGN_SIGNATURE_MEAN, log_test_num)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
+    msg[0] = msg[0] - test_num;
+}
+
+
 int main() {
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
@@ -244,5 +270,6 @@ int main() {
     RUN_TEST(dilithium_simple);
     RUN_TEST(dilithium_mean_sign);
     RUN_TEST(dilithium_masked_sign);
+    RUN_TEST(dilithium_mean_masked_sign);
     return(UnityEnd());
 }

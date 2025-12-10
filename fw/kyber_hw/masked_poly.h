@@ -16,8 +16,8 @@ typedef struct{
 
 
 
-#define masked_poly_sub_tomsg KYBER_NAMESPACE(_masked_poly_tomsg)
-void masked_poly_sub_tomsg(masked_msg msg, const poly *b, masked_poly *a);
+#define masked_poly_tomsg KYBER_NAMESPACE(_masked_poly_tomsg)
+void masked_poly_tomsg(masked_msg msg, masked_poly *a);
 
 #define masked_poly_frommsg KYBER_NAMESPACE(_masked_poly_frommsg)
 void masked_poly_frommsg(masked_poly *a, const masked_msg msg);

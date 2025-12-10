@@ -5,19 +5,26 @@
 
 
 #define BOOTLOADER_BASE_ADDR      ((uint32_t) 0x00000020)
-#define PROGRAM_BASE_ADDR         ((uint32_t) 0x00001000)
+#define INST_BASE_ADDR            ((uint32_t) 0x00001000)
+#define DATA_BASE_ADDR            ((uint32_t) 0x00010000)
 
 
 #include "uart_regs.h"
 
-#define UART_0_BASE_ADDR          ((uint32_t) 0x10008010)
-#define UART_0_REGS               ((uart_regs_t*) UART_0_BASE_ADDR)
+#define UART_BASE_ADDR            ((uint32_t) 0x10008010)
+#define UART_REGS                 ((uart_regs_t*) UART_BASE_ADDR)
 
 
 #include "timer_regs.h"
 
 #define TIMER_BASE_ADDR          ((uint32_t) 0x10008018)
 #define TIMER_REGS               ((timer_regs_t*) TIMER_BASE_ADDR)
+
+
+#include "gpio_regs.h"
+
+#define GPIO_BASE_ADDR           ((uint32_t) 0x10008020)
+#define GPIO_REGS                ((gpio_regs_t*) GPIO_BASE_ADDR)
 
 
 #include "ntt_lite_regs.h"

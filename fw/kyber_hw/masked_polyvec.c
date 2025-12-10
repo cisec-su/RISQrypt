@@ -26,10 +26,57 @@ void masked_polyvec_pointwise_acc_invntt_i(masked_polyvec *r, const masked_polyv
 }
 
 
+void masked_polyvec_pointwise_acc_invntt_add_i(masked_polyvec *r, const masked_polyvec *a, const polyvec *b, const masked_polyvec *c, unsigned int i) {
+    unsigned int j;
+    for (j = 0; j < MASKING_N; j++) {
+        polyvec_pointwise_acc_core(&(r->share[j].vec[i]), &(a->share[j]), b, 1, 1, 0);
+        ntt_lite_set_clr_with_twiddle();
+        ntt_lite_add((uint32_t*) &(r->share[j].vec[i]), NTT_LITE_INPUT_DIS, (uint32_t*) &(c->share[j].vec[i].coeffs));
+    }
+}
+
+
+
 void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a, const polyvec *b) {
     unsigned int i;
     for (i = 0; i < MASKING_N; i++) {
-        polyvec_pointwise_acc_invntt(&(r->share[i]), &(a->share[i]), b);
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, 0, 1);
+    }
+}
+
+
+void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyvec *a, const polyvec *b, const poly *c) {
+    unsigned int i;
+    
+    ntt_lite_set_bound(0);
+    for (i = 0; i < MASKING_N; i++) {
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, 1, 0);
+        ntt_lite_set_clr_with_twiddle();
+        if (i == 0) {
+            ntt_lite_sub_rev((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, (uint32_t*) c->coeffs);
+        }
+        else {
+            ntt_lite_sub_rev_const((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+        }
+    }
+}
+
+
+void masked_polyvec_pointwise_acc_invntt_addchain(masked_poly *r, const masked_polyvec *a, const polyvec *b, const masked_poly *c, const masked_poly *d) {
+    unsigned int i;
+    for (i = 0; i < MASKING_N; i++) {
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, 1, 0);
+        ntt_lite_add((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, (uint32_t*) &(c->share[i].coeffs));
+        ntt_lite_set_clr_with_twiddle();
+        ntt_lite_add((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, (uint32_t*) &(d->share[i].coeffs));
+    }
+}
+
+
+void masked_polyvec_pointwise_acc_invntt_tohw(masked_poly *r, const masked_polyvec *a, const polyvec *b) {
+    int i;
+    for (i = (MASKING_N - 1); i >= 0; i--) {
+        polyvec_pointwise_acc_core(&(r->share[i]), &(a->share[i]), b, 1, (i == 0), 1);
     }
 }
 
@@ -113,6 +160,7 @@ void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const mas
             }
             ntt_lite_add(NTT_LITE_OUTPUT_DIS, src, (uint32_t*) &(a->share[j].vec[i].coeffs));
         }
-        ntt_lite_sum(&(r[j]), NTT_LITE_INPUT_DIS);
+        ntt_lite_sum(&(r[j][0]), NTT_LITE_INPUT_DIS);
     }
+
 }
