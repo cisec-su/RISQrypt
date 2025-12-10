@@ -105,9 +105,10 @@ int crypto_kem_dec(unsigned char *ss,
   indcpa_dec(buf, ct, sk);
 
   /* Multitarget countermeasure for coins + contributory KEM */
-  for(i=0;i<KYBER_SYMBYTES;i++)
-    buf[KYBER_SYMBYTES+i] = sk[KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES+i];
-  hash_g(kr, buf, 2*KYBER_SYMBYTES);
+  hash_g_init();
+  hash_g_core(buf, KYBER_SYMBYTES);
+  hash_g_core(sk + (KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES), KYBER_SYMBYTES);
+  hash_g_finish(kr);
 
   /* coins are in kr+KYBER_SYMBYTES */
   indcpa_enc(cmp, buf, pk, kr+KYBER_SYMBYTES);

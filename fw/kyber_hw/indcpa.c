@@ -78,7 +78,7 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
                 const uint8_t coins[KYBER_SYMBYTES])
 {
   unsigned int i;
-  uint8_t seed[KYBER_SYMBYTES];
+  const uint8_t *seed = pk + KYBER_POLYVECBYTES;
   uint8_t nonce = 0;
   polyvec sp, pkpv, ep, at[KYBER_K], bp;
   poly v, k, epp;
@@ -86,8 +86,8 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
   poly_init_q();
   poly_init_zeta();
 
-  for(i = 0; i < KYBER_SYMBYTES; i++)
-      seed[i] = pk[i+KYBER_POLYVECBYTES];  
+  // for(i = 0; i < KYBER_SYMBYTES; i++)
+  //     seed[i] = pk[i+KYBER_POLYVECBYTES];  
   poly_frommsg(&k, m);
 
   for(i = 0; i < KYBER_K; i++)

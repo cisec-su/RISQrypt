@@ -35,6 +35,11 @@ void shake256(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len);
 void sha3_256(uint8_t *dst, const uint8_t *src, size_t len);
 void sha3_512(uint8_t *dst, const uint8_t *src, size_t len);
 
+void sha3_512_init();
+void keccak_core(const uint8_t *src, size_t len);
+void sha3_512_finish(uint8_t *dst);
+
+
 
 #define hash_h(OUT, IN, INBYTES) sha3_256(OUT, IN, INBYTES)
 #define hash_g(OUT, IN, INBYTES) sha3_512(OUT, IN, INBYTES)
@@ -46,5 +51,9 @@ void sha3_512(uint8_t *dst, const uint8_t *src, size_t len);
         kyber_shake256_prf(OUT, OUTBYTES, KEY, NONCE)
 #define kdf(OUT, IN, INBYTES) shake256(OUT, KYBER_SSBYTES, IN, INBYTES)
 
+
+#define hash_g_init() sha3_512_init()
+#define hash_g_core(IN, INBYTES) keccak_core(IN, INBYTES)
+#define hash_g_finish(OUT) sha3_512_finish(OUT)
 
 #endif /* SYMMETRIC_H */
