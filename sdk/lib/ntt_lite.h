@@ -47,6 +47,8 @@ int ntt_lite_pwm(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
 int ntt_lite_mul_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
+int ntt_lite_mac(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+
 int ntt_lite_add(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
 int ntt_lite_add_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
