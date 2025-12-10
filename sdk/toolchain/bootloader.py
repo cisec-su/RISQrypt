@@ -60,7 +60,7 @@ if __name__ == "__main__":
             "-b", "--baudrate",
             type=int,
             required=False,
-            default=9600,
+            default=115200,
             help="Baudrate"
         )
     parser.add_argument(

@@ -37,7 +37,7 @@ parameter PRNG_OFF_EN      = 1       ;
 parameter SYS_CLK_FREQ   = 61000000;
 parameter PRNG_OFF_EN    = 0       ;
 `endif
-parameter UART_BAUD      = 9600    ;
+parameter UART_BAUD      = 115200  ;
 parameter GPIO_WIDTH     = 8       ;
 
 parameter ROM_START      = 32'h0000_0000;
