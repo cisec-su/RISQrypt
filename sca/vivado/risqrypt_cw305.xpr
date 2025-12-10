@@ -250,6 +250,20 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../peripherals/ntt/src/bu/karatsuba_34x34.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../peripherals/ntt/src/bu/karatsuba_64x64_dual.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../peripherals/keccak/src/acc/keccak_acc_dma.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -558,7 +572,7 @@
           <Attr Name="IsVisible" Val="1"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../peripherals/ntt/src/bu/intmul_karatsuba_dual.svh">
+      <File Path="$PPRDIR/../../peripherals/ntt/src/bu/karatsuba_64x64_dual.svh">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -608,13 +622,6 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../peripherals/x2x_wb/x2x/src/fullXOR.sv">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../peripherals/ntt/src/bu/intmul_karatsuba_dual.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
