@@ -1,6 +1,9 @@
 #include "x2x.h"
 #include "hornet.h"
+#include "sdk_benchmark.h"
 
+
+unsigned int x2x_cc = 0;
 
 
 int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_type, uint32_t dual_mode, uint32_t rej_sample)
@@ -9,6 +12,7 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
     uint32_t rej_flag;
     uint32_t logm_flag;
 
+    BENCH_START(x2x_cc);
 
     if (dual_mode == X2X_DUAL_MODE_EN) {
         dual_flag = X2X_CTRL_DUAL_MODE_EN_V;
@@ -28,6 +32,7 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
 
     logm_flag = (log_modulus & X2X_CTRL_LOG_MODULUS_M) << X2X_CTRL_LOG_MODULUS_S;
     
+    X2X_REGS->ctrl |= X2X_CTRL_RESET_V;
 
     if (modulus_type == X2X_MODULUS_POW2) {
         X2X_REGS->ctrl = X2X_CTRL_DATA_TYPE_POW2 | dual_flag | logm_flag | rej_flag;
@@ -40,12 +45,16 @@ int x2x_set_modulus(uint32_t modulus, uint32_t log_modulus, uint32_t modulus_typ
 
     X2X_REGS->modulus = modulus;
 
+    BENCH_END(x2x_cc);
+
     return 0;
 }
 
 
-int x2x_seed(uint32_t seed[2])
+
+int x2x_seed(uint32_t *seed)
 {
+    BENCH_START(x2x_cc);
 
     if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
         return -1;
@@ -54,6 +63,7 @@ int x2x_seed(uint32_t seed[2])
     X2X_REGS->seed[0] = seed[0];
     X2X_REGS->seed[1] = seed[1];
 
+    BENCH_END(x2x_cc);
     return 0;
 }
 
@@ -61,6 +71,9 @@ int x2x_seed(uint32_t seed[2])
 static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t *src_0, unsigned int len, uint32_t conv_mode, uint32_t share, uint32_t b2a_1bit, uint32_t log_stride, uint32_t cmd)
 {
     uint32_t ctrl;
+
+    BENCH_START(x2x_cc);
+
     ctrl = X2X_REGS->ctrl;
     if (ctrl & X2X_CTRL_BUSY_V) {
         return -1;
@@ -81,6 +94,8 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | share | b2a_1bit | log_stride | cmd;
 
     while (!(X2X_REGS->ctrl & X2X_CTRL_DONE_V));
+
+    BENCH_END(x2x_cc);
 
     return 0;
 }
