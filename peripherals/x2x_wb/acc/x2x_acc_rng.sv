@@ -36,21 +36,21 @@ wire [191:0] stream_out6;
 wire [191:0] stream_out7; 
 wire [191:0] stream_out8;  
 
-reg [PARAM_WIDTH-1:0] modulus_mask_c;
-reg [PARAM_WIDTH-1:0] modulus_int_c;
+reg [PARAM_WIDTH:0] modulus_mask_c;
+reg [PARAM_WIDTH:0] modulus_int_c;
 
-reg [PARAM_WIDTH-1:0] modulus_mask;
-reg [PARAM_WIDTH-1:0] modulus_int;
+reg [PARAM_WIDTH:0] modulus_mask;
+reg [PARAM_WIDTH:0] modulus_int;
 
 reg  [RND_SHARES_2SHARE-1:0] data_ready;
 
 
 assign modulus_mask_c = (ctrl_data_type == 0) ? (modulus)                   :
-                      (ctrl_rej_samp      ) ? (1 << (log_modulus - 1)) - 1:
-                                              (1 << log_modulus)       - 1;
+                        (ctrl_rej_samp      ) ? (1 << (log_modulus - 1)) - 1:
+                                                (1 << log_modulus)       - 1;
 
 assign modulus_int_c = (ctrl_data_type) ?    {1'b0, modulus}    : 
-                                           {1'b0, modulus} + 1;
+                                             {1'b0, modulus} + 1;
 
 
 always @(posedge clk) begin
