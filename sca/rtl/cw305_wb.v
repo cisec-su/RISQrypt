@@ -94,6 +94,9 @@ wire usb_done_q;
 wire usb_read_done;
 
 
+reg [1:0] usb_rst_sync;
+wire usb_rst_i;
+
 //////////////////////////// wishbone ///////////////////////////////////
 
 
@@ -105,7 +108,7 @@ assign wb_err_o   = 1'b0;
 assign wb_stall_o = 1'b0;
 
 
-always @(posedge wb_clk_i or posedge wb_rst_i) begin
+always @(posedge wb_clk_i) begin
     if (wb_rst_i)
         wb_ack_o <= 1'b0;
     else
@@ -157,6 +160,17 @@ assign fifo_o_rd_en = reg_read_pulse && (reg_address == `ADDR_DATA);
 
 //////////////////////////////// usb ////////////////////////////////////
 
+
+always @(posedge usb_clk_buf or posedge wb_rst_i) begin
+    if (wb_rst_i)
+        usb_rst_sync <= 2'b11;
+    else
+        usb_rst_sync <= {usb_rst_sync[0], 1'b0};
+end
+
+assign usb_rst_i = usb_rst_sync[1];
+
+
 assign usb_data  = isout ? usb_dout : 8'bZ;
 
 assign reg_read_pulse = reg_read & ~reg_read_q;
@@ -169,8 +183,8 @@ always @(posedge usb_clk_buf) begin
     endcase
 end
 
-always @(posedge usb_clk_buf or posedge wb_rst_i) begin
-    if (wb_rst_i)
+always @(posedge usb_clk_buf) begin
+    if (usb_rst_i)
         reg_read_q  <= 1'b0;
     else
         reg_read_q  <= reg_read;
@@ -185,7 +199,7 @@ end
 
 assign tio_trigger = trigger_q;
 
-always @(posedge wb_clk_i or posedge wb_rst_i) begin
+always @(posedge wb_clk_i) begin
     if (wb_rst_i)
         trigger_q <= 1'b0;
     else if (valid_w & wb_sel_i[SCA_SEL])
@@ -234,7 +248,7 @@ cw305_usb_reg_fe #(
     .pREG_RDDLY_LEN          (REG_RDDLY_LEN ),
     .pADDR_WIDTH             (USB_ADDR_WIDTH)
 ) U_usb_reg_fe (
-    .rst                     (wb_rst_i   ),
+    .rst                     (usb_rst_i  ),
     .usb_clk                 (usb_clk_buf), 
     .usb_din                 (usb_data   ), 
     .usb_dout                (usb_dout   ), 
@@ -259,7 +273,7 @@ async_fifo #(
     .FALLTHROUGH("FALSE"        )
 ) fifo_i (
     .wclk  (usb_clk_buf ),
-    .wrst_n(~wb_rst_i   ),
+    .wrst_n(~usb_rst_i  ),
     .wdata (fifo_i_din  ),
     .winc  (fifo_i_wr_en),
     .wfull (fifo_i_full ),
@@ -284,7 +298,7 @@ async_fifo #(
     .wfull  (fifo_o_full ),
 
     .rclk   (usb_clk_buf ),
-    .rrst_n (~wb_rst_i   ),
+    .rrst_n (~usb_rst_i  ),
     .rdata  (fifo_o_dout ),
     .rinc   (fifo_o_rd_en),
     .rempty (fifo_o_empty)
@@ -297,7 +311,7 @@ async_reg u_flag (
     .set_cond  (wb_set_done  ),
 
     .clr_clk   (usb_clk_buf  ),
-    .clr_rst   (wb_rst_i     ),
+    .clr_rst   (usb_rst_i    ),
     .clr_cond  (usb_read_done),
 
     .flag_set  (wb_done_q    ),
