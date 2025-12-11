@@ -3,6 +3,7 @@
 #include "packing.h"
 #include "polyvec.h"
 #include "poly.h"
+#include "ntt_lite.h"
 
 /*************************************************
 * Name:        pack_pk
@@ -85,6 +86,7 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
         sk[i] = tr[i];
     sk += SEEDBYTES + L*POLYETA_PACKEDBYTES;
 
+    ntt_lite_set_bound(ETA);
     if (s1 != NULL) {
       for(i = 0; i < L; i++)
           polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s1->vec[i]);
@@ -95,6 +97,7 @@ void pack_sk(uint8_t sk[CRYPTO_SECRETKEYBYTES],
         polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s2->vec[i]);
     sk += K*POLYETA_PACKEDBYTES;
 
+    ntt_lite_set_bound(1 << (D - 1));
     for(i = 0; i < K; i++)
         polyt0_pack(sk + i*POLYT0_PACKEDBYTES, &t0->vec[i]);
 }
@@ -105,6 +108,7 @@ void pack_sk_s1(uint8_t sk[CRYPTO_SECRETKEYBYTES], const polyvecl *s1)
     unsigned int i;
     sk += 3*SEEDBYTES;
 
+    ntt_lite_set_bound(ETA);
     for(i = 0; i < L; i++)
         polyeta_pack(sk + i*POLYETA_PACKEDBYTES, &s1->vec[i]);
 }
@@ -144,6 +148,7 @@ void unpack_sk(uint8_t rho[SEEDBYTES],
         tr[i] = sk[i];
     sk += SEEDBYTES;
 
+    ntt_lite_set_bound(ETA);
     for(i=0; i < L; i++)
         polyeta_unpack(&s1->vec[i], sk + i*POLYETA_PACKEDBYTES);
     sk += L*POLYETA_PACKEDBYTES;
@@ -152,6 +157,7 @@ void unpack_sk(uint8_t rho[SEEDBYTES],
         polyeta_unpack(&s2->vec[i], sk + i*POLYETA_PACKEDBYTES);
     sk += K*POLYETA_PACKEDBYTES;
 
+    ntt_lite_set_bound(1 << (D - 1));
     for(i=0; i < K; i++)
         polyt0_unpack(&t0->vec[i], sk + i*POLYT0_PACKEDBYTES);
 }
@@ -177,6 +183,7 @@ void pack_sig(uint8_t sig[CRYPTO_BYTES],
         sig[i] = c[i];
     sig += SEEDBYTES;
 
+    ntt_lite_set_bound(GAMMA1);
     for(i = 0; i < L; i++)
         polyz_pack(sig + i*POLYZ_PACKEDBYTES, &z->vec[i]);
     sig += L*POLYZ_PACKEDBYTES;
@@ -219,6 +226,7 @@ int unpack_sig(uint8_t c[SEEDBYTES],
         c[i] = sig[i];
     sig += SEEDBYTES;
 
+    ntt_lite_set_bound(GAMMA1);
     for(i = 0; i < L; i++)
         polyz_unpack(&z->vec[i], sig + i*POLYZ_PACKEDBYTES);
     sig += L*POLYZ_PACKEDBYTES;

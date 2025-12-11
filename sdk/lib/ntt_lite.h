@@ -49,21 +49,21 @@ int ntt_lite_backward_ntt(uint32_t *dst,  const uint32_t *src);
 
 int ntt_lite_pwm(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
-int ntt_lite_mul_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+int ntt_lite_mul_const(uint32_t *dst, const uint32_t *lhs);
 
 int ntt_lite_mac(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
 int ntt_lite_add(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
-int ntt_lite_add_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+int ntt_lite_add_const(uint32_t *dst, const uint32_t *lhs);
 
 int ntt_lite_sub(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
-int ntt_lite_sub_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+int ntt_lite_sub_const(uint32_t *dst, const uint32_t *lhs);
 
 int ntt_lite_sub_rev(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
-int ntt_lite_sub_rev_const(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+int ntt_lite_sub_rev_const(uint32_t *dst, const uint32_t *lhs);
 
 int ntt_lite_sum(uint32_t* dst, const uint32_t *src);
 

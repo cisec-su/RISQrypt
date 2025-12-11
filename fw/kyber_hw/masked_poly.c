@@ -26,7 +26,7 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
 
     for (i = 0; i < MASKING_N; i++) {
         ntt_lite_set_clr();
-        ntt_lite_mul_const((uint32_t*) &a->share[i], (uint32_t*) &a->share[i], NTT_LITE_INPUT_DIS);
+        ntt_lite_mul_const((uint32_t*) &a->share[i], (uint32_t*) &a->share[i]);
     }
 
 }
@@ -69,7 +69,7 @@ static void masked_poly_sub_compress_core(poly_u32 *r[MASKING_N], const poly *a[
     ntt_lite_set_bound(alpha_m1_shift);
 
     ntt_lite_set_q(1 << d_);
-    ntt_lite_add_const((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+    ntt_lite_add_const((uint32_t*) mpu32.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS);
 
     ntt_lite_set_q(alpha_shift);
     ntt_lite_set_ctrl(8, 32, NTT_LITE_MODE_SINGLE);
@@ -140,7 +140,7 @@ void masked_poly_tomsg(masked_msg msg, masked_poly *b) {
     ntt_lite_set_bound(alpha_dual);
     ntt_lite_set_q(d_dual);
     ntt_lite_set_clr();
-    ntt_lite_add_const((uint32_t*) b->share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+    ntt_lite_add_const((uint32_t*) b->share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS);
 
     masked_gadgets_init_2k(0xFFFF);
     masked_gadgets_A2B_2k(b, b);

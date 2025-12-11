@@ -265,7 +265,7 @@ void polyveck_shiftl_ntt(polyveck *v) {
     unsigned int i;
     ntt_lite_set_bound(1 << D);
     for(i = 0; i < K; i++) {
-        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v->vec[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v->vec[i].coeffs);
         ntt_lite_forward_ntt((uint32_t*) v->vec[i].coeffs, NTT_LITE_OUTPUT_DIS);
     }
 }

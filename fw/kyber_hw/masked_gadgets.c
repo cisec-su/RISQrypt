@@ -124,7 +124,7 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
             else {
                 src = t[j];
             }
-            ntt_lite_mul_const(t[j], src, NTT_LITE_INPUT_DIS);
+            ntt_lite_mul_const(t[j], src);
         }
         x2x_a_ref(t[1], t[0], t[1], t[0], 16);
     }

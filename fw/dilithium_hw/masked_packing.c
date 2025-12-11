@@ -1,4 +1,5 @@
 #include "masked_packing.h"
+#include "ntt_lite.h"
 
 void masked_unpack_sk(uint8_t *rho,
                       uint8_t *tr,
@@ -27,6 +28,7 @@ void masked_unpack_sk(uint8_t *rho,
     masked_polyveck_eta_unpack(s2, sk);
     sk += K*POLYETA_PACKEDBYTES;
 
+    ntt_lite_set_bound(1 << (D - 1));
     for(i = 0; i < K; i++)
         polyt0_unpack(&t0->vec[i], sk + i*POLYT0_PACKEDBYTES);
 }
