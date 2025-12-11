@@ -39,6 +39,10 @@ int ntt_lite_load_twiddle(const uint32_t *psi);
 
 int ntt_lite_load_zeta(const uint32_t *zeta);
 
+int ntt_lite_read_twiddle(uint32_t *dst);
+
+int ntt_lite_read_poly(uint32_t *dst);
+
 int ntt_lite_forward_ntt(uint32_t *dst,  const uint32_t *src);
 
 int ntt_lite_backward_ntt(uint32_t *dst,  const uint32_t *src);

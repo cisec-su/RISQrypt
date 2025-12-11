@@ -33,6 +33,7 @@ typedef struct
 #define NTT_LITE_CTRL_CMD_LOAD_POLY        (((uint32_t) 0x4) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_READ_TWIDDLE     (((uint32_t) 0x5) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_LOAD_ZETA        (((uint32_t) 0x6) << NTT_LITE_CTRL_CMD_S)
+#define NTT_LITE_CTRL_CMD_READ_POLY        (((uint32_t) 0x7) << NTT_LITE_CTRL_CMD_S)
 #define NTT_LITE_CTRL_CMD_SET_CLR          (((uint32_t) 0xF) << NTT_LITE_CTRL_CMD_S)
 
 #define NTT_LITE_CTRL_LOGN_S               ((uint32_t) 4  )

@@ -540,7 +540,7 @@ int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src) {
 }
 
 
-int ntt_lite_read_twiddle(uint32_t *dst) {
+static int ntt_lite_read_core(uint32_t *dst, uint32_t cmd) {
     BENCH_START(ntt_lite_cc);
 
     if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
@@ -548,11 +548,21 @@ int ntt_lite_read_twiddle(uint32_t *dst) {
     }
 
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
-    NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_READ_TWIDDLE;
+    NTT_LITE_REGS->ctrl |= cmd;
     while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
 
     BENCH_END(ntt_lite_cc);
     return 0;
+}
+
+
+int ntt_lite_read_twiddle(uint32_t *dst) {
+    return ntt_lite_read_core(dst, NTT_LITE_CTRL_CMD_READ_TWIDDLE);
+}
+
+
+int ntt_lite_read_poly(uint32_t *dst) {
+    return ntt_lite_read_core(dst, NTT_LITE_CTRL_CMD_READ_POLY);
 }
 
 

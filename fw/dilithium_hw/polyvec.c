@@ -310,11 +310,12 @@ int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
     ntt_lite_set_bound(B);
 
     for(i = 0; i < K; i++) {
-        poly_invntt(&v->vec[i]);
+        ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->vec[i].coeffs);
         flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
         if (flag == NTT_LITE_CHKNORM_FAIL) {
             return 1;
         }
+        ntt_lite_read_poly((uint32_t*) &v->vec[i].coeffs);
     }
     return 0;
 }
@@ -443,8 +444,8 @@ void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v) {
 
 
 unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyveck *v1, const polyveck *u) {
-    unsigned int i, s = 0;
-    unsigned int j;
+    unsigned int i;
+    uint32_t s[8];
 
     ntt_lite_set_bound(GAMMA2);
     ntt_lite_set_inv2(Q - GAMMA2);
@@ -453,16 +454,14 @@ unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyv
     for(i = 0; i < K; i++) {
         ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) v0->vec[i].coeffs, (uint32_t*) u->vec[i].coeffs);
         ntt_lite_make_hint((uint32_t*) &h->vec[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) v1->vec[i].coeffs);
-        for (j = 0; j < N; j++) {
-            s += h->vec[i].coeffs[j];
-        }
-        if (s > OMEGA) {
+        ntt_lite_sum(s, NTT_LITE_INPUT_DIS);
+        if (s[0] > OMEGA) {
             break;
         }
     }
 
     ntt_lite_set_inv2(INV2);
-    return s;
+    return s[0];
 }
 
 

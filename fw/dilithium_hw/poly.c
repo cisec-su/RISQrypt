@@ -108,13 +108,14 @@ void poly_invntt_sub(poly *a, poly *b, poly *c) {
 int poly_invntt_chknorm(poly *a, uint32_t B) {
     unsigned int flag;
 
-    ntt_lite_backward_ntt((uint32_t*) a->coeffs, (uint32_t*) a->coeffs);
+    ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
-      return 1;
+        return 1;
     }
     else {
-      return 0;
+        ntt_lite_read_poly((uint32_t*) a->coeffs);
+        return 0;
     }
 }
 
@@ -125,12 +126,13 @@ int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, con
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->coeffs, (uint32_t*) &c->coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
     poly_init_invntt();
-    ntt_lite_backward_ntt((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
     else {
+        ntt_lite_read_poly((uint32_t*) r->coeffs);
         return 0;
     }
 }
@@ -142,12 +144,13 @@ int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, con
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->coeffs, (uint32_t*) &c->coeffs);
     poly_init_invntt();
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
-    ntt_lite_sub_rev((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
+    ntt_lite_sub_rev(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
     else {
+        ntt_lite_read_poly((uint32_t*) r->coeffs);
         return 0;
     }
 }
