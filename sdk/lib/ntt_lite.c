@@ -620,11 +620,24 @@ int ntt_lite_chknorm(const uint32_t *src) {
 }
 
 
-
 int ntt_lite_make_hint(uint32_t *dst, const uint32_t *src_0, const uint32_t *src_1) {
     int ret;
     BENCH_START(ntt_lite_cc);
     ret = ntt_lite_pointwise_op(dst, src_0, src_1, NTT_LITE_CTRL_OP_MAKEHINT, 0, 0);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
+int ntt_lite_use_hint(uint32_t *dst, const uint32_t *src) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+
+    if (src == NTT_LITE_INPUT_DIS) {
+        return -1;
+    }
+
+    ret = ntt_lite_ntt_core(dst, src, NTT_LITE_CTRL_OP_USEHINT);
     BENCH_END(ntt_lite_cc);
     return ret;
 }

@@ -484,8 +484,6 @@ void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h) {
 
     for(i = 0; i < K; i++)
         poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
-
-    poly_init_q();
 }
 
 void polyveck_pack_w1(uint8_t r[K*POLYW1_PACKEDBYTES], const polyveck *w1) {

@@ -231,26 +231,8 @@ void poly_decompose(poly *a1, poly *a0, const poly *a) {
 *              - const poly *h: pointer to input hint polynomial
 **************************************************/
 void poly_use_hint(poly *b, const poly *a, const poly *h) {
-    unsigned int i;
-    poly b0;
-
-    ntt_lite_decompose((uint32_t*) b->coeffs, (uint32_t*) b0.coeffs, (uint32_t*) a->coeffs);
-
-    for(i = 0; i < N; i++) {
-        if(h->coeffs[i] != 0) {
-#if GAMMA2 == (Q-1)/32
-            if(b0.coeffs[i] <= (Q/2))
-                b->coeffs[i] = (b->coeffs[i] + 1) & 15;
-            else
-                b->coeffs[i] = (b->coeffs[i] - 1) & 15;
-#elif GAMMA2 == (Q-1)/88
-            if(b0.coeffs[i] <= (Q/2))
-                b->coeffs[i] = (b->coeffs[i] == 43) ? 0 : b->coeffs[i] + 1;
-            else
-                b->coeffs[i] = (b->coeffs[i] ==  0) ? 43 : b->coeffs[i] - 1;
-#endif
-        }
-    }
+    ntt_lite_decompose(NTT_LITE_OUTPUT_DIS, NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
+    ntt_lite_use_hint((uint32_t*) b->coeffs, (uint32_t*) h->coeffs);
 }
 
 /*************************************************
