@@ -56,9 +56,11 @@ int x2x_seed(uint32_t *seed)
 {
     BENCH_START(x2x_cc);
 
+#ifndef BUSY_CHECK_DIS
     if ((X2X_REGS->ctrl & X2X_CTRL_BUSY_V)) {
         return -1;
     }
+#endif
 
     X2X_REGS->seed[0] = seed[0];
     X2X_REGS->seed[1] = seed[1];
@@ -75,6 +77,7 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     BENCH_START(x2x_cc);
 
     ctrl = X2X_REGS->ctrl;
+#ifndef BUSY_CHECK_DIS
     if (ctrl & X2X_CTRL_BUSY_V) {
         return -1;
     }
@@ -82,6 +85,7 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     while (ctrl & X2X_CTRL_SEED_BUSY_V) {
         ctrl = X2X_REGS->ctrl;
     }
+#endif
 
     X2X_REGS->data_len = len;
     X2X_REGS->din_addr[0] = (uint32_t) src_0;
@@ -91,7 +95,7 @@ static int x2x_core(uint32_t *dst_1, uint32_t *dst_0, uint32_t *src_1, uint32_t 
     X2X_REGS->dout_addr[0] = (uint32_t) dst_0;
     X2X_REGS->dout_addr[1] = (uint32_t) dst_1;
 
-    X2X_REGS->ctrl |= X2X_CTRL_START_V | conv_mode | share | b2a_1bit | log_stride | cmd;
+    X2X_REGS->ctrl = ctrl | X2X_CTRL_START_V | conv_mode | share | b2a_1bit | log_stride | cmd;
 
     while (!(X2X_REGS->ctrl & X2X_CTRL_DONE_V));
 

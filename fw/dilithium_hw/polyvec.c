@@ -460,7 +460,6 @@ unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyv
         }
     }
 
-    ntt_lite_set_inv2(INV2);
     return s[0];
 }
 
