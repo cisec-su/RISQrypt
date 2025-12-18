@@ -474,7 +474,7 @@ unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyv
 *              - const polyveck *u: pointer to input vector
 *              - const polyveck *h: pointer to input hint vector
 **************************************************/
-void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h) {
+void polyveck_use_hint_pack(uint8_t r[K*POLYW1_PACKEDBYTES], const polyveck *u, const polyveck *h) {
     unsigned int i;
     uint32_t mu[2] = {0x02008020, 0x2008};
 
@@ -483,8 +483,9 @@ void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h) {
     ntt_lite_set_bound(GAMMA2 << 1);
 
     for(i = 0; i < K; i++)
-        poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
+        poly_use_hint_pack(&r[i*POLYW1_PACKEDBYTES], &u->vec[i], &h->vec[i]);
 }
+
 
 void polyveck_pack_w1(uint8_t r[K*POLYW1_PACKEDBYTES], const polyveck *w1) {
     unsigned int i;

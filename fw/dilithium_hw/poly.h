@@ -36,8 +36,8 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b);
 void poly_power2round(poly *a1, poly *a0, const poly *a);
 #define poly_decompose DILITHIUM_NAMESPACE(poly_decompose)
 void poly_decompose(poly *a1, poly *a0, const poly *a);
-#define poly_use_hint DILITHIUM_NAMESPACE(poly_use_hint)
-void poly_use_hint(poly *b, const poly *a, const poly *h);
+#define poly_use_hint_pack DILITHIUM_NAMESPACE(poly_use_hint_pack)
+void poly_use_hint_pack(uint8_t *r, const poly *a, const poly *h);
 
 #define poly_chknorm DILITHIUM_NAMESPACE(poly_chknorm)
 int poly_chknorm(const poly *a, int32_t B);

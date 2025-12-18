@@ -230,9 +230,10 @@ void poly_decompose(poly *a1, poly *a0, const poly *a) {
 *              - const poly *a: pointer to input polynomial
 *              - const poly *h: pointer to input hint polynomial
 **************************************************/
-void poly_use_hint(poly *b, const poly *a, const poly *h) {
+void poly_use_hint_pack(uint8_t *r, const poly *a, const poly *h) {
     ntt_lite_decompose(NTT_LITE_OUTPUT_DIS, NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
-    ntt_lite_use_hint((uint32_t*) b->coeffs, (uint32_t*) h->coeffs);
+    ntt_lite_use_hint(NTT_LITE_OUTPUT_DIS, (uint32_t*) h->coeffs);
+    ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_GAMMA2);
 }
 
 /*************************************************
