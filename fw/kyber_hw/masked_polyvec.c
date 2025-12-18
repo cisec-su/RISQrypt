@@ -56,7 +56,7 @@ void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyve
             ntt_lite_sub_rev((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, (uint32_t*) c->coeffs);
         }
         else {
-            ntt_lite_sub_rev_const((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+            ntt_lite_sub_rev_const((uint32_t*) &(r->share[i]), NTT_LITE_INPUT_DIS);
         }
     }
 }

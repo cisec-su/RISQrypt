@@ -108,13 +108,14 @@ void poly_invntt_sub(poly *a, poly *b, poly *c) {
 int poly_invntt_chknorm(poly *a, uint32_t B) {
     unsigned int flag;
 
-    ntt_lite_backward_ntt((uint32_t*) a->coeffs, (uint32_t*) a->coeffs);
+    ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
-      return 1;
+        return 1;
     }
     else {
-      return 0;
+        ntt_lite_read_poly((uint32_t*) a->coeffs);
+        return 0;
     }
 }
 
@@ -125,12 +126,13 @@ int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, con
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->coeffs, (uint32_t*) &c->coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
     poly_init_invntt();
-    ntt_lite_backward_ntt((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
     else {
+        ntt_lite_read_poly((uint32_t*) r->coeffs);
         return 0;
     }
 }
@@ -142,12 +144,13 @@ int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, con
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->coeffs, (uint32_t*) &c->coeffs);
     poly_init_invntt();
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
-    ntt_lite_sub_rev((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
+    ntt_lite_sub_rev(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
     else {
+        ntt_lite_read_poly((uint32_t*) r->coeffs);
         return 0;
     }
 }
@@ -227,27 +230,10 @@ void poly_decompose(poly *a1, poly *a0, const poly *a) {
 *              - const poly *a: pointer to input polynomial
 *              - const poly *h: pointer to input hint polynomial
 **************************************************/
-void poly_use_hint(poly *b, const poly *a, const poly *h) {
-    unsigned int i;
-    poly b0;
-
-    ntt_lite_decompose((uint32_t*) b->coeffs, (uint32_t*) b0.coeffs, (uint32_t*) a->coeffs);
-
-    for(i = 0; i < N; i++) {
-        if(h->coeffs[i] != 0) {
-#if GAMMA2 == (Q-1)/32
-            if(b0.coeffs[i] <= (Q/2))
-                b->coeffs[i] = (b->coeffs[i] + 1) & 15;
-            else
-                b->coeffs[i] = (b->coeffs[i] - 1) & 15;
-#elif GAMMA2 == (Q-1)/88
-            if(b0.coeffs[i] <= (Q/2))
-                b->coeffs[i] = (b->coeffs[i] == 43) ? 0 : b->coeffs[i] + 1;
-            else
-                b->coeffs[i] = (b->coeffs[i] ==  0) ? 43 : b->coeffs[i] - 1;
-#endif
-        }
-    }
+void poly_use_hint_pack(uint8_t *r, const poly *a, const poly *h) {
+    ntt_lite_decompose(NTT_LITE_OUTPUT_DIS, NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
+    ntt_lite_use_hint(NTT_LITE_OUTPUT_DIS, (uint32_t*) h->coeffs);
+    ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_GAMMA2);
 }
 
 /*************************************************
@@ -333,6 +319,7 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
 void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
     uint8_t buf[POLYZ_PACKEDBYTES];
     dilithium_shake256_nonce(buf, sizeof(buf), seed, CRHBYTES, nonce);
+    ntt_lite_set_bound(GAMMA1);
     polyz_unpack(a, buf);
 }
 
@@ -389,7 +376,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
 **************************************************/
 void polyeta_pack(uint8_t *r, const poly *a) {
     const uint32_t eta_c = ETA;
-    ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs, &eta_c);
+    ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs);
     ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_ETA);
 }
 
@@ -404,7 +391,7 @@ void polyeta_pack(uint8_t *r, const poly *a) {
 void polyeta_unpack(poly *r, const uint8_t *a) {
     const uint32_t eta_c = ETA;
     ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, LOG_ETA);
-    ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS, &eta_c);
+    ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS);
 }
 
 /*************************************************
@@ -446,7 +433,7 @@ void polyt1_unpack(poly *r, const uint8_t *a) {
 **************************************************/
 void polyt0_pack(uint8_t *r, const poly *a) {
     const uint32_t t0_c = 1 << (D - 1);
-    ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs, &t0_c);
+    ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs);
     ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, D);
 }
 
@@ -461,7 +448,7 @@ void polyt0_pack(uint8_t *r, const poly *a) {
 void polyt0_unpack(poly *r, const uint8_t *a) {
     const uint32_t t0_c = 1 << (D - 1);
     ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, D);
-    ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS, &t0_c);
+    ntt_lite_sub_rev_const(r->coeffs, NTT_LITE_INPUT_DIS);
 }
 
 
@@ -477,7 +464,7 @@ void polyt0_unpack(poly *r, const uint8_t *a) {
 **************************************************/
 void polyz_pack(uint8_t *r, const poly *a) {
     const uint32_t gamma1 = GAMMA1;
-    ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs, &gamma1);
+    ntt_lite_sub_rev_const(NTT_LITE_OUTPUT_DIS, a->coeffs);
     ntt_lite_encode((uint32_t*) r, NTT_LITE_INPUT_DIS, LOG_GAMMA1);
 }
 
@@ -493,7 +480,7 @@ void polyz_pack(uint8_t *r, const poly *a) {
 void polyz_unpack(poly *r, const uint8_t *a) {
     const uint32_t gamma1 = GAMMA1;
     ntt_lite_decode(NTT_LITE_OUTPUT_DIS, (uint32_t*) a, LOG_GAMMA1);
-    ntt_lite_sub_rev_const((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, &gamma1);
+    ntt_lite_sub_rev_const((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS);
 }
 
 /*************************************************

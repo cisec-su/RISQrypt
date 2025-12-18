@@ -79,8 +79,8 @@ void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v);
 #define polyveck_decompose DILITHIUM_NAMESPACE(polyveck_decompose)
 void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v);
 
-#define polyveck_use_hint DILITHIUM_NAMESPACE(polyveck_use_hint)
-void polyveck_use_hint(polyveck *w, const polyveck *v, const polyveck *h);
+#define polyveck_use_hint_pack DILITHIUM_NAMESPACE(polyveck_use_hint_pack)
+void polyveck_use_hint_pack(uint8_t *r, const polyveck *u, const polyveck *h);
 
 #define polyveck_pack_w1 DILITHIUM_NAMESPACE(polyveck_pack_w1)
 void polyveck_pack_w1(uint8_t r[K*POLYW1_PACKEDBYTES], const polyveck *w1);

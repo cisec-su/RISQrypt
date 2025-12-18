@@ -67,7 +67,7 @@ void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint1
     masked_gadgets_B2A_q(y, y);
     ntt_lite_set_bound(GAMMA1);
     for(i = 0; i < MASKING_N; i++) {
-        ntt_lite_sub_rev_const((uint32_t*) y->share[i].coeffs, (uint32_t*) y->share[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_sub_rev_const((uint32_t*) y->share[i].coeffs, (uint32_t*) y->share[i].coeffs);
         ntt_lite_set_bound(0);
     }
 
@@ -108,7 +108,7 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
     uint32_t *dst;
 
     ntt_lite_set_bound(B - 1);
-    ntt_lite_add_const((uint32_t*) &temp.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+    ntt_lite_add_const((uint32_t*) &temp.share[MASKING_N - 1].coeffs, NTT_LITE_INPUT_DIS);
 
     for (i = 0; i < MASKING_N; i++) {
         if (i == (MASKING_N - 1)) {
@@ -127,7 +127,7 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
 
     ntt_lite_set_q(0);
     ntt_lite_set_bound(B2);
-    ntt_lite_sub_const((uint32_t*) &temp.share[0].coeffs, (uint32_t*) &temp.share[0].coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_sub_const((uint32_t*) &temp.share[0].coeffs, (uint32_t*) &temp.share[0].coeffs);
 
     masked_gadgets_A2B_2k(&temp, &temp);
 
@@ -148,7 +148,7 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
         ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) temp.share[i].coeffs);
     }
     ntt_lite_set_bound(1);
-    ntt_lite_add_const(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+    ntt_lite_add_const(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
 
     ntt_lite_set_bound(0);
     flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
@@ -219,10 +219,10 @@ void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
             dst = (uint32_t*) &temp.share[i].coeffs;
         }
         ntt_lite_set_clr();
-        ntt_lite_mul_const(dst, (uint32_t*) &v->share[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_mul_const(dst, (uint32_t*) &v->share[i].coeffs);
         if (i == 0) {
             ntt_lite_set_bound((Q - 1) >> 1);
-            ntt_lite_add_const((uint32_t*) &temp.share[i].coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+            ntt_lite_add_const((uint32_t*) &temp.share[i].coeffs, NTT_LITE_INPUT_DIS);
             ntt_lite_set_bound(Q - gamma);
         }
     }
@@ -233,7 +233,7 @@ void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
     ntt_lite_set_mu(mu, NTT_LITE_MODE_SINGLE);
     ntt_lite_set_bound(1);
     for (i = 0; i < MASKING_N; i++) {
-        ntt_lite_mul_const((uint32_t*) &temp.share[i].coeffs, (uint32_t*) &temp.share[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_mul_const((uint32_t*) &temp.share[i].coeffs, (uint32_t*) &temp.share[i].coeffs);
     }
 
     for (i = 0; i < N; i++) {
@@ -245,13 +245,13 @@ void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
     
     poly_init_q();
     ntt_lite_set_bound(GAMMA2 << 1);
-    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v1->coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) v1->coeffs);
     ntt_lite_set_clr_with_twiddle();
     ntt_lite_sub_rev((uint32_t*) &v0->share[0].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &v->share[0].coeffs);
     ntt_lite_set_bound(0);
     for (i = 1; i < MASKING_N; i++) {
         ntt_lite_set_clr();
-        ntt_lite_add_const(v0->share[i].coeffs, v->share[i].coeffs, NTT_LITE_INPUT_DIS);
+        ntt_lite_add_const(v0->share[i].coeffs, v->share[i].coeffs);
     }
 
 

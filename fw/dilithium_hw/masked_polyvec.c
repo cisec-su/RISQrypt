@@ -26,12 +26,9 @@ static void masked_polyvec_unpack(masked_poly *r, const uint8_t *a, unsigned int
         }
         for(i = 0; i < len; i++) {
             if (i == 0) {
-                rhs_ptr = &rhs;
+                ntt_lite_set_bound(rhs);
             }
-            else {
-                rhs_ptr = NTT_LITE_INPUT_DIS;
-            }
-            ntt_lite_sub_rev_const(r[i].share[j].coeffs, r[i].share[j].coeffs, rhs_ptr);
+            ntt_lite_sub_rev_const(r[i].share[j].coeffs, r[i].share[j].coeffs);
         }
     }
 }

@@ -299,8 +299,7 @@ int crypto_sign_verify(const uint8_t *sig,
     polyveck_invntt(&w1);
 
     /* Reconstruct w1 */
-    polyveck_use_hint(&w1, &w1, &h);
-    polyveck_pack_w1(buf, &w1);
+    polyveck_use_hint_pack(buf, &w1, &h);
 
     /* Call random oracle and verify challenge */
     dilithium_shake256_challenge(c2, mu, buf);
