@@ -14,7 +14,6 @@
 
 #define SEEDBYTES 32
 #define CRHBYTES 64
-#define N 256
 #define Q 8380417
 #define D 13
 #define ROOT_OF_UNITY 1753

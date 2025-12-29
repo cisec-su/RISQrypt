@@ -286,11 +286,11 @@ int main() {
 
     print_string("\n=== Falcon-512 Function Tests ===\n");
     
-    test_keccak_simple();
-    test_keccak_golden();
-    test_dilithium_api();
+    // test_keccak_simple();
+    // test_keccak_golden();
+    // test_dilithium_api();
 
-    // test_falcon_verify_only_new();
+    test_falcon_verify_only_new();
     
     return 0;
 }

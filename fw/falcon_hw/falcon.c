@@ -43,15 +43,23 @@
 
 /* Hardware Context Overlay */
 typedef struct {
-    uint8_t  in_buf[4];   /* Accumulate bytes */
+    uint8_t  in_buf[4];   /* Accumulate unaligned bytes */
     size_t   in_cnt;
     
     uint8_t  out_buf[4];  /* Buffered output */
     size_t   out_cnt;
     size_t   out_ptr;
     
-    uint32_t aligned_word; 
+    /* Persistent buffers for HW interface to avoid stack issues */
+    uint32_t aligned_backup; 
+    uint32_t finish_word;
 } hw_ctx_t;
+
+/* Helper to pack bytes into a word (Little Endian) */
+static inline uint32_t pack_word(const uint8_t *b) {
+    return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | 
+           ((uint32_t)b[2] << 16) | ((uint32_t)b[3] << 24);
+}
 
 /* ================================================================== */
 /* INNER IMPLEMENTATION                                               */
@@ -64,31 +72,55 @@ void inner_shake256_init(inner_shake256_context *sc)
     ctx->in_cnt = 0;
     ctx->out_cnt = 0;
     ctx->out_ptr = 0;
-    ctx->aligned_word = 0;
+    ctx->aligned_backup = 0;
+    ctx->finish_word = 0;
     memset(ctx->in_buf, 0, 4);
     memset(ctx->out_buf, 0, 4);
     
-    // Initialize FPGA for this context
+    // Initialize FPGA (Using rate >> 3 as established)
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
 }
 
 void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t len)
 {
     hw_ctx_t *ctx = (hw_ctx_t *)sc;
-    size_t i;
 
-    for (i = 0; i < len; i++) {
-        ctx->in_buf[ctx->in_cnt++] = in[i];
+    /* 1. Fill partial buffer if it already has data */
+    while (ctx->in_cnt > 0 && ctx->in_cnt < 4 && len > 0) {
+        ctx->in_buf[ctx->in_cnt++] = *in++;
+        len--;
+    }
 
+    /* 2. Flush buffer if it got full */
+    if (ctx->in_cnt == 4) {
+        ctx->aligned_backup = pack_word(ctx->in_buf);
+        keccak_absorb(&ctx->aligned_backup, NULL, 1);
+        ctx->in_cnt = 0;
+    }
+
+    /* * 3. FAST PATH (Zero-Copy): 
+     * If the input pointer is 4-byte aligned and we have full words, 
+     * pass them directly to HW. This matches Dilithium's behavior 
+     * and fixes the "abcd" endianness/copy issue.
+     */
+    if (len >= 4 && ((uintptr_t)in & 3) == 0) {
+        size_t words = len >> 2;
+        
+        keccak_absorb((const uint32_t *)in, NULL, words);
+        
+        in += (words << 2);
+        len -= (words << 2);
+    }
+
+    /* 4. Buffer any remaining unaligned tail bytes */
+    while (len > 0) {
+        ctx->in_buf[ctx->in_cnt++] = *in++;
+        
+        /* If tail fills a word (rare, but possible), flush it */
         if (ctx->in_cnt == 4) {
-            ctx->aligned_word = (uint32_t)ctx->in_buf[0] |
-                               ((uint32_t)ctx->in_buf[1] << 8) |
-                               ((uint32_t)ctx->in_buf[2] << 16) |
-                               ((uint32_t)ctx->in_buf[3] << 24);
-            
-            keccak_absorb(&ctx->aligned_word, NULL, 1);
-            
-            ctx->in_cnt = 0;
+             ctx->aligned_backup = pack_word(ctx->in_buf);
+             keccak_absorb(&ctx->aligned_backup, NULL, 1);
+             ctx->in_cnt = 0;
         }
     }
 }
@@ -96,22 +128,22 @@ void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t
 void inner_shake256_flip(inner_shake256_context *sc)
 {
     hw_ctx_t *ctx = (hw_ctx_t *)sc;
+    volatile uint32_t t = 0;
     size_t i;
 
-    if (ctx->in_cnt > 0) {
-        /* We have partial bytes - combine with padding */
-        ctx->aligned_word = 0;
-        for (i = 0; i < ctx->in_cnt; i++) {
-            ctx->aligned_word |= ((uint32_t)ctx->in_buf[i]) << (8 * i);
-        }
-        /* Add padding byte at the next position */
-        ctx->aligned_word |= ((uint32_t)SHAKE_PAD) << (8 * ctx->in_cnt);
-        
-        keccak_finish(&ctx->aligned_word);
-    } else {
-        /* No buffered bytes - just do padding */
-        keccak_finish(KECCAK_NULL_PAD_WORD);
+    /* * ALWAYS append the padding byte (0x1F).
+     * Even if buffer is empty, we must send a word containing just 0x1F.
+     */
+    ctx->in_buf[ctx->in_cnt++] = SHAKE_PAD;
+
+    /* Pack the final partial word */
+    for (i = 0; i < ctx->in_cnt; i++) {
+        t |= ((uint32_t)ctx->in_buf[i]) << (8 * i);
     }
+    
+    /* Use persistent buffer for finish to be safe */
+    ctx->finish_word = t;
+    keccak_finish(&ctx->finish_word);
     
     ctx->in_cnt = 0;
 }
@@ -124,13 +156,13 @@ void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len
     for (i = 0; i < len; i++) {
         if (ctx->out_ptr >= ctx->out_cnt) {
             /* Fetch into persistent buffer */
-            keccak_squeeze(&ctx->aligned_word, NULL, 1);
+            keccak_squeeze(&ctx->aligned_backup, NULL, 1);
             
             /* Unpack to byte buffer */
-            ctx->out_buf[0] = (uint8_t)(ctx->aligned_word);
-            ctx->out_buf[1] = (uint8_t)(ctx->aligned_word >> 8);
-            ctx->out_buf[2] = (uint8_t)(ctx->aligned_word >> 16);
-            ctx->out_buf[3] = (uint8_t)(ctx->aligned_word >> 24);
+            ctx->out_buf[0] = (uint8_t)(ctx->aligned_backup);
+            ctx->out_buf[1] = (uint8_t)(ctx->aligned_backup >> 8);
+            ctx->out_buf[2] = (uint8_t)(ctx->aligned_backup >> 16);
+            ctx->out_buf[3] = (uint8_t)(ctx->aligned_backup >> 24);
             
             ctx->out_cnt = 4;
             ctx->out_ptr = 0;
@@ -847,9 +879,12 @@ falcon_verify_start(shake256_context *hash_data,
 	const void *sig, size_t sig_len)
 {
 	if (sig_len < 41) {
+		print_string("falcon_verify_start: error sig_len < 41\n");
 		return FALCON_ERR_FORMAT;
 	}
+	print_string("falcon_verify_start: success go shake256_init\n");
 	shake256_init(hash_data);
+	print_string("falcon_verify_start: success go shake256_inject\n");
 	shake256_inject(hash_data, (const uint8_t *)sig + 1, 40);
 	return 0;
 }
@@ -857,152 +892,189 @@ falcon_verify_start(shake256_context *hash_data,
 /* see falcon.h */
 int
 falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
-	const void *pubkey, size_t pubkey_len,
-	shake256_context *hash_data,
-	void *tmp, size_t tmp_len)
+    const void *pubkey, size_t pubkey_len,
+    shake256_context *hash_data,
+    void *tmp, size_t tmp_len)
 {
-	unsigned logn;
-	uint8_t *atmp;
-	const uint8_t *pk, *es;
-	size_t u, v, n;
-	uint16_t *h, *hm;
-	int16_t *sv;
-	int ct;
+    unsigned logn;
+    uint8_t *atmp;
+    const uint8_t *pk, *es;
+    size_t u, v, n;
+    uint16_t *h, *hm;
+    int16_t *sv;
+    int ct;
 
-	/*
-	 * Get Falcon degree from public key; verify consistency with
-	 * signature value, and check parameters.
-	 */
-	if (sig_len < 41 || pubkey_len == 0) {
-		return FALCON_ERR_FORMAT;
-	}
-	es = sig;
-	pk = pubkey;
-	if ((pk[0] & 0xF0) != 0x00) {
-		return FALCON_ERR_FORMAT;
-	}
-	logn = pk[0] & 0x0F;
-	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
-	}
-	if ((es[0] & 0x0F) != logn) {
-		return FALCON_ERR_BADSIG;
-	}
-	ct = 0;
-	switch (sig_type) {
-	case 0:
-		switch (es[0] & 0xF0) {
-		case 0x30:
-			break;
-		case 0x50:
-			if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
-				return FALCON_ERR_FORMAT;
-			}
-			ct = 1;
-			break;
-		default:
-			return FALCON_ERR_BADSIG;
-		}
-		break;
-	case FALCON_SIG_COMPRESSED:
-		if ((es[0] & 0xF0) != 0x30) {
-			return FALCON_ERR_FORMAT;
-		}
-		break;
-	case FALCON_SIG_PADDED:
-		if ((es[0] & 0xF0) != 0x30) {
-			return FALCON_ERR_FORMAT;
-		}
-		if (sig_len != FALCON_SIG_PADDED_SIZE(logn)) {
-			return FALCON_ERR_FORMAT;
-		}
-		break;
-	case FALCON_SIG_CT:
-		if ((es[0] & 0xF0) != 0x50) {
-			return FALCON_ERR_FORMAT;
-		}
-		if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
-			return FALCON_ERR_FORMAT;
-		}
-		ct = 1;
-		break;
-	default:
-		return FALCON_ERR_BADARG;
-	}
-	if (pubkey_len != FALCON_PUBKEY_SIZE(logn)) {
-		return FALCON_ERR_FORMAT;
-	}
-	if (tmp_len < FALCON_TMPSIZE_VERIFY(logn)) {
-		return FALCON_ERR_SIZE;
-	}
+    print_string("[VF] Start verify_finish\n");
 
-	n = (size_t)1 << logn;
-	h = (uint16_t *)align_u16(tmp);
-	hm = h + n;
-	sv = (int16_t *)(hm + n);
-	atmp = (uint8_t *)(sv + n);
+    /*
+     * Get Falcon degree from public key; verify consistency with
+     * signature value, and check parameters.
+     */
+    if (sig_len < 41 || pubkey_len == 0) {
+        print_string("[VF] Err: sig_len < 41 or no pubkey\n");
+        return FALCON_ERR_FORMAT;
+    }
+    es = sig;
+    pk = pubkey;
+    if ((pk[0] & 0xF0) != 0x00) {
+        print_string("[VF] Err: Invalid pubkey header (0xF0)\n");
+        return FALCON_ERR_FORMAT;
+    }
+    logn = pk[0] & 0x0F;
+    if (logn < 1 || logn > 10) {
+        print_string("[VF] Err: Invalid logn (1-10)\n");
+        return FALCON_ERR_FORMAT;
+    }
+    if ((es[0] & 0x0F) != logn) {
+        print_string("[VF] Err: Sig/Key logn mismatch\n");
+        return FALCON_ERR_BADSIG;
+    }
+    
+    ct = 0;
+    switch (sig_type) {
+    case 0: /* Auto-detect */
+        print_string("[VF] Type: Auto (0)\n");
+        switch (es[0] & 0xF0) {
+        case 0x30:
+            print_string("[VF] Detected: COMPRESSED/PADDED (0x30)\n");
+            break;
+        case 0x50:
+            print_string("[VF] Detected: CT (0x50)\n");
+            if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
+                print_string("[VF] Err: CT Sig Size Mismatch\n");
+                return FALCON_ERR_FORMAT;
+            }
+            ct = 1;
+            break;
+        default:
+            print_string("[VF] Err: Unknown Sig Header\n");
+            return FALCON_ERR_BADSIG;
+        }
+        break;
+    case FALCON_SIG_COMPRESSED:
+        print_string("[VF] Type: COMPRESSED\n");
+        if ((es[0] & 0xF0) != 0x30) {
+            print_string("[VF] Err: Header not 0x30\n");
+            return FALCON_ERR_FORMAT;
+        }
+        break;
+    case FALCON_SIG_PADDED:
+        print_string("[VF] Type: PADDED\n");
+        if ((es[0] & 0xF0) != 0x30) {
+            print_string("[VF] Err: Header not 0x30\n");
+            return FALCON_ERR_FORMAT;
+        }
+        if (sig_len != FALCON_SIG_PADDED_SIZE(logn)) {
+            print_string("[VF] Err: PADDED Sig Size Mismatch\n");
+            return FALCON_ERR_FORMAT;
+        }
+        break;
+    case FALCON_SIG_CT:
+        print_string("[VF] Type: CT\n");
+        if ((es[0] & 0xF0) != 0x50) {
+            print_string("[VF] Err: Header not 0x50\n");
+            return FALCON_ERR_FORMAT;
+        }
+        if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
+            print_string("[VF] Err: CT Sig Size Mismatch\n");
+            return FALCON_ERR_FORMAT;
+        }
+        ct = 1;
+        break;
+    default:
+        print_string("[VF] Err: Bad sig_type arg\n");
+        return FALCON_ERR_BADARG;
+    }
 
-	/*
-	 * Decode public key.
-	 */
-	if (Zf(modq_decode)(h, logn, pk + 1, pubkey_len - 1)
-		!= pubkey_len - 1)
-	{
-		return FALCON_ERR_FORMAT;
-	}
+    if (pubkey_len != FALCON_PUBKEY_SIZE(logn)) {
+        print_string("[VF] Err: Pubkey Size Mismatch\n");
+        return FALCON_ERR_FORMAT;
+    }
+    if (tmp_len < FALCON_TMPSIZE_VERIFY(logn)) {
+        print_string("[VF] Err: Temp Buffer Too Small\n");
+        return FALCON_ERR_SIZE;
+    }
 
-	/*
-	 * Decode signature value.
-	 */
-	u = 41;
-	if (ct) {
-		v = Zf(trim_i16_decode)(sv, logn,
-			Zf(max_sig_bits)[logn], es + u, sig_len - u);
-	} else {
-		v = Zf(comp_decode)(sv, logn, es + u, sig_len - u);
-	}
-	if (v == 0) {
-		return FALCON_ERR_FORMAT;
-	}
-	if ((u + v) != sig_len) {
-		/*
-		 * Extra bytes of value 0 are tolerated only for the
-		 * "padded" format.
-		 */
-		if ((sig_type == 0 && sig_len == FALCON_SIG_PADDED_SIZE(logn))
-			|| sig_type == FALCON_SIG_PADDED)
-		{
-			while (u + v < sig_len) {
-				if (es[u + v] != 0) {
-					return FALCON_ERR_FORMAT;
-				}
-				v ++;
-			}
-		} else {
-			return FALCON_ERR_FORMAT;
-		}
-	}
+    n = (size_t)1 << logn;
+    h = (uint16_t *)align_u16(tmp);
+    hm = h + n;
+    sv = (int16_t *)(hm + n);
+    atmp = (uint8_t *)(sv + n);
 
-	/*
-	 * Hash message to point.
-	 */
-	shake256_flip(hash_data);
-	if (ct) {
-		Zf(hash_to_point_ct)(
-			(inner_shake256_context *)hash_data, hm, logn, atmp);
-	} else {
-		Zf(hash_to_point_vartime)(
-			(inner_shake256_context *)hash_data, hm, logn);
-	}
+    /*
+     * Decode public key.
+     */
+    print_string("[VF] Decoding PubKey...\n");
+    if (Zf(modq_decode)(h, logn, pk + 1, pubkey_len - 1)
+        != pubkey_len - 1)
+    {
+        print_string("[VF] Err: modq_decode failed\n");
+        return FALCON_ERR_FORMAT;
+    }
 
-	/*
-	 * Verify signature.
-	 */
-	Zf(to_ntt_monty)(h, logn);
-	if (!Zf(verify_raw)(hm, sv, h, logn, atmp)) {
-		return FALCON_ERR_BADSIG;
-	}
-	return 0;
+    /*
+     * Decode signature value.
+     */
+    print_string("[VF] Decoding Sig...\n");
+    u = 41;
+    if (ct) {
+        v = Zf(trim_i16_decode)(sv, logn,
+            Zf(max_sig_bits)[logn], es + u, sig_len - u);
+    } else {
+        v = Zf(comp_decode)(sv, logn, es + u, sig_len - u);
+    }
+    
+    if (v == 0) {
+        print_string("[VF] Err: Sig Decode (trim/comp) failed\n");
+        return FALCON_ERR_FORMAT;
+    }
+    
+    if ((u + v) != sig_len) {
+        /*
+         * Extra bytes of value 0 are tolerated only for the
+         * "padded" format.
+         */
+        if ((sig_type == 0 && sig_len == FALCON_SIG_PADDED_SIZE(logn))
+            || sig_type == FALCON_SIG_PADDED)
+        {
+            while (u + v < sig_len) {
+                if (es[u + v] != 0) {
+                    print_string("[VF] Err: Non-zero padding bytes\n");
+                    return FALCON_ERR_FORMAT;
+                }
+                v ++;
+            }
+        } else {
+            print_string("[VF] Err: Extra bytes in non-padded sig\n");
+            return FALCON_ERR_FORMAT;
+        }
+    }
+
+    /*
+     * Hash message to point.
+     */
+    print_string("[VF] Hash to Point...\n");
+    shake256_flip(hash_data);
+    if (ct) {
+        Zf(hash_to_point_ct)(
+            (inner_shake256_context *)hash_data, hm, logn, atmp);
+    } else {
+        Zf(hash_to_point_vartime)(
+            (inner_shake256_context *)hash_data, hm, logn);
+    }
+
+    /*
+     * Verify signature.
+     */
+    print_string("[VF] NTT & Raw Verify...\n");
+    Zf(to_ntt_monty)(h, logn);
+    if (!Zf(verify_raw)(hm, sv, h, logn, atmp)) {
+        print_string("[VF] Err: verify_raw failed (Math Check)\n");
+        return FALCON_ERR_BADSIG;
+    }
+    
+    print_string("[VF] Success\n");
+    return 0;
 }
 
 /* see falcon.h */
@@ -1014,12 +1086,15 @@ falcon_verify(const void *sig, size_t sig_len, int sig_type,
 {
 	shake256_context hd;
 	int r;
-
+	print_string("\n falcon_verify before start\n");
 	r = falcon_verify_start(&hd, sig, sig_len);
 	if (r < 0) {
+		print_string("\nfalcon_verify r<0 branch\n");
 		return r;
 	}
+	print_string("\nfalcon_verify before inject\n");
 	shake256_inject(&hd, data, data_len);
+	print_string("\nfalcon_verify before falcon_verify_finish\n");
 	return falcon_verify_finish(sig, sig_len, sig_type,
 		pubkey, pubkey_len, &hd, tmp, tmp_len);
 }
