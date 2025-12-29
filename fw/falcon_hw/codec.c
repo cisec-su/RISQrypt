@@ -451,8 +451,24 @@ Zf(comp_decode)(
 				return 0;
 			}
 		}
+
+		/*
+		 * "-0" is forbidden.
+		 */
+		if (s && m == 0) {
+			return 0;
+		}
+
 		x[u] = (int16_t)(s ? -(int)m : (int)m);
 	}
+
+	/*
+	 * Unused bits in the last byte must be zero.
+	 */
+	if ((acc & ((1u << acc_len) - 1u)) != 0) {
+		return 0;
+	}
+
 	return v;
 }
 

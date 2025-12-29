@@ -236,7 +236,7 @@
 	&& (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25))) \
 	|| (defined __FreeBSD__ && __FreeBSD__ >= 12) \
 	|| defined __OpenBSD__
-#define FALCON_RAND_GETENTROPY   0
+#define FALCON_RAND_GETENTROPY   1
 #else
 #define FALCON_RAND_GETENTROPY   0
 #endif
@@ -292,7 +292,7 @@
 #endif
 #define Zf(name)             Zf_(FALCON_PREFIX, name)
 #define Zf_(prefix, name)    Zf__(prefix, name)
-#define Zf__(prefix, name)   prefix ## _ ## name
+#define Zf__(prefix, name)   prefix ## _ ## name  
 // yyyPQCLEAN- yyySUPERCOP-
 
 // yyyAVX2+1
@@ -412,7 +412,6 @@ set_fpu_cw(unsigned x)
  */
 
 // yyyPQCLEAN+0
-/*
 typedef struct {
 	union {
 		uint64_t A[25];
@@ -434,8 +433,8 @@ void Zf(i_shake256_flip)(
 	inner_shake256_context *sc);
 void Zf(i_shake256_extract)(
 	inner_shake256_context *sc, uint8_t *out, size_t len);
-*/
 
+/*
 // yyyPQCLEAN+1
 
 #include "fips202.h"
@@ -447,7 +446,7 @@ void Zf(i_shake256_extract)(
 #define inner_shake256_extract(sc, out, len)  shake256_inc_squeeze(out, len, sc)
 
 // yyyPQCLEAN+0
-
+ */
 // yyyPQCLEAN-
 
 /* ==================================================================== */
@@ -521,15 +520,6 @@ extern const uint8_t Zf(max_FG_bits)[];
  * (1 to 10). The size includes the sign bit.
  */
 extern const uint8_t Zf(max_sig_bits)[];
-
-/* ==================================================================== */
-/*
- * Hardware accelerator initialization functions for NTT operations.
- */
-// Forward declarations for HW functions
-void poly_init_q(void);
-void poly_init_ntt(void);
-void poly_init_invntt(void);
 
 /* ==================================================================== */
 /*
@@ -755,9 +745,8 @@ int Zf(verify_recover)(uint16_t *h,
  *   fpr fpr_q                 12289
  *   fpr fpr_inverse_of_q      1/12289
  *   fpr fpr_inv_2sqrsigma0    1/(2*(1.8205^2))
- *   fpr fpr_inv_sigma         1/(1.55*sqrt(12289))
- *   fpr fpr_sigma_min_9       1.291500756233514568549480827642
- *   fpr fpr_sigma_min_10      1.311734375905083682667395805765
+ *   fpr fpr_inv_sigma[]       1/sigma (indexed by logn, 1 to 10)
+ *   fpr fpr_sigma_min[]       1/sigma_min (indexed by logn, 1 to 10)
  *   fpr fpr_log2              log(2)
  *   fpr fpr_inv_log2          1/log(2)
  *   fpr fpr_bnorm_max         16822.4121

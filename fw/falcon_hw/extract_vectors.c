@@ -1,0 +1,215 @@
+/*
+ * extract_vectors.c - Extract golden test vectors for falcon_verify
+ * 
+ * This tool generates test vectors for Falcon-512 signature verification.
+ * It creates a header file (extracted_vectors.h) with:
+ * - Public key
+ * - Message
+ * - Signatures in 3 formats: COMPRESSED, PADDED, CT
+ * 
+ * Compile with the reference implementation:
+ *   make
+ * 
+ * Run:
+ *   ./test_falcon
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "falcon.h"
+
+/* Falcon-512 parameters */
+#define LOGN         9
+#define N            (1 << LOGN)
+
+/* Buffer sizes */
+#define PUBKEY_SIZE  FALCON_PUBKEY_SIZE(LOGN)
+#define PRIVKEY_SIZE FALCON_PRIVKEY_SIZE(LOGN)
+#define SIG_COMPRESSED_MAX FALCON_SIG_COMPRESSED_MAXSIZE(LOGN)
+#define SIG_PADDED_SIZE    FALCON_SIG_PADDED_SIZE(LOGN)
+#define SIG_CT_SIZE        FALCON_SIG_CT_SIZE(LOGN)
+#define TMP_SIZE     (80 * 1024)
+
+/* Output file name */
+#define OUTPUT_FILE "extracted_vectors.h"
+
+/* Write hex array to file */
+static void write_hex_array(FILE *fp, const char *name, const uint8_t *data, size_t len)
+{
+    fprintf(fp, "static const uint8_t %s[%zu] = {\n    ", name, len);
+    for (size_t i = 0; i < len; i++) {
+        fprintf(fp, "0x%02x", data[i]);
+        if (i < len - 1) {
+            fprintf(fp, ", ");
+        }
+        if ((i + 1) % 12 == 0 && i < len - 1) {
+            fprintf(fp, "\n    ");
+        }
+    }
+    fprintf(fp, "\n};\n\n");
+}
+
+int extract_vectors_to_header(void)
+{
+    shake256_context rng;
+    uint8_t *pubkey, *privkey;
+    uint8_t *sig_compressed, *sig_padded, *sig_ct;
+    size_t sig_comp_len, sig_pad_len, sig_ct_len;
+    uint8_t *tmp;
+    int r;
+    FILE *fp;
+    
+    /* Test message - simple string for reproducibility */
+    const char *message = "Test message for Falcon-512 verification";
+    size_t msg_len = strlen(message);
+    
+    /* Deterministic seed for reproducible results */
+    const char *seed = "falcon512_test_seed_for_vectors";
+    
+    printf("Generating %s...\n", OUTPUT_FILE);
+    
+    /* Allocate buffers */
+    pubkey = malloc(PUBKEY_SIZE);
+    privkey = malloc(PRIVKEY_SIZE);
+    sig_compressed = malloc(SIG_COMPRESSED_MAX);
+    sig_padded = malloc(SIG_PADDED_SIZE);
+    sig_ct = malloc(SIG_CT_SIZE);
+    tmp = malloc(TMP_SIZE);
+    
+    if (!pubkey || !privkey || !sig_compressed || !sig_padded || !sig_ct || !tmp) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+    
+    /* Initialize deterministic RNG from seed */
+    shake256_init_prng_from_seed(&rng, seed, strlen(seed));
+    
+    /* Generate keypair */
+    r = falcon_keygen_make(&rng, LOGN, 
+        privkey, PRIVKEY_SIZE,
+        pubkey, PUBKEY_SIZE,
+        tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Keygen failed: %d\n", r);
+        return 1;
+    }
+    
+    /* Sign with COMPRESSED format */
+    sig_comp_len = SIG_COMPRESSED_MAX;
+    r = falcon_sign_dyn(&rng, sig_compressed, &sig_comp_len, FALCON_SIG_COMPRESSED,
+        privkey, PRIVKEY_SIZE,
+        message, msg_len,
+        tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Sign (compressed) failed: %d\n", r);
+        return 1;
+    }
+    
+    /* Sign with PADDED format */
+    sig_pad_len = SIG_PADDED_SIZE;
+    r = falcon_sign_dyn(&rng, sig_padded, &sig_pad_len, FALCON_SIG_PADDED,
+        privkey, PRIVKEY_SIZE,
+        message, msg_len,
+        tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Sign (padded) failed: %d\n", r);
+        return 1;
+    }
+    
+    /* Sign with CT format */
+    sig_ct_len = SIG_CT_SIZE;
+    r = falcon_sign_dyn(&rng, sig_ct, &sig_ct_len, FALCON_SIG_CT,
+        privkey, PRIVKEY_SIZE,
+        message, msg_len,
+        tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Sign (ct) failed: %d\n", r);
+        return 1;
+    }
+    
+    /* Verify all signatures to make sure they're valid */
+    r = falcon_verify(sig_compressed, sig_comp_len, FALCON_SIG_COMPRESSED,
+        pubkey, PUBKEY_SIZE, message, msg_len, tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Verify (compressed) failed: %d\n", r);
+        return 1;
+    }
+    
+    r = falcon_verify(sig_padded, sig_pad_len, FALCON_SIG_PADDED,
+        pubkey, PUBKEY_SIZE, message, msg_len, tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Verify (padded) failed: %d\n", r);
+        return 1;
+    }
+    
+    r = falcon_verify(sig_ct, sig_ct_len, FALCON_SIG_CT,
+        pubkey, PUBKEY_SIZE, message, msg_len, tmp, TMP_SIZE);
+    if (r != 0) {
+        fprintf(stderr, "Verify (ct) failed: %d\n", r);
+        return 1;
+    }
+    
+    /* Open output file */
+    fp = fopen(OUTPUT_FILE, "w");
+    if (!fp) {
+        fprintf(stderr, "Failed to create %s\n", OUTPUT_FILE);
+        return 1;
+    }
+    
+    /* Write header file */
+    fprintf(fp, "/*\n");
+    fprintf(fp, " * Falcon-512 Test Vectors for Verification\n");
+    fprintf(fp, " * Auto-generated by extract_vectors.c\n");
+    fprintf(fp, " *\n");
+    fprintf(fp, " * Usage:\n");
+    fprintf(fp, " *   falcon_verify(test_sig_compressed, test_sig_compressed_len, FALCON_SIG_COMPRESSED,\n");
+    fprintf(fp, " *       test_pubkey, sizeof(test_pubkey), test_message, test_message_len, tmp, tmp_len);\n");
+    fprintf(fp, " */\n\n");
+    
+    fprintf(fp, "#ifndef EXTRACTED_VECTORS_H\n");
+    fprintf(fp, "#define EXTRACTED_VECTORS_H\n\n");
+    fprintf(fp, "#include <stdint.h>\n");
+    fprintf(fp, "#include <stddef.h>\n\n");
+    
+    /* Message */
+    fprintf(fp, "/* Test message (string without null terminator) */\n");
+    write_hex_array(fp, "test_message", (const uint8_t *)message, msg_len);
+    fprintf(fp, "static const size_t test_message_len = %zu;\n\n", msg_len);
+    
+    /* Public key */
+    fprintf(fp, "/* Falcon-512 public key (%zu bytes) */\n", (size_t)PUBKEY_SIZE);
+    write_hex_array(fp, "test_pubkey", pubkey, PUBKEY_SIZE);
+    
+    /* Compressed signature */
+    fprintf(fp, "/* Signature - COMPRESSED format (%zu bytes) */\n", sig_comp_len);
+    write_hex_array(fp, "test_sig_compressed", sig_compressed, sig_comp_len);
+    fprintf(fp, "static const size_t test_sig_compressed_len = %zu;\n\n", sig_comp_len);
+    
+    /* Padded signature */
+    fprintf(fp, "/* Signature - PADDED format (%zu bytes, fixed size) */\n", sig_pad_len);
+    write_hex_array(fp, "test_sig_padded", sig_padded, sig_pad_len);
+    fprintf(fp, "static const size_t test_sig_padded_len = %zu;\n\n", sig_pad_len);
+    
+    /* CT signature */
+    fprintf(fp, "/* Signature - CT format (%zu bytes, constant-time) */\n", sig_ct_len);
+    write_hex_array(fp, "test_sig_ct", sig_ct, sig_ct_len);
+    fprintf(fp, "static const size_t test_sig_ct_len = %zu;\n\n", sig_ct_len);
+    
+    fprintf(fp, "#endif /* EXTRACTED_VECTORS_H */\n");
+    
+    fclose(fp);
+    
+    printf("Success! %s created.\n", OUTPUT_FILE);
+    
+    /* Cleanup */
+    free(pubkey);
+    free(privkey);
+    free(sig_compressed);
+    free(sig_padded);
+    free(sig_ct);
+    free(tmp);
+    
+    return 0;
+}
