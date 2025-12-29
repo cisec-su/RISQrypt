@@ -8,7 +8,7 @@ SRC += vrfy.c
 SRC += common.c
 SRC += falcon.c
 SRC += codec.c
-SRC += shake.c
+SRC += symmetric.c
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 

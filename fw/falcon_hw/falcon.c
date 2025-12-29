@@ -31,58 +31,147 @@
 
 #include "falcon.h"
 #include "inner.h"
+#include "keccak.h"
+#include "util.h"
 
-/* see falcon.h */
-void
-shake256_init(shake256_context *sc)
+#ifndef SHAKE256_RATE
+#define SHAKE256_RATE 136
+#endif
+#ifndef SHAKE_PAD
+#define SHAKE_PAD 0x1F
+#endif
+
+/* Hardware Context Overlay */
+typedef struct {
+    uint8_t  in_buf[4];   /* Accumulate bytes */
+    size_t   in_cnt;
+    
+    uint8_t  out_buf[4];  /* Buffered output */
+    size_t   out_cnt;
+    size_t   out_ptr;
+    
+    uint32_t aligned_word; 
+} hw_ctx_t;
+
+/* ================================================================== */
+/* INNER IMPLEMENTATION                                               */
+/* ================================================================== */
+
+void inner_shake256_init(inner_shake256_context *sc)
 {
-	inner_shake256_init((inner_shake256_context *)sc);
+    hw_ctx_t *ctx = (hw_ctx_t *)sc;
+    
+    ctx->in_cnt = 0;
+    ctx->out_cnt = 0;
+    ctx->out_ptr = 0;
+    ctx->aligned_word = 0;
+    memset(ctx->in_buf, 0, 4);
+    memset(ctx->out_buf, 0, 4);
+    
+    // Initialize FPGA for this context
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
 }
 
-/* see falcon.h */
-void
-shake256_inject(shake256_context *sc, const void *data, size_t len)
+void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t len)
 {
-	inner_shake256_inject((inner_shake256_context *)sc, data, len);
+    hw_ctx_t *ctx = (hw_ctx_t *)sc;
+    size_t i;
+
+    for (i = 0; i < len; i++) {
+        ctx->in_buf[ctx->in_cnt++] = in[i];
+
+        if (ctx->in_cnt == 4) {
+            ctx->aligned_word = (uint32_t)ctx->in_buf[0] |
+                               ((uint32_t)ctx->in_buf[1] << 8) |
+                               ((uint32_t)ctx->in_buf[2] << 16) |
+                               ((uint32_t)ctx->in_buf[3] << 24);
+            
+            keccak_absorb(&ctx->aligned_word, NULL, 1);
+            
+            ctx->in_cnt = 0;
+        }
+    }
 }
 
-/* see falcon.h */
-void
-shake256_flip(shake256_context *sc)
+void inner_shake256_flip(inner_shake256_context *sc)
 {
-	inner_shake256_flip((inner_shake256_context *)sc);
+    hw_ctx_t *ctx = (hw_ctx_t *)sc;
+    size_t i;
+
+    if (ctx->in_cnt > 0) {
+        /* We have partial bytes - combine with padding */
+        ctx->aligned_word = 0;
+        for (i = 0; i < ctx->in_cnt; i++) {
+            ctx->aligned_word |= ((uint32_t)ctx->in_buf[i]) << (8 * i);
+        }
+        /* Add padding byte at the next position */
+        ctx->aligned_word |= ((uint32_t)SHAKE_PAD) << (8 * ctx->in_cnt);
+        
+        keccak_finish(&ctx->aligned_word);
+    } else {
+        /* No buffered bytes - just do padding */
+        keccak_finish(KECCAK_NULL_PAD_WORD);
+    }
+    
+    ctx->in_cnt = 0;
 }
 
-/* see falcon.h */
-void
-shake256_extract(shake256_context *sc, void *out, size_t len)
+void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len)
 {
-	inner_shake256_extract((inner_shake256_context *)sc, out, len);
+    hw_ctx_t *ctx = (hw_ctx_t *)sc;
+    size_t i;
+
+    for (i = 0; i < len; i++) {
+        if (ctx->out_ptr >= ctx->out_cnt) {
+            /* Fetch into persistent buffer */
+            keccak_squeeze(&ctx->aligned_word, NULL, 1);
+            
+            /* Unpack to byte buffer */
+            ctx->out_buf[0] = (uint8_t)(ctx->aligned_word);
+            ctx->out_buf[1] = (uint8_t)(ctx->aligned_word >> 8);
+            ctx->out_buf[2] = (uint8_t)(ctx->aligned_word >> 16);
+            ctx->out_buf[3] = (uint8_t)(ctx->aligned_word >> 24);
+            
+            ctx->out_cnt = 4;
+            ctx->out_ptr = 0;
+        }
+        out[i] = ctx->out_buf[ctx->out_ptr++];
+    }
 }
 
-/* see falcon.h */
-void
-shake256_init_prng_from_seed(shake256_context *sc,
-	const void *seed, size_t seed_len)
-{
-	shake256_init(sc);
-	shake256_inject(sc, seed, seed_len);
-	shake256_flip(sc);
+/* ================================================================== */
+/* PUBLIC API WRAPPERS                                                */
+/* ================================================================== */
+
+void shake256_init(shake256_context *sc) {
+    inner_shake256_init((inner_shake256_context *)sc);
 }
 
-/* see falcon.h */
-int
-shake256_init_prng_from_system(shake256_context *sc)
-{
-	uint8_t seed[48];
+void shake256_inject(shake256_context *sc, const void *data, size_t len) {
+    inner_shake256_inject((inner_shake256_context *)sc, (const uint8_t *)data, len);
+}
 
-	if (!Zf(get_seed)(seed, sizeof seed)) {
-		return FALCON_ERR_RANDOM;
-	}
-	shake256_init(sc);
-	shake256_inject(sc, seed, sizeof seed);
-	shake256_flip(sc);
-	return 0;
+void shake256_flip(shake256_context *sc) {
+    inner_shake256_flip((inner_shake256_context *)sc);
+}
+
+void shake256_extract(shake256_context *sc, void *out, size_t len) {
+    inner_shake256_extract((inner_shake256_context *)sc, (uint8_t *)out, len);
+}
+
+void shake256_init_prng_from_seed(shake256_context *sc, const void *seed, size_t seed_len) {
+    shake256_init(sc);
+    shake256_inject(sc, seed, seed_len);
+    shake256_flip(sc);
+}
+
+int shake256_init_prng_from_system(shake256_context *sc) {
+    uint8_t seed[48];
+    if (!Zf(get_seed)(seed, sizeof seed)) return FALCON_ERR_RANDOM;
+    shake256_init(sc);
+    shake256_inject(sc, seed, sizeof seed);
+    shake256_flip(sc);
+    return 0;
 }
 
 static inline uint8_t *
