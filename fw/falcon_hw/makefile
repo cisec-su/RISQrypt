@@ -10,7 +10,6 @@ SRC += falcon.c
 SRC += codec.c
 SRC += symmetric.c
 SRC += keccak_tests.c
-# SRC += shake.c
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 

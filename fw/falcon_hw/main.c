@@ -38,14 +38,6 @@
 /* General purpose large buffer for tests (72KB to be safe for all operations) */
 #define WORK_BUFFER_SIZE (72 * 1024)
 
-/* ================================================================== */
-/* TYPEDEFS & GLOBAL DATA                                             */
-/* ================================================================== */
-
-#ifndef FALCON_H__
-typedef struct { uint64_t opaque[64]; } shake256_context;
-#endif
-
 /* Allocate actual memory for operations */
 static uint8_t pool_buffer[WORK_BUFFER_SIZE];
 
@@ -69,9 +61,10 @@ void test_falcon_verify() {
                            tmpvv, tmpvv_len);
 
     if (result == 0) {
-        print_string("PASS (Size: ");
-        print_u32((uint32_t)test_sig_compressed_len);
-        print_string(" bytes)\n");
+        print_string("PASS COMPRESSED SIGNATURE");
+        print_string("\nSignature Size: ");
+        print_dec((uint32_t)test_sig_compressed_len);
+        print_string(" bytes\n");
     } else {
         print_string("FAIL (Error: ");
         print_u32((uint32_t)result);
@@ -89,9 +82,10 @@ void test_falcon_verify() {
                            tmpvv, tmpvv_len);
 
     if (result == 0) {
-        print_string("PASS (Size: ");
-        print_u32((uint32_t)test_sig_padded_len);
-        print_string(" bytes)\n");
+        print_string("PASS PADDED SIGNATURE");
+        print_string("\nSignature Size: ");
+        print_dec((uint32_t)test_sig_padded_len);
+        print_string(" bytes\n");
     } else {
         print_string("FAIL (Error: ");
         print_u32((uint32_t)result);
@@ -109,9 +103,10 @@ void test_falcon_verify() {
                            tmpvv, tmpvv_len);
 
     if (result == 0) {
-        print_string("PASS (Size: ");
-        print_u32((uint32_t)test_sig_ct_len);
-        print_string(" bytes)\n");
+        print_string("PASS CT SIGNATURE");
+        print_string("\nSignature Size: ");
+        print_dec((uint32_t)test_sig_ct_len);
+        print_string(" bytes\n");
     } else if (result == FALCON_ERR_SIZE) {
         print_string("FAIL (FALCON_ERR_SIZE)\n");
     } else if (result == FALCON_ERR_FORMAT) {
@@ -124,15 +119,13 @@ void test_falcon_verify() {
         print_string(")\n");
     }
     
-    print_string("\n=== Falcon-512 Verification NEW  END===\n");
+    print_string("\n=== Falcon-512 Verification END===\n");
 }
 
 
 int main() {
     tmpvv = pool_buffer;
     tmpvv_len = WORK_BUFFER_SIZE;
-
-    print_string("\n=== Falcon-512 Function Tests ===\n");
     
     //these tests worked well for falcon API
     /*test_keccak_simple();

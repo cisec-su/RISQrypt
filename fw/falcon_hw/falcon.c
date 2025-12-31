@@ -33,7 +33,7 @@
 #include "inner.h"
 #include "keccak.h"
 #include "util.h"
-#include "symmetric.h" /* Access to your working falcon_shake256 */
+#include "symmetric.h" 
 
 
 /* * GLOBAL BUFFERS (Prevents Stack Overflow)
@@ -840,8 +840,6 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     uint16_t *h, *hm;
     int16_t *sv;
     int ct;
-
-    print_string("\n [VF] Start verify_finish\n");
 
     /*
      * Get Falcon degree from public key; verify consistency with
