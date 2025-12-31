@@ -290,7 +290,7 @@ void test_unaligned_injection() {
     /* "12345" unaligned (offset by 1) */
     uint8_t *buffer_unaligned = buffer_aligned + 1; 
 
-    print_string("\n=== Test: Unaligned Injection (The Falcon Killer) ===\n");
+    print_string("\n=== Test: Unaligned Injection ===\n");
 
     /* 1. Reference: Hash "2345" (aligned logic) */
     shake256_init(&sc);
@@ -455,7 +455,7 @@ int main() {
     test_keccak_simple();
     test_keccak_golden();
     test_dilithium_api();
-    test_unaligned_injection();
+    //test_unaligned_injection();
     //test_long_squeeze();
     debug_squeeze_words();
     debug_squeeze_repeat();

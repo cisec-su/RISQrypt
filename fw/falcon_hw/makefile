@@ -9,6 +9,7 @@ SRC += common.c
 SRC += falcon.c
 SRC += codec.c
 SRC += symmetric.c
+# SRC += shake.c
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 

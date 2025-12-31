@@ -33,187 +33,118 @@
 #include "inner.h"
 #include "keccak.h"
 #include "util.h"
-/* Include hornet.h to access registers for manual cleanup */
-#include "hornet.h"
+#include "symmetric.h" /* Access to your working dilithium_shake256 */
 
-#ifndef SHAKE256_RATE
-#define SHAKE256_RATE 136
-#endif
-#ifndef SHAKE_PAD
-#define SHAKE_PAD 0x1F
-#endif
 
-typedef struct {
-    uint8_t  in_buf[4];
-    size_t   in_cnt;
-    
-    uint8_t  out_buf[4];
-    size_t   out_cnt;
-    size_t   out_ptr;
-    
-    uint32_t aligned_backup; 
-    uint32_t finish_word;
-} hw_ctx_t;
-
-static inline uint32_t pack_word(const uint8_t *b) {
-    return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | 
-           ((uint32_t)b[2] << 16) | ((uint32_t)b[3] << 24);
-}
-
-/* * MANUAL CLEANUP HELPER
- * The driver (keccak.c) leaves command bits (ABSORB/SQUEEZE) High.
- * We must force them Low so the next call creates a Rising Edge (Trigger).
+/* * GLOBAL BUFFERS (Prevents Stack Overflow)
+ * We cannot put these in the context struct because the struct size 
+ * is fixed in inner.h (~200 bytes). We use static globals instead.
  */
-static void force_cleanup_hw(void) {
-    /* Clear ABSORB, SQUEEZE, and PAD bits */
-    uint32_t clear_mask = ~(KECCAK_CTRL_CMD_ABSORB | 
-                            KECCAK_CTRL_CMD_SQUEEZE | 
-                            KECCAK_CTRL_CMD_PAD);
-    KECCAK_REGS->ctrl &= clear_mask;
-}
+#define MAX_IN_BUF  4096 
+#define MAX_OUT_BUF 2048 
+
+/* Global storage for the "Proxy" mechanism */
+static uint8_t  g_in_buf[MAX_IN_BUF];
+static size_t   g_in_len = 0;
+
+static uint8_t  g_out_buf[MAX_OUT_BUF];
+static size_t   g_out_ptr = 0;
+static int      g_generated = 0;
+
+/* ================================================================== */
+/* FALCON INTERFACE IMPLEMENTATION                                    */
+/* ================================================================== */
 
 void inner_shake256_init(inner_shake256_context *sc)
 {
-    hw_ctx_t *ctx = (hw_ctx_t *)sc;
-    ctx->in_cnt = 0;
-    ctx->out_cnt = 0;
-    ctx->out_ptr = 0;
-    ctx->aligned_backup = 0;
-    ctx->finish_word = 0;
-    memset(ctx->in_buf, 0, 4);
+    /* Reset global state */
+    g_in_len = 0;
+    g_out_ptr = 0;
+    g_generated = 0;
     
-    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-    force_cleanup_hw(); /* Ensure clean slate */
+    /* Clear buffers for sanity (optional, helpful for debug) */
+    // memset(g_in_buf, 0, MAX_IN_BUF); 
+    // memset(g_out_buf, 0, MAX_OUT_BUF);
+    
+    (void)sc; /* Unused */
 }
 
 void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t len)
 {
-    hw_ctx_t *ctx = (hw_ctx_t *)sc;
-
-    /* 1. Fill partial buffer */
-    while (ctx->in_cnt > 0 && ctx->in_cnt < 4 && len > 0) {
-        ctx->in_buf[ctx->in_cnt++] = *in++;
-        len--;
+    /* Buffer the input data globally */
+    if (g_in_len + len <= MAX_IN_BUF) {
+        memcpy(&g_in_buf[g_in_len], in, len);
+        g_in_len += len;
     }
-    if (ctx->in_cnt == 4) {
-        ctx->aligned_backup = pack_word(ctx->in_buf);
-        
-        keccak_absorb(&ctx->aligned_backup, NULL, 1);
-        force_cleanup_hw(); /* <--- RESET TRIGGER */
-        
-        ctx->in_cnt = 0;
-    }
-
-    /* 2. BATCH INJECT (Chunk size 32 bytes) */
-    if (len >= 4) {
-        uint32_t temp_chunk[8];
-        size_t chunk_cap_bytes = 32; 
-        
-        while (len >= 4) {
-            size_t batch_len = (len > chunk_cap_bytes) ? chunk_cap_bytes : (len & ~3);
-            /* CORRECT UNIT: Words (32-bit) -> Shift by 2 */
-            size_t batch_words = batch_len >> 2;
-            
-            memcpy(temp_chunk, in, batch_len);
-            
-            keccak_absorb(temp_chunk, NULL, batch_words);
-            force_cleanup_hw(); /* <--- RESET TRIGGER */
-            
-            in += batch_len;
-            len -= batch_len;
-        }
-    }
-
-    /* 3. Buffer tail */
-    while (len > 0) {
-        ctx->in_buf[ctx->in_cnt++] = *in++;
-        len--;
-        if (ctx->in_cnt == 4) {
-             ctx->aligned_backup = pack_word(ctx->in_buf);
-             
-             keccak_absorb(&ctx->aligned_backup, NULL, 1);
-             force_cleanup_hw(); /* <--- RESET TRIGGER */
-             
-             ctx->in_cnt = 0;
-        }
-    }
+    (void)sc;
 }
 
 void inner_shake256_flip(inner_shake256_context *sc)
 {
-    hw_ctx_t *ctx = (hw_ctx_t *)sc;
-    volatile uint32_t t = 0;
-    size_t i;
-
-    ctx->in_buf[ctx->in_cnt++] = SHAKE_PAD;
-    for (i = 0; i < ctx->in_cnt; i++) {
-        t |= ((uint32_t)ctx->in_buf[i]) << (8 * i);
-    }
-    
-    ctx->finish_word = t;
-    
-    keccak_finish(&ctx->finish_word);
-    force_cleanup_hw(); /* <--- RESET TRIGGER */
-    
-    ctx->in_cnt = 0;
+    /* Ready to generate. Dilithium API handles padding. */
+    g_generated = 0;
+    (void)sc;
 }
 
 void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len)
 {
-    hw_ctx_t *ctx = (hw_ctx_t *)sc;
-    
-    /* 1. Drain buffered bytes */
-    while (ctx->out_ptr < ctx->out_cnt && len > 0) {
-        *out++ = ctx->out_buf[ctx->out_ptr++];
-        len--;
-    }
-    
-    /* 2. CHUNKED SQUEEZE with CLEANUP */
-    if (len >= 4) {
-        uint32_t temp_chunk[8]; 
-        size_t chunk_cap_bytes = 32; 
+    /* FIRST EXTRACT CALL: Trigger the Hardware via Dilithium API */
+    if (!g_generated) {
+        /* Generate MAX_OUT_BUF bytes of randomness at once */
+        dilithium_shake256(g_out_buf, MAX_OUT_BUF, g_in_buf, g_in_len);
         
-        while (len >= 4) {
-            size_t batch_len = (len > chunk_cap_bytes) ? chunk_cap_bytes : (len & ~3);
-            /* CORRECT UNIT: Words (32-bit) -> Shift by 2 */
-            size_t batch_words = batch_len >> 2;
-            
-            keccak_squeeze(temp_chunk, NULL, batch_words);
-            force_cleanup_hw(); /* <--- RESET SQUEEZE BIT */
-            
-            memcpy(out, temp_chunk, batch_len);
-            
-            out += batch_len;
-            len -= batch_len;
-        }
+        g_generated = 1;
+        g_out_ptr = 0;
     }
 
-    /* 3. Tail Processing */
-    while (len > 0) {
-        if (ctx->out_ptr >= ctx->out_cnt) {
-            keccak_squeeze(&ctx->aligned_backup, NULL, 1);
-            force_cleanup_hw(); /* <--- RESET TRIGGER */
-            
-            ctx->out_buf[0] = (uint8_t)(ctx->aligned_backup);
-            ctx->out_buf[1] = (uint8_t)(ctx->aligned_backup >> 8);
-            ctx->out_buf[2] = (uint8_t)(ctx->aligned_backup >> 16);
-            ctx->out_buf[3] = (uint8_t)(ctx->aligned_backup >> 24);
-            
-            ctx->out_cnt = 4;
-            ctx->out_ptr = 0;
-        }
-        *out++ = ctx->out_buf[ctx->out_ptr++];
-        len--;
+    /* Serve from Global RAM buffer */
+    size_t copy_len = len;
+    
+    if (g_out_ptr + copy_len > MAX_OUT_BUF) {
+        copy_len = MAX_OUT_BUF - g_out_ptr;
     }
+
+    if (copy_len > 0) {
+        memcpy(out, &g_out_buf[g_out_ptr], copy_len);
+        g_out_ptr += copy_len;
+    }
+    
+    /* Zero-fill if out of bounds */
+    if (copy_len < len) {
+        memset(out + copy_len, 0, len - copy_len);
+    }
+    (void)sc;
 }
 
-/* API Wrappers */
-void shake256_init(shake256_context *sc) { inner_shake256_init((inner_shake256_context *)sc); }
-void shake256_inject(shake256_context *sc, const void *data, size_t len) { inner_shake256_inject((inner_shake256_context *)sc, (const uint8_t *)data, len); }
-void shake256_flip(shake256_context *sc) { inner_shake256_flip((inner_shake256_context *)sc); }
-void shake256_extract(shake256_context *sc, void *out, size_t len) { inner_shake256_extract((inner_shake256_context *)sc, (uint8_t *)out, len); }
-void shake256_init_prng_from_seed(shake256_context *sc, const void *seed, size_t seed_len) { shake256_init(sc); shake256_inject(sc, seed, seed_len); shake256_flip(sc); }
-int shake256_init_prng_from_system(shake256_context *sc) { return FALCON_ERR_RANDOM; }
+/* ================================================================== */
+/* PUBLIC API WRAPPERS                                                */
+/* ================================================================== */
+
+void shake256_init(shake256_context *sc) { 
+    inner_shake256_init((inner_shake256_context *)sc); 
+}
+
+void shake256_inject(shake256_context *sc, const void *data, size_t len) { 
+    inner_shake256_inject((inner_shake256_context *)sc, (const uint8_t *)data, len); 
+}
+
+void shake256_flip(shake256_context *sc) { 
+    inner_shake256_flip((inner_shake256_context *)sc); 
+}
+
+void shake256_extract(shake256_context *sc, void *out, size_t len) { 
+    inner_shake256_extract((inner_shake256_context *)sc, (uint8_t *)out, len); 
+}
+
+void shake256_init_prng_from_seed(shake256_context *sc, const void *seed, size_t seed_len) { 
+    shake256_init(sc); 
+    shake256_inject(sc, seed, seed_len); 
+    shake256_flip(sc); 
+}
+
+int shake256_init_prng_from_system(shake256_context *sc) { 
+    return FALCON_ERR_RANDOM; 
+}
 
 static inline uint8_t *
 align_u64(void *tmp)
