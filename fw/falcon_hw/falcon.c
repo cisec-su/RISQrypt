@@ -33,7 +33,7 @@
 #include "inner.h"
 #include "keccak.h"
 #include "util.h"
-#include "symmetric.h" /* Access to your working dilithium_shake256 */
+#include "symmetric.h" /* Access to your working falcon_shake256 */
 
 
 /* * GLOBAL BUFFERS (Prevents Stack Overflow)
@@ -81,17 +81,17 @@ void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t
 
 void inner_shake256_flip(inner_shake256_context *sc)
 {
-    /* Ready to generate. Dilithium API handles padding. */
+    /* Ready to generate. Falcon API handles padding. */
     g_generated = 0;
     (void)sc;
 }
 
 void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len)
 {
-    /* FIRST EXTRACT CALL: Trigger the Hardware via Dilithium API */
+    /* FIRST EXTRACT CALL: Trigger the Hardware via Falcon API */
     if (!g_generated) {
         /* Generate MAX_OUT_BUF bytes of randomness at once */
-        dilithium_shake256(g_out_buf, MAX_OUT_BUF, g_in_buf, g_in_len);
+        falcon_shake256(g_out_buf, MAX_OUT_BUF, g_in_buf, g_in_len);
         
         g_generated = 1;
         g_out_ptr = 0;
@@ -819,12 +819,9 @@ falcon_verify_start(shake256_context *hash_data,
 	const void *sig, size_t sig_len)
 {
 	if (sig_len < 41) {
-		print_string("falcon_verify_start: error sig_len < 41\n");
 		return FALCON_ERR_FORMAT;
 	}
-	print_string("falcon_verify_start: success go shake256_init\n");
 	shake256_init(hash_data);
-	print_string("falcon_verify_start: success go shake256_inject\n");
 	shake256_inject(hash_data, (const uint8_t *)sig + 1, 40);
 	return 0;
 }
@@ -844,7 +841,7 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     int16_t *sv;
     int ct;
 
-    print_string("[VF] Start verify_finish\n");
+    print_string("\n [VF] Start verify_finish\n");
 
     /*
      * Get Falcon degree from public key; verify consistency with
@@ -1026,15 +1023,11 @@ falcon_verify(const void *sig, size_t sig_len, int sig_type,
 {
 	shake256_context hd;
 	int r;
-	print_string("\n falcon_verify before start\n");
 	r = falcon_verify_start(&hd, sig, sig_len);
 	if (r < 0) {
-		print_string("\nfalcon_verify r<0 branch\n");
 		return r;
 	}
-	print_string("\nfalcon_verify before inject\n");
 	shake256_inject(&hd, data, data_len);
-	print_string("\nfalcon_verify before falcon_verify_finish\n");
 	return falcon_verify_finish(sig, sig_len, sig_type,
 		pubkey, pubkey_len, &hd, tmp, tmp_len);
 }
