@@ -11,5 +11,6 @@ extern const uint8_t golden_abcd_dil[32];
 void test_keccak_simple(void);
 void test_keccak_golden(void);
 void test_falcon_api(void);
+void keccak_newapi(void);
 
 #endif /* KECCAK_TESTS_H__ */

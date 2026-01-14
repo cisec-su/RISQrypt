@@ -36,42 +36,34 @@
 #include "symmetric.h" 
 
 
-/* * GLOBAL BUFFERS (Prevents Stack Overflow)
- * We cannot put these in the context struct because the struct size 
- * is fixed in inner.h (~200 bytes). We use static globals instead.
+/*
+ * Global buffers for HW Keccak - sized for Falcon-512 verification.
+ * Using globals because inner_shake256_context struct is too small (apprx 200 bytes).
  */
-#define MAX_IN_BUF  4096 
-#define MAX_OUT_BUF 2048 
+#define MAX_IN_BUF  256   /* nonce(40) + message */
+#define MAX_OUT_BUF 1536  /* hash_to_point output: apprx 1434 bytes needed */
 
-/* Global storage for the "Proxy" mechanism */
-static uint8_t  g_in_buf[MAX_IN_BUF];
+static uint8_t  g_in_buf[MAX_IN_BUF] __attribute__((aligned(4)));
 static size_t   g_in_len = 0;
 
-static uint8_t  g_out_buf[MAX_OUT_BUF];
+static uint8_t  g_out_buf[MAX_OUT_BUF] __attribute__((aligned(4)));
 static size_t   g_out_ptr = 0;
 static int      g_generated = 0;
 
 /* ================================================================== */
-/* FALCON INTERFACE IMPLEMENTATION                                    */
+/* HW Keccak SHAKE256 Implementation                                  */
 /* ================================================================== */
 
 void inner_shake256_init(inner_shake256_context *sc)
 {
-    /* Reset global state */
     g_in_len = 0;
     g_out_ptr = 0;
     g_generated = 0;
-    
-    /* Clear buffers for sanity (optional, helpful for debug) */
-    // memset(g_in_buf, 0, MAX_IN_BUF); 
-    // memset(g_out_buf, 0, MAX_OUT_BUF);
-    
-    (void)sc; /* Unused */
+    (void)sc;
 }
 
 void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t len)
 {
-    /* Buffer the input data globally */
     if (g_in_len + len <= MAX_IN_BUF) {
         memcpy(&g_in_buf[g_in_len], in, len);
         g_in_len += len;
@@ -81,35 +73,34 @@ void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t
 
 void inner_shake256_flip(inner_shake256_context *sc)
 {
-    /* Ready to generate. Falcon API handles padding. */
     g_generated = 0;
     (void)sc;
 }
 
 void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len)
 {
-    /* FIRST EXTRACT CALL: Trigger the Hardware via Falcon API */
+    /* First extract triggers HW: init -> absorb -> finish -> squeeze (atomic) */
     if (!g_generated) {
-        /* Generate MAX_OUT_BUF bytes of randomness at once */
-        falcon_shake256(g_out_buf, MAX_OUT_BUF, g_in_buf, g_in_len);
+        volatile uint32_t t = SHAKE_PAD;
+        
+        keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+        keccak_absorb((uint32_t*)g_in_buf, NULL, g_in_len >> 2);
+        keccak_finish((uint32_t*)&t);
+        keccak_squeeze((uint32_t*)g_out_buf, NULL, MAX_OUT_BUF >> 2);
         
         g_generated = 1;
         g_out_ptr = 0;
     }
 
-    /* Serve from Global RAM buffer */
+    /* Serve from pre-squeezed buffer */
     size_t copy_len = len;
-    
     if (g_out_ptr + copy_len > MAX_OUT_BUF) {
         copy_len = MAX_OUT_BUF - g_out_ptr;
     }
-
     if (copy_len > 0) {
         memcpy(out, &g_out_buf[g_out_ptr], copy_len);
         g_out_ptr += copy_len;
     }
-    
-    /* Zero-fill if out of bounds */
     if (copy_len < len) {
         memset(out + copy_len, 0, len - copy_len);
     }

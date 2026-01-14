@@ -335,7 +335,10 @@ int main() {
     test_falcon_api();*/
 
     //test_ntt_hw_basic();
+    //keccak_newapi();
+
     test_falcon_verify();
+    
     
     return 0;
 }

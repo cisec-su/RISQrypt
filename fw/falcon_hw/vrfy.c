@@ -742,7 +742,7 @@ Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
 
     mq_poly_sub(tt, c0, logn);
 
-    //compare_intermediate("Sub(res-c0)", tt, gold_sub, n);
+    //compare_intermediate("Sub(tt-c0)", tt, gold_sub, n);
 
 
 

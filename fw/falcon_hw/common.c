@@ -31,42 +31,74 @@
 
 #include "inner.h"
 
-/* see inner.h */
+/* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
+
 void
 Zf(hash_to_point_vartime)(
 	inner_shake256_context *sc,
 	uint16_t *x, unsigned logn)
 {
 	/*
-	 * This is the straightforward per-the-spec implementation. It
-	 * is not constant-time, thus it might reveal information on the
-	 * plaintext (at least, enough to check the plaintext against a
-	 * list of potential plaintexts) in a scenario where the
-	 * attacker does not have access to the signature value or to
-	 * the public key, but knows the nonce (without knowledge of the
-	 * nonce, the hashed output cannot be matched against potential
-	 * plaintexts).
+	 * Maximum optimization: process 68 samples (136 bytes = SHAKE256_RATE) 
+	 * per extraction to minimize function call overhead.
 	 */
 	size_t n;
+	unsigned i;
 
 	n = (size_t)1 << logn;
+	
+	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
+	while (n >= 68) {
+		uint8_t buf[136];
+		inner_shake256_extract(sc, buf, 136);
+		
+		for (i = 0; i < 68 && n > 0; i++) {
+			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
+			if (w < 61445) {
+				while (w >= 12289) {
+					w -= 12289;
+				}
+				*x++ = (uint16_t)w;
+				n--;
+			}
+		}
+	}
+	
+	/* Process 16 samples at a time for remaining */
+	while (n >= 16) {
+		uint8_t buf[32];
+		inner_shake256_extract(sc, buf, 32);
+		
+		for (i = 0; i < 16 && n > 0; i++) {
+			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
+			if (w < 61445) {
+				while (w >= 12289) {
+					w -= 12289;
+				}
+				*x++ = (uint16_t)w;
+				n--;
+			}
+		}
+	}
+	
+	/* Handle remaining samples one at a time */
 	while (n > 0) {
 		uint8_t buf[2];
 		uint32_t w;
 
-		inner_shake256_extract(sc, (void *)buf, sizeof buf);
+		inner_shake256_extract(sc, buf, 2);
 		w = ((unsigned)buf[0] << 8) | (unsigned)buf[1];
 		if (w < 61445) {
 			while (w >= 12289) {
 				w -= 12289;
 			}
-			*x ++ = (uint16_t)w;
-			n --;
+			*x++ = (uint16_t)w;
+			n--;
 		}
 	}
 }
 
-/* see inner.h */
+/* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
 void
 Zf(hash_to_point_ct)(
 	inner_shake256_context *sc,
@@ -122,17 +154,48 @@ Zf(hash_to_point_ct)(
 	 * Values n..2*n-1 go to tt1[]. Values 2*n and later go to tt2[].
 	 * We also reduce modulo q the values; rejected values are set
 	 * to 0xFFFF.
+	 * 
+	 * Maximum optimization: extract 136 bytes (68 samples = SHAKE256_RATE) at a time.
 	 */
 	n = 1U << logn;
 	n2 = n << 1;
 	over = overtab[logn];
 	m = n + over;
 	tt1 = (uint16_t *)tmp;
-	for (u = 0; u < m; u ++) {
+	
+	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
+	for (u = 0; u + 67 < m; u += 68) {
+		uint8_t buf[136];
+		unsigned i;
+		
+		inner_shake256_extract(sc, buf, 136);
+		
+		for (i = 0; i < 68; i++) {
+			unsigned idx = u + i;
+			uint32_t w = ((uint32_t)buf[i*2] << 8) | (uint32_t)buf[i*2 + 1];
+			uint32_t wr;
+			
+			wr = w - ((uint32_t)24578 & (((w - 24578) >> 31) - 1));
+			wr = wr - ((uint32_t)24578 & (((wr - 24578) >> 31) - 1));
+			wr = wr - ((uint32_t)12289 & (((wr - 12289) >> 31) - 1));
+			wr |= ((w - 61445) >> 31) - 1;
+			
+			if (idx < n) {
+				x[idx] = (uint16_t)wr;
+			} else if (idx < n2) {
+				tt1[idx - n] = (uint16_t)wr;
+			} else {
+				tt2[idx - n2] = (uint16_t)wr;
+			}
+		}
+	}
+	
+	/* Handle remaining samples one at a time */
+	while (u < m) {
 		uint8_t buf[2];
 		uint32_t w, wr;
 
-		inner_shake256_extract(sc, buf, sizeof buf);
+		inner_shake256_extract(sc, buf, 2);
 		w = ((uint32_t)buf[0] << 8) | (uint32_t)buf[1];
 		wr = w - ((uint32_t)24578 & (((w - 24578) >> 31) - 1));
 		wr = wr - ((uint32_t)24578 & (((wr - 24578) >> 31) - 1));
@@ -145,6 +208,7 @@ Zf(hash_to_point_ct)(
 		} else {
 			tt2[u - n2] = (uint16_t)wr;
 		}
+		u++;
 	}
 
 	/*
