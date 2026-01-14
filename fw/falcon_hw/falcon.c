@@ -846,87 +846,87 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
      * signature value, and check parameters.
      */
     if (sig_len < 41 || pubkey_len == 0) {
-        print_string("[VF] Err: sig_len < 41 or no pubkey\n");
+        //print_string("[VF] Err: sig_len < 41 or no pubkey\n");
         return FALCON_ERR_FORMAT;
     }
     es = sig;
     pk = pubkey;
     if ((pk[0] & 0xF0) != 0x00) {
-        print_string("[VF] Err: Invalid pubkey header (0xF0)\n");
+        //print_string("[VF] Err: Invalid pubkey header (0xF0)\n");
         return FALCON_ERR_FORMAT;
     }
     logn = pk[0] & 0x0F;
     if (logn < 1 || logn > 10) {
-        print_string("[VF] Err: Invalid logn (1-10)\n");
+        //print_string("[VF] Err: Invalid logn (1-10)\n");
         return FALCON_ERR_FORMAT;
     }
     if ((es[0] & 0x0F) != logn) {
-        print_string("[VF] Err: Sig/Key logn mismatch\n");
+        //print_string("[VF] Err: Sig/Key logn mismatch\n");
         return FALCON_ERR_BADSIG;
     }
     
     ct = 0;
     switch (sig_type) {
     case 0: /* Auto-detect */
-        print_string("[VF] Type: Auto (0)\n");
+        //print_string("\n[VF] Type: Auto (0)\n");
         switch (es[0] & 0xF0) {
         case 0x30:
-            print_string("[VF] Detected: COMPRESSED/PADDED (0x30)\n");
+            //print_string("[VF] Detected: COMPRESSED/PADDED (0x30)\n");
             break;
         case 0x50:
-            print_string("[VF] Detected: CT (0x50)\n");
+            //print_string("[VF] Detected: CT (0x50)\n");
             if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
-                print_string("[VF] Err: CT Sig Size Mismatch\n");
+                //print_string("[VF] Err: CT Sig Size Mismatch\n");
                 return FALCON_ERR_FORMAT;
             }
             ct = 1;
             break;
         default:
-            print_string("[VF] Err: Unknown Sig Header\n");
+            //print_string("[VF] Err: Unknown Sig Header\n");
             return FALCON_ERR_BADSIG;
         }
         break;
     case FALCON_SIG_COMPRESSED:
-        print_string("[VF] Type: COMPRESSED\n");
+        //print_string("\n[VF] Type: COMPRESSED\n");
         if ((es[0] & 0xF0) != 0x30) {
-            print_string("[VF] Err: Header not 0x30\n");
+            //print_string("[VF] Err: Header not 0x30\n");
             return FALCON_ERR_FORMAT;
         }
         break;
     case FALCON_SIG_PADDED:
-        print_string("[VF] Type: PADDED\n");
+        //print_string("\n[VF] Type: PADDED\n");
         if ((es[0] & 0xF0) != 0x30) {
-            print_string("[VF] Err: Header not 0x30\n");
+            //print_string("[VF] Err: Header not 0x30\n");
             return FALCON_ERR_FORMAT;
         }
         if (sig_len != FALCON_SIG_PADDED_SIZE(logn)) {
-            print_string("[VF] Err: PADDED Sig Size Mismatch\n");
+            //print_string("[VF] Err: PADDED Sig Size Mismatch\n");
             return FALCON_ERR_FORMAT;
         }
         break;
     case FALCON_SIG_CT:
-        print_string("[VF] Type: CT\n");
+        //print_string("\n[VF] Type: CT\n");
         if ((es[0] & 0xF0) != 0x50) {
-            print_string("[VF] Err: Header not 0x50\n");
+            //print_string("[VF] Err: Header not 0x50\n");
             return FALCON_ERR_FORMAT;
         }
         if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
-            print_string("[VF] Err: CT Sig Size Mismatch\n");
+            //print_string("[VF] Err: CT Sig Size Mismatch\n");
             return FALCON_ERR_FORMAT;
         }
         ct = 1;
         break;
     default:
-        print_string("[VF] Err: Bad sig_type arg\n");
+        //print_string("[VF] Err: Bad sig_type arg\n");
         return FALCON_ERR_BADARG;
     }
 
     if (pubkey_len != FALCON_PUBKEY_SIZE(logn)) {
-        print_string("[VF] Err: Pubkey Size Mismatch\n");
+        //print_string("[VF] Err: Pubkey Size Mismatch\n");
         return FALCON_ERR_FORMAT;
     }
     if (tmp_len < FALCON_TMPSIZE_VERIFY(logn)) {
-        print_string("[VF] Err: Temp Buffer Too Small\n");
+        //print_string("[VF] Err: Temp Buffer Too Small\n");
         return FALCON_ERR_SIZE;
     }
 
@@ -939,18 +939,18 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     /*
      * Decode public key.
      */
-    print_string("[VF] Decoding PubKey...\n");
+    //print_string("[VF] Decoding PubKey...\n");
     if (Zf(modq_decode)(h, logn, pk + 1, pubkey_len - 1)
         != pubkey_len - 1)
     {
-        print_string("[VF] Err: modq_decode failed\n");
+        //print_string("[VF] Err: modq_decode failed\n");
         return FALCON_ERR_FORMAT;
     }
 
     /*
      * Decode signature value.
      */
-    print_string("[VF] Decoding Sig...\n");
+    //print_string("[VF] Decoding Sig...\n");
     u = 41;
     if (ct) {
         v = Zf(trim_i16_decode)(sv, logn,
@@ -960,7 +960,7 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     }
     
     if (v == 0) {
-        print_string("[VF] Err: Sig Decode (trim/comp) failed\n");
+        //print_string("[VF] Err: Sig Decode (trim/comp) failed\n");
         return FALCON_ERR_FORMAT;
     }
     
@@ -974,13 +974,13 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
         {
             while (u + v < sig_len) {
                 if (es[u + v] != 0) {
-                    print_string("[VF] Err: Non-zero padding bytes\n");
+                    //print_string("[VF] Err: Non-zero padding bytes\n");
                     return FALCON_ERR_FORMAT;
                 }
                 v ++;
             }
         } else {
-            print_string("[VF] Err: Extra bytes in non-padded sig\n");
+            //print_string("[VF] Err: Extra bytes in non-padded sig\n");
             return FALCON_ERR_FORMAT;
         }
     }
@@ -988,7 +988,7 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     /*
      * Hash message to point.
      */
-    print_string("[VF] Hash to Point...\n");
+    //print_string("[VF] Hash to Point...\n");
     shake256_flip(hash_data);
     if (ct) {
         Zf(hash_to_point_ct)(
@@ -1001,14 +1001,14 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     /*
      * Verify signature.
      */
-    print_string("[VF] NTT & Raw Verify...\n");
+    //print_string("[VF] NTT & Raw Verify...\n");
     Zf(to_ntt_monty)(h, logn);
     if (!Zf(verify_raw)(hm, sv, h, logn, atmp)) {
-        print_string("[VF] Err: verify_raw failed (Math Check)\n");
+        //print_string("[VF] Err: verify_raw failed (Math Check)\n");
         return FALCON_ERR_BADSIG;
     }
     
-    print_string("[VF] Success\n");
+    //print_string("[VF] Success\n");
     return 0;
 }
 
