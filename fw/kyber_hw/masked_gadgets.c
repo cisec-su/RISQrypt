@@ -61,6 +61,11 @@ void masked_gadgets_B2A_qm_u32_core(poly_u32 *r[MASKING_N], const poly_u32 *a[MA
 }
 
 
+void masked_gadgets_B2A_onebit_frommsg(masked_poly *r, const masked_msg msg) {
+    x2x_b2a_1bit((uint32_t*)  &r->share[1], (uint32_t*)  &r->share[0], (uint32_t*) msg[1], (uint32_t*) msg[0], 0, KYBER_N);
+}
+
+
 void masked_gadgets_B2A_qm_u32(masked_poly_u32 *r, const masked_poly_u32 *a) {
 #if (MASKING_N != 2)
 #error "This implementation requires MASKING_N = 2"
