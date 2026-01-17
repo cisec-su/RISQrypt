@@ -34,6 +34,8 @@ void masked_gadgets_B2A_qm_u32_vec(masked_polyvec_u32 *r, const masked_polyvec_u
 
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a);
 
+void masked_gadgets_B2A_onebit_frommsg(masked_poly *r, const masked_msg msg);
+
 void masked_gadgets_exp_u32(masked_u32 r, masked_u32 a);
 
 int masked_gadgets_zero_test_mul(masked_u32 a);

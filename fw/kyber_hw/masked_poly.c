@@ -13,12 +13,7 @@ void masked_poly_frommsg(masked_poly *a, const masked_msg msg) {
     const uint32_t q = (KYBER_Q << 16) | KYBER_Q;
     const uint32_t mu[2] = {0x13afb7, 0x13afb7};
     
-    for (i = 0; i < MASKING_N; i++) {
-        ntt_lite_set_clr_with_twiddle();
-        ntt_lite_decode((uint32_t*) &a->share[i], (uint32_t*) msg[i], 1);
-    }
-
-    masked_gadgets_B2A_q(a, a);
+    masked_gadgets_B2A_onebit_frommsg(a, msg);
 
     ntt_lite_set_ctrl(7, 12, NTT_LITE_MODE_DUAL);
 
