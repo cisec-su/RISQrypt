@@ -4,7 +4,7 @@
 
 #include "api.h"
 #include "params.h"
-#include "wots_.h"
+#include "wots_masked.h"
 #include "fors_masked.h"
 #include "hash_masked.h"
 #include "thash_masked.h"
@@ -76,7 +76,7 @@ int crypto_sign_seed_keypair_masked(unsigned char *pk, unsigned char *sk,
     return 0;
 }
 
-// MAsked version of crypto_sign_signature
+// Masked version of crypto_sign_signature
 int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
                           const uint8_t *m, size_t mlen, const uint8_t *sk)
 {
@@ -115,7 +115,7 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
     randombytes(optrand, SPX_N);
     
     //Compute the digest randomization value
-    gen_message_random(sig, sk_prf, optrand, m, mlen, &ctx);
+    gen_message_random_masked(sig, sk_prf, optrand, m, mlen, &ctx);
 
     // Derive the message digest and leaf index from R, PK and M
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
