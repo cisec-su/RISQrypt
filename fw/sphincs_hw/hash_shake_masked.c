@@ -13,20 +13,56 @@ void initialize_hash_function(spx_ctx* ctx)
     (void)ctx; /* Suppress an 'unused parameter' warning. */
 }
 
-void gen_message_random(unsigned char *R, const unsigned char *sk_prf,
-                        const unsigned char *optrand,
-                        const unsigned char *m, unsigned long long mlen,
-                        const spx_ctx *ctx)
+// Masked version of gen_message_random
+void gen_message_random_masked(unsigned char *R,
+                               const unsigned char *sk_prf,
+                               const unsigned char *optrand,
+                               const unsigned char *m, unsigned long long mlen,
+                               const spx_ctx *ctx)
 {
-    (void)ctx;
-    uint64_t s_inc[26];
+    // Prepare split key shares
+    unsigned char sk_prf_share1[SPX_N]; // Reuse the splitting logic from sign.c
+    unsigned char sk_prf_share2[SPX_N];
+    unsigned char rand_mask[SPX_N];
+    
+    randombytes(rand_mask, SPX_N);
+    for(int i=0; i<SPX_N; i++) {
+        sk_prf_share1[i] = sk_prf[i] ^ rand_mask[i];
+        sk_prf_share2[i] = rand_mask[i];
+    }
 
-    shake256_inc_init(s_inc);
-    shake256_inc_absorb(s_inc, sk_prf, SPX_N);
-    shake256_inc_absorb(s_inc, optrand, SPX_N);
-    shake256_inc_absorb(s_inc, m, mlen);
-    shake256_inc_finalize(s_inc);
-    shake256_inc_squeeze(R, SPX_N, s_inc);
+    // Prepare message shares
+    size_t total_len = 2*SPX_N + mlen; // Split so that hardware sees random data.
+    
+    SPX_VLA(uint8_t, buf1, total_len);
+    SPX_VLA(uint8_t, buf2, total_len);
+    
+    // Copy SK_PRF shares
+    memcpy(buf1, sk_prf_share1, SPX_N);
+    memcpy(buf2, sk_prf_share2, SPX_N);
+    
+    // Copy OptRand
+    unsigned char opt_mask[SPX_N];
+    randombytes(opt_mask, SPX_N);
+    for(int i=0; i<SPX_N; i++) {
+        buf1[SPX_N + i] = optrand[i] ^ opt_mask[i];
+        buf2[SPX_N + i] = opt_mask[i];
+    }
+
+    // Copy masked message. NOTE: to check if code correct use simpler approach where buf2 = 0
+    for(unsigned long long i=0; i<mlen; i++) {
+        buf1[2*SPX_N + i] = m[i];
+        buf2[2*SPX_N + i] = 0; // No masking for message body bc it's public and saves time
+    }
+
+    // Perform masked hash
+    unsigned char R1[SPX_N];
+    unsigned char R2[SPX_N];
+    
+    masked_shake256(R1, R2, SPX_N, buf1, buf2, total_len);
+    
+    // Recombine R
+    for(int i=0; i<SPX_N; i++) R[i] = R1[i] ^ R2[i];
 }
 
 /**
