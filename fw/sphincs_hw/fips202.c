@@ -22,6 +22,25 @@ static hw_keccak_ctx* get_ctx(uint64_t *s_inc) {
 }
 
 static void hw_absorb(hw_keccak_ctx *ctx, const uint8_t *input, size_t inlen) {
+    // flush any buffered bytes by continuing to fill the buffer
+    while (inlen > 0 && ctx->buf_len > 0) {
+        ctx->buf[ctx->buf_len++] = *input++;
+        inlen--;
+        if (ctx->buf_len == 4) {
+            keccak_absorb((uint32_t*)ctx->buf, NULL, 1);
+            ctx->buf_len = 0;
+        }
+    }
+
+    // transfer aligned words in bulk
+    if ((((uintptr_t)input) & 0x3) == 0 && inlen >= 4) {
+        size_t words = inlen >> 2;
+        keccak_absorb((const uint32_t*)input, NULL, words);
+        input += (words << 2);
+        inlen -= (words << 2);
+    }
+
+    // Buffer remaining bytes
     while (inlen > 0) {
         ctx->buf[ctx->buf_len++] = *input++;
         inlen--;
@@ -54,7 +73,15 @@ static void hw_squeeze(hw_keccak_ctx *ctx, uint8_t *output, size_t outlen) {
     }
 
     if (outlen == 0) return;
-        // Output not aligned. Squeeze word by word into temp buffer.
+
+    // Fast path: output aligned and need multiple words
+    if ((((uintptr_t)output) & 0x3) == 0 && outlen >= 4) {
+        size_t words = outlen >> 2;
+        keccak_squeeze((uint32_t*)output, NULL, words);
+        output += (words << 2);
+        outlen -= (words << 2);
+    } else {
+        // Unaligned output: squeeze word by word into temp buffer
         while (outlen >= 4) {
             uint32_t t;
             keccak_squeeze(&t, NULL, 1);
@@ -62,19 +89,16 @@ static void hw_squeeze(hw_keccak_ctx *ctx, uint8_t *output, size_t outlen) {
             output += 4;
             outlen -= 4;
         }
+    }
 
     // Handle remaining bytes (< 4)
     if (outlen > 0) {
         uint32_t t;
         keccak_squeeze(&t, NULL, 1);
-        // Store in squeeze_buf
         memcpy(ctx->squeeze_buf, &t, 4);
-        
-        size_t to_copy = outlen; // outlen is 1, 2, or 3
-        memcpy(output, ctx->squeeze_buf, to_copy);
-        
-        ctx->squeeze_ptr = to_copy;
-        ctx->squeeze_rem = 4 - to_copy;
+        memcpy(output, ctx->squeeze_buf, outlen);
+        ctx->squeeze_ptr = outlen;
+        ctx->squeeze_rem = 4 - outlen;
     }
 }
 
@@ -83,7 +107,7 @@ void shake128_inc_init(uint64_t *s_inc) {
     hw_keccak_ctx *ctx = get_ctx(s_inc);
     ctx->buf_len = 0;
     ctx->rate_words = SHAKE128_RATE >> 3;
-    ctx->pad = 0x1F;
+    ctx->pad = SHAKE_PAD;
     ctx->finalized = 0;
     ctx->squeeze_rem = 0;
     keccak_init(ctx->rate_words, KECCAK_MASK_DIS);
@@ -112,11 +136,13 @@ void shake128_squeezeblocks(uint8_t *output, size_t nblocks, uint64_t *s) {
 }
 
 void shake128(uint8_t *output, size_t outlen, const uint8_t *input, size_t inlen) {
-    uint64_t s[26];
-    shake128_inc_init(s);
-    shake128_inc_absorb(s, input, inlen);
-    shake128_inc_finalize(s);
-    shake128_inc_squeeze(output, outlen, s);
+    volatile uint32_t t;
+    keccak_init(SHAKE128_RATE >> 3, KECCAK_MASK_DIS);
+    keccak_absorb((const uint32_t*)input, NULL, inlen >> 2);
+    t = SHAKE_PAD;
+    keccak_finish((uint32_t*)&t);
+    keccak_squeeze((uint32_t*)output, NULL, outlen >> 2);
+    return;
 }
 
 // SHAKE256
@@ -124,7 +150,7 @@ void shake256_inc_init(uint64_t *s_inc) {
     hw_keccak_ctx *ctx = get_ctx(s_inc);
     ctx->buf_len = 0;
     ctx->rate_words = SHAKE256_RATE >> 3;
-    ctx->pad = 0x1F;
+    ctx->pad = SHAKE_PAD;
     ctx->finalized = 0;
     ctx->squeeze_rem = 0;
     keccak_init(ctx->rate_words, KECCAK_MASK_DIS);
@@ -153,9 +179,11 @@ void shake256_squeezeblocks(uint8_t *output, size_t nblocks, uint64_t *s) {
 }
 
 void shake256(uint8_t *output, size_t outlen, const uint8_t *input, size_t inlen) {
-    uint64_t s[26];
-    shake256_inc_init(s);
-    shake256_inc_absorb(s, input, inlen);
-    shake256_inc_finalize(s);
-    shake256_inc_squeeze(output, outlen, s);
-}
+    volatile uint32_t t;
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+    keccak_absorb((const uint32_t*)input, NULL, inlen >> 2);
+    t = SHAKE_PAD;
+    keccak_finish((uint32_t*)&t);
+    keccak_squeeze((uint32_t*)output, NULL, outlen >> 2);
+    return;
+} 
