@@ -77,11 +77,6 @@ static const uint16_t iGMb[] = {
 /* === FALCON-512 HARDWARE CONSTANTS === */
 /* Generated for Dual-Mode (Packed) Architecture */
 
-// Modulus Q = 12289
-// Vector Bound (Dual Mode) = 512 / 2 = 256
-const uint32_t FALCON_Q     = 0x3001;
-const uint32_t FALCON_INV2  = 0x1801;
-const uint32_t FALCON_MU[2] = {0xE425E9E0, 0x00055538};
 
 const uint32_t psi[256] = {
     0x0FFB0FFB, 0x1B301B30, 0x06370637, 0x024A024A, 
@@ -216,6 +211,13 @@ const uint32_t psi_inv[256] = {
     0x25022502, 0x01D901D9, 0x0FDE0FDE, 0x159E159E, 
     0x16841684, 0x00050005, 0x152D152D, 0x1D8F1D8F 
 };
+
+
+// Modulus Q = 12289
+// Vector Bound (Dual Mode) = 512 / 2 = 256
+const uint32_t FALCON_Q     = 0x3001;
+const uint32_t FALCON_INV2  = 0x1801;
+const uint32_t FALCON_MU[2] = {0xE425E9E0, 0x00055538};
 
 void poly_init_q() {
 

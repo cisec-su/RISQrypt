@@ -34,6 +34,7 @@
 #include "keccak.h"
 #include "util.h"
 #include "symmetric.h" 
+#include "timer.h"
 
 
 /*
@@ -55,37 +56,47 @@ static int      g_generated = 0;
 /* ================================================================== */
 
 void inner_shake256_init(inner_shake256_context *sc)
-{
+{ //init here 
     g_in_len = 0;
     g_out_ptr = 0;
     g_generated = 0;
     (void)sc;
+	print_string("******************** INIT CALEDD\n");
+	keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
 }
 
 void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t len)
-{
+{ // absorb here 
     if (g_in_len + len <= MAX_IN_BUF) {
         memcpy(&g_in_buf[g_in_len], in, len);
         g_in_len += len;
     }
     (void)sc;
+	print_string("******************** ABSORB CALLED with ");
+	print_dec(len);
+	print_string("\n");
+	keccak_absorb((uint32_t*)in, NULL, len >> 2);
 }
 
 void inner_shake256_flip(inner_shake256_context *sc)
-{
+{ 
     g_generated = 0;
     (void)sc;
+	volatile uint32_t t = SHAKE_PAD;  
+	keccak_finish((uint32_t*)&t);
 }
 
 void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len)
-{
+{ //squeeze
+    /* First extract triggers HW: init -> absorb -> finish -> squeeze */
+    // keccak_squeeze((uint32_t*)out, NULL, len >> 2);
     /* First extract triggers HW: init -> absorb -> finish -> squeeze (atomic) */
     if (!g_generated) {
-        volatile uint32_t t = SHAKE_PAD;
+        // volatile uint32_t t = SHAKE_PAD;
         
-        keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-        keccak_absorb((uint32_t*)g_in_buf, NULL, g_in_len >> 2);
-        keccak_finish((uint32_t*)&t);
+        // keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+        // keccak_absorb((uint32_t*)g_in_buf, NULL, g_in_len >> 2);
+        // keccak_finish((uint32_t*)&t);
         keccak_squeeze((uint32_t*)g_out_buf, NULL, MAX_OUT_BUF >> 2);
         
         g_generated = 1;
@@ -106,6 +117,42 @@ void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len
     }
     (void)sc;
 }
+
+
+void hw_shake256_init()
+{ //init here 
+    // g_in_len = 0;
+    // g_out_ptr = 0;
+    // g_generated = 0;
+    // (void)sc;
+	keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+}
+
+void hw_shake256_inject(const uint8_t *in, size_t len)
+{ // absorb here 
+    // if (g_in_len + len <= MAX_IN_BUF) {
+    //     memcpy(&g_in_buf[g_in_len], in, len);
+    //     g_in_len += len;
+    // }
+    // (void)sc;
+	keccak_absorb((uint32_t*)in, NULL, len >> 2);
+}
+
+void hw_shake256_flip()
+{ 
+    // g_generated = 0;
+    // (void)sc;
+	volatile uint32_t t = SHAKE_PAD;  
+	keccak_finish((uint32_t*)&t);
+}
+
+void hw_shake256_extract(uint8_t *out, size_t len)
+{ //squeeze
+    /* First extract triggers HW: init -> absorb -> finish -> squeeze */
+    keccak_squeeze((uint32_t*)out, NULL, len >> 2);
+}
+
+
 
 /* ================================================================== */
 /* PUBLIC API WRAPPERS                                                */
@@ -812,8 +859,23 @@ falcon_verify_start(shake256_context *hash_data,
 	if (sig_len < 41) {
 		return FALCON_ERR_FORMAT;
 	}
+	unsigned int time;
+	/*
+	 * Hash message to point.
+	 */
+	print_string("\n falcon_verify_start line 769 shake256_init(hash_data) and shake256_inject(hash_data, (const uint8_t *)sig + 1, 40) timer");
+	timer_reset();
+    timer_start();
+
 	shake256_init(hash_data);
 	shake256_inject(hash_data, (const uint8_t *)sig + 1, 40);
+	    
+	time = timer_read();
+	print_string("\nTime: ");
+    print_dec(time);
+    print_string(" cycles");
+    print_string("\n");
+
 	return 0;
 }
 
@@ -976,11 +1038,22 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
         }
     }
 
-    /*
-     * Hash message to point.
-     */
-    //print_string("[VF] Hash to Point...\n");
-    shake256_flip(hash_data);
+	unsigned int time;
+	/*
+	 * Hash message to point.
+	 */
+	print_string("\n falcon_verify_finish line 903 shake256_flip(hashdata) timer");
+	timer_reset();
+    timer_start();
+
+	shake256_flip(hash_data);
+    
+	time = timer_read();
+	print_string("\nTime: ");
+    print_dec(time);
+    print_string(" cycles");
+    print_string("\n");
+
     if (ct) {
         Zf(hash_to_point_ct)(
             (inner_shake256_context *)hash_data, hm, logn, atmp);
@@ -1016,7 +1089,21 @@ falcon_verify(const void *sig, size_t sig_len, int sig_type,
 	if (r < 0) {
 		return r;
 	}
+	unsigned int time;
+	/*
+	 * Hash message to point.
+	 */
+	print_string("\n falcon_verify line 951 shake256_inject(&hd, data, data_len) timer");
+	timer_reset();
+    timer_start();
+
 	shake256_inject(&hd, data, data_len);
+    
+	time = timer_read();
+	print_string("\nTime: ");
+    print_dec(time);
+    print_string(" cycles");
+    print_string("\n");
 	return falcon_verify_finish(sig, sig_len, sig_type,
 		pubkey, pubkey_len, &hd, tmp, tmp_len);
 }

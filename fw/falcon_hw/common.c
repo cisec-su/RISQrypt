@@ -30,7 +30,8 @@
  */
 
 #include "inner.h"
-
+#include "timer.h"
+#include "util.h"
 /* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
 
 void
@@ -43,16 +44,19 @@ Zf(hash_to_point_vartime)(
 	 * per extraction to minimize function call overhead.
 	 */
 	size_t n;
-	unsigned i;
+	unsigned int time;
 
 	n = (size_t)1 << logn;
+	print_string("\n common.c line 60 Zf(hash_to_point_vartime) timer");
+	timer_reset();
+	timer_start();
 	
 	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
 	while (n >= 68) {
 		uint8_t buf[136];
 		inner_shake256_extract(sc, buf, 136);
 		
-		for (i = 0; i < 68 && n > 0; i++) {
+		for (unsigned i = 0; i < 68 && n > 0; i++) {
 			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
 			if (w < 61445) {
 				while (w >= 12289) {
@@ -69,7 +73,7 @@ Zf(hash_to_point_vartime)(
 		uint8_t buf[32];
 		inner_shake256_extract(sc, buf, 32);
 		
-		for (i = 0; i < 16 && n > 0; i++) {
+		for (unsigned i = 0; i < 16 && n > 0; i++) {
 			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
 			if (w < 61445) {
 				while (w >= 12289) {
@@ -96,6 +100,11 @@ Zf(hash_to_point_vartime)(
 			n--;
 		}
 	}
+	time = timer_read();
+	print_string("\nTime: ");
+	print_dec(time);
+	print_string(" cycles");
+	print_string("\n");
 }
 
 /* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
@@ -162,7 +171,15 @@ Zf(hash_to_point_ct)(
 	over = overtab[logn];
 	m = n + over;
 	tt1 = (uint16_t *)tmp;
-	
+		
+	unsigned int time;
+	/*
+	* Hash message to point.
+	*/
+	print_string("\n common.c line 139 Zf(hash_to_point_ct) timer");
+	timer_reset();
+	timer_start();
+
 	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
 	for (u = 0; u + 67 < m; u += 68) {
 		uint8_t buf[136];
@@ -295,6 +312,11 @@ Zf(hash_to_point_ct)(
 			*d = (uint16_t)(dv ^ (mk & (sv ^ dv)));
 		}
 	}
+	time = timer_read();
+	print_string("\nTime: ");
+	print_dec(time);
+	print_string(" cycles");
+	print_string("\n");
 }
 
 /*
