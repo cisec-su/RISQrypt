@@ -31,7 +31,7 @@ INC = -I../common
 
 # OBJ_DUMP = 1
 
-OPTIMIZATION = -O0 # Default is -O0
+OPTIMIZATION = -O3 # Default is -O0
 
 # Pass PARAMS to C code
 CFLAGS += -DPARAMS=$(PARAMS)
