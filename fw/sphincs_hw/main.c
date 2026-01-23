@@ -7,7 +7,6 @@
 #include "benchmark.h"
 #include "unity.h"
 
-// Includes for tests
 #include "context.h"
 #include "hash.h"
 #include "fors.h"
@@ -17,7 +16,28 @@
 #include "randombytes.h"
 
 #define SPX_MLEN 32
-#define NTESTS 10
+
+// Test vectors
+static unsigned char pk[SPX_PK_BYTES];
+static unsigned char sk[SPX_SK_BYTES];
+static unsigned char m[SPX_MLEN];
+static unsigned char sm[SPX_BYTES + SPX_MLEN];
+static unsigned char sm_masked[SPX_BYTES + SPX_MLEN];  // For masked signature
+static unsigned char mout[SPX_BYTES + SPX_MLEN];
+static unsigned long long smlen;
+static unsigned long long smlen_masked;
+static unsigned long long mlen;
+
+// Context for component tests
+static spx_ctx ctx;
+
+// Helper for WOTS pk generation benchmark
+static void wots_gen_pkx1(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
+    struct leaf_info_x1 leaf;
+    unsigned steps[SPX_WOTS_LEN] = {0};
+    INITIALIZE_LEAF_INFO_X1(leaf, addr, steps);
+    wots_gen_leafx1(pk_out, ctx_in, 0, &leaf);
+}
 
 void setUp(void) {
 }
@@ -25,161 +45,326 @@ void setUp(void) {
 void tearDown(void) {
 }
 
-void print_str(const char *s) {
-    uart_transmit_string(s, strlen(s));
+// =============================================================================
+// Print SPHINCS+ Parameters
+// =============================================================================
+void print_parameters(void) {
+    print_string("\n========================================\n");
+    print_string("       SPHINCS+ Parameter Set\n");
+    print_string("========================================\n");
+    
+    print_string("Security parameter (n):     ");
+    print_u32_int(SPX_N);
+    print_string(" bytes\n");
+    
+    print_string("Full tree height:           ");
+    print_u32_int(SPX_FULL_HEIGHT);
+    print_string("\n");
+    
+    print_string("Number of layers (d):       ");
+    print_u32_int(SPX_D);
+    print_string("\n");
+    
+    print_string("Subtree height:             ");
+    print_u32_int(SPX_TREE_HEIGHT);
+    print_string("\n");
+    
+    print_string("FORS tree height:           ");
+    print_u32_int(SPX_FORS_HEIGHT);
+    print_string("\n");
+    
+    print_string("FORS trees (k):             ");
+    print_u32_int(SPX_FORS_TREES);
+    print_string("\n");
+    
+    print_string("Winternitz parameter (w):   ");
+    print_u32_int(SPX_WOTS_W);
+    print_string("\n");
+    
+    print_string("WOTS length:                ");
+    print_u32_int(SPX_WOTS_LEN);
+    print_string("\n");
+    
+    print_string("\n--- Key and Signature Sizes ---\n");
+    
+    print_string("Public key size:            ");
+    print_u32_int(SPX_PK_BYTES);
+    print_string(" bytes\n");
+    
+    print_string("Secret key size:            ");
+    print_u32_int(SPX_SK_BYTES);
+    print_string(" bytes\n");
+    
+    print_string("Signature size:             ");
+    print_u32_int(SPX_BYTES);
+    print_string(" bytes (");
+    print_u32_int(SPX_BYTES / 1024);
+    print_string(" KiB)\n");
+    
+    print_string("\n--- Component Sizes ---\n");
+    
+    print_string("FORS signature:             ");
+    print_u32_int(SPX_FORS_BYTES);
+    print_string(" bytes\n");
+    
+    print_string("WOTS signature:             ");
+    print_u32_int(SPX_WOTS_BYTES);
+    print_string(" bytes\n");
+    
+    print_string("FORS message bytes:         ");
+    print_u32_int(SPX_FORS_MSG_BYTES);
+    print_string(" bytes\n");
+    
+    print_string("Address bytes:              ");
+    print_u32_int(SPX_ADDR_BYTES);
+    print_string(" bytes\n");
+    
+    print_string("========================================\n\n");
 }
 
-void print_ull(unsigned long long n) {
-    char buf[32];
-    int i = 0;
-    if (n == 0) {
-        print_str("0");
-        return;
-    }
-    while (n > 0) {
-        buf[i++] = (n % 10) + '0';
-        n /= 10;
-    }
-    for (int j = 0; j < i / 2; j++) {
-        char t = buf[j];
-        buf[j] = buf[i - 1 - j];
-        buf[i - 1 - j] = t;
-    }
-    buf[i] = 0;
-    print_str(buf);
+// =============================================================================
+// Keypair Test
+// =============================================================================
+void test_sphincs_keypair(void) {
+    BENCH_INIT()
+    int ret;
+
+    print_string("\n[Keypair] Generating key pair...\n");
+    print_string("  Output: pk[");
+    print_u32_int(SPX_PK_BYTES);
+    print_string("], sk[");
+    print_u32_int(SPX_SK_BYTES);
+    print_string("]\n");
+
+    BENCH_START()
+
+    ret = crypto_sign_keypair(pk, sk);
+
+    BENCH_END(SPX_KEYPAIR)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    print_string("  Result: SUCCESS\n");
 }
 
-// --- Helpers for Benchmark ---
-static int cmp_llu(const void *a, const void*b) {
-  if(*(unsigned long long *)a < *(unsigned long long *)b) return -1;
-  if(*(unsigned long long *)a > *(unsigned long long *)b) return 1;
-  return 0;
-}
-
-static unsigned long long median(unsigned long long *l, size_t llen) {
-  qsort(l,llen,sizeof(unsigned long long),cmp_llu);
-  if(llen%2) return l[llen/2];
-  else return (l[llen/2-1]+l[llen/2])/2;
-}
-
-static void wots_gen_pkx1(unsigned char *pk, const spx_ctx* ctx, uint32_t addr[8]) {
-    struct leaf_info_x1 leaf;
-    unsigned steps[ SPX_WOTS_LEN ] = { 0 };
-    INITIALIZE_LEAF_INFO_X1(leaf, addr, steps);
-    wots_gen_leafx1(pk, ctx, 0, &leaf);
-}
-
-// --- Tests ---
-
-void test_fors(void) {
-    spx_ctx ctx;
-    unsigned char pk1[SPX_FORS_PK_BYTES];
-    unsigned char pk2[SPX_FORS_PK_BYTES];
-    unsigned char sig[SPX_FORS_BYTES];
-    unsigned char m[SPX_FORS_MSG_BYTES];
-    uint32_t addr[8] = {0};
-
-    randombytes(ctx.sk_seed, SPX_N);
-    randombytes(ctx.pub_seed, SPX_N);
-    randombytes(m, SPX_FORS_MSG_BYTES);
-    randombytes((unsigned char *)addr, 8 * sizeof(uint32_t));
-
-    initialize_hash_function(&ctx);
-
-    fors_sign(sig, pk1, m, &ctx, addr);
-    fors_pk_from_sig(pk2, sig, m, &ctx, addr);
-
-    TEST_ASSERT_EQUAL_MEMORY(pk1, pk2, SPX_FORS_PK_BYTES);
-}
-
-void test_spx(void) {
-    unsigned char pk[SPX_PK_BYTES];
-    unsigned char sk[SPX_SK_BYTES];
-    // Use static to avoid stack overflow on small embedded stacks
-    static unsigned char m[SPX_MLEN];
-    static unsigned char sm[SPX_BYTES + SPX_MLEN];
-    static unsigned char mout[SPX_BYTES + SPX_MLEN];
-    unsigned long long smlen;
-    unsigned long long mlen;
+// =============================================================================
+// Sign Test
+// =============================================================================
+void test_sphincs_sign(void) {
+    BENCH_INIT()
     int ret;
 
     randombytes(m, SPX_MLEN);
 
-    print_str("\n[TEST] SPHINCS+ Signature\n");
-    ret = crypto_sign_keypair(pk, sk);
-    TEST_ASSERT_EQUAL(0, ret);
+    print_string("\n[Sign] Signing message...\n");
+    print_string("  Message length:    ");
+    print_u32_int(SPX_MLEN);
+    print_string(" bytes\n");
+    print_string("  Expected sig size: ");
+    print_u32_int(SPX_BYTES);
+    print_string(" bytes\n");
 
-    print_str("[TEST] Signing Message\n");
+    BENCH_START()
+
     ret = crypto_sign(sm, &smlen, m, SPX_MLEN, sk);
-    TEST_ASSERT_EQUAL(0, ret);
-    TEST_ASSERT_EQUAL_UINT32(SPX_BYTES + SPX_MLEN, smlen);
 
-    print_str("[TEST] Verifying Signature\n");
+    BENCH_END(SPX_SIGN)
+
+    print_string("  Actual sig+msg:    ");
+    print_u32_int((uint32_t)smlen);
+    print_string(" bytes\n");
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_UINT32(SPX_BYTES + SPX_MLEN, smlen);
+    print_string("  Result: SUCCESS\n");
+}
+
+// =============================================================================
+// Verify Test
+// =============================================================================
+void test_sphincs_verify(void) {
+    BENCH_INIT()
+    int ret;
+
+    print_string("\n[Verify] Verifying signature...\n");
+    print_string("  Signature length:  ");
+    print_u32_int((uint32_t)smlen);
+    print_string(" bytes\n");
+
+    BENCH_START()
+
     ret = crypto_sign_open(mout, &mlen, sm, smlen, pk);
-    TEST_ASSERT_EQUAL(0, ret);
+
+    BENCH_END(SPX_VERIFY)
+
+    print_string("  Recovered msg len: ");
+    print_u32_int((uint32_t)mlen);
+    print_string(" bytes\n");
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
     TEST_ASSERT_EQUAL_UINT32(SPX_MLEN, mlen);
     TEST_ASSERT_EQUAL_MEMORY(m, mout, SPX_MLEN);
+    print_string("  Result: SUCCESS (message matches)\n");
+}
 
-    print_str("[TEST] Fault Injection Test\n");
-    // Fault injection test
+// =============================================================================
+// Verify Fail Test - Corrupted signature should fail
+// =============================================================================
+void test_sphincs_verify_fail(void) {
+    int ret;
+
+    print_string("\n[Verify Fail] Testing corrupted signature...\n");
+    print_string("  Corrupting last byte of signature\n");
+
+    // Corrupt the signature
     sm[smlen - 1] ^= 1;
+
     ret = crypto_sign_open(mout, &mlen, sm, smlen, pk);
+
     TEST_ASSERT_NOT_EQUAL(0, ret);
-    sm[smlen - 1] ^= 1; // Restore
+    print_string("  Result: SUCCESS (correctly rejected)\n");
+
+    // Restore
+    sm[smlen - 1] ^= 1;
 }
 
-void test_benchmark(void) {
-    print_str("\n[BENCHMARK] Starting...\n");
-    
-    spx_ctx ctx;
-    unsigned char pk[SPX_PK_BYTES];
-    unsigned char sk[SPX_SK_BYTES];
-    static unsigned char m[SPX_MLEN];
-    static unsigned char sm[SPX_BYTES + SPX_MLEN];
-    static unsigned char mout[SPX_BYTES + SPX_MLEN];
-    unsigned char fors_pk[SPX_FORS_PK_BYTES];
+// =============================================================================
+// FORS Test
+// =============================================================================
+void test_fors(void) {
+    BENCH_INIT()
+    unsigned char pk1[SPX_FORS_PK_BYTES];
+    unsigned char pk2[SPX_FORS_PK_BYTES];
+    unsigned char sig[SPX_FORS_BYTES];
     unsigned char fors_m[SPX_FORS_MSG_BYTES];
-    unsigned char fors_sig[SPX_FORS_BYTES];
-    unsigned char addr[SPX_ADDR_BYTES];
-    unsigned char block[SPX_N];
-    unsigned char wots_pk[SPX_WOTS_PK_BYTES];
-    unsigned long long smlen;
-    unsigned long long mlen;
-    unsigned long long t[NTESTS];
-    int i;
+    uint32_t addr[8] = {0};
 
-    randombytes(m, SPX_MLEN);
-    randombytes(addr, SPX_ADDR_BYTES);
-    
-    // Initialize context for lower level calls
-    initialize_hash_function(&ctx); 
+    print_string("\n[FORS] Testing FORS sign/verify...\n");
+    print_string("  FORS signature size: ");
+    print_u32_int(SPX_FORS_BYTES);
+    print_string(" bytes\n");
+    print_string("  FORS message size:   ");
+    print_u32_int(SPX_FORS_MSG_BYTES);
+    print_string(" bytes\n");
+    print_string("  FORS trees:          ");
+    print_u32_int(SPX_FORS_TREES);
+    print_string("\n");
+    print_string("  FORS height:         ");
+    print_u32_int(SPX_FORS_HEIGHT);
+    print_string("\n");
 
-    #define MEASURE_LOOP(TEXT, COUNT, FNCALL) \
-        print_str(TEXT); \
-        for(i = 0; i < NTESTS; i++) { \
-            timer_start(); \
-            for(int j=0; j<COUNT; j++) { FNCALL; } \
-            unsigned long long end = (unsigned long long)timer_read(); \
-            t[i] = end/COUNT; \
-        } \
-        print_ull(median(t, NTESTS)); \
-        print_str(" cycles\n");
+    randombytes(ctx.sk_seed, SPX_N);
+    randombytes(ctx.pub_seed, SPX_N);
+    randombytes(fors_m, SPX_FORS_MSG_BYTES);
+    randombytes((unsigned char *)addr, 8 * sizeof(uint32_t));
 
-    #define MEASURE(TEXT, FNCALL) MEASURE_LOOP(TEXT, 1, FNCALL)
+    initialize_hash_function(&ctx);
 
-    MEASURE_LOOP("thash: ", 100, thash(block, block, 1, &ctx, (uint32_t*)addr));
-    MEASURE("Keypair: ", crypto_sign_keypair(pk, sk));
-    MEASURE("WOTS pk gen: ", wots_gen_pkx1(wots_pk, &ctx, (uint32_t *) addr));
-    MEASURE("Sign: ", crypto_sign(sm, &smlen, m, SPX_MLEN, sk));
-    MEASURE("FORS sign: ", fors_sign(fors_sig, fors_pk, fors_m, &ctx, (uint32_t *) addr));
-    MEASURE("Verify: ", crypto_sign_open(mout, &mlen, sm, smlen, pk));
+    BENCH_START()
+
+    fors_sign(sig, pk1, fors_m, &ctx, addr);
+
+    BENCH_END(SPX_FORS_SIGN)
+
+    fors_pk_from_sig(pk2, sig, fors_m, &ctx, addr);
+
+    TEST_ASSERT_EQUAL_MEMORY(pk1, pk2, SPX_FORS_PK_BYTES);
+    print_string("  Result: SUCCESS (pk matches)\n");
 }
 
+// =============================================================================
+// Thash Benchmark (runs 100 iterations for more accurate timing)
+// =============================================================================
+void test_thash_bench(void) {
+    unsigned char block[SPX_N];
+    unsigned char addr[SPX_ADDR_BYTES];
+
+    print_string("\n[Thash] Benchmarking thash (100 iterations)...\n");
+    print_string("  Block size: ");
+    print_u32_int(SPX_N);
+    print_string(" bytes\n");
+
+    randombytes(block, SPX_N);
+    randombytes(addr, SPX_ADDR_BYTES);
+
+    initialize_hash_function(&ctx);
+
+    timer_start();
+
+    for (int i = 0; i < 100; i++) {
+        thash(block, block, 1, &ctx, (uint32_t*)addr);
+    }
+
+    unsigned int elapsed = timer_read();
+    print_string("SPX_THASH_100X:\t");
+    print_u32_int(elapsed / 100);
+    print_string(" cycles\n");
+
+    TEST_PASS();
+}
+
+// =============================================================================
+// WOTS pk gen benchmark
+// =============================================================================
+void test_wots_pk_bench(void) {
+    BENCH_INIT()
+    unsigned char wots_pk[SPX_WOTS_PK_BYTES];
+    uint32_t addr[8] = {0};
+
+    print_string("\n[WOTS] Benchmarking WOTS pk generation...\n");
+    print_string("  WOTS pk size:  ");
+    print_u32_int(SPX_WOTS_PK_BYTES);
+    print_string(" bytes\n");
+    print_string("  WOTS length:   ");
+    print_u32_int(SPX_WOTS_LEN);
+    print_string("\n");
+    print_string("  Winternitz w:  ");
+    print_u32_int(SPX_WOTS_W);
+    print_string("\n");
+
+    initialize_hash_function(&ctx);
+
+    BENCH_START()
+
+    wots_gen_pkx1(wots_pk, &ctx, addr);
+
+    BENCH_END(SPX_WOTS_PKGEN)
+
+    TEST_PASS();
+}
+
+
+// =============================================================================
+// Main
+// =============================================================================
 int main(void) {
     UnityBegin("main.c");
-    print_string("\n --- SPHINCS+ Unity Test Start --- \n");
+
+    print_string("\n");
+    print_string("###############################################\n");
+    print_string("#     SPHINCS+ Hardware Implementation        #\n");
+    print_string("#        with Keccak Masking Support          #\n");
+    print_string("#          Unity Test Suite                   #\n");
+    print_string("###############################################\n");
+
+    // Print all parameters first
+    print_parameters();
+
+    print_string("--- Starting Unmasked Tests ---\n");
+
+    // Core signature scheme tests (unmasked)
+    RUN_TEST(test_sphincs_keypair);
+    RUN_TEST(test_sphincs_sign);
+    RUN_TEST(test_sphincs_verify);
+    RUN_TEST(test_sphincs_verify_fail);
+
+    // Component tests
     RUN_TEST(test_fors);
-    RUN_TEST(test_spx);
-    RUN_TEST(test_benchmark);
+
+    // Benchmark tests
+    RUN_TEST(test_thash_bench);
+    RUN_TEST(test_wots_pk_bench);
+
+    print_string("\n--- All Tests Complete ---\n");
+
     return(UnityEnd());
 }
