@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SHAKE_PAD 0x1F
 #define SHAKE128_RATE 168
 #define SHAKE256_RATE 136
 #define SHA3_256_RATE 136
