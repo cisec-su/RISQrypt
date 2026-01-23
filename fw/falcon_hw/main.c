@@ -30,9 +30,13 @@ static uint8_t pool_buffer[WORK_BUFFER_SIZE];
 uint8_t *tmpvv;
 size_t tmpvv_len;
 
+
+uint32_t sig_buffer[256];
+
 void test_falcon_verify() {
     int result;
     unsigned int time;
+    uint8_t *sig_ptr = ((uint8_t*) sig_buffer) + 3;
 
     print_string("\n=== Falcon-512 Verification NEW ===\n");
 
@@ -41,23 +45,27 @@ void test_falcon_verify() {
      * ---------------------------------------------------------------- */
     print_string("[TEST] Verify COMPRESSED... ");
     
+
+    memcpy(sig_ptr, test_sig_compressed, test_sig_compressed_len);
+
+
     timer_start();
 
-    result = falcon_verify(test_sig_compressed, test_sig_compressed_len, FALCON_SIG_COMPRESSED,
+    result = falcon_verify(sig_ptr, test_sig_compressed_len, FALCON_SIG_COMPRESSED,
                            test_pubkey, sizeof(test_pubkey),
                            test_message, test_message_len,
                            tmpvv, tmpvv_len);
     
     time = timer_read();
     print_string("\nTime: ");
-    print_dec(time);
+    print_u32_int(time);
     print_string(" cycles");
     print_string("\n");
 
     if (result == 0) {
         print_string("PASS COMPRESSED SIGNATURE");
         print_string("\nSignature Size: ");
-        print_dec((uint32_t)test_sig_compressed_len);
+        print_u32_int((uint32_t)test_sig_compressed_len);
         print_string(" bytes\n");
     } else {
         print_string("FAIL (Error: ");
@@ -78,14 +86,14 @@ void test_falcon_verify() {
     //                        tmpvv, tmpvv_len);
     // time = timer_read();
     // print_string("\nTime: ");
-    // print_dec(time);
+    // print_u32_int(time);
     // print_string(" cycles");
     // print_string("\n");
     
     // if (result == 0) {
     //     print_string("PASS PADDED SIGNATURE");
     //     print_string("\nSignature Size: ");
-    //     print_dec((uint32_t)test_sig_padded_len);
+    //     print_u32_int((uint32_t)test_sig_padded_len);
     //     print_string(" bytes\n");
     // } else {
     //     print_string("FAIL (Error: ");
@@ -108,14 +116,14 @@ void test_falcon_verify() {
     
     // time = timer_read();
     // print_string("\nTime: ");
-    // print_dec(time);
+    // print_u32_int(time);
     // print_string(" cycles");
     // print_string("\n");
 
     // if (result == 0) {
     //     print_string("PASS CT SIGNATURE");
     //     print_string("\nSignature Size: ");
-    //     print_dec((uint32_t)test_sig_ct_len);
+    //     print_u32_int((uint32_t)test_sig_ct_len);
     //     print_string(" bytes\n");
     // } else if (result == FALCON_ERR_SIZE) {
     //     print_string("FAIL (FALCON_ERR_SIZE)\n");

@@ -34,75 +34,145 @@
 #include "util.h"
 /* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
 
+// void
+// Zf(hash_to_point_vartime)(
+// 	inner_shake256_context *sc,
+// 	uint16_t *x, unsigned logn)
+// {
+// 	/*
+// 	 * Maximum optimization: process 68 samples (136 bytes = SHAKE256_RATE) 
+// 	 * per extraction to minimize function call overhead.
+// 	 */
+// 	size_t n;
+// 	unsigned int time;
+
+// 	n = (size_t)1 << logn;
+// 	print_string("\n common.c line 60 Zf(hash_to_point_vartime) timer");
+// 	timer_reset();
+// 	timer_start();
+	
+// 	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
+// 	while (n >= 68) {
+// 		uint8_t buf[136];
+// 		inner_shake256_extract(sc, buf, 136);
+
+// 		print_string("+++++++++: ");
+// 		print_hex(buf, 136, 0);
+// 		print_string("\n");
+		
+// 		for (unsigned i = 0; i < 68 && n > 0; i++) {
+// 			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
+// 			if (w < 61445) {
+// 				while (w >= 12289) {
+// 					w -= 12289;
+// 				}
+// 				*x++ = (uint16_t)w;
+// 				n--;
+// 			}
+// 		}
+// 	}
+	
+// 	/* Process 16 samples at a time for remaining */
+// 	while (n >= 16) {
+// 		uint8_t buf[32];
+// 		inner_shake256_extract(sc, buf, 32);
+		
+// 		for (unsigned i = 0; i < 16 && n > 0; i++) {
+// 			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
+// 			if (w < 61445) {
+// 				while (w >= 12289) {
+// 					w -= 12289;
+// 				}
+// 				*x++ = (uint16_t)w;
+// 				n--;
+// 			}
+// 		}
+// 	}
+	
+// 	/* Handle remaining samples one at a time */
+// 	uint32_t buf[34];
+// 	uint8_t *buf_ptr = (uint8_t*) buf;
+// 	int flag = 1;
+// 	inner_shake256_extract(sc, (uint8_t*) &buf, 136);
+// 	while (n > 0) {
+// 		uint32_t w;
+
+// 		// if (flag) {
+// 		// 	buf_ptr = (uint8_t*) &buf;
+// 		// 	flag = 0;
+// 		// }
+// 		// else {
+// 		// 	buf_ptr += 2;
+// 		// 	flag = 1;
+// 		// }
+// 		w = ((unsigned)buf_ptr[0] << 8) | (unsigned)buf_ptr[1];
+// 		buf_ptr += 2;
+// 		print_string("from sha ");
+// 		print_u32(w);
+// 		print_string("\n");
+// 		if (w < 61445) {
+// 			while (w >= 12289) {
+// 				w -= 12289;
+// 			}
+// 			*x++ = (uint16_t)w;
+// 			n--;
+// 		}
+// 	}
+// 	time = timer_read();
+// 	print_string("\nTime: ");
+// 	print_u32_int(time);
+// 	print_string(" cycles");
+// 	print_string("\n");
+// }
+
 void
 Zf(hash_to_point_vartime)(
 	inner_shake256_context *sc,
 	uint16_t *x, unsigned logn)
 {
 	/*
-	 * Maximum optimization: process 68 samples (136 bytes = SHAKE256_RATE) 
-	 * per extraction to minimize function call overhead.
+	 * This is the straightforward per-the-spec implementation. It
+	 * is not constant-time, thus it might reveal information on the
+	 * plaintext (at least, enough to check the plaintext against a
+	 * list of potential plaintexts) in a scenario where the
+	 * attacker does not have access to the signature value or to
+	 * the public key, but knows the nonce (without knowledge of the
+	 * nonce, the hashed output cannot be matched against potential
+	 * plaintexts).
 	 */
 	size_t n;
 	unsigned int time;
+	uint32_t buf[136*4];
+	uint8_t *buf_ptr = (uint8_t*) buf;
+	uint32_t w;
 
 	n = (size_t)1 << logn;
 	print_string("\n common.c line 60 Zf(hash_to_point_vartime) timer");
 	timer_reset();
 	timer_start();
 	
-	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
-	while (n >= 68) {
-		uint8_t buf[136];
-		inner_shake256_extract(sc, buf, 136);
-		
-		for (unsigned i = 0; i < 68 && n > 0; i++) {
-			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
-			if (w < 61445) {
-				while (w >= 12289) {
-					w -= 12289;
-				}
-				*x++ = (uint16_t)w;
-				n--;
-			}
-		}
-	}
-	
-	/* Process 16 samples at a time for remaining */
-	while (n >= 16) {
-		uint8_t buf[32];
-		inner_shake256_extract(sc, buf, 32);
-		
-		for (unsigned i = 0; i < 16 && n > 0; i++) {
-			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
-			if (w < 61445) {
-				while (w >= 12289) {
-					w -= 12289;
-				}
-				*x++ = (uint16_t)w;
-				n--;
-			}
-		}
-	}
-	
-	/* Handle remaining samples one at a time */
 	while (n > 0) {
-		uint8_t buf[2];
-		uint32_t w;
 
-		inner_shake256_extract(sc, buf, 2);
-		w = ((unsigned)buf[0] << 8) | (unsigned)buf[1];
+		if (buf_ptr == buf) {
+			inner_shake256_extract(sc, (void *)buf, sizeof(buf));
+		}
+		w = ((unsigned)buf_ptr[0] << 8) | (unsigned)buf_ptr[1];
+		buf_ptr += 2;
+		if (buf_ptr >= (((uint8_t*) buf) + sizeof(buf))) {
+			// print_string("reset\n");	
+			buf_ptr = (uint8_t*) buf;
+		}
 		if (w < 61445) {
 			while (w >= 12289) {
 				w -= 12289;
 			}
-			*x++ = (uint16_t)w;
-			n--;
+			*x ++ = (uint16_t)w;
+			n --;
 		}
 	}
 	time = timer_read();
 	print_string("\nTime: ");
-	print_dec(time);
+	print_u32_int(time);
 	print_string(" cycles");
 	print_string("\n");
 }
@@ -314,7 +384,7 @@ Zf(hash_to_point_ct)(
 	}
 	time = timer_read();
 	print_string("\nTime: ");
-	print_dec(time);
+	print_u32_int(time);
 	print_string(" cycles");
 	print_string("\n");
 }

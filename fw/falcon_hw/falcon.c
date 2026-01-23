@@ -61,19 +61,24 @@ void inner_shake256_init(inner_shake256_context *sc)
     g_out_ptr = 0;
     g_generated = 0;
     (void)sc;
-	print_string("******************** INIT CALEDD\n");
+	print_string("\n******************** INIT CALEDD\n");
 	keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
 }
 
 void inner_shake256_inject(inner_shake256_context *sc, const uint8_t *in, size_t len)
 { // absorb here 
-    if (g_in_len + len <= MAX_IN_BUF) {
-        memcpy(&g_in_buf[g_in_len], in, len);
-        g_in_len += len;
-    }
-    (void)sc;
-	print_string("******************** ABSORB CALLED with ");
-	print_dec(len);
+    // if (g_in_len + len <= MAX_IN_BUF) {
+    //     memcpy(&g_in_buf[g_in_len], in, len);
+    //     g_in_len += len;
+    // }
+    // (void)sc;
+	// print_string("******************** ABSORB CALLED with ");
+	// print_u32_int(len);
+	// print_string("\n");
+	print_string("\n****** ABSORBING ");
+	print_u32_int(len);
+	print_string("\n");
+	print_u32((uint32_t) in);
 	print_string("\n");
 	keccak_absorb((uint32_t*)in, NULL, len >> 2);
 }
@@ -89,33 +94,38 @@ void inner_shake256_flip(inner_shake256_context *sc)
 void inner_shake256_extract(inner_shake256_context *sc, uint8_t *out, size_t len)
 { //squeeze
     /* First extract triggers HW: init -> absorb -> finish -> squeeze */
-    // keccak_squeeze((uint32_t*)out, NULL, len >> 2);
+    keccak_squeeze((uint32_t*)out, NULL, len >> 2);
+	print_string("\n****** SQUEEZING ");
+	print_u32_int(len);
+	print_string("\n");
+	print_u32((uint32_t) out);
+	print_string("\n");
     /* First extract triggers HW: init -> absorb -> finish -> squeeze (atomic) */
-    if (!g_generated) {
-        // volatile uint32_t t = SHAKE_PAD;
+    // if (!g_generated) {
+    //     volatile uint32_t t = SHAKE_PAD;
+    //     print_string("\n****** G_GENERATED\n");
+    //     // keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+    //     // keccak_absorb((uint32_t*)g_in_buf, NULL, g_in_len >> 2);
+    //     // keccak_finish((uint32_t*)&t);
+    //     keccak_squeeze((uint32_t*)g_out_buf, NULL, MAX_OUT_BUF >> 2);
         
-        // keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-        // keccak_absorb((uint32_t*)g_in_buf, NULL, g_in_len >> 2);
-        // keccak_finish((uint32_t*)&t);
-        keccak_squeeze((uint32_t*)g_out_buf, NULL, MAX_OUT_BUF >> 2);
-        
-        g_generated = 1;
-        g_out_ptr = 0;
-    }
+    //     g_generated = 1;
+    //     g_out_ptr = 0;
+    // }
 
-    /* Serve from pre-squeezed buffer */
-    size_t copy_len = len;
-    if (g_out_ptr + copy_len > MAX_OUT_BUF) {
-        copy_len = MAX_OUT_BUF - g_out_ptr;
-    }
-    if (copy_len > 0) {
-        memcpy(out, &g_out_buf[g_out_ptr], copy_len);
-        g_out_ptr += copy_len;
-    }
-    if (copy_len < len) {
-        memset(out + copy_len, 0, len - copy_len);
-    }
-    (void)sc;
+    // /* Serve from pre-squeezed buffer */
+    // size_t copy_len = len;
+    // if (g_out_ptr + copy_len > MAX_OUT_BUF) {
+    //     copy_len = MAX_OUT_BUF - g_out_ptr;
+    // }
+    // if (copy_len > 0) {
+    //     memcpy(out, &g_out_buf[g_out_ptr], copy_len);
+    //     g_out_ptr += copy_len;
+    // }
+    // if (copy_len < len) {
+    //     memset(out + copy_len, 0, len - copy_len);
+    // }
+    // (void)sc;
 }
 
 
@@ -872,7 +882,7 @@ falcon_verify_start(shake256_context *hash_data,
 	    
 	time = timer_read();
 	print_string("\nTime: ");
-    print_dec(time);
+    print_u32_int(time);
     print_string(" cycles");
     print_string("\n");
 
@@ -1050,7 +1060,7 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     
 	time = timer_read();
 	print_string("\nTime: ");
-    print_dec(time);
+    print_u32_int(time);
     print_string(" cycles");
     print_string("\n");
 
@@ -1101,7 +1111,7 @@ falcon_verify(const void *sig, size_t sig_len, int sig_type,
     
 	time = timer_read();
 	print_string("\nTime: ");
-    print_dec(time);
+    print_u32_int(time);
     print_string(" cycles");
     print_string("\n");
 	return falcon_verify_finish(sig, sig_len, sig_type,
