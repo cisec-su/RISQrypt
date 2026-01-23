@@ -109,7 +109,14 @@ void unpack_ciphertext(polyvec *b, poly *v, const uint8_t c[KYBER_INDCPA_BYTES])
 
 
 
+static void absorb_routine(const uint8_t seed[KYBER_SYMBYTES], int i, int j, int transposed) {
+  xof_init();
 
+  if(transposed)
+    xof_absorb(seed, i, j);
+  else
+    xof_absorb(seed, j, i);
+}
 
 
 /*************************************************
@@ -135,17 +142,26 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
   uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
   ntt_lite_set_inv2((GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES) >> 2);
   ntt_lite_set_bound((KYBER_Q << 16) | (KYBER_Q));
-  for(i=0;i<KYBER_K;i++) {
-    for(j=0;j<KYBER_K;j++) {
+  int next_i, next_j;
 
-      xof_init();
+  absorb_routine(seed, 0, 0, transposed);
 
-      if(transposed)
-        xof_absorb(seed, i, j);
-      else
-        xof_absorb(seed, j, i);
+  for(i = 0; i < KYBER_K; i++) {
+    for(j = 0; j < KYBER_K; j++) {
 
+      if (j == (KYBER_K - 1)) {
+        next_j = 0;
+        next_i = i + 1;
+      }
+      else {
+        next_j = j + 1;
+        next_i = i;
+      }
       xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
+
+      if (next_i != KYBER_K) {
+        absorb_routine(seed, next_i, next_j, transposed);
+      }
       ntt_lite_rejsamp((uint32_t*) a[i].vec[j].coeffs, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
     }
   }

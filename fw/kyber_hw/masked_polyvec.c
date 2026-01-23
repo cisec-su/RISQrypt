@@ -111,7 +111,7 @@ void masked_polyvec_mask(masked_polyvec *r, const polyvec *a) {
 }
 
 
-void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint8_t *nonce) {
+void masked_polyvec_getnoise_eta1_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce) {
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif
@@ -119,15 +119,18 @@ void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint
     masked_ptr ptr = {buf[0], buf[1]};
     unsigned int i;
     for (i = 0; i < KYBER_K; i++) {
-        masked_prf(ptr, sizeof(buf) / MASKING_N, seed, (*nonce)++);
+        masked_prf_absorb(seed, (*nonce)++);        
+        masked_prf_squeeze(ptr, sizeof(buf) / MASKING_N);
+        // masked_prf_squeeze(ptr, sizeof(buf) / MASKING_N);
+        // masked_prf_absorb(seed, (*nonce)++);
         masked_cbd_eta1_i(r, buf, i);
     }    
 }
 
 
-void masked_polyvec_getnoise_eta2(masked_polyvec *r, const masked_sym seed, uint8_t *nonce) {
+void masked_polyvec_getnoise_eta2_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce) {
 #if KYBER_ETA2 == KYBER_ETA1
-    masked_polyvec_getnoise_eta1(r, seed, nonce);
+    masked_polyvec_getnoise_eta1_fromhw(r, seed, nonce);
 #else
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"

@@ -4,6 +4,7 @@
 #include "masked_poly.h"
 #include "masked_polyvec.h"
 #include "masked_gadgets.h"
+#include "masked_symmetric.h"
 #include "masked_indcpa.h"
 
 
@@ -37,9 +38,10 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
     unpack_pk(&pkpv, seed, pk);
   
     gen_at(at, seed);
-    masked_polyvec_getnoise_eta1(&msp, coins, &nonce);
-    masked_polyvec_getnoise_eta2(&mep, coins, &nonce);    
-    masked_poly_getnoise_eta2(&mepp, coins, &nonce);
+    // masked_prf_absorb(coins, nonce++);
+    masked_polyvec_getnoise_eta1_fromhw(&msp, coins, &nonce);
+    masked_polyvec_getnoise_eta2_fromhw(&mep, coins, &nonce);    
+    masked_poly_getnoise_eta2_fromhw(&mepp, coins);
     poly_init_ntt();
     masked_polyvec_ntt(&msp);
     poly_init_zeta();

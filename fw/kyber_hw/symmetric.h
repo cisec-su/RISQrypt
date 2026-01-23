@@ -16,6 +16,13 @@ void kyber_shake128_absorb(const uint8_t seed[KYBER_SYMBYTES], uint8_t x, uint8_
 void kyber_shake128_squeezeblocks(uint8_t *out,
                                   unsigned int num_blocks);
 
+#define kyber_shake256_prf_absorb KYBER_NAMESPACE(_kyber_shake256_prf_absorb)
+void kyber_shake256_prf_absorb(const uint8_t key[KYBER_SYMBYTES], uint8_t nonce);
+
+#define kyber_shake256_prf_squeeze KYBER_NAMESPACE(_kyber_shake256_prf_squeeze)
+void kyber_shake256_prf_squeeze(uint8_t *out, size_t outlen);
+
+
 #define kyber_shake256_prf KYBER_NAMESPACE(_kyber_shake256_prf)
 void kyber_shake256_prf(uint8_t *out, size_t outlen, const uint8_t key[KYBER_SYMBYTES], uint8_t nonce);
 
@@ -47,6 +54,10 @@ void sha3_512_finish(uint8_t *dst);
 #define xof_absorb(SEED, X, Y) kyber_shake128_absorb(SEED, X, Y)
 #define xof_squeezeblocks(OUT, OUTBLOCKS) \
         kyber_shake128_squeezeblocks(OUT, OUTBLOCKS)
+#define prf_absorb(KEY, NONCE) \
+        kyber_shake256_prf_absorb(KEY, NONCE)
+#define prf_squeeze(OUT, OUTBYTES) \
+        kyber_shake256_prf_squeeze(OUT, OUTBYTES)
 #define prf(OUT, OUTBYTES, KEY, NONCE) \
         kyber_shake256_prf(OUT, OUTBYTES, KEY, NONCE)
 #define kdf(OUT, IN, INBYTES) shake256(OUT, KYBER_SSBYTES, IN, INBYTES)

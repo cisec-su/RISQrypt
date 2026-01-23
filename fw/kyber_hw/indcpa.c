@@ -36,10 +36,11 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
   randombytes(buf, KYBER_SYMBYTES);
   hash_g(buf, buf, KYBER_SYMBYTES);
 
-  for(i=0;i<KYBER_K;i++)
-    poly_getnoise_eta1(&skpv.vec[i], noiseseed, nonce++);
-  for(i=0;i<KYBER_K;i++)
-    poly_getnoise_eta1(&e.vec[i], noiseseed, nonce++);
+  prf_absorb(noiseseed, nonce++);
+  for(i = 0; i < KYBER_K; i++)
+    poly_getnoise_eta1_fromhw(&skpv.vec[i], noiseseed, nonce++, 1);
+  for(i = 0; i < KYBER_K; i++)
+    poly_getnoise_eta1_fromhw(&e.vec[i], noiseseed, nonce++, i != (KYBER_K - 1));
 
   poly_init_ntt();
   polyvec_ntt(&skpv);
@@ -90,12 +91,13 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
   //     seed[i] = pk[i+KYBER_POLYVECBYTES];  
   poly_frommsg(&k, m);
 
+  prf_absorb(coins, nonce++);
   for(i = 0; i < KYBER_K; i++)
-    poly_getnoise_eta1(sp.vec+i, coins, nonce++);
+    poly_getnoise_eta1_fromhw(sp.vec+i, coins, nonce++, 1);
 
   for(i = 0; i < KYBER_K; i++)
-    poly_getnoise_eta2(ep.vec+i, coins, nonce++);
-  poly_getnoise_eta2(&epp, coins, nonce++);
+    poly_getnoise_eta2_fromhw(ep.vec+i, coins, nonce++, 1);
+  poly_getnoise_eta2_fromhw(&epp, coins, nonce++, 0);
 
   poly_init_ntt();
   polyvec_ntt(&sp);

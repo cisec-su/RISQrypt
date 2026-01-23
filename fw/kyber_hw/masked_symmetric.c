@@ -10,15 +10,26 @@
 #endif
 
 
+void kyber_masked_shake256_prf_absorb(const masked_sym src, uint8_t nonce)
+{
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
+    keccak_absorb((uint32_t*) src[0], (uint32_t*) src[1], KYBER_SYMBYTES >> 2);
+    volatile uint32_t t;
+    t = (SHAKE_PAD << 8) | ((uint32_t) nonce);
+    keccak_finish((uint32_t*) &t);
+}
+
+
+void kyber_masked_shake256_prf_squeeze(masked_ptr dst, size_t dst_len)
+{
+    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], dst_len >> 2);
+}
+
 
 void kyber_masked_shake256_prf(masked_ptr dst, size_t dst_len, const masked_sym src, uint8_t nonce)
 {  
-    volatile uint32_t t;
-    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
-    keccak_absorb((uint32_t*) src[0], (uint32_t*) src[1], KYBER_SYMBYTES >> 2);
-    t = (SHAKE_PAD << 8) | ((uint32_t) nonce);
-    keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], dst_len >> 2);
+    kyber_masked_shake256_prf_absorb(src, nonce);
+    kyber_masked_shake256_prf_squeeze(dst, dst_len);
 }
 
 

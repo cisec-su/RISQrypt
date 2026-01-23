@@ -41,11 +41,11 @@ void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a,
 
 void masked_polyvec_mask(masked_polyvec *r, const polyvec *a);
 
-#define masked_polyvec_getnoise_eta1 KYBER_NAMESPACE(_masked_polyvec_getnoise_eta1)
-void masked_polyvec_getnoise_eta1(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
+#define masked_polyvec_getnoise_eta1_fromhw KYBER_NAMESPACE(_masked_polyvec_getnoise_eta1_fromhw)
+void masked_polyvec_getnoise_eta1_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
 
-#define masked_polyvec_getnoise_eta2 KYBER_NAMESPACE(_masked_polyvec_getnoise_eta2)
-void masked_polyvec_getnoise_eta2(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
+#define masked_polyvec_getnoise_eta2_fromhw KYBER_NAMESPACE(_masked_polyvec_getnoise_eta2_fromhw)
+void masked_polyvec_getnoise_eta2_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
 
 #define masked_polyvec_add KYBER_NAMESPACE(_masked_polyvec_add)
 void masked_polyvec_add(masked_polyvec *r, const masked_polyvec *a, const masked_polyvec *b);

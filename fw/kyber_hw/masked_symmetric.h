@@ -5,9 +5,14 @@
 #include "masked.h"
 
 
+#define kyber_masked_shake256_prf_absorb KYBER_NAMESPACE(_kyber_masked_shake256_prf_absorb)
+void kyber_masked_shake256_prf_absorb(const masked_sym src, uint8_t nonce);
+
+#define kyber_masked_shake256_prf_squeeze KYBER_NAMESPACE(_kyber_masked_shake256_prf_squeeze)
+void kyber_masked_shake256_prf_squeeze(masked_ptr dst, size_t dst_len);
+
 #define kyber_masked_shake256_prf KYBER_NAMESPACE(_kyber_masked_shake256_prf)
 void kyber_masked_shake256_prf(masked_ptr dst, size_t dst_len, const masked_sym src, uint8_t nonce);
-
 
 void masked_shake256(masked_ptr dst, size_t dst_len, const masked_ptr src, size_t src_len);
 
@@ -29,6 +34,8 @@ void masked_kdf(masked_ss dst, const masked_sym key_material, const uint8_t h_ct
 #define masked_hash_g_finish(OUT) masked_sha3_512_finish()
 #define masked_hash_g_squeezehalf(OUT) masked_keccak_squeeze(OUT, SHA3_512_HASH_SIZE >> 1)
 
+#define masked_prf_absorb(KEY, NONCE) kyber_masked_shake256_prf_absorb(KEY, NONCE)
+#define masked_prf_squeeze(OUT, OUTBYTES) kyber_masked_shake256_prf_squeeze(OUT, OUTBYTES)
 #define masked_prf(OUT, OUTBYTES, KEY, NONCE) kyber_masked_shake256_prf(OUT, OUTBYTES, KEY, NONCE)
 
 

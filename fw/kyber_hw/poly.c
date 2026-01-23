@@ -144,10 +144,13 @@ void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a)
 *                                     (of length KYBER_SYMBYTES bytes)
 *              - uint8_t nonce:       one-byte input nonce
 **************************************************/
-void poly_getnoise_eta1(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce)
+void poly_getnoise_eta1_fromhw(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce, int absorb_next)
 {
   uint8_t buf[KYBER_ETA1*KYBER_N/4];
-  prf(buf, sizeof(buf), seed, nonce);
+  prf_squeeze(buf, sizeof(buf));
+  if (absorb_next) {
+    prf_absorb(seed, nonce);
+  }
   cbd_eta1(r, buf);
 }
 
@@ -163,10 +166,13 @@ void poly_getnoise_eta1(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t non
 *                                     (of length KYBER_SYMBYTES bytes)
 *              - uint8_t nonce:       one-byte input nonce
 **************************************************/
-void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce)
+void poly_getnoise_eta2_fromhw(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce, int absorb_next)
 {
   uint8_t buf[KYBER_ETA2*KYBER_N/4];
-  prf(buf, sizeof(buf), seed, nonce);
+  prf_squeeze(buf, sizeof(buf));
+  if (absorb_next) {
+    prf_absorb(seed, nonce);
+  }
   cbd_eta2(r, buf);
 }
 

@@ -38,6 +38,21 @@ void kyber_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
 }
 
 
+void kyber_shake256_prf_absorb(const uint8_t key[KYBER_SYMBYTES], uint8_t nonce)
+{
+    volatile uint32_t t;
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+    keccak_absorb((uint32_t*) key, NULL, KYBER_SYMBYTES >> 2);
+    t = (SHAKE_PAD << 8) | ((uint32_t) nonce);
+    keccak_finish((uint32_t*) &t);
+}
+
+
+void kyber_shake256_prf_squeeze(uint8_t *dst, size_t dst_len)
+{
+    keccak_squeeze((uint32_t*) dst, NULL, dst_len >> 2);
+}
+
 /*************************************************
 * Name:        kyber_shake256_prf
 *
@@ -52,12 +67,8 @@ void kyber_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
 **************************************************/
 void kyber_shake256_prf(uint8_t *dst, size_t dst_len, const uint8_t key[KYBER_SYMBYTES], uint8_t nonce)
 {
-    volatile uint32_t t;
-    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
-    keccak_absorb((uint32_t*) key, NULL, KYBER_SYMBYTES >> 2);
-    t = (SHAKE_PAD << 8) | ((uint32_t) nonce);
-    keccak_finish((uint32_t*) &t);
-    keccak_squeeze((uint32_t*) dst, NULL, dst_len >> 2);
+    kyber_shake256_prf_absorb(key, nonce);
+    kyber_shake256_prf_squeeze(dst, dst_len);
 }
 
 
