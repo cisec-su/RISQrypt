@@ -62,7 +62,7 @@ begin
     end
 end
 
-always @ (posedge clk or negedge rst_n)
+always @ (posedge clk)
 begin
     if(!rst_n)
         i_valid <= 0;

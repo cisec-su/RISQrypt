@@ -9,8 +9,6 @@ module x2x_acc_refresh
         input                   dual_mode,
         input                   data_type,
         input                   valid_data,
-		input                   valid_rng,								  
-        input                   x2x_dis,
         input [31:0]            modulus,
           
         output reg [31:0]       A_out,
@@ -41,13 +39,11 @@ x2x_acc_xor xor2
 wire [31:0] add_in, sub_in;
 wire [31:0] add_out, sub_out; 
 wire [31:0] modulus_int;
-wire [31:0] modulus_int_h;
 
 assign add_in = (!conv_mode) ? A_in : 32'd0;
 assign sub_in = (!conv_mode) ? B_in : 32'd0;
 
-assign modulus_int_h = (!data_type) ? (modulus + 1) : modulus;
-assign modulus_int = (dual_mode) ? {modulus_int_h[15:0],modulus_int_h[15:0]} : modulus_int_h;
+assign modulus_int = (dual_mode) ? {modulus[15:0], modulus[15:0]} : modulus;
 
 modadd #(
     .LOGQ(32)
@@ -78,9 +74,9 @@ begin
         B_out <= 0;
         valid_result <= 0; 
     end
-    else if(!valid_result || (valid_data || valid_rng) || x2x_dis)
+    else if(valid_data)
     begin
-        valid_result <= valid_data;
+        valid_result <= 1'b1;
         case(conv_mode)
         1://B
         begin
@@ -93,6 +89,11 @@ begin
             B_out <= sub_out;
         end
         endcase
+    end
+    else begin
+        valid_result <= 1'b0;
+        A_out <= 32'd0;
+        B_out <= 32'd0;
     end
 end
 

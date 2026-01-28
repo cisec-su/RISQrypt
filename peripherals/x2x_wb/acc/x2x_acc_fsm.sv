@@ -168,30 +168,25 @@ end
 
 assign rng_non_zero = (opcode == `X2X_CMD_PRNG) ? ctrl_share_mode : 1'b0;
 
-x2x_acc_rng #(
-        .PARAM_WIDTH(PARAM_WIDTH),
-        .BOX_WIDTH(BOX_WIDTH),
-        .RND_SHARES_2SHARE(RND_SHARES_2SHARE),
-        .RND_SHARES_2SHARE_BOX(RND_SHARES_2SHARE_BOX)
-) x2x_acc_rng (
-        .clk(clk),
-        .rst_n(rst_n),
-        .modulus(modulus),
-        .ctrl_seed(ctrl_seed),
-        .ctrl_load_seed(ctrl_load_seed),
-        .ctrl_conv_mode(ctrl_conv_mode), 
-        .ctrl_data_type(ctrl_data_type), 
-        .ctrl_dual_mode(ctrl_dual_mode),
-        .log_modulus(log_modulus),  
-        .ctrl_rej_samp(ctrl_rej_samp),
-        .ctrl_nonzero(rng_non_zero),
-        .ctrl_prng_off(ctrl_prng_off),
-        .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
-        .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
-        .rnd_x2x_ready(rnd_x2x_ready),
-        .rnd_ref(rnd_ref),
-        .rnd_ref_ready(rnd_ref_ready)
-    );
+x2x_acc_rng x2x_acc_rng_inst (
+    .clk(clk),
+    .rst_n(rst_n),
+    .modulus(modulus),
+    .ctrl_seed(ctrl_seed),
+    .ctrl_load_seed(ctrl_load_seed),
+    .ctrl_conv_mode(ctrl_conv_mode), 
+    .ctrl_data_type(ctrl_data_type), 
+    .ctrl_dual_mode(ctrl_dual_mode),
+    .log_modulus(log_modulus),  
+    .ctrl_rej_samp(ctrl_rej_samp),
+    .ctrl_nonzero(rng_non_zero),
+    .ctrl_prng_off(ctrl_prng_off),
+    .x2x_fresh_rnd_shares(x2x_fresh_rnd_shares),
+    .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
+    .rnd_x2x_ready(rnd_x2x_ready),
+    .rnd_ref(rnd_ref),
+    .rnd_ref_ready(rnd_ref_ready)
+);
 
 
 

@@ -51,6 +51,7 @@ module x2x_acc_op_core
     output reg [PARAM_WIDTH - 1 : 0] converted_data   [2 - 1 : 0][N_SHARES - 1:0],
     
     input logic [1:0] opcode,
+    output reg tio_trigger,
     input logic [31:0] rnd_ref
 );
 
@@ -73,29 +74,57 @@ reg  [RND_SHARES_2SHARE-1:0] data_ready;
 
 reg [31:0] rnd_ref_int;
 reg [PARAM_WIDTH - 1 : 0] original_data_int    [2 - 1 : 0][N_SHARES - 1:0];
-reg [PARAM_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_int        [RND_SHARES - 1 : 0];
+reg [PARAM_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_int      [RND_SHARES - 1 : 0];
+reg [PARAM_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_d;
+reg [PARAM_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_d0;
+reg [PARAM_WIDTH - 1 : 0]   x2x_fresh_rnd_shares_c      [RND_SHARES - 1 : 0];
+reg [BOX_WIDTH   - 1 : 0]   x2x_fresh_rnd_shares_8bit_int [RND_SHARES_BOX - 1 : 0];
+reg [BOX_WIDTH   - 1 : 0]   x2x_fresh_rnd_shares_8bit_c   [RND_SHARES_BOX - 1 : 0];
+
 reg valid_data_int;
 reg valid_rng_int;
 
 
-if (HALFCYCLE) begin
+always @(posedge clk) begin
+    if (!rst_n) begin
+        tio_trigger <= 1'b0;
+    end
+    else begin
+        if (valid_data && conv_mode == 1'b1 && modulus == 32'h00ffffff)
+            tio_trigger <= 1'b1;
+        else if (x2x_valid_result && tio_trigger) begin
+            tio_trigger <= 1'b0;
+        end
+    end
+end
+
+
+// if (HALFCYCLE) begin
     always @(posedge clk) begin
         original_data_int <= original_data;
-        x2x_fresh_rnd_shares_int <= x2x_fresh_rnd_shares;
+        // x2x_fresh_rnd_shares_d0 <= x2x_fresh_rnd_shares[4]; // [4] is the mod q sample, output of rej. sampling
+        x2x_fresh_rnd_shares_d <= x2x_fresh_rnd_shares_int[4];//x2x_fresh_rnd_shares_d0;
+        x2x_fresh_rnd_shares_int <= x2x_fresh_rnd_shares;//(valid_data) ? x2x_fresh_rnd_shares : '{default: '0};
+        x2x_fresh_rnd_shares_8bit_int <= x2x_fresh_rnd_shares_8bit;
         valid_data_int <= valid_data;
         valid_rng_int <= valid_rng;
         rnd_ref_int <= rnd_ref;
     end
-end
-else begin
-    always @(*) begin
-        original_data_int = original_data;
-        x2x_fresh_rnd_shares_int = x2x_fresh_rnd_shares;
-        valid_data_int = valid_data;
-        valid_rng_int = valid_rng;
-        rnd_ref_int = rnd_ref;
-    end
-end
+// end
+// else begin
+//     always @(*) begin
+//         original_data_int = original_data;
+//         x2x_fresh_rnd_shares_int = x2x_fresh_rnd_shares;
+//         valid_data_int = valid_data;
+//         valid_rng_int = valid_rng;
+//         rnd_ref_int = rnd_ref;
+//     end
+// end
+
+
+// always @(posedge clk) begin
+//     x2x_fresh_rnd_shares_d <= x2x_fresh_rnd_shares_d0;
+// end
 
 
 assign modulus_mask_c = (data_type == 0) ?          (modulus)    :
@@ -133,8 +162,8 @@ X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .modulus(modulus_int),
     .modulus_twoc(modulus_complement),
         
-    .fresh_rnd_shares       (x2x_fresh_rnd_shares_int),//TBC
-    .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),//TBC
+    .fresh_rnd_shares       (x2x_fresh_rnd_shares_c),
+    .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit_c),
     .original_data          (x2x_original_data),
     .converted_data         (x2x_converted_data_raw)
 );
@@ -145,23 +174,22 @@ assign x2x_converted_data[0][1] = (x2x_converted_data_raw[0][1] & modulus_mask);
 assign x2x_converted_data[1][0] = (x2x_converted_data_raw[1][0] & modulus_mask);
 assign x2x_converted_data[1][1] = (x2x_converted_data_raw[1][1] & modulus_mask);
 
+reg  randgen_valid_data;
 wire randgen_valid_result;
 wire [31:0] randgen_data_out;
 
 
-assign x2x_original_data[0][0] = ((!conv_mode & data_type) & (x2x_original_data_raw[0][0] > modulus_half)) ?
-                                     (x2x_original_data_raw[0][0] + modulus_complement) :
-                                     x2x_original_data_raw[0][0];
-assign x2x_original_data[0][1] = ((!conv_mode & data_type) & (x2x_original_data_raw[0][1] > modulus_half)) ?
-                                     (x2x_original_data_raw[0][1] + modulus_complement) :
-                                     x2x_original_data_raw[0][1];
+
+assign x2x_original_data[0][0] = x2x_original_data_raw[0][0];
+assign x2x_original_data[0][1] = ((!conv_mode) & data_type) ? (x2x_original_data_raw[0][1] + modulus_complement) : x2x_original_data_raw[0][1];
 assign x2x_original_data[1][0] = x2x_original_data_raw[1][0];
 assign x2x_original_data[1][1] = x2x_original_data_raw[1][1];
+
 
 x2x_acc_randgen randgen(
     .clk(clk),
     .rst_n(rst_n),
-    .valid_data(valid_data_int),
+    .valid_data(randgen_valid_data),
     .valid_result(randgen_valid_result),
     .DATA_IN(rnd_ref_int),
     .DATA_OUT(randgen_data_out)
@@ -184,9 +212,7 @@ x2x_acc_refresh refresh(
     .modulus        (modulus_int),
     
     .valid_data(refresh_valid_data),
-	.valid_rng(valid_rng_int),					  
     .valid_result(refresh_valid_result),
-    .x2x_dis(!opcode[0]),
     .A_out(refresh_data_out1),
     .B_out(refresh_data_out2)
 );
@@ -203,7 +229,9 @@ begin
     converted_data[0][1] = 0;
     converted_data[1][0] = 0;
     converted_data[1][1] = 0;
-    
+
+    randgen_valid_data = 0;
+
     valid_result = 0;
     
     refresh_data_in1 = 0;
@@ -212,9 +240,31 @@ begin
     refresh_valid_data = 0;
     
     x2x_valid_data = 0;
+
+    for (int i = 0; i < 10; i = i + 1) begin
+        x2x_fresh_rnd_shares_c[i] = 0;
+    end
+
+    for (int i = 0; i < 28; i = i + 1) begin
+        x2x_fresh_rnd_shares_8bit_c[i] = 0;
+    end
+
+
+    // x2x_fresh_rnd_shares_c[0] = x2x_fresh_rnd_shares_int[0];
+    // x2x_fresh_rnd_shares_c[1] = x2x_fresh_rnd_shares_int[1];
+    // x2x_fresh_rnd_shares_c[2] = x2x_fresh_rnd_shares_int[2];
+    // x2x_fresh_rnd_shares_c[3] = x2x_fresh_rnd_shares_int[3];
+    // x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_int[4];//x2x_fresh_rnd_shares_d0;//x2x_fresh_rnd_shares[4];
+    // x2x_fresh_rnd_shares_c[5] = x2x_fresh_rnd_shares_int[5];
+    // x2x_fresh_rnd_shares_c[6] = x2x_fresh_rnd_shares_int[6];
+    // x2x_fresh_rnd_shares_c[7] = x2x_fresh_rnd_shares_int[7];
+    // x2x_fresh_rnd_shares_c[8] = x2x_fresh_rnd_shares_int[8];
+    // x2x_fresh_rnd_shares_c[9] = x2x_fresh_rnd_shares_int[9];
+
     
     if(opcode == `X2X_CMD_PRNG)
     begin
+        randgen_valid_data = valid_data_int;
         valid_result = randgen_valid_result;
         if(dual_mode && !data_type)
         begin
@@ -227,6 +277,7 @@ begin
     
     else if(opcode == `X2X_CMD_X2X)
     begin
+
         x2x_original_data_raw[0][0] = original_data_int[0][0];
         x2x_original_data_raw[0][1] = original_data_int[0][1];
         x2x_original_data_raw[1][0] = original_data_int[1][0];
@@ -239,6 +290,11 @@ begin
         
         x2x_valid_data = valid_data_int;
         valid_result = x2x_valid_result;
+
+        if (x2x_valid_data) begin
+            x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_int[4];
+        end
+
     end
     
     else if(opcode == `X2X_CMD_REF)
@@ -282,23 +338,8 @@ begin
             refresh_data_in1 = original_data_int[0][0];
             refresh_data_in2 = original_data_int[0][1];
             
-			/*if(!conv_mode & data_type) // A2B Unsigned
-            begin
-                if(refresh_data_out1 > modulus_half) 
-                    x2x_original_data[0][0] = refresh_data_out1 + modulus_complement;
-                else
-                    x2x_original_data[0][0] = refresh_data_out1;
-                    
-                if(refresh_data_out2 > modulus_half) 
-                    x2x_original_data[0][1] = refresh_data_out2 + modulus_complement;
-                else 
-                    x2x_original_data[0][1] = refresh_data_out2;
-            end
-            else
-            begin*/
-                x2x_original_data_raw[0][0] = refresh_data_out1;
-                x2x_original_data_raw[0][1] = refresh_data_out2;
-            //end  
+            x2x_original_data_raw[0][0] = refresh_data_out1;
+            x2x_original_data_raw[0][1] = refresh_data_out2;
         end
         
         converted_data[0][0] = x2x_converted_data[0][0];
@@ -309,11 +350,28 @@ begin
         refresh_rnd_ref = rnd_ref_int;
         refresh_valid_data = valid_data_int;
         
-        x2x_valid_data = refresh_valid_result & (valid_data_int || valid_rng_int);
+        x2x_valid_data = refresh_valid_result;
         valid_result = x2x_valid_result;
-        
-        
+
+
+        if (x2x_valid_data) begin
+            x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_d;
+        end        
     end
+
+    if (x2x_valid_data) begin
+        for (int i = 0; i < 10; i = i + 1) begin
+            if (i != 4) begin
+                x2x_fresh_rnd_shares_c[i] = x2x_fresh_rnd_shares_int[i];
+            end
+        end
+
+        for (int i = 0; i < 28; i = i + 1) begin
+            x2x_fresh_rnd_shares_8bit_c[i] = x2x_fresh_rnd_shares_8bit_int[i];
+        end
+    end
+
+
     
 end
 

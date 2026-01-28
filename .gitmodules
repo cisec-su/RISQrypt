@@ -6,4 +6,8 @@
 	url = https://github.com/cisec-su/NTT-Lite.git
 [submodule "peripherals/x2x_wb/x2x"]
 	path = peripherals/x2x_wb/x2x
-	url = https://github.com/KULeuven-COSIC/X2X.git
+	url = https://github.com/toluntosun21/X2X.git
+	branch = 32b_extension_fix
+[submodule "peripherals/x2x_wb/acc/lfsr"]
+	path = peripherals/x2x_wb/acc/lfsr
+	url = https://github.com/alexforencich/verilog-lfsr

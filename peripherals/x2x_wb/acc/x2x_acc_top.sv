@@ -31,7 +31,8 @@ module x2x_acc_top
         input              dma_ack_o,
         input      [31:0]  dma_dat_o,
         input              dma_err_o,
-        output             dma_rst_i
+        output             dma_rst_i,
+        output             tio_trigger
     );
 
 localparam B    = 32;
@@ -162,6 +163,7 @@ x2x_acc_op_core #(
     .original_data          (x2x_original_data),
     .converted_data         (x2x_converted_data),
     .opcode(opcode),
+    .tio_trigger(tio_trigger),
     
     .rnd_ref(rnd_ref)
 );
@@ -233,7 +235,6 @@ x2x_acc_fsm #(
     .x2x_converted_data         (x2x_converted_data),
     .rnd_ref(rnd_ref)
 );
-
 
 
 
