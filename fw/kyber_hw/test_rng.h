@@ -8,4 +8,5 @@ void test_rng_seed_hex(const char *hex);
 
 void test_rng_seed_case(uint32_t suite_id, uint32_t round_id);
 
-void randombytes(uint8_t *out, size_t outlen);
+int randombytes(unsigned char *out, unsigned long long outlen);
+

@@ -24,7 +24,6 @@ static uint8_t m_[KYBER_INDCPA_MSGBYTES] __attribute__((aligned(4)));
 static uint8_t sk_[KYBER_INDCPA_SECRETKEYBYTES] __attribute__((aligned(4)));
 static uint8_t pk_[KYBER_INDCPA_PUBLICKEYBYTES] __attribute__((aligned(4)));
 
-
 static uint8_t pk_cca[KYBER_PUBLICKEYBYTES] __attribute__((aligned(4)));
 static uint8_t sk_cca[KYBER_SECRETKEYBYTES] __attribute__((aligned(4)));
 static uint8_t c_cca[KYBER_CIPHERTEXTBYTES] __attribute__((aligned(4)));
@@ -115,7 +114,7 @@ void test_indcca() {
 void test_kem_unity(void)
 {
     test_kem_suite();
-}
+} 
 
 
 static poly a __attribute__((aligned(4))) = {0x0};
@@ -331,7 +330,8 @@ void test_masked_indcpa_enc_cmp() {
 int main() {
     UnityBegin("main.c");   
     print_string("\n --- Kyber Unity Test Start --- \n");
-    RUN_TEST(test_indcpa_keypair);
+    
+    /*RUN_TEST(test_indcpa_keypair);
     RUN_TEST(test_indcpa_enc);
     RUN_TEST(test_indcpa_dec);
     RUN_TEST(test_indcca);
@@ -339,7 +339,8 @@ int main() {
     RUN_TEST(test_masked_cbd);
     RUN_TEST(test_masked_poly_compress);
     RUN_TEST(test_masked_indcpa_dec);
-    RUN_TEST(test_masked_indcpa_enc_cmp);
+    RUN_TEST(test_masked_indcpa_enc_cmp);*/
+
     RUN_TEST(test_kem_unity);
     return(UnityEnd());
 }

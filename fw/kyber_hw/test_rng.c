@@ -79,7 +79,22 @@ void test_rng_seed_case(uint32_t suite_id, uint32_t round_id) {
     seed_from_u128(smix(a), smix(b));
 }
 
-void randombytes(uint8_t *out, size_t outlen) {
-    while (outlen >= 8) { uint64_t w = xr_next(); memcpy(out, &w, 8); out += 8; outlen -= 8; }
-    if (outlen) { uint64_t w = xr_next(); memcpy(out, &w, outlen); }
+uint16_t rand16(void) {
+    uint64_t w = xr_next();
+    return (uint16_t)w;
+}
+
+
+int randombytes(unsigned char *out, unsigned long long outlen) {
+    while (outlen >= 8) {
+        uint64_t w = xr_next();
+        memcpy(out, &w, 8);
+        out += 8;
+        outlen -= 8;
+    }
+    if (outlen) {
+        uint64_t w = xr_next();
+        memcpy(out, &w, outlen);
+    }
+    return 0;  
 }
