@@ -55,6 +55,7 @@ int crypto_kem_enc(unsigned char *ct,
   /* Will contain key, coins */
   uint8_t kr[2*KYBER_SYMBYTES];
 
+  rng_init();
   randombytes(buf, KYBER_SYMBYTES);
   /* Don't release system RNG output */
   hash_h(buf, buf, KYBER_SYMBYTES);

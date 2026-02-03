@@ -28,6 +28,8 @@ SRC += ../common/unity.c
 INC = -I../common
 
 CFLAGS += -DBUSY_CHECK_DIS
+CFLAGS += -DTEST_RNG
+
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 

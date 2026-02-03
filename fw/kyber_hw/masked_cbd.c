@@ -8,7 +8,7 @@
 
 static void masked_cbd_eta2_core(poly *r[MASKING_N], const uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA2*2)/8]) {
     unsigned int i, j;
-    poly t[MASKING_N][4];
+    poly t[MASKING_N][KYBER_ETA2*2];
 
     x2x_ref_b2a_1bit((uint32_t*) t[1][0].coeffs, (uint32_t*)  t[0][0].coeffs, (uint32_t*)  &buf[1][0], (uint32_t*)  &buf[0][0], 2, (KYBER_N*KYBER_ETA2*2));
     

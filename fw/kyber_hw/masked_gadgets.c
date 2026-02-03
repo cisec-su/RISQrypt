@@ -148,6 +148,16 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
 }
 
 
+int masked_gadgets_zero_test_vec(masked_u32 a, masked_polyvec_u32 *mpvu32, masked_poly_u32 *mpu32) {
+    masked_gadgets_init_q_carrier();
+    masked_gadgets_B2A_qm_u32_vec(mpvu32, mpvu32);
+    masked_gadgets_B2A_qm_u32(mpu32, mpu32);
+
+    masked_polyvec_u32_acc(a, mpvu32, mpu32);
+
+    return masked_gadgets_zero_test_mul(a);
+}
+
 
 
 void masked_gadgets_unmask_u32(uint32_t *r, const masked_u32 a) {

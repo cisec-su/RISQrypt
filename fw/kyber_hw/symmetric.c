@@ -26,11 +26,17 @@ void kyber_shake128_init() {
 **************************************************/
 void kyber_shake128_absorb(const uint8_t seed[KYBER_SYMBYTES], uint8_t x, uint8_t y) {
     volatile uint32_t t;
+    keccak_init(SHAKE128_RATE >> 3, KECCAK_MASK_DIS);
     keccak_absorb((uint32_t*) seed, NULL, KYBER_SYMBYTES >> 2);
     t = (SHAKE_PAD << 16) | (((uint32_t) y) << 8) | ((uint32_t) x);
     keccak_finish((uint32_t*) &t);
 }
 
+
+void kyber_shake128_squeeze(uint8_t *dst, size_t dst_len)
+{
+    keccak_squeeze((uint32_t*) dst, NULL, dst_len >> 2);
+}
 
 
 void kyber_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {

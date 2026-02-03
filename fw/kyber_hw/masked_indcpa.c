@@ -55,13 +55,7 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
     masked_polyvec_sub_compress(&mpvu32, &mbp, c);
     masked_poly_sub_compress(&mpu32, &mv, c + KYBER_POLYVECCOMPRESSEDBYTES);
 
-    masked_gadgets_init_q_carrier();
-    masked_gadgets_B2A_qm_u32_vec(&mpvu32, &mpvu32);
-    masked_gadgets_B2A_qm_u32(&mpu32, &mpu32);
-
-    masked_polyvec_u32_acc(t0, &mpvu32, &mpu32);
-
-    return masked_gadgets_zero_test_mul(t0);
+    return masked_gadgets_zero_test_vec(t0, &mpvu32, &mpu32);
 }
 
 

@@ -12,6 +12,9 @@ void kyber_shake128_init();
 #define kyber_shake128_absorb KYBER_NAMESPACE(_kyber_shake128_absorb)
 void kyber_shake128_absorb(const uint8_t seed[KYBER_SYMBYTES], uint8_t x, uint8_t y);
 
+#define kyber_shake128_squeeze KYBER_NAMESPACE(_kyber_shake128_squeeze)
+void kyber_shake128_squeeze(uint8_t *dst, size_t dst_len);
+
 #define kyber_shake128_squeezeblocks KYBER_NAMESPACE(_kyber_shake128_squeezeblocks)
 void kyber_shake128_squeezeblocks(uint8_t *out,
                                   unsigned int num_blocks);
@@ -52,6 +55,8 @@ void sha3_512_finish(uint8_t *dst);
 #define hash_g(OUT, IN, INBYTES) sha3_512(OUT, IN, INBYTES)
 #define xof_init kyber_shake128_init
 #define xof_absorb(SEED, X, Y) kyber_shake128_absorb(SEED, X, Y)
+#define xof_squeeze(OUT, OUTBYTES) \
+        kyber_shake128_squeeze(OUT, OUTBYTES)
 #define xof_squeezeblocks(OUT, OUTBLOCKS) \
         kyber_shake128_squeezeblocks(OUT, OUTBLOCKS)
 #define prf_absorb(KEY, NONCE) \

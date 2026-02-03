@@ -112,7 +112,7 @@ void polyvec_unpack_ntt(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES
 void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw, int clr)
 {
   unsigned int i;
-  uint32_t *dst;
+  uint32_t *dst, *rhs;
 
   if (tohw)
     dst = NTT_LITE_OUTPUT_DIS;
@@ -122,14 +122,16 @@ void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int
   ntt_lite_pwm((uint32_t*) r->coeffs, (uint32_t*) &a->vec[0].coeffs, (uint32_t*) &b->vec[0].coeffs);
 
   for(i = 1; i < KYBER_K; i++) {
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
+    if ((i == (KYBER_K - 1)) && (tohw || intt)) {
+      rhs = NTT_LITE_OUTPUT_DIS;
+    } else {
+      rhs = (uint32_t*) r->coeffs;
+    }
+
     if ((i == (KYBER_K - 1)) && clr)
       ntt_lite_set_clr();
-    if ((i == (KYBER_K - 1)) && (tohw || intt)) {
-      ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);
-    } else {
-      ntt_lite_add((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) r->coeffs);      
-    }
+
+    ntt_lite_mac(rhs, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
   }
   if (intt) {
     poly_init_invntt();  
@@ -144,6 +146,7 @@ void polyvec_pointwise_acc_fromseed_core(poly *r, const uint8_t seed[KYBER_SYMBY
 {
   unsigned int i;
   uint32_t *dst;
+  int next_i, next_j;
 
   if (tohw)
     dst = NTT_LITE_OUTPUT_DIS;
@@ -152,11 +155,21 @@ void polyvec_pointwise_acc_fromseed_core(poly *r, const uint8_t seed[KYBER_SYMBY
 
   ntt_lite_set_bound((KYBER_Q << 16) | (KYBER_Q));
   ntt_lite_set_inv2((GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES) >> 2);
-  gen_poly_tohw(seed, j, 0, transposed);
+  gen_poly_tohw(seed, j, 1, transposed, 1);
   ntt_lite_pwm((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[0].coeffs);
 
   for(i = 1; i < KYBER_K; i++) {
-    gen_poly_tohw(seed, j, i, transposed);
+
+    if (i == (KYBER_K - 1)) {
+      next_i = 0;
+      next_j = j + 1;
+    }
+    else {
+      next_i = i + 1;
+      next_j = j;
+    }
+
+    gen_poly_tohw(seed, next_j, next_i, transposed, (next_j != KYBER_K));
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[i].coeffs);
     if ((i == (KYBER_K - 1)) && clr)
       ntt_lite_set_clr_with_twiddle();
