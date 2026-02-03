@@ -118,11 +118,10 @@ void masked_polyvec_getnoise_eta1_fromhw(masked_polyvec *r, const masked_sym see
     uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2)/8];
     masked_ptr ptr = {buf[0], buf[1]};
     unsigned int i;
+
     for (i = 0; i < KYBER_K; i++) {
-        masked_prf_absorb(seed, (*nonce)++);        
         masked_prf_squeeze(ptr, sizeof(buf) / MASKING_N);
-        // masked_prf_squeeze(ptr, sizeof(buf) / MASKING_N);
-        // masked_prf_absorb(seed, (*nonce)++);
+        masked_prf_absorb(seed, (*nonce)++);
         masked_cbd_eta1_i(r, buf, i);
     }    
 }

@@ -38,7 +38,7 @@ int masked_indcpa_enc_cmp(const uint8_t c[KYBER_INDCPA_BYTES],
     unpack_pk(&pkpv, seed, pk);
   
     gen_at(at, seed);
-    // masked_prf_absorb(coins, nonce++);
+    masked_prf_absorb(coins, nonce++);
     masked_polyvec_getnoise_eta1_fromhw(&msp, coins, &nonce);
     masked_polyvec_getnoise_eta2_fromhw(&mep, coins, &nonce);    
     masked_poly_getnoise_eta2_fromhw(&mepp, coins);

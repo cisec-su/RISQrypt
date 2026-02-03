@@ -156,7 +156,6 @@ void masked_poly_getnoise_eta2_fromhw(masked_poly *r, const masked_sym seed) {
 #endif    
     uint8_t buf[MASKING_N][KYBER_ETA1*KYBER_N/4];
     masked_ptr ptr = {buf[0], buf[1]};
-    masked_prf_absorb(seed, 6); 
     masked_prf_squeeze(ptr, sizeof(buf) / MASKING_N);
     masked_cbd_eta2(r, buf);
 }
