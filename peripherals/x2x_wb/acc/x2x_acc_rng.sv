@@ -54,7 +54,7 @@ x2x_acc_lfsr #(
     .rst_n(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({ctrl_seed}),
-    .iv(16'd1),
+    .iv(64'd1),
     .stream_out(stream_out1)
 );
 
@@ -65,7 +65,7 @@ x2x_acc_lfsr #(
     .rst_n(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({ctrl_seed}),
-    .iv(16'd2),
+    .iv(64'd2),
     .stream_out(stream_out2)
 );
 
@@ -76,7 +76,7 @@ x2x_acc_lfsr #(
     .rst_n(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({ctrl_seed}),
-    .iv(16'd3),
+    .iv(64'd3),
     .stream_out(stream_out3)
 );
 
@@ -87,7 +87,7 @@ x2x_acc_lfsr #(
     .rst_n(rst_n & ~ctrl_prng_off),
     .load(ctrl_load_seed),
     .key({ctrl_seed}),
-    .iv(16'd4),
+    .iv(64'd4),
     .stream_out(stream_out4)
 );
 

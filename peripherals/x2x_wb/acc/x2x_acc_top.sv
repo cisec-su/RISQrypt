@@ -8,54 +8,38 @@ module x2x_acc_top
     )
     (
         // wishbone
-        input              wb_cyc_i,
-        input              wb_stb_i,
-        input              wb_we_i,
-        input      [31:0]  wb_adr_i,
-        input      [31:0]  wb_dat_i,
-        input      [ 3:0]  wb_sel_i,
+        input              wb_cyc_i  ,
+        input              wb_stb_i  ,
+        input              wb_we_i   ,
+        input      [31:0]  wb_adr_i  ,
+        input      [31:0]  wb_dat_i  ,
+        input      [ 3:0]  wb_sel_i  ,
         output             wb_stall_o,
-        output             wb_ack_o,
-        output     [31:0]  wb_dat_o,
-        output             wb_err_o,
-        input              wb_rst_i,
-        input              wb_clk_i,
+        output             wb_ack_o  ,
+        output     [31:0]  wb_dat_o  ,
+        output             wb_err_o  ,
+        input              wb_rst_i  ,
+        input              wb_clk_i  ,
         // dma
-        output             dma_cyc_i,
-        output             dma_stb_i,
-        output             dma_we_i,
-        output     [31:0]  dma_adr_i,
-        output     [31:0]  dma_dat_i,
-        output     [ 3:0]  dma_sel_i,
-        input              dma_stall_o,
-        input              dma_ack_o,
-        input      [31:0]  dma_dat_o,
-        input              dma_err_o,
-        output             dma_rst_i,
+        output             dma_cyc_i   [SHARES-1:0],
+        output             dma_stb_i   [SHARES-1:0],
+        output             dma_we_i    [SHARES-1:0],
+        output     [31:0]  dma_adr_i   [SHARES-1:0],
+        output     [31:0]  dma_dat_i   [SHARES-1:0],
+        output     [ 3:0]  dma_sel_i   [SHARES-1:0],
+        input              dma_stall_o [SHARES-1:0],
+        input              dma_ack_o   [SHARES-1:0],
+        input      [31:0]  dma_dat_o   [SHARES-1:0],
+        input              dma_err_o   [SHARES-1:0],
+        output             dma_rst_i   [SHARES-1:0],
+
         output             tio_trigger
     );
 
-localparam B    = 32;
-
-/*localparam N_SHARES = 2;
-localparam N_STAGES = 4;
-localparam LOG2_OF_q = 12;
-localparam PARAM_WIDTH = 32; //LOG2_OF_q + 1;
-localparam RND_SHARES = 2 * (N_SHARES - 1) + 2 * N_SHARES + 4 * (N_SHARES * (N_SHARES - 1) / 2);
-localparam RND_SHARES_8bit = 2 * N_STAGES * 3 *(N_SHARES * (N_SHARES - 1) / 2);
-
-localparam RND_SHARES_2SHARE = 2 * B2A_RND_SHARES_2SHARE + 2 * EXPAND_SHARES_2SHARE + 2 * TRIANGLE_SHARES_2SHARE;
-localparam RND_SHARES_2SHARE_BOX = 2 * BOX_SHARES_2SHARE;*/
-
-localparam log2_of_q = 12;
 localparam PARAM_WIDTH = 32;
 localparam BOX_WIDTH = 16;
-localparam LSFR_WIDTH = 32;
 localparam NB_SEEDS = 12;
 localparam N_STAGES = 5;
-//localparam prime_q = 8380417; //3329; // Kyber Q
-//localparam power_of_two_q = 4294967296; // 2**32
-//localparam prime_twoc_q = 4286586879; //4294963967; 
 
 localparam N_SHARES_2SHARE = 2;
 
@@ -103,11 +87,14 @@ wire fsm_prng_off;
 wire [1:0] opcode;
 
 // fsm <-> dma
-wire [31:0] mem_addr;
-wire [31:0] mem_i_data;
-wire [31:0] mem_o_data;
-wire mem_re, mem_we;
-wire mem_i_valid, mem_i_ready, mem_o_ready;
+wire [31:0] mem_addr    [SHARES-1:0];
+wire [31:0] mem_i_data  [SHARES-1:0];
+wire [31:0] mem_o_data  [SHARES-1:0];
+wire        mem_re      [SHARES-1:0];
+wire        mem_we      [SHARES-1:0];
+wire        mem_i_valid [SHARES-1:0];
+wire        mem_i_ready [SHARES-1:0];
+wire        mem_o_ready [SHARES-1:0];
 
 // fsm <-> x2x
 wire x2x_valid_data;
@@ -130,6 +117,9 @@ wire [PARAM_WIDTH-1:0] modulus_half;
 assign modulus_half = modulus >> 1;
 assign fsm_prng_off = (PRNG_OFF_EN) ? ctrl_prng_off : 1'b0;
 
+
+
+(* dont_touch *)
 x2x_acc_op_core #(
     .HALFCYCLE          (HALFCYCLE      ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
@@ -163,7 +153,7 @@ x2x_acc_op_core #(
     .original_data          (x2x_original_data),
     .converted_data         (x2x_converted_data),
     .opcode(opcode),
-    .tio_trigger(tio_trigger),
+    // .tio_trigger(tio_trigger),
     
     .rnd_ref(rnd_ref)
 );
@@ -172,8 +162,7 @@ x2x_acc_op_core #(
         
         
         
-        
-
+(* dont_touch *) 
 x2x_acc_fsm #(
     .SHARES       (SHARES     ),
     .LOGL         (LOGL       ),
@@ -183,8 +172,7 @@ x2x_acc_fsm #(
     .N_SHARES     (N_SHARES_2SHARE   ),
     .RND_SHARES_2SHARE         (RND_SHARES_2SHARE),
     .RND_SHARES_2SHARE_BOX    (RND_SHARES_2SHARE_BOX),
-    .BOX_WIDTH (BOX_WIDTH),
-    .HALFCYCLE    (HALFCYCLE    )
+    .BOX_WIDTH (BOX_WIDTH)
 ) x2x_acc_fsm_inst (
     .clk             (clk              ),
     .rst_n           (rst_n            ),
@@ -233,37 +221,40 @@ x2x_acc_fsm #(
     .x2x_fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),
     .x2x_original_data          (x2x_original_data),
     .x2x_converted_data         (x2x_converted_data),
-    .rnd_ref(rnd_ref)
+    .rnd_ref(rnd_ref)//,
+    // .tio_trigger(tio_trigger)
+
 );
 
 
-
-x2x_acc_dma x2x_acc_dma_inst 
-(
-    .clk         (clk        ),
-    .rst_n       (rst_n      ),
-    // dma <-> fsm
-    .addr        (mem_addr   ),
-    .re          (mem_re     ),
-    .we          (mem_we     ),
-    .i_data      (mem_i_data     ),
-    .i_valid     (mem_i_valid),
-    .i_ready     (mem_i_ready),
-    .o_ready     (mem_o_ready),
-    .o_data      (mem_o_data     ),
-    // dma connections
-    .dma_cyc_i   (dma_cyc_i  ),
-    .dma_stb_i   (dma_stb_i  ),
-    .dma_we_i    (dma_we_i   ),
-    .dma_adr_i   (dma_adr_i  ),
-    .dma_dat_i   (dma_dat_i  ),
-    .dma_sel_i   (dma_sel_i  ),
-    .dma_stall_o (dma_stall_o),
-    .dma_ack_o   (dma_ack_o  ),
-    .dma_dat_o   (dma_dat_o  ),
-    .dma_err_o   (dma_err_o  ),
-    .dma_rst_i   (dma_rst_i  )
-);
+for (genvar i = 0; i < SHARES; i = i + 1) begin
+    x2x_acc_dma x2x_acc_dma_inst 
+    (
+        .clk         (clk        ),
+        .rst_n       (rst_n      ),
+        // dma <-> fsm
+        .addr        (mem_addr   [i]),
+        .re          (mem_re     [i]),
+        .we          (mem_we     [i]),
+        .i_data      (mem_i_data [i]),
+        .i_valid     (mem_i_valid[i]),
+        .i_ready     (mem_i_ready[i]),
+        .o_ready     (mem_o_ready[i]),
+        .o_data      (mem_o_data [i]),
+        // dma connections
+        .dma_cyc_i   (dma_cyc_i  [i]),
+        .dma_stb_i   (dma_stb_i  [i]),
+        .dma_we_i    (dma_we_i   [i]),
+        .dma_adr_i   (dma_adr_i  [i]),
+        .dma_dat_i   (dma_dat_i  [i]),
+        .dma_sel_i   (dma_sel_i  [i]),
+        .dma_stall_o (dma_stall_o[i]),
+        .dma_ack_o   (dma_ack_o  [i]),
+        .dma_dat_o   (dma_dat_o  [i]),
+        .dma_err_o   (dma_err_o  [i]),
+        .dma_rst_i   (dma_rst_i  [i])
+    );
+end
 
 
 x2x_acc_wb x2x_acc_wb_inst (

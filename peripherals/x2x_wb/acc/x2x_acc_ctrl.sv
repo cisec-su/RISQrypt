@@ -53,23 +53,23 @@ localparam DOUT_PTR_ADDR_START = 12'h0034;   // Offset for first share dout_addr
 localparam DOUT_PTR_ADDR_END   = DOUT_PTR_ADDR_START + ((SHARES - 1) << 2);      // Offset for last share dout_addr register
 
 // Bit-fields for ctrl register
-localparam CTRL_START_BIT      = 0;
-localparam CTRL_CONV_MODE_BIT  = 2;
-localparam CTRL_DATA_TYPE_BIT  = 3;   //readback
-localparam CTRL_DUAL_MODE_BIT  = 4;   //readback
-localparam CTRL_SHARE_MODE_BIT = 5; 
-localparam CTRL_MOD_SIZE_LSB   = 6; 
-localparam CTRL_MOD_SIZE_MSB   = 10;
-localparam CTRL_LOG_STRIDE_LSB = 13; 
-localparam CTRL_LOG_STRIDE_MSB = 15;
-localparam CTRL_ONE_BIT_MODE   = 11; 
-localparam CTRL_REJ_SAMP_BIT   = 12;
-localparam CTRL_OPCODE_LSB     = 16; 
-localparam CTRL_OPCODE_MSB     = 17;
-localparam CTRL_PRNG_OFF_BIT   = 28;
-localparam CTRL_SEED_IP_BIT    = 29;
-localparam CTRL_BUSY_BIT       = 30;
-localparam CTRL_DONE_BIT       = 31;
+localparam CTRL_START_BIT        = 0;
+localparam CTRL_CONV_MODE_BIT    = 2;
+localparam CTRL_DATA_TYPE_BIT    = 3;   //readback
+localparam CTRL_DUAL_MODE_BIT    = 4;   //readback
+localparam CTRL_SHARE_MODE_BIT   = 5; 
+localparam CTRL_MOD_SIZE_LSB     = 6; 
+localparam CTRL_MOD_SIZE_MSB     = 10;
+localparam CTRL_LOG_STRIDE_LSB   = 13; 
+localparam CTRL_LOG_STRIDE_MSB   = 15;
+localparam CTRL_ONE_BIT_MODE_BIT = 11; 
+localparam CTRL_REJ_SAMP_BIT     = 12;
+localparam CTRL_OPCODE_LSB       = 16; 
+localparam CTRL_OPCODE_MSB       = 17;
+localparam CTRL_PRNG_OFF_BIT     = 28;
+localparam CTRL_SEED_IP_BIT      = 29;
+localparam CTRL_BUSY_BIT         = 30;
+localparam CTRL_DONE_BIT         = 31;
 
 wire [31:0] addr_offset;
 reg done_q;
@@ -165,7 +165,7 @@ always @(posedge clk) begin
         one_bit_mode <= 1'd0;
     end
     else if (we && (addr_offset == CTRL_ADDR)) begin
-        one_bit_mode <= wdata[CTRL_ONE_BIT_MODE];
+        one_bit_mode <= wdata[CTRL_ONE_BIT_MODE_BIT];
     end
 end
 
