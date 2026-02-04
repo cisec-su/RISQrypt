@@ -47,7 +47,7 @@ parameter USB_ADDR_WIDTH   = 21      ;
 parameter CW305_FIFO_BSIZE = 128     ;
 parameter PRNG_OFF_EN      = 1       ;
 `else
-parameter SYS_CLK_FREQ   = 58000000;
+parameter SYS_CLK_FREQ   = 50000000;
 parameter PRNG_OFF_EN    = 0       ;
 `endif
 parameter UART_BAUD      = 115200  ;
@@ -78,13 +78,13 @@ parameter GPIO_START     = 32'h1000_8020;
 parameter GPIO_END       = 32'h1000_802F;
 
 parameter NTT_START      = 32'h1004_0000;
-parameter NTT_END        = 32'h1004_001F;
+parameter NTT_END        = 32'h1004_003F;
 
-parameter KECCAK_START   = 32'h1004_0020;
-parameter KECCAK_END     = 32'h1004_005F;
+parameter KECCAK_START   = 32'h1004_0040;
+parameter KECCAK_END     = 32'h1004_007F;
 
-parameter X2X_START      = 32'h1004_0060;
-parameter X2X_END        = 32'h1004_009F;
+parameter X2X_START      = 32'h1004_0080;
+parameter X2X_END        = 32'h1004_00BF;
 
 parameter CW305_START    = 32'h1004_1000;
 parameter CW305_END      = 32'h1004_1003;
