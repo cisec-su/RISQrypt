@@ -7,8 +7,8 @@
 #define masked_gadgets_init_q DILITHIUM_NAMESPACE(masked_gadgets_init_q)
 void masked_gadgets_init_q();
 
-#define masked_gadgets_mask_poly DILITHIUM_NAMESPACE(masked_gadgets_mask_poly)
-void masked_gadgets_mask_poly(masked_poly *r, const poly *a);
+#define masked_gadgets_mask_poly_ptr DILITHIUM_NAMESPACE(masked_gadgets_mask_poly_ptr)
+void masked_gadgets_mask_poly_ptr(const masked_poly_ptr *r, const poly_u *a);
 
 #define masked_gadgets_B2A_q DILITHIUM_NAMESPACE(masked_gadgets_B2A_q)
 void masked_gadgets_B2A_q(masked_poly *r, const masked_poly *a);
@@ -28,9 +28,13 @@ void masked_gadgets_B2A_2k(masked_poly *r, const masked_poly *a);
 #define masked_gadgets_A2B_2k DILITHIUM_NAMESPACE(masked_gadgets_A2B_2k)
 void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a);
 
+#define masked_gadgets_A2B_ptr DILITHIUM_NAMESPACE(masked_gadgets_A2B_ptr)
+void masked_gadgets_A2B_ptr(const masked_poly_ptr *r, const masked_poly_ptr_const *a);
 
-void masked_gadgets_A2B_ptr(masked_poly_ptr *r, const masked_poly_ptr *a);
+#define masked_gadgets_B2A_ptr DILITHIUM_NAMESPACE(masked_gadgets_B2A_ptr)
+void masked_gadgets_B2A_ptr(const masked_poly_ptr *r, const masked_poly_ptr_const *a);
 
-void masked_gadgets_B2A_ptr(masked_poly_ptr *r, const masked_poly_ptr *a);
+#define masked_gadgets_B2A_q_ptr DILITHIUM_NAMESPACE(masked_gadgets_B2A_q_ptr)
+void masked_gadgets_B2A_q_ptr(const masked_poly_ptr *r, const masked_poly_ptr_const *a);
 
 #endif

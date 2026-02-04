@@ -14,8 +14,8 @@
 int masked_crypto_sign_signature_init(polyvecl mat[K],
                                       uint8_t *tr,
                                       polyveck *t0,
-                                      masked_polyvecl *s1,
-                                      masked_polyveck *s2,
+                                      masked_polyvecl_t *s1,
+                                      masked_polyveck_t *s2,
                                       masked_seed key,
                                       const uint8_t *sk);
 

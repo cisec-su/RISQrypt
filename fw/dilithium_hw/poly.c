@@ -273,15 +273,16 @@ int poly_chknorm(const poly *a, int32_t B) {
 **************************************************/
 void poly_uniform_fromhw(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce_next, int init_next)
 {
-    unsigned int i, ctr, off;
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES;
-    uint32_t buf[(POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES) >> 2];
+    uint32_t buf[(STREAM128_BLOCKBYTES >> 2) + 16];
+    unsigned int ret;
 
-    stream128_squeezeblocks((uint8_t*) buf, POLY_UNIFORM_NBLOCKS);
+    do {
+        stream128_squeezeblocks((uint8_t*) buf, 1);
+        ret = ntt_lite_rejsamp((uint32_t*) a->coeffs, (uint32_t*) buf, 24, NTT_LITE_REJSAMP_CENTER_DIS);
+    } while(ret == NTT_LITE_REJSAMP_IP);
     if (init_next) {
         stream128_init(seed, nonce_next);
     }
-    ntt_lite_rejsamp((uint32_t*) a->coeffs, buf, 24, NTT_LITE_REJSAMP_CENTER_DIS);
 }
 
 
@@ -300,12 +301,16 @@ void poly_uniform_eta_fromhw(poly *a, const uint8_t seed[CRHBYTES], uint16_t non
 #if ETA != 4
     #error "poly_uniform_eta in poly.c only supports ETA = 4"
 #endif
-    uint32_t buf[(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) >> 2];
-    stream256_squeezeblocks((uint8_t*) buf, POLY_UNIFORM_ETA_NBLOCKS);
+    uint32_t buf[SHAKE256_RATE >> 2];
+    int ret;
+
+    do {
+        stream256_squeezeblocks((uint8_t*) buf, 1);
+        ret = ntt_lite_rejsamp((uint32_t*) a->coeffs, (uint32_t*) buf, 4, NTT_LITE_REJSAMP_CENTER_EN);
+    } while(ret == NTT_LITE_REJSAMP_IP);
     if (init_next) {
-        stream256_init(seed, nonce_next); 
+        stream256_init(seed, nonce_next);
     }
-    ntt_lite_rejsamp((uint32_t*) a->coeffs, buf, 4, NTT_LITE_REJSAMP_CENTER_EN);
 }
 
 /*************************************************

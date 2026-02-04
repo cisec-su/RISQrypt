@@ -77,8 +77,8 @@
 int masked_crypto_sign_signature_init(polyvecl mat[K],
                                       uint8_t *tr,
                                       polyveck *t0,
-                                      masked_polyvecl *s1,
-                                      masked_polyveck *s2,
+                                      masked_polyvecl_t *s1,
+                                      masked_polyveck_t *s2,
                                       masked_seed key,
                                       const uint8_t *sk)
 {
@@ -88,27 +88,6 @@ int masked_crypto_sign_signature_init(polyvecl mat[K],
     masked_gadgets_init_q();
 
     masked_unpack_sk(rho, tr, key, t0, s1, s2, sk);
-
-    /* Expand matrix and transform vectors */
-    polyvec_matrix_expand(mat, rho);
-    return 0;
-}
-
-
-int masked_crypto_sign_signature_init_t(polyvecl mat[K],
-                                        uint8_t *tr,
-                                        polyveck *t0,
-                                        masked_polyvecl_t *s1,
-                                        masked_polyveck_t *s2,
-                                        masked_seed key,
-                                        const uint8_t *sk)
-{
-    uint8_t rho[SEEDBYTES];
-
-    poly_init_q();
-    masked_gadgets_init_q();
-
-    masked_unpack_sk_t(rho, tr, key, t0, s1, s2, sk);
 
     /* Expand matrix and transform vectors */
     polyvec_matrix_expand(mat, rho);
@@ -134,7 +113,6 @@ int masked_crypto_sign_signature_core(uint8_t *sig,
     polyveck w1, h;
     masked_polyveck w;
     masked_polyveck *w0;
-    // masked_polyvecl y, z;
     masked_polyvecl_t y_t, z_t, s1_t;
     masked_polyveck_t s2_t, w_t, w0_t;
     polyvecl *z_unmasked;
@@ -162,19 +140,10 @@ int masked_crypto_sign_signature_core(uint8_t *sig,
     dilithium_masked_shake256_absorb_double((masked_flat_ptr) rhoprime, CRHBYTES, (masked_flat_ptr) key, SEEDBYTES, mu, CRHBYTES);
 #endif    
 
-    // masked_polyvecl_to_shares(&s1_t, s1);
-    // masked_polyveck_to_shares(&s2_t, s2);
-
-    // masked_polyvecl_from_shares(s1, &s1_t); 
-
     poly_init_ntt();
-    // masked_polyvecl_ntt(s1);
-    // masked_polyveck_ntt(s2);
 
-    masked_polyvecl_ntt_t(s1);
-    masked_polyveck_ntt_t(s2);
-    // masked_polyvecl_from_shares(s1, &s1_t); 
-    // masked_polyveck_from_shares(s2, &s2_t);
+    masked_polyvecl_ntt(s1);
+    masked_polyveck_ntt(s2);
     polyveck_ntt(t0);
 
 rej:
@@ -182,29 +151,19 @@ rej:
     if (nonce) {
         masked_gadgets_init_q();
     }
-    masked_polyvecl_t_uniform_gamma1(&y_t, rhoprime, nonce++);
-    // masked_polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
+    masked_polyvecl_uniform_gamma1(&y_t, rhoprime, nonce++);
 
     /* Matrix-vector multiplication */ 
     poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
-    // masked_polyvecl_to_shares(&y_t, &y);
-    masked_polyvecl_ntt_t(&y_t);
-    // masked_polyvecl_from_shares(&y, &y_t);
-    // masked_polyvecl_ntt(&y);
+    masked_polyvecl_ntt(&y_t);
 
-    // masked_polyvec_matrix_pointwise(&w, mat, &y);
     masked_polyvec_t_matrix_pointwise(&w_t, mat, &y_t);
 
     poly_init_invntt();
-    // masked_polyveck_to_shares(&w_t, &w);
-    masked_polyveck_t_invntt(&w_t);
-    // masked_polyveck_from_shares(&w, &w_t);
-    // masked_polyveck_invntt(&w);
+    masked_polyveck_invntt(&w_t);
 
     /* Decompose w and call the random oracle */
-    // masked_polyveck_decompose(&w1, w0, &w);
     masked_polyveck_t_decompose(&w1, &w0_t, &w_t);
-    // masked_polyveck_from_shares(w0, &w0_t);
 
     polyveck_pack_w1(sig, &w1);
     dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
@@ -214,14 +173,8 @@ rej:
 
     poly_ntt(&cp);
 
-    // masked_polyvecl_to_shares(&y_t, &y);
-    // masked_polyvecl_to_shares(&s1_t, s1);
-    // memset(&z, 0, sizeof(masked_polyvecl));
-    // masked_polyvecl_to_shares(&z_t, &z);
-    // (void) z_t;
     /* Compute z, reject if it reveals secret */
-    flag = masked_polyvecl_pointwise_add_invntt_chknorm_t(&z_t, s1, &cp, &y_t, GAMMA1 - BETA);
-    // flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, s1, &cp, &y, GAMMA1 - BETA);
+    flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z_t, s1, &cp, &y_t, GAMMA1 - BETA);
 #ifndef TTEST // In t-test setting, we only perform a single iteration of the rejection sampling loop
     if(flag) {
         goto rej;
@@ -231,13 +184,7 @@ rej:
 
     /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
      * do not reveal secret information */
-    // masked_polyveck_to_shares(&s2_t, s2);
-    // masked_polyveck_to_shares(&w0_t, w0);
-    // flag = masked_polyveck_t_pointwise_invntt_sub_chknorm(&w0_t, &s2_t, &cp, &w0_t, &temp_ptr, GAMMA2 - BETA);
-
-    // flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, s2, &cp, &w0, GAMMA2 - BETA);
-    flag = masked_polyveck_t_pointwise_invntt_sub_chknorm(&w0_t, s2, &cp, &w0_t, &temp_ptr, GAMMA2 - BETA);
-    // masked_polyveck_from_shares(w0, &w0_t);
+    flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0_t, s2, &cp, &w0_t, &temp_ptr, GAMMA2 - BETA);
 #ifndef TTEST
     if(flag) {
         goto rej;
@@ -253,13 +200,13 @@ rej:
         goto rej;
     }
 
-    masked_polyveck_t_unmask(w0_unmasked, &w0_t);
+    masked_polyveck_unmask(w0_unmasked, &w0_t);
 
     n = polyveck_add_make_hint(&h, w0_unmasked, &w1, &h);
     if(n > OMEGA) {
         goto rej;
     }
-    masked_polyvecl_t_unmask(z_unmasked, &z_t);
+    masked_polyvecl_unmask(z_unmasked, &z_t);
     /* Write signature */
     pack_sig(sig, sig, z_unmasked, &h);
     *siglen = CRYPTO_BYTES;
@@ -285,7 +232,7 @@ int masked_crypto_sign_signature(uint8_t *sig,
     polyveck t0;
     masked_seed key;
 
-    masked_crypto_sign_signature_init_t(mat, tr, &t0, &s1, &s2, key, sk);
+    masked_crypto_sign_signature_init(mat, tr, &t0, &s1, &s2, key, sk);
 
     return masked_crypto_sign_signature_core(sig, siglen, m, mlen, mat, tr, key, &t0, &s1, &s2);
 }

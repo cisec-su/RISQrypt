@@ -4,43 +4,12 @@
 #include "ntt_lite.h"
 
 
-
-
-void masked_poly_mask(masked_poly *r, const poly *a) {
-    masked_gadgets_mask_poly(r, a);
-}
-
-
-void masked_poly_ptr_mask(masked_poly_ptr *r, const poly_u *a) {
+void masked_poly_ptr_mask(const masked_poly_ptr *r, const poly_u *a) {
     masked_gadgets_mask_poly_ptr(r, a);
 }
 
 
-void masked_poly_unmask(poly *a, const masked_poly *r) {
-    unsigned int i;
-    uint32_t *lhs;
-    uint32_t *dst;
-
-
-    for (i = 1; i < MASKING_N; i++) {
-        if (i == 1) {
-            lhs = (uint32_t*) &r->share[0].coeffs;
-        }
-        else {
-            lhs = NTT_LITE_INPUT_DIS;
-        }
-        if (i != (MASKING_N - 1)) {
-            dst = NTT_LITE_OUTPUT_DIS;
-        }
-        else {
-            dst = (uint32_t*) &a->coeffs;
-        }
-        ntt_lite_add(dst, lhs, (uint32_t*) &r->share[i].coeffs);
-    }
-}
-
-
-void masked_poly_ptr_unmask(poly *a, const masked_poly_ptr *r) {
+void masked_poly_ptr_unmask(poly *a, masked_poly_ptr_const *r) {
     unsigned int i;
     uint32_t *lhs;
     uint32_t *dst;
@@ -86,7 +55,7 @@ void masked_poly_invntt(masked_poly *r) {
 }
 
 
-void masked_poly_ptr_unpack(masked_poly_ptr *r, const uint8_t *a, unsigned int len, const uint32_t d, const uint32_t c) {
+void masked_poly_ptr_unpack(const masked_poly_ptr *r, const uint8_t *a, unsigned int len, const uint32_t d, const uint32_t c) {
     unsigned int i;
     uint32_t rhs = c;
     uint32_t *rhs_ptr;
@@ -109,16 +78,8 @@ void masked_poly_ptr_unpack(masked_poly_ptr *r, const uint8_t *a, unsigned int l
 }
 
 
-
-
-void masked_poly_uniform_gamma1_fromhw(masked_poly *y, const masked_crh rhoprime, uint16_t nonce_next, int init_next) {
+void masked_poly_uniform_gamma1_fromhw_inner(masked_poly *y, const masked_crh rhoprime, uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2]) {
     unsigned int i;
-    uint8_t buf[MASKING_N][POLYZ_PACKEDBYTES];
-
-    masked_stream256_squeeze((masked_flat_ptr) buf, POLYZ_PACKEDBYTES);
-    if (init_next) {
-        masked_stream256_init(rhoprime, nonce_next);
-    }
 
     for(i = 0; i < MASKING_N; i++) {
         ntt_lite_set_clr_with_twiddle();
@@ -135,28 +96,47 @@ void masked_poly_uniform_gamma1_fromhw(masked_poly *y, const masked_crh rhoprime
 }
 
 
-
-void masked_poly_ptr_uniform_gamma1_fromhw(masked_poly_ptr *y, const masked_crh rhoprime, uint16_t nonce_next, int init_next) {
+void masked_poly_uniform_gamma1_fromhw(masked_poly *y, const masked_crh rhoprime, uint16_t nonce_next, int init_next) {
     unsigned int i;
-    uint8_t buf[MASKING_N][POLYZ_PACKEDBYTES];
+    uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2];
 
     masked_stream256_squeeze((masked_flat_ptr) buf, POLYZ_PACKEDBYTES);
     if (init_next) {
         masked_stream256_init(rhoprime, nonce_next);
     }
 
+    masked_poly_uniform_gamma1_fromhw_inner(y, rhoprime, buf);
+}
+
+
+void masked_poly_ptr_uniform_gamma1_fromhw_inner(const masked_poly_ptr *y, const masked_crh rhoprime, uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2]) {
+    unsigned int i;
+
     for(i = 0; i < MASKING_N; i++) {
         ntt_lite_set_clr_with_twiddle();
         ntt_lite_decode((uint32_t*) y->share[i]->coeffs, (uint32_t*) buf[i], LOG_GAMMA1);
     }
 
-    masked_gadgets_B2A_q_ptr(y, y);
+    masked_gadgets_B2A_q_ptr(y, (masked_poly_ptr_const*) y);
     ntt_lite_set_bound(GAMMA1);
     for(i = 0; i < MASKING_N; i++) {
         ntt_lite_set_clr();
         ntt_lite_sub_rev_const((uint32_t*) y->share[i]->coeffs, (uint32_t*) y->share[i]->coeffs);
         ntt_lite_set_bound(0);
     }
+}
+
+
+void masked_poly_ptr_uniform_gamma1_fromhw(const masked_poly_ptr *y, const masked_crh rhoprime, uint16_t nonce_next, int init_next) {
+    unsigned int i;
+    uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2];
+
+    masked_stream256_squeeze((masked_flat_ptr) buf, POLYZ_PACKEDBYTES);
+    if (init_next) {
+        masked_stream256_init(rhoprime, nonce_next);
+    }
+
+    masked_poly_ptr_uniform_gamma1_fromhw_inner(y, rhoprime, buf);
 }
 
 
@@ -187,7 +167,7 @@ void masked_poly_pointwise(masked_poly *c, const poly *a, const masked_poly *b) 
 }
 #include "x2x.h"
 
-static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
+int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
     unsigned int i;
     int flag;
     masked_poly temp;
@@ -256,10 +236,10 @@ static int masked_poly_chknorm(const masked_poly *r, uint32_t B) {
 
 
 
-static int masked_poly_ptr_chknorm(const masked_poly_ptr *r, masked_poly_ptr *temp, uint32_t B) {
+int masked_poly_ptr_chknorm(const masked_poly_ptr *r, const masked_poly_ptr *temp, uint32_t B) {
     unsigned int i;
     int flag;
-    masked_poly_ptr ptr;
+    masked_poly_ptr_const ptr;
     uint32_t B2 = (B << 1) - 1;
     uint32_t *dst;
 
@@ -280,12 +260,12 @@ static int masked_poly_ptr_chknorm(const masked_poly_ptr *r, masked_poly_ptr *te
     masked_gadgets_A2B_ptr(temp, &ptr);
 
     masked_gadgets_init_2k(0xFFFFFF);
-    masked_gadgets_B2A_ptr(temp, temp);
+    masked_gadgets_B2A_ptr(temp, (masked_poly_ptr_const*) temp);
 
     ntt_lite_set_q(1 << 24);
     ntt_lite_set_bound(B2);
     ntt_lite_sub_const((uint32_t*) temp->share[MASKING_N - 1]->coeffs, (uint32_t*) temp->share[MASKING_N - 1]->coeffs);
-    masked_gadgets_A2B_ptr(temp, temp);
+    masked_gadgets_A2B_ptr(temp, (masked_poly_ptr_const*) temp);
 
     ntt_lite_set_q(1);
     for (i = 0; i < MASKING_N; i++) {
@@ -347,7 +327,7 @@ int masked_poly_pointwise_add_invntt_chknorm(masked_poly *r, const masked_poly *
 
 
 
-int masked_poly_ptr_pointwise_add_invntt_chknorm(masked_poly_ptr *r_ptr, const masked_poly_ptr *v_ptr, const poly *c, masked_poly_ptr *u_ptr, uint32_t B) {
+int masked_poly_ptr_pointwise_add_invntt_chknorm(const masked_poly_ptr *r_ptr, const masked_poly_ptr_const *v_ptr, const poly *c, const masked_poly_ptr *u_ptr, uint32_t B) {
     masked_poly temp;
     unsigned int i, j;
     int flag;
@@ -369,26 +349,7 @@ int masked_poly_ptr_pointwise_add_invntt_chknorm(masked_poly_ptr *r_ptr, const m
 }
 
 
-
-
-int masked_poly_pointwise_invntt_sub_chknorm(masked_poly *r, const masked_poly *v, const poly *c, const masked_poly *u, uint32_t B) {
-    unsigned int i;
-    int flag;
-    for (i = 0; i < MASKING_N; i++) {
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->share[i].coeffs, (uint32_t*) &c->coeffs);
-        poly_init_invntt();
-        ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
-        if (i != (MASKING_N - 1)) {
-            ntt_lite_set_clr();
-        }
-        ntt_lite_sub_rev((uint32_t*) r->share[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->share[i].coeffs);
-
-    }
-    return masked_poly_chknorm(r, B);
-}
-
-
-int masked_poly_ptr_pointwise_invntt_sub_chknorm(masked_poly_ptr *r, const masked_poly_ptr *v, const poly *c, masked_poly_ptr *u, masked_poly_ptr *temp, uint32_t B) {
+int masked_poly_ptr_pointwise_invntt_sub_chknorm(const masked_poly_ptr *r, const masked_poly_ptr_const *v, const poly *c, const masked_poly_ptr_const *u, const masked_poly_ptr *temp, uint32_t B) {
     unsigned int i;
     int flag;
     for (i = 0; i < MASKING_N; i++) {
@@ -484,7 +445,7 @@ void masked_poly_decompose(poly *v1, masked_poly *v0, const masked_poly *v) {
 
 
 // https://eprint.iacr.org/2023/896.pdf Algorithm 10-11
-void masked_poly_ptr_decompose(poly *v1, masked_poly_ptr *v0, const masked_poly_ptr *v) {
+void masked_poly_ptr_decompose(poly *v1, const masked_poly_ptr *v0, const masked_poly_ptr_const *v) {
 #if DILITHIUM_MODE == 2
     #error "This implementation requires DILITHIUM_MODE = 3 or 5"
 #else

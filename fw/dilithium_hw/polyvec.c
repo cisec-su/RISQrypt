@@ -21,7 +21,7 @@
 **************************************************/
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]) {
     unsigned int i, j, i_next, j_next;
-    ntt_lite_set_inv2((POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES) >> 2);
+    ntt_lite_set_inv2(STREAM128_BLOCKBYTES >> 2);
     ntt_lite_set_bound(Q);
 
 
@@ -45,6 +45,7 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]) {
     ntt_lite_set_inv2(INV2);
 }
 
+
 void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K], const polyvecl *v) {
     unsigned int i;
 
@@ -58,7 +59,7 @@ void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K], const polyvecl
 
 void polyvecl_uniform_eta(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t nonce) {
     unsigned int i;
-    ntt_lite_set_inv2((POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) >> 2);
+    ntt_lite_set_inv2(SHAKE256_RATE >> 2);
     ntt_lite_set_bound(ETA*2 + 1);
 
     stream256_init(seed, nonce); 
@@ -218,7 +219,7 @@ int polyvecl_chknorm(const polyvecl *v, int32_t B) {
 
 void polyveck_uniform_eta(polyveck *v, const uint8_t seed[CRHBYTES], uint16_t nonce) {
     unsigned int i;
-    ntt_lite_set_inv2((POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) >> 2);
+    ntt_lite_set_inv2(SHAKE256_RATE >> 2);
     ntt_lite_set_bound(ETA*2 + 1);
 
     stream256_init(seed, nonce); 
