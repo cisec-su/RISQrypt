@@ -17,7 +17,7 @@
 void set_layer_addr(uint32_t addr[8], uint32_t layer);
 
 #define set_tree_addr SPX_NAMESPACE(set_tree_addr)
-void set_tree_addr(uint32_t addr[8], uint64_t tree);
+void set_tree_addr(uint32_t addr[8], const uint32_t tree[2]);
 
 #define set_type SPX_NAMESPACE(set_type)
 void set_type(uint32_t addr[8], uint32_t type);

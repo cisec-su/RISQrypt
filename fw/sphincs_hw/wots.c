@@ -79,7 +79,15 @@ static void wots_checksum(unsigned int *csum_base_w,
     /* Convert checksum to base_w. */
     /* Make sure expected empty zero bits are the least significant bits. */
     csum = csum << ((8 - ((SPX_WOTS_LEN2 * SPX_WOTS_LOGW) % 8)) % 8);
-    ull_to_bytes(csum_bytes, sizeof(csum_bytes), csum);
+    // ull_to_bytes(csum_bytes, sizeof(csum_bytes), csum);
+    // Since sizeof(csum_bytes) is small and csum is int (32-bit max), 
+    // we can implement a loop or use u32_to_bytes if size matches.
+    // However, csum_bytes size depends on WOTS parameters.
+    // Given the parameters, it fits in 32 bits usually.
+    // Standard implementation uses big-endian.
+    for (i = 0; i < sizeof(csum_bytes); i++) {
+        csum_bytes[sizeof(csum_bytes) - 1 - i] = (unsigned char)(csum >> (8 * i));
+    }
     base_w(csum_base_w, SPX_WOTS_LEN2, csum_bytes);
 }
 

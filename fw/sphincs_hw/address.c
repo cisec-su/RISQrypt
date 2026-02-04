@@ -16,12 +16,14 @@ void set_layer_addr(uint32_t addr[8], uint32_t layer)
 /*
  * Specify which Merkle tree within the level (the "tree address") we're working on
  */
-void set_tree_addr(uint32_t addr[8], uint64_t tree)
+void set_tree_addr(uint32_t addr[8], const uint32_t tree[2])
 {
 #if (SPX_TREE_HEIGHT * (SPX_D - 1)) > 64
     #error Subtree addressing is currently limited to at most 2^64 trees
 #endif
-    ull_to_bytes(&((unsigned char *)addr)[SPX_OFFSET_TREE], 8, tree );
+    // Big-endian: High word first, then Low word
+    u32_to_bytes(&((unsigned char *)addr)[SPX_OFFSET_TREE], tree[1]);
+    u32_to_bytes(&((unsigned char *)addr)[SPX_OFFSET_TREE + 4], tree[0]);
 }
 
 /*
