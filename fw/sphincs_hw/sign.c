@@ -16,7 +16,10 @@
 /*
  * Returns the length of a secret key, in bytes
  */
-unsigned long long crypto_sign_secretkeybytes(void)
+/*
+ * Returns the length of a secret key, in bytes
+ */
+size_t crypto_sign_secretkeybytes(void)
 {
     return CRYPTO_SECRETKEYBYTES;
 }
@@ -24,7 +27,7 @@ unsigned long long crypto_sign_secretkeybytes(void)
 /*
  * Returns the length of a public key, in bytes
  */
-unsigned long long crypto_sign_publickeybytes(void)
+size_t crypto_sign_publickeybytes(void)
 {
     return CRYPTO_PUBLICKEYBYTES;
 }
@@ -32,7 +35,7 @@ unsigned long long crypto_sign_publickeybytes(void)
 /*
  * Returns the length of a signature, in bytes
  */
-unsigned long long crypto_sign_bytes(void)
+size_t crypto_sign_bytes(void)
 {
     return CRYPTO_BYTES;
 }
@@ -40,7 +43,7 @@ unsigned long long crypto_sign_bytes(void)
 /*
  * Returns the length of the seed required to generate a key pair, in bytes
  */
-unsigned long long crypto_sign_seedbytes(void)
+size_t crypto_sign_seedbytes(void)
 {
     return CRYPTO_SEEDBYTES;
 }
@@ -104,7 +107,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     unsigned char mhash[SPX_FORS_MSG_BYTES];
     unsigned char root[SPX_N];
     uint32_t i;
-    uint64_t tree;
+    uint32_t tree[2];
     uint32_t idx_leaf;
     uint32_t wots_addr[8] = {0};
     uint32_t tree_addr[8] = {0};
@@ -127,10 +130,10 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     gen_message_random(sig, sk_prf, optrand, m, mlen, &ctx);
 
     /* Derive the message digest and leaf index from R, PK and M. */
-    hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    hash_message(mhash, tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
-    set_tree_addr(wots_addr, tree);
+    set_tree_addr(wots_addr, tree); // This requires update in utils to accept 32-bit array
     set_keypair_addr(wots_addr, idx_leaf);
 
     /* Sign the message hash using FORS. */
@@ -139,7 +142,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
     for (i = 0; i < SPX_D; i++) {
         set_layer_addr(tree_addr, i);
-        set_tree_addr(tree_addr, tree);
+        set_tree_addr(tree_addr, tree); // This requires update in utils to accept 32-bit array
 
         copy_subtree_addr(wots_addr, tree_addr);
         set_keypair_addr(wots_addr, idx_leaf);
@@ -148,8 +151,14 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
         sig += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
 
         /* Update the indices for the next layer. */
-        idx_leaf = (tree & ((1 << SPX_TREE_HEIGHT)-1));
-        tree = tree >> SPX_TREE_HEIGHT;
+        // idx_leaf = (tree & ((1 << SPX_TREE_HEIGHT)-1));
+        // tree = tree >> SPX_TREE_HEIGHT;
+        idx_leaf = (tree[0] & ((1 << SPX_TREE_HEIGHT)-1));
+        
+        // standard 64-bit shift right by SPX_TREE_HEIGHT on {tree[1], tree[0]}
+        // assumption: SPX_TREE_HEIGHT < 32
+        tree[0] = (tree[0] >> SPX_TREE_HEIGHT) | (tree[1] << (32 - SPX_TREE_HEIGHT));
+        tree[1] = (tree[1] >> SPX_TREE_HEIGHT);
     }
 
     *siglen = SPX_BYTES;
@@ -170,7 +179,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
     unsigned char root[SPX_N];
     unsigned char leaf[SPX_N];
     unsigned int i;
-    uint64_t tree;
+    uint32_t tree[2];
     uint32_t idx_leaf;
     uint32_t wots_addr[8] = {0};
     uint32_t tree_addr[8] = {0};
@@ -192,7 +201,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
     /* Derive the message digest and leaf index from R || PK || M. */
     /* The additional SPX_N is a result of the hash domain separator. */
-    hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    hash_message(mhash, tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     /* Layer correctly defaults to 0, so no need to set_layer_addr */
@@ -227,8 +236,11 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
         sig += SPX_TREE_HEIGHT * SPX_N;
 
         /* Update the indices for the next layer. */
-        idx_leaf = (tree & ((1 << SPX_TREE_HEIGHT)-1));
-        tree = tree >> SPX_TREE_HEIGHT;
+        // idx_leaf = (tree & ((1 << SPX_TREE_HEIGHT)-1));
+        // tree = tree >> SPX_TREE_HEIGHT;
+        idx_leaf = (tree[0] & ((1 << SPX_TREE_HEIGHT)-1));
+        tree[0] = (tree[0] >> SPX_TREE_HEIGHT) | (tree[1] << (32 - SPX_TREE_HEIGHT));
+        tree[1] = (tree[1] >> SPX_TREE_HEIGHT);
     }
 
     /* Check if the root node equals the root node in the public key. */
@@ -243,13 +255,13 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
 /**
  * Returns an array containing the signature followed by the message.
  */
-int crypto_sign(unsigned char *sm, unsigned long long *smlen,
-                const unsigned char *m, unsigned long long mlen,
+int crypto_sign(unsigned char *sm, size_t *smlen,
+                const unsigned char *m, size_t mlen,
                 const unsigned char *sk)
 {
     size_t siglen;
 
-    crypto_sign_signature(sm, &siglen, m, (size_t)mlen, sk);
+    crypto_sign_signature(sm, &siglen, m, mlen, sk);
 
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
@@ -260,8 +272,8 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
 /**
  * Verifies a given signature-message pair under a given public key.
  */
-int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
-                     const unsigned char *sm, unsigned long long smlen,
+int crypto_sign_open(unsigned char *m, size_t *mlen,
+                     const unsigned char *sm, size_t smlen,
                      const unsigned char *pk)
 {
     /* The API caller does not necessarily know what size a signature should be
@@ -274,7 +286,7 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 
     *mlen = smlen - SPX_BYTES;
 
-    if (crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
+    if (crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, *mlen, pk)) {
         memset(m, 0, smlen);
         *mlen = 0;
         return -1;

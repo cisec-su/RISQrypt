@@ -24,9 +24,9 @@ static unsigned char m[SPX_MLEN];
 static unsigned char sm[SPX_BYTES + SPX_MLEN];
 static unsigned char sm_masked[SPX_BYTES + SPX_MLEN];  // For masked signature
 static unsigned char mout[SPX_BYTES + SPX_MLEN];
-static unsigned long long smlen;
-static unsigned long long smlen_masked;
-static unsigned long long mlen;
+static size_t smlen;
+static size_t smlen_masked;
+static size_t mlen;
 
 // Context for component tests
 static spx_ctx ctx;

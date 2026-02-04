@@ -16,22 +16,25 @@
 /*
  * Returns the length of a secret key, in bytes
  */
-unsigned long long crypto_sign_secretkeybytes(void);
+/*
+ * Returns the length of a secret key, in bytes
+ */
+size_t crypto_sign_secretkeybytes(void);
 
 /*
  * Returns the length of a public key, in bytes
  */
-unsigned long long crypto_sign_publickeybytes(void);
+size_t crypto_sign_publickeybytes(void);
 
 /*
  * Returns the length of a signature, in bytes
  */
-unsigned long long crypto_sign_bytes(void);
+size_t crypto_sign_bytes(void);
 
 /*
  * Returns the length of the seed required to generate a key pair, in bytes
  */
-unsigned long long crypto_sign_seedbytes(void);
+size_t crypto_sign_seedbytes(void);
 
 /*
  * Generates a SPHINCS+ key pair given a seed.
@@ -63,15 +66,15 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
 /**
  * Returns an array containing the signature followed by the message.
  */
-int crypto_sign(unsigned char *sm, unsigned long long *smlen,
-                const unsigned char *m, unsigned long long mlen,
+int crypto_sign(unsigned char *sm, size_t *smlen,
+                const unsigned char *m, size_t mlen,
                 const unsigned char *sk);
 
 /**
  * Verifies a given signature-message pair under a given public key.
  */
-int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
-                     const unsigned char *sm, unsigned long long smlen,
+int crypto_sign_open(unsigned char *m, size_t *mlen,
+                     const unsigned char *sm, size_t smlen,
                      const unsigned char *pk);
 
 #endif

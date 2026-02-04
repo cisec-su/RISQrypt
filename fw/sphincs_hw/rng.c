@@ -23,13 +23,16 @@ void    AES256_ECB(unsigned char *key, unsigned char *ctr, unsigned char *buffer
  maxlen         - maximum number of bytes (less than 2**32) generated under this seed and diversifier
  */
 int
+int
 seedexpander_init(AES_XOF_struct *ctx,
                   unsigned char *seed,
                   unsigned char *diversifier,
-                  unsigned long maxlen)
+                  uint32_t maxlen)
 {
-    if ( maxlen >= 0x100000000 )
-        return RNG_BAD_MAXLEN;
+    // maxlen is already uint32_t, so no check against 0x100000000 needed logic-wise, 
+    // but the original code had a check. 
+    // If passed value is already truncated implicitly by caller, the check inside is moot.
+    // We can keep it or remove it. Since maxlen is now uint32, it cannot be >= 0x100000000.
     
     ctx->length_remaining = maxlen;
     
@@ -58,9 +61,9 @@ seedexpander_init(AES_XOF_struct *ctx,
     xlen - number of bytes to return
  */
 int
-seedexpander(AES_XOF_struct *ctx, unsigned char *x, unsigned long xlen)
+seedexpander(AES_XOF_struct *ctx, unsigned char *x, uint32_t xlen)
 {
-    unsigned long   offset;
+    uint32_t   offset;
     
     if ( x == NULL )
         return RNG_BAD_OUTBUF;
@@ -149,7 +152,7 @@ randombytes_init(unsigned char *entropy_input,
 }
 
 int
-randombytes(unsigned char *x, unsigned long long xlen)
+randombytes(unsigned char *x, size_t xlen)
 {
     unsigned char   block[16];
     int             i = 0;
