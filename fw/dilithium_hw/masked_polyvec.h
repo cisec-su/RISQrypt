@@ -14,8 +14,43 @@ typedef struct {
 
 
 typedef struct {
+  poly_u vec[L];
+} polyvecl_u;
+
+typedef struct {
+  polyvecl_u share[MASKING_N];
+} masked_polyvecl_t;
+
+
+typedef struct {
   masked_poly vec[K];
 } masked_polyveck;
+
+typedef struct {
+  poly_u vec[K];
+} polyveck_u;
+
+
+typedef struct {
+  polyveck_u share[MASKING_N];
+} masked_polyveck_t;
+
+
+inline void masked_polyveck_t_to_poly_ptr(masked_poly_ptr *dst, const masked_polyveck_t *src, int i) {
+    unsigned int j;
+    for (j = 0; j < MASKING_N; j++) {
+        dst->share[j] = &src->share[j].vec[i];
+    }
+}
+
+
+inline void masked_polyvecl_t_to_poly_ptr(masked_poly_ptr *dst, const masked_polyvecl_t *src, int i) {
+    unsigned int j;
+    for (j = 0; j < MASKING_N; j++) {
+        dst->share[j] = &src->share[j].vec[i];
+    }
+}
+
 
 
 #define masked_polyvecl_eta_unpack DILITHIUM_NAMESPACE(masked_polyvecl_eta_unpack)
@@ -23,9 +58,6 @@ void masked_polyvecl_eta_unpack(masked_polyvecl *r, const uint8_t *a);
 
 #define masked_polyveck_eta_unpack DILITHIUM_NAMESPACE(masked_polyveck_eta_unpack)
 void masked_polyveck_eta_unpack(masked_polyveck *r, const uint8_t *a);
-
-#define masked_polyveck_t0_unpack DILITHIUM_NAMESPACE(masked_polyveck_t0_unpack)
-void masked_polyveck_t0_unpack(masked_polyveck *r, const uint8_t *a);
 
 #define masked_polyvecl_ntt DILITHIUM_NAMESPACE(masked_polyvecl_ntt)
 void masked_polyvecl_ntt(masked_polyvecl *r);

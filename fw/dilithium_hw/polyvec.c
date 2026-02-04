@@ -20,13 +20,28 @@
 *              - const uint8_t rho[]: byte array containing seed rho
 **************************************************/
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]) {
-    unsigned int i, j;
+    unsigned int i, j, i_next, j_next;
     ntt_lite_set_inv2((POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES) >> 2);
     ntt_lite_set_bound(Q);
 
-    for(i = 0; i < K; i++)
-        for(j = 0; j < L; j++)
-            poly_uniform(&mat[i].vec[j], rho, (i << 8) + j);
+
+    i_next = 0;
+    j_next = 1;
+
+    stream128_init(rho, 0);
+
+    for(i = 0; i < K; i++) {
+        for(j = 0; j < L; j++) {
+            poly_uniform_fromhw(&mat[i].vec[j], rho, (i_next << 8) + j_next, (i != (K - 1)) || (j != (L - 1)));
+            if (j_next == (L - 1)) {
+                j_next = 0;
+                i_next++;
+            }
+            else {
+                j_next++;
+            }
+        }
+    }
     ntt_lite_set_inv2(INV2);
 }
 
@@ -46,8 +61,10 @@ void polyvecl_uniform_eta(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t no
     ntt_lite_set_inv2((POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) >> 2);
     ntt_lite_set_bound(ETA*2 + 1);
 
-    for(i = 0; i < L; i++)
-        poly_uniform_eta(&v->vec[i], seed, nonce++);
+    stream256_init(seed, nonce); 
+    for(i = 0; i < L; i++) {
+        poly_uniform_eta_fromhw(&v->vec[i], seed, ++nonce, i != (L - 1));
+    }
 
     ntt_lite_set_inv2(INV2);
 }
@@ -55,8 +72,10 @@ void polyvecl_uniform_eta(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t no
 void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t nonce) {
     unsigned int i;
 
-    for(i = 0; i < L; i++)
-        poly_uniform_gamma1(&v->vec[i], seed, L*nonce + i);
+    stream256_init(seed, L*nonce); 
+    for(i = 0; i < L; i++) {
+        poly_uniform_gamma1_fromhw(&v->vec[i], seed, L*nonce + i + 1, i != (L - 1));
+    }
 }
 
 
@@ -202,8 +221,10 @@ void polyveck_uniform_eta(polyveck *v, const uint8_t seed[CRHBYTES], uint16_t no
     ntt_lite_set_inv2((POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) >> 2);
     ntt_lite_set_bound(ETA*2 + 1);
 
-    for(i = 0; i < K; i++)
-        poly_uniform_eta(&v->vec[i], seed, nonce++);
+    stream256_init(seed, nonce); 
+    for(i = 0; i < K; i++) {
+        poly_uniform_eta_fromhw(&v->vec[i], seed, ++nonce, i != (K - 1));
+    }
 
     ntt_lite_set_inv2(INV2);
 }

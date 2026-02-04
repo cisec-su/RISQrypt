@@ -29,4 +29,8 @@ void masked_gadgets_B2A_2k(masked_poly *r, const masked_poly *a);
 void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a);
 
 
+void masked_gadgets_A2B_ptr(masked_poly_ptr *r, const masked_poly_ptr *a);
+
+void masked_gadgets_B2A_ptr(masked_poly_ptr *r, const masked_poly_ptr *a);
+
 #endif

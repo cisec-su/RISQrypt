@@ -4,9 +4,31 @@
 #include "poly.h"
 #include "masked.h"
 
+#define U 1 // UNALIGNMENT_OFFSET
+
 typedef struct {
   poly share[MASKING_N];
 } masked_poly;
+
+
+typedef struct {
+  uint32_t coeffs[N + U];
+} poly_u;
+
+
+typedef struct {
+  poly_u share[MASKING_N];
+} masked_poly_u;
+
+
+// typedef struct {
+//   poly *share[MASKING_N];
+// } masked_poly_ptr;
+
+typedef struct {
+  poly_u *share[MASKING_N];
+} masked_poly_ptr;
+
 
 
 #define masked_poly_mask DILITHIUM_NAMESPACE(masked_poly_mask)
@@ -21,8 +43,8 @@ void masked_poly_ntt(masked_poly *r);
 #define masked_poly_invntt DILITHIUM_NAMESPACE(masked_poly_invntt)
 void masked_poly_invntt(masked_poly *r);
 
-#define masked_poly_uniform_gamma1 DILITHIUM_NAMESPACE(masked_poly_uniform_gamma1)
-void masked_poly_uniform_gamma1(masked_poly *y, const masked_crh rhoprime, uint16_t nonce);
+#define masked_poly_uniform_gamma1_fromhw DILITHIUM_NAMESPACE(masked_poly_uniform_gamma1_fromhw)
+void masked_poly_uniform_gamma1_fromhw(masked_poly *y, const masked_crh rhoprime, uint16_t nonce_next, int init_next);
 
 #define masked_poly_pointwise DILITHIUM_NAMESPACE(masked_poly_pointwise)
 void masked_poly_pointwise(masked_poly *c, const poly *a, const masked_poly *b);

@@ -271,14 +271,16 @@ int poly_chknorm(const poly *a, int32_t B) {
 *              - const uint8_t seed[]: byte array with seed of length SEEDBYTES
 *              - uint16_t nonce: 2-byte nonce
 **************************************************/
-void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
+void poly_uniform_fromhw(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce_next, int init_next)
 {
     unsigned int i, ctr, off;
     unsigned int buflen = POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES;
     uint32_t buf[(POLY_UNIFORM_NBLOCKS*STREAM128_BLOCKBYTES) >> 2];
 
-    stream128_init(seed, nonce);
     stream128_squeezeblocks((uint8_t*) buf, POLY_UNIFORM_NBLOCKS);
+    if (init_next) {
+        stream128_init(seed, nonce_next);
+    }
     ntt_lite_rejsamp((uint32_t*) a->coeffs, buf, 24, NTT_LITE_REJSAMP_CENTER_DIS);
 }
 
@@ -294,18 +296,20 @@ void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
 *              - const uint8_t seed[]: byte array with seed of length SEEDBYTES
 *              - uint16_t nonce: 2-byte nonce
 **************************************************/
-void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
+void poly_uniform_eta_fromhw(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce_next, int init_next) {
 #if ETA != 4
     #error "poly_uniform_eta in poly.c only supports ETA = 4"
 #endif
     uint32_t buf[(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) >> 2];
-    dilithium_shake256_stream_init(seed, nonce); 
-    dilithium_shake256_squeezeblocks((uint8_t*) buf, POLY_UNIFORM_ETA_NBLOCKS);
+    stream256_squeezeblocks((uint8_t*) buf, POLY_UNIFORM_ETA_NBLOCKS);
+    if (init_next) {
+        stream256_init(seed, nonce_next); 
+    }
     ntt_lite_rejsamp((uint32_t*) a->coeffs, buf, 4, NTT_LITE_REJSAMP_CENTER_EN);
 }
 
 /*************************************************
-* Name:        poly_uniform_gamma1m1
+* Name:        poly_uniform_gamma1
 *
 * Description: Sample polynomial with uniformly random coefficients
 *              in [-(GAMMA1 - 1), GAMMA1] by unpacking output stream
@@ -316,9 +320,12 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
 *              - uint16_t nonce: 16-bit nonce
 **************************************************/
 #define POLY_UNIFORM_GAMMA1_NBLOCKS ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
-void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce) {
+void poly_uniform_gamma1_fromhw(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce_next, int init_next) {
     uint8_t buf[POLYZ_PACKEDBYTES];
-    dilithium_shake256_nonce(buf, sizeof(buf), seed, CRHBYTES, nonce);
+    stream256_squeeze(buf, sizeof(buf));
+    if (init_next) {
+        stream256_init(seed, nonce_next);
+    }
     ntt_lite_set_bound(GAMMA1);
     polyz_unpack(a, buf);
 }

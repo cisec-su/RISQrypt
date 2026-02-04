@@ -37,6 +37,11 @@ void dilithium_shake128_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
         dilithium_shake256_squeezeblocks(OUT, OUTBLOCKS)
 void dilithium_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
 
+
+#define stream256_squeeze(OUT, OUTBYTES) \
+        dilithium_shake_squeeze(OUT, OUTBYTES)
+void dilithium_shake_squeeze(uint8_t *dst, size_t dst_len);
+
 void dilithium_shake256(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len);
 void dilithium_shake256_nonce(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len, uint16_t nonce);
 void dilithium_shake256_challenge(uint8_t *dst, const uint8_t *mu, const uint8_t *w1packed);

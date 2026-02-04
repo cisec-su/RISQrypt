@@ -48,6 +48,12 @@ void dilithium_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks) {
     keccak_squeeze((uint32_t*) dst, NULL, num_blocks*(SHAKE256_RATE >> 2));
 }
 
+
+void dilithium_shake_squeeze(uint8_t *dst, size_t dst_len) {
+    keccak_squeeze((uint32_t*) dst, NULL, (dst_len >> 2));
+}
+
+
 void dilithium_shake256_challenge(uint8_t *dst, const uint8_t *mu, const uint8_t *w1packed) {
     volatile uint32_t t;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
