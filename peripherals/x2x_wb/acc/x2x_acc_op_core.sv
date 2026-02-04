@@ -81,12 +81,11 @@ reg [PARAM_WIDTH-1:0] modulus_int   ;
 reg [31:0] rnd_ref_int;
 
 reg [PARAM_WIDTH-1:0]   original_data_int             [1:0][N_SHARES      -1:0];
-reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_int           [RND_SHARES    -1:0];
+reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_q           [RND_SHARES    -1:0];
 reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_d                                 ;
 reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_d0                                ;
 reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_c             [RND_SHARES    -1:0];
-reg [BOX_WIDTH  -1:0]   x2x_fresh_rnd_shares_8bit_int      [RND_SHARES_BOX-1:0];
-reg [BOX_WIDTH  -1:0]   x2x_fresh_rnd_shares_8bit_c        [RND_SHARES_BOX-1:0];
+reg [BOX_WIDTH  -1:0]   x2x_fresh_rnd_shares_8bit_q      [RND_SHARES_BOX-1:0];
 
 reg valid_data_int;
 reg valid_rng_int;
@@ -125,9 +124,9 @@ end
     always @(posedge clk) begin
         original_data_int             <= original_data;
         // x2x_fresh_rnd_shares_d0 <= x2x_fresh_rnd_shares[4]; // [4] is the mod q sample, output of rej. sampling
-        x2x_fresh_rnd_shares_d        <= x2x_fresh_rnd_shares_int[4];//x2x_fresh_rnd_shares_d0;
-        x2x_fresh_rnd_shares_int      <= x2x_fresh_rnd_shares;//(valid_data) ? x2x_fresh_rnd_shares : '{default: '0};
-        x2x_fresh_rnd_shares_8bit_int <= x2x_fresh_rnd_shares_8bit;
+        x2x_fresh_rnd_shares_d        <= x2x_fresh_rnd_shares_q[4];//x2x_fresh_rnd_shares_d0;
+        x2x_fresh_rnd_shares_q        <= x2x_fresh_rnd_shares;//(valid_data) ? x2x_fresh_rnd_shares : '{default: '0};
+        x2x_fresh_rnd_shares_8bit_q   <= x2x_fresh_rnd_shares_8bit;
         valid_data_int                <= valid_data;
         valid_rng_int                 <= valid_rng;
         rnd_ref_int                   <= rnd_ref;
@@ -136,7 +135,7 @@ end
 // else begin
 //     always @(*) begin
 //         original_data_int = original_data;
-//         x2x_fresh_rnd_shares_int = x2x_fresh_rnd_shares;
+//         x2x_fresh_rnd_shares_q = x2x_fresh_rnd_shares;
 //         valid_data_int = valid_data;
 //         valid_rng_int = valid_rng;
 //         rnd_ref_int = rnd_ref;
@@ -221,7 +220,7 @@ X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .modulus                (modulus_int                ),
     .modulus_twoc           (modulus_complement         ),
     .fresh_rnd_shares       (x2x_fresh_rnd_shares_c     ),
-    .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit_c),
+    .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit_q),
     .original_data          (x2x_original_data          ),
     .converted_data         (x2x_converted_data_raw     )
 );
@@ -250,25 +249,21 @@ begin
     
     x2x_valid_data = 0;
 
+
     for (int i = 0; i < 10; i = i + 1) begin
-        x2x_fresh_rnd_shares_c[i] = 0;
+        x2x_fresh_rnd_shares_c[i] = x2x_fresh_rnd_shares_q[i];
     end
 
-    for (int i = 0; i < 28; i = i + 1) begin
-        x2x_fresh_rnd_shares_8bit_c[i] = 0;
-    end
-
-
-    // x2x_fresh_rnd_shares_c[0] = x2x_fresh_rnd_shares_int[0];
-    // x2x_fresh_rnd_shares_c[1] = x2x_fresh_rnd_shares_int[1];
-    // x2x_fresh_rnd_shares_c[2] = x2x_fresh_rnd_shares_int[2];
-    // x2x_fresh_rnd_shares_c[3] = x2x_fresh_rnd_shares_int[3];
-    // x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_int[4];//x2x_fresh_rnd_shares_d0;//x2x_fresh_rnd_shares[4];
-    // x2x_fresh_rnd_shares_c[5] = x2x_fresh_rnd_shares_int[5];
-    // x2x_fresh_rnd_shares_c[6] = x2x_fresh_rnd_shares_int[6];
-    // x2x_fresh_rnd_shares_c[7] = x2x_fresh_rnd_shares_int[7];
-    // x2x_fresh_rnd_shares_c[8] = x2x_fresh_rnd_shares_int[8];
-    // x2x_fresh_rnd_shares_c[9] = x2x_fresh_rnd_shares_int[9];
+    // x2x_fresh_rnd_shares_c[0] = x2x_fresh_rnd_shares_q[0];
+    // x2x_fresh_rnd_shares_c[1] = x2x_fresh_rnd_shares_q[1];
+    // x2x_fresh_rnd_shares_c[2] = x2x_fresh_rnd_shares_q[2];
+    // x2x_fresh_rnd_shares_c[3] = x2x_fresh_rnd_shares_q[3];
+    // x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_q[4];//x2x_fresh_rnd_shares_d0;//x2x_fresh_rnd_shares[4];
+    // x2x_fresh_rnd_shares_c[5] = x2x_fresh_rnd_shares_q[5];
+    // x2x_fresh_rnd_shares_c[6] = x2x_fresh_rnd_shares_q[6];
+    // x2x_fresh_rnd_shares_c[7] = x2x_fresh_rnd_shares_q[7];
+    // x2x_fresh_rnd_shares_c[8] = x2x_fresh_rnd_shares_q[8];
+    // x2x_fresh_rnd_shares_c[9] = x2x_fresh_rnd_shares_q[9];
 
     
     if(opcode == `X2X_CMD_PRNG)
@@ -300,9 +295,7 @@ begin
         x2x_valid_data = valid_data_int;
         valid_result_int = x2x_valid_result;
 
-        if (x2x_valid_data) begin
-            x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_int[4];
-        end
+        x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_q[4];
 
     end
     
@@ -362,25 +355,8 @@ begin
         x2x_valid_data = refresh_valid_result;
         valid_result_int = x2x_valid_result;
 
-
-        if (x2x_valid_data) begin
-            x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_d;
-        end        
+        x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_d;
     end
-
-    if (x2x_valid_data) begin
-        for (int i = 0; i < 10; i = i + 1) begin
-            if (i != 4) begin
-                x2x_fresh_rnd_shares_c[i] = x2x_fresh_rnd_shares_int[i];
-            end
-        end
-
-        for (int i = 0; i < 28; i = i + 1) begin
-            x2x_fresh_rnd_shares_8bit_c[i] = x2x_fresh_rnd_shares_8bit_int[i];
-        end
-    end
-
-
     
 end
 

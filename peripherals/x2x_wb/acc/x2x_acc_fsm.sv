@@ -625,12 +625,12 @@ always @(*) begin
 
         //////////////////////// dummy processing //////////////////////////
 
-        x2x_original_data[0][0] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
-        x2x_original_data[0][1] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
-        x2x_original_data[1][0] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
-        x2x_original_data[1][1] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
+        // x2x_original_data[0][0] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
+        // x2x_original_data[0][1] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
+        // x2x_original_data[1][0] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
+        // x2x_original_data[1][1] = {RND_SHARES_8bit[1], RND_SHARES_8bit[0]};
 
-        x2x_valid_data = 1;        
+        // x2x_valid_data = 1;        
 
     end
     ST_PUT_DATA_0:

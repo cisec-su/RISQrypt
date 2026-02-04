@@ -5,7 +5,7 @@ module x2x_acc_dma
         input      [31:0]  addr       ,
         input              re         ,
         input              we         ,
-        output reg [31:0]  i_data     ,
+(* dont_touch *) output reg [31:0]  i_data,
         output reg         i_valid    ,
         output             i_ready    ,
         output             o_ready    ,
