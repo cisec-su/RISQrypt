@@ -467,22 +467,20 @@ void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v) {
 
 unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyveck *v1, const polyveck *u) {
     unsigned int i;
-    uint32_t s[8];
+    volatile uint32_t s;
 
     ntt_lite_set_bound(GAMMA2);
     ntt_lite_set_inv2(Q - GAMMA2);
 
-
     for(i = 0; i < K; i++) {
         ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) v0->vec[i].coeffs, (uint32_t*) u->vec[i].coeffs);
         ntt_lite_make_hint((uint32_t*) &h->vec[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) v1->vec[i].coeffs);
-        ntt_lite_sum(s, NTT_LITE_INPUT_DIS);
-        if (s[0] > OMEGA) {
+        ntt_lite_sum((uint32_t*) &s, NTT_LITE_INPUT_DIS);
+        if (s > OMEGA) {
             break;
         }
     }
-
-    return s[0];
+    return s;
 }
 
 

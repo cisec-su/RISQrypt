@@ -6,13 +6,11 @@ void masked_unpack_sk(uint8_t *rho,
                       uint8_t *tr,
                       masked_seed key,
                       polyveck *t0,
-                      masked_polyvecl_t *s1,
-                      masked_polyveck_t *s2,
+                      masked_polyvecl *s1,
+                      masked_polyveck *s2,
                       const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 {
     unsigned int i;    
-    masked_polyvecl s1_;
-    masked_polyveck s2_;
 
     for(i = 0; i < SEEDBYTES; i++)
         rho[i] = sk[i];
