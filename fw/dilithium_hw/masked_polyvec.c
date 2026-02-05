@@ -78,38 +78,7 @@ void masked_polyvecl_uniform_gamma1(masked_polyvecl_t *y, const masked_crh rhopr
 }
 
 
-void masked_polyvecl_pointwise_acc(masked_poly *w, const polyvecl *u, const masked_polyvecl *v)
-{
-    unsigned int i, j;
-    uint32_t *dst;
-
-    for (j = 0; j < MASKING_N; j++) {
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->vec[0].share[j].coeffs, (uint32_t*) &u->vec[0].coeffs);
-        for(i = 1; i < L; i++) {
-            if (i != (L - 1)) {
-                dst = NTT_LITE_OUTPUT_DIS;
-            }
-            else {
-                dst = (uint32_t*) w->share[j].coeffs;
-                ntt_lite_set_clr();
-            }
-            ntt_lite_mac(dst, (uint32_t*) &v->vec[i].share[j].coeffs, (uint32_t*) &u->vec[i].coeffs);
-        }
-    }
-}
-
-
-void masked_polyvec_matrix_pointwise(masked_polyveck *t, const polyvecl mat[K], const masked_polyvecl *v) {
-    unsigned int i;
-
-    for(i = 0; i < K; i++) {
-        masked_polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
-    }
-}
-
-
-
-void masked_polyvecl_t_pointwise_acc(masked_poly_ptr *w, const polyvecl *u, const masked_polyvecl_t *v)
+void masked_polyvecl_pointwise_acc(masked_poly_ptr *w, const polyvecl *u, const masked_polyvecl_t *v)
 {
     unsigned int i, j;
     uint32_t *dst;
@@ -130,18 +99,18 @@ void masked_polyvecl_t_pointwise_acc(masked_poly_ptr *w, const polyvecl *u, cons
 }
 
 
-void masked_polyvec_t_matrix_pointwise(masked_polyveck_t *t, const polyvecl mat[K], const masked_polyvecl_t *v) {
+void masked_polyvec_matrix_pointwise(masked_polyveck_t *t, const polyvecl mat[K], const masked_polyvecl_t *v) {
     unsigned int i;
     masked_poly_ptr t_ptr;
 
     for(i = 0; i < K; i++) {
         masked_polyveck_t_to_poly_ptr(&t_ptr, t, i);
-        masked_polyvecl_t_pointwise_acc(&t_ptr, &mat[i], v);
+        masked_polyvecl_pointwise_acc(&t_ptr, &mat[i], v);
     }
 }
 
 
-void masked_polyveck_t_decompose(polyveck *v1, masked_polyveck_t *v0, const masked_polyveck_t *v) {
+void masked_polyveck_decompose(polyveck *v1, masked_polyveck_t *v0, const masked_polyveck_t *v) {
     unsigned int i, j;
     masked_poly_ptr_const v_ptr;
     masked_poly_ptr v0_ptr;

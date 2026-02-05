@@ -86,8 +86,8 @@ void masked_polyveck_invntt(masked_polyveck_t *r);
 // #define masked_polyvecl_uniform_gamma1 DILITHIUM_NAMESPACE(masked_polyvecl_uniform_gamma1)
 // void masked_polyvecl_uniform_gamma1(masked_polyvecl_t *y, const masked_crh rhoprime, uint16_t nonce);
 
-#define masked_polyvec_matrix_pointwise DILITHIUM_NAMESPACE(masked_polyvec_matrix_pointwise)
-void masked_polyvec_matrix_pointwise(masked_polyveck *t, const polyvecl mat[K], const masked_polyvecl *v);
+// #define masked_polyvec_matrix_pointwise DILITHIUM_NAMESPACE(masked_polyvec_matrix_pointwise)
+// void masked_polyvec_matrix_pointwise(masked_polyveck_t *t, const polyvecl mat[K], const masked_polyvecl_t *v);
 
 #define masked_polyvecl_unmask DILITHIUM_NAMESPACE(masked_polyvecl_unmask)
 void masked_polyvecl_unmask(polyvecl *a, const masked_polyvecl_t *r);

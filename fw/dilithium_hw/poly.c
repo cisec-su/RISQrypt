@@ -326,13 +326,13 @@ void poly_uniform_eta_fromhw(poly *a, const uint8_t seed[CRHBYTES], uint16_t non
 **************************************************/
 #define POLY_UNIFORM_GAMMA1_NBLOCKS ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1)/STREAM256_BLOCKBYTES)
 void poly_uniform_gamma1_fromhw(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce_next, int init_next) {
-    uint8_t buf[POLYZ_PACKEDBYTES];
-    stream256_squeeze(buf, sizeof(buf));
+    uint32_t buf[POLYZ_PACKEDBYTES >> 2];
+    stream256_squeeze((uint8_t*) buf, sizeof(buf));
     if (init_next) {
         stream256_init(seed, nonce_next);
     }
     ntt_lite_set_bound(GAMMA1);
-    polyz_unpack(a, buf);
+    polyz_unpack(a, (uint8_t*) buf);
 }
 
 /*************************************************
@@ -348,7 +348,8 @@ void poly_uniform_gamma1_fromhw(poly *a, const uint8_t seed[CRHBYTES], uint16_t 
 void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]) {
     unsigned int i, b, pos;
     uint64_t signs;
-    uint8_t buf[SHAKE256_RATE];
+    uint32_t buf_32[SHAKE256_RATE >> 2];
+    uint8_t *buf = (uint8_t *) buf_32;
 
     dilithium_shake256_stream_init_seed(seed);
     dilithium_shake256_squeezeblocks(buf, 1);

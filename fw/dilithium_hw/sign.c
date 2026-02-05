@@ -96,7 +96,8 @@ int crypto_sign_signature(uint8_t *sig,
                           const uint8_t *sk)
 {
     unsigned int n;
-    uint8_t seedbuf[3*SEEDBYTES + 2*CRHBYTES];
+    uint32_t seedbuf_32[(3*SEEDBYTES + 2*CRHBYTES) >> 2];
+    uint8_t *seedbuf = (uint8_t *) seedbuf_32;
     uint8_t *rho, *tr, *key, *mu, *rhoprime;
     uint16_t nonce = 0;
     polyvecl mat[K], s1, y, z;

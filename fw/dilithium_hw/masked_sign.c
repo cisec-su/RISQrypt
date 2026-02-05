@@ -157,13 +157,13 @@ rej:
     poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
     masked_polyvecl_ntt(&y_t);
 
-    masked_polyvec_t_matrix_pointwise(&w_t, mat, &y_t);
+    masked_polyvec_matrix_pointwise(&w_t, mat, &y_t);
 
     poly_init_invntt();
     masked_polyveck_invntt(&w_t);
 
     /* Decompose w and call the random oracle */
-    masked_polyveck_t_decompose(&w1, &w0_t, &w_t);
+    masked_polyveck_decompose(&w1, &w0_t, &w_t);
 
     polyveck_pack_w1(sig, &w1);
     dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
