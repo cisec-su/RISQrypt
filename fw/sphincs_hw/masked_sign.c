@@ -1,19 +1,21 @@
+#include <cstdint>
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
 
 #include "api.h"
+#include "thash_masked.h"
 #include "params.h"
 #include "wots_masked.h"
 #include "fors_masked.h"
 #include "hash_masked.h"
-#include "thash_masked.h"
+#include "thash.h"
 #include "address.h"
 #include "randombytes.h"
 #include "utils_masked.h"
 #include "merkle_masked.h"
 // Non masked functions from original file
-unsigned long long crypto_sign_secretkeybytes(void)
+size_t crypto_sign_secretkeybytes(void)
 {
     return CRYPTO_SECRETKEYBYTES;
 }
@@ -21,7 +23,7 @@ unsigned long long crypto_sign_secretkeybytes(void)
 /*
  * Returns the length of a public key, in bytes
  */
-unsigned long long crypto_sign_publickeybytes(void)
+size_t crypto_sign_publickeybytes(void)
 {
     return CRYPTO_PUBLICKEYBYTES;
 }
@@ -29,7 +31,7 @@ unsigned long long crypto_sign_publickeybytes(void)
 /*
  * Returns the length of a signature, in bytes
  */
-unsigned long long crypto_sign_bytes(void)
+size_t crypto_sign_bytes(void)
 {
     return CRYPTO_BYTES;
 }
@@ -37,7 +39,7 @@ unsigned long long crypto_sign_bytes(void)
 /*
  * Returns the length of the seed required to generate a key pair, in bytes
  */
-unsigned long long crypto_sign_seedbytes(void)
+size_t crypto_sign_seedbytes(void)
 {
     return CRYPTO_SEEDBYTES;
 }
@@ -93,6 +95,7 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
     uint32_t idx_leaf;
     uint32_t wots_addr[8] = {0};
     uint32_t tree_addr[8] = {0};
+    uint32_t tree_addr_bytes[2]; // For address conversions
 
     // Generate a random mask
     unsigned char rand_mask[SPX_N];
@@ -121,7 +124,11 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
-    set_tree_addr(wots_addr, tree);
+    // Set up addressses for WOTS leaf by converting the size
+    tree_addr_bytes[0] = (uint32_t)(tree >> 32);
+    tree_addr_bytes[1] = (uint32_t)(tree);
+
+    set_tree_addr(wots_addr, tree_addr_bytes);
     set_keypair_addr(wots_addr, idx_leaf);
 
     // Sign the message hash using masked FORS.
@@ -131,7 +138,7 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
 
     for (i = 0; i < SPX_D; i++) {
         set_layer_addr(tree_addr, i);
-        set_tree_addr(tree_addr, tree);
+        set_tree_addr(tree_addr, tree_addr_bytes);
 
         copy_subtree_addr(wots_addr, tree_addr);
         set_keypair_addr(wots_addr, idx_leaf);
@@ -171,6 +178,7 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
     uint32_t wots_addr[8] = {0};
     uint32_t tree_addr[8] = {0};
     uint32_t wots_pk_addr[8] = {0};
+    uint32_t tree_addr_bytes[2]; // Temp array for set_tree_addr
 
     if (siglen != SPX_BYTES) {
         return -1;
@@ -187,7 +195,11 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
-    set_tree_addr(wots_addr, tree);
+    // Set up addressses for WOTS leaf by converting the size
+    tree_addr_bytes[0] = (uint32_t)(tree >> 32);
+    tree_addr_bytes[1] = (uint32_t)tree;
+
+    set_tree_addr(wots_addr, tree_addr_bytes);
     set_keypair_addr(wots_addr, idx_leaf);
 
     fors_pk_from_sig_masked(root, sig, mhash, &ctx, wots_addr);
@@ -195,7 +207,11 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
 
     for (i = 0; i < SPX_D; i++) {  // For each subtree
         set_layer_addr(tree_addr, i);
-        set_tree_addr(tree_addr, tree);
+
+        // Size conversion
+        tree_addr_bytes[0] = (uint32_t)(tree >> 32);
+        tree_addr_bytes[1] = (uint32_t)tree;
+        set_tree_addr(tree_addr, tree_addr_bytes);
 
         copy_subtree_addr(wots_addr, tree_addr);
         set_keypair_addr(wots_addr, idx_leaf);

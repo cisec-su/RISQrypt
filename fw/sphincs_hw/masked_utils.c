@@ -6,6 +6,8 @@
 #include "thash_masked.h"
 #include "address.h"
 #include "randombytes.h"
+#include "wotsx1_masked.h" 
+
 
 // Non-masked functions from original file
 /**
@@ -143,6 +145,7 @@ void treehash_masked(unsigned char *root1, unsigned char *root2,
                         unsigned char* , // leaf share 2
                         const spx_ctx* ,
                         uint32_t , void *info),
+                        uint32_t tree_addr[8],
                      void *info)
 {
     // Two stacks for each share
@@ -157,9 +160,6 @@ void treehash_masked(unsigned char *root1, unsigned char *root2,
     // Temporary buffers for hashing
     unsigned char in_buf1[2 * SPX_N];
     unsigned char in_buf2[2 * SPX_N];
-
-
-    uint32_t *tree_addr = ((struct leaf_info_x1*)info)->pk_addr; // Example
 
     for (idx = 0; idx < (uint32_t)(1 << tree_height); idx++) {
         

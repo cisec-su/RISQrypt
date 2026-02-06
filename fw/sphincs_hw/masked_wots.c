@@ -61,7 +61,7 @@ void chain_lengths(unsigned int *lengths, const unsigned char *msg)
 }
 
 // Masked version of gen_chain
-static void gen_chain_masked(unsigned char *out1, const unsigned char *out2,
+static void gen_chain_masked(unsigned char *out1, unsigned char *out2,
                       const unsigned char *in1, const unsigned char *in2,
                       unsigned int start, unsigned int steps,
                       const spx_ctx *ctx, uint32_t addr[8])
