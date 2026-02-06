@@ -31,9 +31,7 @@ module x2x_acc_top
         input              dma_ack_o   [SHARES-1:0],
         input      [31:0]  dma_dat_o   [SHARES-1:0],
         input              dma_err_o   [SHARES-1:0],
-        output             dma_rst_i   [SHARES-1:0],
-
-        output             tio_trigger
+        output             dma_rst_i   [SHARES-1:0]
     );
 
 localparam PARAM_WIDTH = 32;
@@ -153,7 +151,6 @@ x2x_acc_op_core #(
     .original_data          (x2x_original_data),
     .converted_data         (x2x_converted_data),
     .opcode(opcode),
-    // .tio_trigger(tio_trigger),
     
     .rnd_ref(rnd_ref)
 );
@@ -221,8 +218,7 @@ x2x_acc_fsm #(
     .x2x_fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit),
     .x2x_original_data          (x2x_original_data),
     .x2x_converted_data         (x2x_converted_data),
-    .rnd_ref(rnd_ref)//,
-    // .tio_trigger(tio_trigger)
+    .rnd_ref(rnd_ref)
 
 );
 

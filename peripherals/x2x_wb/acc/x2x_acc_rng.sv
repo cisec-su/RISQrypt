@@ -183,7 +183,6 @@ end
 
 
 always @(*) begin
-    // x2x_fresh_rnd_shares[5] = {23'b0, stream_out4[227:224], stream_out3[228:224]};
     x2x_fresh_rnd_shares[5] = {stream_out4[239:224], stream_out3[239:224]};    
 end
 
