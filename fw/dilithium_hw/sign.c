@@ -151,7 +151,7 @@ rej:
     polyveck_decompose(&w1, &w0, &w1);
 
     polyveck_pack_w1(sig, &w1);
-    dilithium_shake256_absorb_double(sig, SEEDBYTES,    mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
+    dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
 
     poly_challenge(&cp, sig);
 

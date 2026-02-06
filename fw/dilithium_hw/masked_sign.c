@@ -177,7 +177,6 @@ rej:
         goto rej;
     }
 #endif
-    // return 0 ;
 
     /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
      * do not reveal secret information */

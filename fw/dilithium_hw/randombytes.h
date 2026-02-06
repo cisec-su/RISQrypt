@@ -5,9 +5,9 @@
 
 #include "stdint.h"
 
+void rng_init();
 
-int randombytes(unsigned char *x, unsigned long long xlen);
+int randombytes(uint8_t *x, unsigned int xlen);
 
-uint16_t rand16();
 
 #endif

@@ -1189,7 +1189,7 @@ Disassembly of section .text:
     220c:	40468693          	addi	a3,a3,1028
     2210:	08050513          	addi	a0,a0,128
     2214:	40458593          	addi	a1,a1,1028
-    2218:	f2869ee3          	bne	a3,s0,2154 <pqcrystals_dilithium_masked_signature.constprop.0+0x430>
+    2218:	f2d41ee3          	bne	s0,a3,2154 <pqcrystals_dilithium_masked_signature.constprop.0+0x430>
     221c:	fffe36b7          	lui	a3,0xfffe3
     2220:	0001e637          	lui	a2,0x1e
     2224:	6f868693          	addi	a3,a3,1784 # fffe36f8 <__stack_top+0xfffa36fc>
@@ -1508,7 +1508,7 @@ Disassembly of section .text:
     2708:	0047a683          	lw	a3,4(a5)
     270c:	fe06dee3          	bgez	a3,2708 <pqcrystals_dilithium_masked_signature.constprop.0+0x9e4>
     2710:	40470713          	addi	a4,a4,1028
-    2714:	fe8710e3          	bne	a4,s0,26f4 <pqcrystals_dilithium_masked_signature.constprop.0+0x9d0>
+    2714:	fee410e3          	bne	s0,a4,26f4 <pqcrystals_dilithium_masked_signature.constprop.0+0x9d0>
     2718:	01812703          	lw	a4,24(sp)
     271c:	000037b7          	lui	a5,0x3
     2720:	03078793          	addi	a5,a5,48 # 3030 <pqcrystals_dilithium_masked_signature.constprop.0+0x130c>
@@ -1546,18 +1546,18 @@ Disassembly of section .text:
     27a0:	00c50633          	add	a2,a0,a2
     27a4:	fffe26b7          	lui	a3,0xfffe2
     27a8:	4c068693          	addi	a3,a3,1216 # fffe24c0 <__stack_top+0xfffa24c4>
-    27ac:	02c12423          	sw	a2,40(sp)
+    27ac:	02c12623          	sw	a2,44(sp)
     27b0:	00058613          	mv	a2,a1
     27b4:	b5058593          	addi	a1,a1,-1200
     27b8:	00d585b3          	add	a1,a1,a3
     27bc:	07010693          	addi	a3,sp,112
     27c0:	00d586b3          	add	a3,a1,a3
-    27c4:	04d12823          	sw	a3,80(sp)
-    27c8:	02812683          	lw	a3,40(sp)
+    27c4:	04d12a23          	sw	a3,84(sp)
+    27c8:	02c12683          	lw	a3,44(sp)
     27cc:	07010593          	addi	a1,sp,112
     27d0:	fffe2737          	lui	a4,0xfffe2
     27d4:	28068693          	addi	a3,a3,640
-    27d8:	04d12a23          	sw	a3,84(sp)
+    27d8:	04d12823          	sw	a3,80(sp)
     27dc:	000106b7          	lui	a3,0x10
     27e0:	14868693          	addi	a3,a3,328 # 10148 <psi_inv>
     27e4:	00d12a23          	sw	a3,20(sp)
@@ -1566,11 +1566,11 @@ Disassembly of section .text:
     27f0:	00b686b3          	add	a3,a3,a1
     27f4:	40068693          	addi	a3,a3,1024
     27f8:	4bc70713          	addi	a4,a4,1212 # fffe24bc <__stack_top+0xfffa24c0>
-    27fc:	04d12c23          	sw	a3,88(sp)
+    27fc:	04d12623          	sw	a3,76(sp)
     2800:	b5060693          	addi	a3,a2,-1200
     2804:	00e686b3          	add	a3,a3,a4
     2808:	00b68733          	add	a4,a3,a1
-    280c:	04e12623          	sw	a4,76(sp)
+    280c:	04e12c23          	sw	a4,88(sp)
     2810:	00013737          	lui	a4,0x13
     2814:	fe070713          	addi	a4,a4,-32 # 12fe0 <sig_>
     2818:	fffe27b7          	lui	a5,0xfffe2
@@ -1590,11 +1590,11 @@ Disassembly of section .text:
     2850:	10040db7          	lui	s11,0x10040
     2854:	00b707b3          	add	a5,a4,a1
     2858:	ef890913          	addi	s2,s2,-264 # fffe2ef8 <__stack_top+0xfffa2efc>
-    285c:	02012623          	sw	zero,44(sp)
+    285c:	02012423          	sw	zero,40(sp)
     2860:	040d8d93          	addi	s11,s11,64 # 10040040 <__stack_top+0x10000044>
     2864:	00f12623          	sw	a5,12(sp)
     2868:	07312223          	sw	s3,100(sp)
-    286c:	02c15703          	lhu	a4,44(sp)
+    286c:	02815703          	lhu	a4,40(sp)
     2870:	02070463          	beqz	a4,2898 <pqcrystals_dilithium_masked_signature.constprop.0+0xb74>
     2874:	100407b7          	lui	a5,0x10040
     2878:	0807a603          	lw	a2,128(a5) # 10040080 <__stack_top+0x10000084>
@@ -1630,7 +1630,7 @@ Disassembly of section .text:
     28f0:	001f07b7          	lui	a5,0x1f0
     28f4:	00f667b3          	or	a5,a2,a5
     28f8:	4cf72023          	sw	a5,1216(a4)
-    28fc:	05012783          	lw	a5,80(sp)
+    28fc:	05412783          	lw	a5,84(sp)
     2900:	000da683          	lw	a3,0(s11)
     2904:	00004737          	lui	a4,0x4
     2908:	00fda623          	sw	a5,12(s11)
@@ -1660,7 +1660,7 @@ Disassembly of section .text:
     2968:	4c478793          	addi	a5,a5,1220 # fffe24c4 <__stack_top+0xfffa24c8>
     296c:	41470713          	addi	a4,a4,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
     2970:	b5088893          	addi	a7,a7,-1200
-    2974:	05412c03          	lw	s8,84(sp)
+    2974:	05012c03          	lw	s8,80(sp)
     2978:	00f888b3          	add	a7,a7,a5
     297c:	00e40733          	add	a4,s0,a4
     2980:	07010793          	addi	a5,sp,112
@@ -1694,7 +1694,7 @@ Disassembly of section .text:
     29f0:	00c12883          	lw	a7,12(sp)
     29f4:	4cb8a823          	sw	a1,1232(a7)
     29f8:	4ca8aa23          	sw	a0,1236(a7)
-    29fc:	02812883          	lw	a7,40(sp)
+    29fc:	02c12883          	lw	a7,44(sp)
     2a00:	017da223          	sw	s7,4(s11)
     2a04:	031da623          	sw	a7,44(s11)
     2a08:	038da823          	sw	s8,48(s11)
@@ -1709,7 +1709,7 @@ Disassembly of section .text:
     2a2c:	0117a023          	sw	a7,0(a5)
     2a30:	0047a883          	lw	a7,4(a5)
     2a34:	fe08dee3          	bgez	a7,2a30 <pqcrystals_dilithium_masked_signature.constprop.0+0xd0c>
-    2a38:	02812883          	lw	a7,40(sp)
+    2a38:	02c12883          	lw	a7,44(sp)
     2a3c:	0117a423          	sw	a7,8(a5)
     2a40:	00b7a623          	sw	a1,12(a5)
     2a44:	0007a883          	lw	a7,0(a5)
@@ -1748,236 +1748,236 @@ Disassembly of section .text:
     2ac8:	0067a823          	sw	t1,16(a5)
     2acc:	00888313          	addi	t1,a7,8
     2ad0:	02612823          	sw	t1,48(sp)
-    2ad4:	0007a303          	lw	t1,0(a5)
-    2ad8:	00136313          	ori	t1,t1,1
-    2adc:	0067a023          	sw	t1,0(a5)
-    2ae0:	0047a303          	lw	t1,4(a5)
-    2ae4:	fe035ee3          	bgez	t1,2ae0 <pqcrystals_dilithium_masked_signature.constprop.0+0xdbc>
-    2ae8:	0008a303          	lw	t1,0(a7)
-    2aec:	00200993          	li	s3,2
-    2af0:	0067a623          	sw	t1,12(a5)
-    2af4:	00030863          	beqz	t1,2b04 <pqcrystals_dilithium_masked_signature.constprop.0+0xde0>
-    2af8:	0067a423          	sw	t1,8(a5)
-    2afc:	00400313          	li	t1,4
-    2b00:	00030993          	mv	s3,t1
-    2b04:	0007a303          	lw	t1,0(a5)
-    2b08:	01336333          	or	t1,t1,s3
-    2b0c:	01f36333          	or	t1,t1,t6
-    2b10:	0067a023          	sw	t1,0(a5)
-    2b14:	0047a303          	lw	t1,4(a5)
-    2b18:	fe035ee3          	bgez	t1,2b14 <pqcrystals_dilithium_masked_signature.constprop.0+0xdf0>
-    2b1c:	03012303          	lw	t1,48(sp)
-    2b20:	0007a823          	sw	zero,16(a5)
-    2b24:	00488893          	addi	a7,a7,4
-    2b28:	fa6896e3          	bne	a7,t1,2ad4 <pqcrystals_dilithium_masked_signature.constprop.0+0xdb0>
-    2b2c:	00180813          	addi	a6,a6,1
-    2b30:	00500893          	li	a7,5
-    2b34:	40458593          	addi	a1,a1,1028
-    2b38:	40450513          	addi	a0,a0,1028
-    2b3c:	eb181ae3          	bne	a6,a7,29f0 <pqcrystals_dilithium_masked_signature.constprop.0+0xccc>
-    2b40:	04012783          	lw	a5,64(sp)
-    2b44:	100406b7          	lui	a3,0x10040
-    2b48:	00ff2423          	sw	a5,8(t5) # 10040008 <__stack_top+0x1000000c>
-    2b4c:	000f2783          	lw	a5,0(t5)
-    2b50:	0037e793          	ori	a5,a5,3
-    2b54:	00ff2023          	sw	a5,0(t5)
-    2b58:	0046a783          	lw	a5,4(a3) # 10040004 <__stack_top+0x10000008>
-    2b5c:	fe07dee3          	bgez	a5,2b58 <pqcrystals_dilithium_masked_signature.constprop.0+0xe34>
-    2b60:	000017b7          	lui	a5,0x1
-    2b64:	41478793          	addi	a5,a5,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
-    2b68:	00f40633          	add	a2,s0,a5
-    2b6c:	00040693          	mv	a3,s0
-    2b70:	100407b7          	lui	a5,0x10040
-    2b74:	00d7a423          	sw	a3,8(a5) # 10040008 <__stack_top+0x1000000c>
-    2b78:	00d7a623          	sw	a3,12(a5)
-    2b7c:	0007a583          	lw	a1,0(a5)
-    2b80:	0045e593          	ori	a1,a1,4
-    2b84:	00b7a023          	sw	a1,0(a5)
-    2b88:	0047a583          	lw	a1,4(a5)
-    2b8c:	fe05dee3          	bgez	a1,2b88 <pqcrystals_dilithium_masked_signature.constprop.0+0xe64>
-    2b90:	40468693          	addi	a3,a3,1028
-    2b94:	fed610e3          	bne	a2,a3,2b74 <pqcrystals_dilithium_masked_signature.constprop.0+0xe50>
-    2b98:	000037b7          	lui	a5,0x3
-    2b9c:	82878793          	addi	a5,a5,-2008 # 2828 <pqcrystals_dilithium_masked_signature.constprop.0+0xb04>
-    2ba0:	00f406b3          	add	a3,s0,a5
-    2ba4:	100407b7          	lui	a5,0x10040
-    2ba8:	00e7a423          	sw	a4,8(a5) # 10040008 <__stack_top+0x1000000c>
-    2bac:	00e7a623          	sw	a4,12(a5)
-    2bb0:	0007a603          	lw	a2,0(a5)
-    2bb4:	00466613          	ori	a2,a2,4
-    2bb8:	00c7a023          	sw	a2,0(a5)
-    2bbc:	0047a603          	lw	a2,4(a5)
-    2bc0:	fe065ee3          	bgez	a2,2bbc <pqcrystals_dilithium_masked_signature.constprop.0+0xe98>
-    2bc4:	40470713          	addi	a4,a4,1028
-    2bc8:	fed710e3          	bne	a4,a3,2ba8 <pqcrystals_dilithium_masked_signature.constprop.0+0xe84>
-    2bcc:	0001e5b7          	lui	a1,0x1e
-    2bd0:	ffff26b7          	lui	a3,0xffff2
-    2bd4:	7a068693          	addi	a3,a3,1952 # ffff27a0 <__stack_top+0xfffb27a4>
-    2bd8:	b5058793          	addi	a5,a1,-1200 # 1db50 <__BSS_END__+0x8750>
-    2bdc:	00d787b3          	add	a5,a5,a3
-    2be0:	ffff9737          	lui	a4,0xffff9
-    2be4:	07010693          	addi	a3,sp,112
-    2be8:	00d786b3          	add	a3,a5,a3
-    2bec:	80070713          	addi	a4,a4,-2048 # ffff8800 <__stack_top+0xfffb8804>
-    2bf0:	b5058793          	addi	a5,a1,-1200
-    2bf4:	00e787b3          	add	a5,a5,a4
-    2bf8:	07010713          	addi	a4,sp,112
-    2bfc:	00e78733          	add	a4,a5,a4
-    2c00:	b5058593          	addi	a1,a1,-1200
-    2c04:	fffe37b7          	lui	a5,0xfffe3
-    2c08:	00f585b3          	add	a1,a1,a5
-    2c0c:	07010793          	addi	a5,sp,112
-    2c10:	00f587b3          	add	a5,a1,a5
-    2c14:	000020b7          	lui	ra,0x2
-    2c18:	fffe33b7          	lui	t2,0xfffe3
-    2c1c:	00001637          	lui	a2,0x1
-    2c20:	000012b7          	lui	t0,0x1
-    2c24:	00001fb7          	lui	t6,0x1
-    2c28:	02f12823          	sw	a5,48(sp)
-    2c2c:	00068e93          	mv	t4,a3
-    2c30:	81808093          	addi	ra,ra,-2024 # 1818 <pqcrystals_dilithium_masked_poly_ptr_chknorm+0x168>
-    2c34:	9f838393          	addi	t2,t2,-1544 # fffe29f8 <__stack_top+0xfffa29fc>
-    2c38:	100407b7          	lui	a5,0x10040
-    2c3c:	00400a13          	li	s4,4
-    2c40:	00500b13          	li	s6,5
-    2c44:	41460613          	addi	a2,a2,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
-    2c48:	00001ab7          	lui	s5,0x1
-    2c4c:	01028293          	addi	t0,t0,16 # 1010 <loop>
-    2c50:	10040f37          	lui	t5,0x10040
-    2c54:	400f8f93          	addi	t6,t6,1024 # 1400 <pqcrystals_dilithium_polyvec_matrix_expand+0x1bc>
-    2c58:	03012503          	lw	a0,48(sp)
-    2c5c:	001e85b3          	add	a1,t4,ra
-    2c60:	00000893          	li	a7,0
-    2c64:	9eb52e23          	sw	a1,-1540(a0)
-    2c68:	0001e5b7          	lui	a1,0x1e
-    2c6c:	b5058593          	addi	a1,a1,-1200 # 1db50 <__BSS_END__+0x8750>
-    2c70:	9fd52c23          	sw	t4,-1544(a0)
-    2c74:	007585b3          	add	a1,a1,t2
-    2c78:	07010513          	addi	a0,sp,112
-    2c7c:	00a58833          	add	a6,a1,a0
-    2c80:	00040513          	mv	a0,s0
-    2c84:	0007a623          	sw	zero,12(a5) # 1004000c <__stack_top+0x10000010>
-    2c88:	00e7a423          	sw	a4,8(a5)
-    2c8c:	0007a583          	lw	a1,0(a5)
-    2c90:	0035e593          	ori	a1,a1,3
-    2c94:	00b7a023          	sw	a1,0(a5)
-    2c98:	0047a583          	lw	a1,4(a5)
-    2c9c:	fe05dee3          	bgez	a1,2c98 <pqcrystals_dilithium_masked_signature.constprop.0+0xf74>
-    2ca0:	00a7a423          	sw	a0,8(a5)
-    2ca4:	0007a583          	lw	a1,0(a5)
-    2ca8:	1045e593          	ori	a1,a1,260
-    2cac:	00b7a023          	sw	a1,0(a5)
-    2cb0:	0047a583          	lw	a1,4(a5)
-    2cb4:	fe05dee3          	bgez	a1,2cb0 <pqcrystals_dilithium_masked_signature.constprop.0+0xf8c>
-    2cb8:	40450493          	addi	s1,a0,1028
-    2cbc:	00100313          	li	t1,1
-    2cc0:	07430463          	beq	t1,s4,2d28 <pqcrystals_dilithium_masked_signature.constprop.0+0x1004>
-    2cc4:	00a31593          	slli	a1,t1,0xa
-    2cc8:	00048993          	mv	s3,s1
-    2ccc:	00e585b3          	add	a1,a1,a4
-    2cd0:	00000e13          	li	t3,0
-    2cd4:	00b7a423          	sw	a1,8(a5)
-    2cd8:	0007a583          	lw	a1,0(a5)
-    2cdc:	0035e593          	ori	a1,a1,3
-    2ce0:	00b7a023          	sw	a1,0(a5)
-    2ce4:	0047a583          	lw	a1,4(a5)
-    2ce8:	fe05dee3          	bgez	a1,2ce4 <pqcrystals_dilithium_masked_signature.constprop.0+0xfc0>
-    2cec:	0137a423          	sw	s3,8(a5)
-    2cf0:	01c7a623          	sw	t3,12(a5)
-    2cf4:	0007a583          	lw	a1,0(a5)
-    2cf8:	7845e593          	ori	a1,a1,1924
-    2cfc:	00b7a023          	sw	a1,0(a5)
-    2d00:	0047a583          	lw	a1,4(a5)
-    2d04:	fe05dee3          	bgez	a1,2d00 <pqcrystals_dilithium_masked_signature.constprop.0+0xfdc>
-    2d08:	00130313          	addi	t1,t1,1 # 80001 <__stack_top+0x40005>
-    2d0c:	40448493          	addi	s1,s1,1028
-    2d10:	fb6318e3          	bne	t1,s6,2cc0 <pqcrystals_dilithium_masked_signature.constprop.0+0xf9c>
-    2d14:	00c50533          	add	a0,a0,a2
-    2d18:	00480813          	addi	a6,a6,4
-    2d1c:	02c88863          	beq	a7,a2,2d4c <pqcrystals_dilithium_masked_signature.constprop.0+0x1028>
-    2d20:	00060893          	mv	a7,a2
-    2d24:	f61ff06f          	j	2c84 <pqcrystals_dilithium_masked_signature.constprop.0+0xf60>
-    2d28:	0007a583          	lw	a1,0(a5)
-    2d2c:	00082e03          	lw	t3,0(a6)
-    2d30:	0015e593          	ori	a1,a1,1
-    2d34:	00b7a023          	sw	a1,0(a5)
-    2d38:	0047a583          	lw	a1,4(a5)
-    2d3c:	fe05dee3          	bgez	a1,2d38 <pqcrystals_dilithium_masked_signature.constprop.0+0x1014>
-    2d40:	005509b3          	add	s3,a0,t0
-    2d44:	015705b3          	add	a1,a4,s5
-    2d48:	f8dff06f          	j	2cd4 <pqcrystals_dilithium_masked_signature.constprop.0+0xfb0>
-    2d4c:	0001e5b7          	lui	a1,0x1e
-    2d50:	b5058593          	addi	a1,a1,-1200 # 1db50 <__BSS_END__+0x8750>
-    2d54:	07010513          	addi	a0,sp,112
-    2d58:	01f70733          	add	a4,a4,t6
-    2d5c:	00a585b3          	add	a1,a1,a0
-    2d60:	404e8e93          	addi	t4,t4,1028
-    2d64:	eee59ae3          	bne	a1,a4,2c58 <pqcrystals_dilithium_masked_signature.constprop.0+0xf34>
-    2d68:	01412783          	lw	a5,20(sp)
-    2d6c:	10040737          	lui	a4,0x10040
-    2d70:	00ff2423          	sw	a5,8(t5) # 10040008 <__stack_top+0x1000000c>
-    2d74:	000f2783          	lw	a5,0(t5)
-    2d78:	0037e793          	ori	a5,a5,3
-    2d7c:	00ff2023          	sw	a5,0(t5)
-    2d80:	00472783          	lw	a5,4(a4) # 10040004 <__stack_top+0x10000008>
-    2d84:	fe07dee3          	bgez	a5,2d80 <pqcrystals_dilithium_masked_signature.constprop.0+0x105c>
-    2d88:	000027b7          	lui	a5,0x2
-    2d8c:	81878793          	addi	a5,a5,-2024 # 1818 <pqcrystals_dilithium_masked_poly_ptr_chknorm+0x168>
-    2d90:	00f687b3          	add	a5,a3,a5
-    2d94:	04f12223          	sw	a5,68(sp)
-    2d98:	00068713          	mv	a4,a3
-    2d9c:	100407b7          	lui	a5,0x10040
-    2da0:	00e7a423          	sw	a4,8(a5) # 10040008 <__stack_top+0x1000000c>
-    2da4:	00e7a623          	sw	a4,12(a5)
-    2da8:	0007a603          	lw	a2,0(a5)
-    2dac:	08466613          	ori	a2,a2,132
-    2db0:	00c7a023          	sw	a2,0(a5)
-    2db4:	0047a603          	lw	a2,4(a5)
-    2db8:	fe065ee3          	bgez	a2,2db4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1090>
-    2dbc:	04412603          	lw	a2,68(sp)
-    2dc0:	40470713          	addi	a4,a4,1028
-    2dc4:	fce61ee3          	bne	a2,a4,2da0 <pqcrystals_dilithium_masked_signature.constprop.0+0x107c>
-    2dc8:	ffff47b7          	lui	a5,0xffff4
-    2dcc:	0001e637          	lui	a2,0x1e
-    2dd0:	fb878793          	addi	a5,a5,-72 # ffff3fb8 <__stack_top+0xfffb3fbc>
-    2dd4:	00003737          	lui	a4,0x3
-    2dd8:	b5060613          	addi	a2,a2,-1200 # 1db50 <__BSS_END__+0x8750>
-    2ddc:	00f60633          	add	a2,a2,a5
-    2de0:	03070713          	addi	a4,a4,48 # 3030 <pqcrystals_dilithium_masked_signature.constprop.0+0x130c>
-    2de4:	07010793          	addi	a5,sp,112
-    2de8:	00f607b3          	add	a5,a2,a5
-    2dec:	00e68633          	add	a2,a3,a4
-    2df0:	10040737          	lui	a4,0x10040
-    2df4:	00f72423          	sw	a5,8(a4) # 10040008 <__stack_top+0x1000000c>
-    2df8:	00f72623          	sw	a5,12(a4)
-    2dfc:	00072583          	lw	a1,0(a4)
-    2e00:	0845e593          	ori	a1,a1,132
-    2e04:	00b72023          	sw	a1,0(a4)
-    2e08:	00472583          	lw	a1,4(a4)
-    2e0c:	fe05dee3          	bgez	a1,2e08 <pqcrystals_dilithium_masked_signature.constprop.0+0x10e4>
-    2e10:	40478793          	addi	a5,a5,1028
-    2e14:	fef610e3          	bne	a2,a5,2df4 <pqcrystals_dilithium_masked_signature.constprop.0+0x10d0>
-    2e18:	0001e737          	lui	a4,0x1e
-    2e1c:	ffff54b7          	lui	s1,0xffff5
-    2e20:	7d048493          	addi	s1,s1,2000 # ffff57d0 <__stack_top+0xfffb57d4>
-    2e24:	b5070793          	addi	a5,a4,-1200 # 1db50 <__BSS_END__+0x8750>
-    2e28:	07010613          	addi	a2,sp,112
-    2e2c:	009787b3          	add	a5,a5,s1
-    2e30:	fffe55b7          	lui	a1,0xfffe5
-    2e34:	00c784b3          	add	s1,a5,a2
-    2e38:	ef858593          	addi	a1,a1,-264 # fffe4ef8 <__stack_top+0xfffa4efc>
-    2e3c:	b5070793          	addi	a5,a4,-1200
-    2e40:	00b787b3          	add	a5,a5,a1
-    2e44:	00c785b3          	add	a1,a5,a2
-    2e48:	b5070713          	addi	a4,a4,-1200
-    2e4c:	fffe37b7          	lui	a5,0xfffe3
-    2e50:	00f70733          	add	a4,a4,a5
-    2e54:	00001537          	lui	a0,0x1
-    2e58:	00058313          	mv	t1,a1
+    2ad4:	00058313          	mv	t1,a1
+    2ad8:	0007a583          	lw	a1,0(a5)
+    2adc:	0015e593          	ori	a1,a1,1
+    2ae0:	00b7a023          	sw	a1,0(a5)
+    2ae4:	0047a583          	lw	a1,4(a5)
+    2ae8:	fe05dee3          	bgez	a1,2ae4 <pqcrystals_dilithium_masked_signature.constprop.0+0xdc0>
+    2aec:	0008a583          	lw	a1,0(a7)
+    2af0:	00200993          	li	s3,2
+    2af4:	00b7a623          	sw	a1,12(a5)
+    2af8:	00058863          	beqz	a1,2b08 <pqcrystals_dilithium_masked_signature.constprop.0+0xde4>
+    2afc:	00b7a423          	sw	a1,8(a5)
+    2b00:	00400593          	li	a1,4
+    2b04:	00058993          	mv	s3,a1
+    2b08:	0007a583          	lw	a1,0(a5)
+    2b0c:	0135e5b3          	or	a1,a1,s3
+    2b10:	01f5e5b3          	or	a1,a1,t6
+    2b14:	00b7a023          	sw	a1,0(a5)
+    2b18:	0047a583          	lw	a1,4(a5)
+    2b1c:	fe05dee3          	bgez	a1,2b18 <pqcrystals_dilithium_masked_signature.constprop.0+0xdf4>
+    2b20:	03012583          	lw	a1,48(sp)
+    2b24:	0007a823          	sw	zero,16(a5)
+    2b28:	00488893          	addi	a7,a7,4
+    2b2c:	fab896e3          	bne	a7,a1,2ad8 <pqcrystals_dilithium_masked_signature.constprop.0+0xdb4>
+    2b30:	00180813          	addi	a6,a6,1
+    2b34:	00500893          	li	a7,5
+    2b38:	40430593          	addi	a1,t1,1028 # 80404 <__stack_top+0x40408>
+    2b3c:	40450513          	addi	a0,a0,1028
+    2b40:	eb1818e3          	bne	a6,a7,29f0 <pqcrystals_dilithium_masked_signature.constprop.0+0xccc>
+    2b44:	04012783          	lw	a5,64(sp)
+    2b48:	100406b7          	lui	a3,0x10040
+    2b4c:	00ff2423          	sw	a5,8(t5) # 10040008 <__stack_top+0x1000000c>
+    2b50:	000f2783          	lw	a5,0(t5)
+    2b54:	0037e793          	ori	a5,a5,3
+    2b58:	00ff2023          	sw	a5,0(t5)
+    2b5c:	0046a783          	lw	a5,4(a3) # 10040004 <__stack_top+0x10000008>
+    2b60:	fe07dee3          	bgez	a5,2b5c <pqcrystals_dilithium_masked_signature.constprop.0+0xe38>
+    2b64:	000017b7          	lui	a5,0x1
+    2b68:	41478793          	addi	a5,a5,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
+    2b6c:	00f40633          	add	a2,s0,a5
+    2b70:	00040693          	mv	a3,s0
+    2b74:	100407b7          	lui	a5,0x10040
+    2b78:	00d7a423          	sw	a3,8(a5) # 10040008 <__stack_top+0x1000000c>
+    2b7c:	00d7a623          	sw	a3,12(a5)
+    2b80:	0007a583          	lw	a1,0(a5)
+    2b84:	0045e593          	ori	a1,a1,4
+    2b88:	00b7a023          	sw	a1,0(a5)
+    2b8c:	0047a583          	lw	a1,4(a5)
+    2b90:	fe05dee3          	bgez	a1,2b8c <pqcrystals_dilithium_masked_signature.constprop.0+0xe68>
+    2b94:	40468693          	addi	a3,a3,1028
+    2b98:	fed610e3          	bne	a2,a3,2b78 <pqcrystals_dilithium_masked_signature.constprop.0+0xe54>
+    2b9c:	000037b7          	lui	a5,0x3
+    2ba0:	82878793          	addi	a5,a5,-2008 # 2828 <pqcrystals_dilithium_masked_signature.constprop.0+0xb04>
+    2ba4:	00f406b3          	add	a3,s0,a5
+    2ba8:	100407b7          	lui	a5,0x10040
+    2bac:	00e7a423          	sw	a4,8(a5) # 10040008 <__stack_top+0x1000000c>
+    2bb0:	00e7a623          	sw	a4,12(a5)
+    2bb4:	0007a603          	lw	a2,0(a5)
+    2bb8:	00466613          	ori	a2,a2,4
+    2bbc:	00c7a023          	sw	a2,0(a5)
+    2bc0:	0047a603          	lw	a2,4(a5)
+    2bc4:	fe065ee3          	bgez	a2,2bc0 <pqcrystals_dilithium_masked_signature.constprop.0+0xe9c>
+    2bc8:	40470713          	addi	a4,a4,1028
+    2bcc:	fed710e3          	bne	a4,a3,2bac <pqcrystals_dilithium_masked_signature.constprop.0+0xe88>
+    2bd0:	0001e5b7          	lui	a1,0x1e
+    2bd4:	ffff26b7          	lui	a3,0xffff2
+    2bd8:	7a068693          	addi	a3,a3,1952 # ffff27a0 <__stack_top+0xfffb27a4>
+    2bdc:	b5058793          	addi	a5,a1,-1200 # 1db50 <__BSS_END__+0x8750>
+    2be0:	00d787b3          	add	a5,a5,a3
+    2be4:	ffff9737          	lui	a4,0xffff9
+    2be8:	07010693          	addi	a3,sp,112
+    2bec:	00d786b3          	add	a3,a5,a3
+    2bf0:	80070713          	addi	a4,a4,-2048 # ffff8800 <__stack_top+0xfffb8804>
+    2bf4:	b5058793          	addi	a5,a1,-1200
+    2bf8:	00e787b3          	add	a5,a5,a4
+    2bfc:	07010713          	addi	a4,sp,112
+    2c00:	00e78733          	add	a4,a5,a4
+    2c04:	b5058593          	addi	a1,a1,-1200
+    2c08:	fffe37b7          	lui	a5,0xfffe3
+    2c0c:	00f585b3          	add	a1,a1,a5
+    2c10:	07010793          	addi	a5,sp,112
+    2c14:	00f587b3          	add	a5,a1,a5
+    2c18:	000020b7          	lui	ra,0x2
+    2c1c:	fffe33b7          	lui	t2,0xfffe3
+    2c20:	00001637          	lui	a2,0x1
+    2c24:	000012b7          	lui	t0,0x1
+    2c28:	00001fb7          	lui	t6,0x1
+    2c2c:	02f12823          	sw	a5,48(sp)
+    2c30:	00068e93          	mv	t4,a3
+    2c34:	81808093          	addi	ra,ra,-2024 # 1818 <pqcrystals_dilithium_masked_poly_ptr_chknorm+0x168>
+    2c38:	9f838393          	addi	t2,t2,-1544 # fffe29f8 <__stack_top+0xfffa29fc>
+    2c3c:	100407b7          	lui	a5,0x10040
+    2c40:	00400a13          	li	s4,4
+    2c44:	00500b13          	li	s6,5
+    2c48:	41460613          	addi	a2,a2,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
+    2c4c:	00001ab7          	lui	s5,0x1
+    2c50:	01028293          	addi	t0,t0,16 # 1010 <loop>
+    2c54:	10040f37          	lui	t5,0x10040
+    2c58:	400f8f93          	addi	t6,t6,1024 # 1400 <pqcrystals_dilithium_polyvec_matrix_expand+0x1bc>
+    2c5c:	03012503          	lw	a0,48(sp)
+    2c60:	001e85b3          	add	a1,t4,ra
+    2c64:	00000893          	li	a7,0
+    2c68:	9eb52e23          	sw	a1,-1540(a0)
+    2c6c:	0001e5b7          	lui	a1,0x1e
+    2c70:	b5058593          	addi	a1,a1,-1200 # 1db50 <__BSS_END__+0x8750>
+    2c74:	9fd52c23          	sw	t4,-1544(a0)
+    2c78:	007585b3          	add	a1,a1,t2
+    2c7c:	07010513          	addi	a0,sp,112
+    2c80:	00a58833          	add	a6,a1,a0
+    2c84:	00040513          	mv	a0,s0
+    2c88:	0007a623          	sw	zero,12(a5) # 1004000c <__stack_top+0x10000010>
+    2c8c:	00e7a423          	sw	a4,8(a5)
+    2c90:	0007a583          	lw	a1,0(a5)
+    2c94:	0035e593          	ori	a1,a1,3
+    2c98:	00b7a023          	sw	a1,0(a5)
+    2c9c:	0047a583          	lw	a1,4(a5)
+    2ca0:	fe05dee3          	bgez	a1,2c9c <pqcrystals_dilithium_masked_signature.constprop.0+0xf78>
+    2ca4:	00a7a423          	sw	a0,8(a5)
+    2ca8:	0007a583          	lw	a1,0(a5)
+    2cac:	1045e593          	ori	a1,a1,260
+    2cb0:	00b7a023          	sw	a1,0(a5)
+    2cb4:	0047a583          	lw	a1,4(a5)
+    2cb8:	fe05dee3          	bgez	a1,2cb4 <pqcrystals_dilithium_masked_signature.constprop.0+0xf90>
+    2cbc:	40450493          	addi	s1,a0,1028
+    2cc0:	00100313          	li	t1,1
+    2cc4:	07430463          	beq	t1,s4,2d2c <pqcrystals_dilithium_masked_signature.constprop.0+0x1008>
+    2cc8:	00a31593          	slli	a1,t1,0xa
+    2ccc:	00048993          	mv	s3,s1
+    2cd0:	00e585b3          	add	a1,a1,a4
+    2cd4:	00000e13          	li	t3,0
+    2cd8:	00b7a423          	sw	a1,8(a5)
+    2cdc:	0007a583          	lw	a1,0(a5)
+    2ce0:	0035e593          	ori	a1,a1,3
+    2ce4:	00b7a023          	sw	a1,0(a5)
+    2ce8:	0047a583          	lw	a1,4(a5)
+    2cec:	fe05dee3          	bgez	a1,2ce8 <pqcrystals_dilithium_masked_signature.constprop.0+0xfc4>
+    2cf0:	0137a423          	sw	s3,8(a5)
+    2cf4:	01c7a623          	sw	t3,12(a5)
+    2cf8:	0007a583          	lw	a1,0(a5)
+    2cfc:	7845e593          	ori	a1,a1,1924
+    2d00:	00b7a023          	sw	a1,0(a5)
+    2d04:	0047a583          	lw	a1,4(a5)
+    2d08:	fe05dee3          	bgez	a1,2d04 <pqcrystals_dilithium_masked_signature.constprop.0+0xfe0>
+    2d0c:	00130313          	addi	t1,t1,1
+    2d10:	40448493          	addi	s1,s1,1028
+    2d14:	fb6318e3          	bne	t1,s6,2cc4 <pqcrystals_dilithium_masked_signature.constprop.0+0xfa0>
+    2d18:	00c50533          	add	a0,a0,a2
+    2d1c:	00480813          	addi	a6,a6,4
+    2d20:	02c88863          	beq	a7,a2,2d50 <pqcrystals_dilithium_masked_signature.constprop.0+0x102c>
+    2d24:	00060893          	mv	a7,a2
+    2d28:	f61ff06f          	j	2c88 <pqcrystals_dilithium_masked_signature.constprop.0+0xf64>
+    2d2c:	0007a583          	lw	a1,0(a5)
+    2d30:	00082e03          	lw	t3,0(a6)
+    2d34:	0015e593          	ori	a1,a1,1
+    2d38:	00b7a023          	sw	a1,0(a5)
+    2d3c:	0047a583          	lw	a1,4(a5)
+    2d40:	fe05dee3          	bgez	a1,2d3c <pqcrystals_dilithium_masked_signature.constprop.0+0x1018>
+    2d44:	005509b3          	add	s3,a0,t0
+    2d48:	015705b3          	add	a1,a4,s5
+    2d4c:	f8dff06f          	j	2cd8 <pqcrystals_dilithium_masked_signature.constprop.0+0xfb4>
+    2d50:	0001e5b7          	lui	a1,0x1e
+    2d54:	b5058593          	addi	a1,a1,-1200 # 1db50 <__BSS_END__+0x8750>
+    2d58:	07010513          	addi	a0,sp,112
+    2d5c:	01f70733          	add	a4,a4,t6
+    2d60:	00a585b3          	add	a1,a1,a0
+    2d64:	404e8e93          	addi	t4,t4,1028
+    2d68:	eee59ae3          	bne	a1,a4,2c5c <pqcrystals_dilithium_masked_signature.constprop.0+0xf38>
+    2d6c:	01412783          	lw	a5,20(sp)
+    2d70:	10040737          	lui	a4,0x10040
+    2d74:	00ff2423          	sw	a5,8(t5) # 10040008 <__stack_top+0x1000000c>
+    2d78:	000f2783          	lw	a5,0(t5)
+    2d7c:	0037e793          	ori	a5,a5,3
+    2d80:	00ff2023          	sw	a5,0(t5)
+    2d84:	00472783          	lw	a5,4(a4) # 10040004 <__stack_top+0x10000008>
+    2d88:	fe07dee3          	bgez	a5,2d84 <pqcrystals_dilithium_masked_signature.constprop.0+0x1060>
+    2d8c:	000027b7          	lui	a5,0x2
+    2d90:	81878793          	addi	a5,a5,-2024 # 1818 <pqcrystals_dilithium_masked_poly_ptr_chknorm+0x168>
+    2d94:	00f687b3          	add	a5,a3,a5
+    2d98:	04f12223          	sw	a5,68(sp)
+    2d9c:	00068713          	mv	a4,a3
+    2da0:	100407b7          	lui	a5,0x10040
+    2da4:	00e7a423          	sw	a4,8(a5) # 10040008 <__stack_top+0x1000000c>
+    2da8:	00e7a623          	sw	a4,12(a5)
+    2dac:	0007a603          	lw	a2,0(a5)
+    2db0:	08466613          	ori	a2,a2,132
+    2db4:	00c7a023          	sw	a2,0(a5)
+    2db8:	0047a603          	lw	a2,4(a5)
+    2dbc:	fe065ee3          	bgez	a2,2db8 <pqcrystals_dilithium_masked_signature.constprop.0+0x1094>
+    2dc0:	04412603          	lw	a2,68(sp)
+    2dc4:	40470713          	addi	a4,a4,1028
+    2dc8:	fcc71ee3          	bne	a4,a2,2da4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1080>
+    2dcc:	ffff47b7          	lui	a5,0xffff4
+    2dd0:	0001e637          	lui	a2,0x1e
+    2dd4:	fb878793          	addi	a5,a5,-72 # ffff3fb8 <__stack_top+0xfffb3fbc>
+    2dd8:	00003737          	lui	a4,0x3
+    2ddc:	b5060613          	addi	a2,a2,-1200 # 1db50 <__BSS_END__+0x8750>
+    2de0:	00f60633          	add	a2,a2,a5
+    2de4:	03070713          	addi	a4,a4,48 # 3030 <pqcrystals_dilithium_masked_signature.constprop.0+0x130c>
+    2de8:	07010793          	addi	a5,sp,112
+    2dec:	00f607b3          	add	a5,a2,a5
+    2df0:	00e68633          	add	a2,a3,a4
+    2df4:	10040737          	lui	a4,0x10040
+    2df8:	00f72423          	sw	a5,8(a4) # 10040008 <__stack_top+0x1000000c>
+    2dfc:	00f72623          	sw	a5,12(a4)
+    2e00:	00072583          	lw	a1,0(a4)
+    2e04:	0845e593          	ori	a1,a1,132
+    2e08:	00b72023          	sw	a1,0(a4)
+    2e0c:	00472583          	lw	a1,4(a4)
+    2e10:	fe05dee3          	bgez	a1,2e0c <pqcrystals_dilithium_masked_signature.constprop.0+0x10e8>
+    2e14:	40478793          	addi	a5,a5,1028
+    2e18:	fef610e3          	bne	a2,a5,2df8 <pqcrystals_dilithium_masked_signature.constprop.0+0x10d4>
+    2e1c:	0001e737          	lui	a4,0x1e
+    2e20:	ffff54b7          	lui	s1,0xffff5
+    2e24:	7d048493          	addi	s1,s1,2000 # ffff57d0 <__stack_top+0xfffb57d4>
+    2e28:	b5070793          	addi	a5,a4,-1200 # 1db50 <__BSS_END__+0x8750>
+    2e2c:	07010613          	addi	a2,sp,112
+    2e30:	009787b3          	add	a5,a5,s1
+    2e34:	fffe55b7          	lui	a1,0xfffe5
+    2e38:	00c784b3          	add	s1,a5,a2
+    2e3c:	ef858593          	addi	a1,a1,-264 # fffe4ef8 <__stack_top+0xfffa4efc>
+    2e40:	b5070793          	addi	a5,a4,-1200
+    2e44:	00b787b3          	add	a5,a5,a1
+    2e48:	00c785b3          	add	a1,a5,a2
+    2e4c:	b5070713          	addi	a4,a4,-1200
+    2e50:	fffe37b7          	lui	a5,0xfffe3
+    2e54:	00f70733          	add	a4,a4,a5
+    2e58:	00001537          	lui	a0,0x1
     2e5c:	07010793          	addi	a5,sp,112
-    2e60:	06b12623          	sw	a1,108(sp)
-    2e64:	05812583          	lw	a1,88(sp)
-    2e68:	00f707b3          	add	a5,a4,a5
+    2e60:	00f707b3          	add	a5,a4,a5
+    2e64:	00150713          	addi	a4,a0,1 # 1001 <_start+0x1>
+    2e68:	04c12503          	lw	a0,76(sp)
     2e6c:	00002fb7          	lui	t6,0x2
     2e70:	007fe8b7          	lui	a7,0x7fe
     2e74:	fffe3c37          	lui	s8,0xfffe3
@@ -1992,8 +1992,8 @@ Disassembly of section .text:
     2e98:	0002e0b7          	lui	ra,0x2e
     2e9c:	00080837          	lui	a6,0x80
     2ea0:	00001d37          	lui	s10,0x1
-    2ea4:	00150713          	addi	a4,a0,1 # 1001 <_start+0x1>
-    2ea8:	04f12423          	sw	a5,72(sp)
+    2ea4:	04f12423          	sw	a5,72(sp)
+    2ea8:	00058313          	mv	t1,a1
     2eac:	00048293          	mv	t0,s1
     2eb0:	818f8f93          	addi	t6,t6,-2024 # 1818 <pqcrystals_dilithium_masked_poly_ptr_chknorm+0x168>
     2eb4:	100407b7          	lui	a5,0x10040
@@ -2011,275 +2011,275 @@ Disassembly of section .text:
     2ee4:	e0080813          	addi	a6,a6,-512 # 7fe00 <__stack_top+0x3fe04>
     2ee8:	06e12023          	sw	a4,96(sp)
     2eec:	203d0d13          	addi	s10,s10,515 # 1203 <UnityPrint.part.0+0x1f>
-    2ef0:	06812423          	sw	s0,104(sp)
-    2ef4:	04812703          	lw	a4,72(sp)
-    2ef8:	0001e537          	lui	a0,0x1e
-    2efc:	01f683b3          	add	t2,a3,t6
-    2f00:	9ed72c23          	sw	a3,-1544(a4)
-    2f04:	9e772e23          	sw	t2,-1540(a4)
-    2f08:	b5050713          	addi	a4,a0,-1200 # 1db50 <__BSS_END__+0x8750>
-    2f0c:	b5050513          	addi	a0,a0,-1200
-    2f10:	07010413          	addi	s0,sp,112
-    2f14:	01270733          	add	a4,a4,s2
-    2f18:	01850533          	add	a0,a0,s8
-    2f1c:	00870733          	add	a4,a4,s0
-    2f20:	0117a823          	sw	a7,16(a5) # 10040010 <__stack_top+0x10000014>
-    2f24:	00850433          	add	s0,a0,s0
-    2f28:	00000993          	li	s3,0
-    2f2c:	00000c93          	li	s9,0
-    2f30:	0007a503          	lw	a0,0(a5)
-    2f34:	00156513          	ori	a0,a0,1
-    2f38:	00a7a023          	sw	a0,0(a5)
-    2f3c:	0047a503          	lw	a0,4(a5)
-    2f40:	fe055ee3          	bgez	a0,2f3c <pqcrystals_dilithium_masked_signature.constprop.0+0x1218>
-    2f44:	00042503          	lw	a0,0(s0)
-    2f48:	0197a623          	sw	s9,12(a5)
-    2f4c:	00200c93          	li	s9,2
-    2f50:	00050663          	beqz	a0,2f5c <pqcrystals_dilithium_masked_signature.constprop.0+0x1238>
-    2f54:	00a7a423          	sw	a0,8(a5)
-    2f58:	00400c93          	li	s9,4
-    2f5c:	0007a503          	lw	a0,0(a5)
-    2f60:	01956533          	or	a0,a0,s9
-    2f64:	01d56533          	or	a0,a0,t4
-    2f68:	00a7a023          	sw	a0,0(a5)
-    2f6c:	0047a503          	lw	a0,4(a5)
-    2f70:	fe055ee3          	bgez	a0,2f6c <pqcrystals_dilithium_masked_signature.constprop.0+0x1248>
-    2f74:	040980e3          	beqz	s3,37b4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1a90>
-    2f78:	00062503          	lw	a0,0(a2)
-    2f7c:	10000413          	li	s0,256
-    2f80:	00001cb7          	lui	s9,0x1
-    2f84:	00a12423          	sw	a0,8(sp)
-    2f88:	00862223          	sw	s0,4(a2)
-    2f8c:	07010513          	addi	a0,sp,112
-    2f90:	a48c8413          	addi	s0,s9,-1464 # a48 <_start-0x5b8>
-    2f94:	00a40433          	add	s0,s0,a0
-    2f98:	00862a23          	sw	s0,20(a2)
-    2f9c:	a48c8413          	addi	s0,s9,-1464
-    2fa0:	00a40433          	add	s0,s0,a0
-    2fa4:	00812503          	lw	a0,8(sp)
-    2fa8:	00b62c23          	sw	a1,24(a2)
-    2fac:	02862a23          	sw	s0,52(a2)
-    2fb0:	02b62c23          	sw	a1,56(a2)
-    2fb4:	01756533          	or	a0,a0,s7
-    2fb8:	00a62023          	sw	a0,0(a2)
-    2fbc:	00062503          	lw	a0,0(a2)
-    2fc0:	fe055ee3          	bgez	a0,2fbc <pqcrystals_dilithium_masked_signature.constprop.0+0x1298>
-    2fc4:	01000513          	li	a0,16
-    2fc8:	00a7aa23          	sw	a0,20(a5)
-    2fcc:	0007ac23          	sw	zero,24(a5)
-    2fd0:	10000537          	lui	a0,0x10000
-    2fd4:	00a7ae23          	sw	a0,28(a5)
-    2fd8:	00100513          	li	a0,1
-    2fdc:	00a7a823          	sw	a0,16(a5)
-    2fe0:	0007a503          	lw	a0,0(a5)
-    2fe4:	00156513          	ori	a0,a0,1
-    2fe8:	00a7a023          	sw	a0,0(a5)
-    2fec:	0047a503          	lw	a0,4(a5)
-    2ff0:	fe055ee3          	bgez	a0,2fec <pqcrystals_dilithium_masked_signature.constprop.0+0x12c8>
-    2ff4:	00e7a623          	sw	a4,12(a5)
-    2ff8:	00e7a423          	sw	a4,8(a5)
-    2ffc:	0007a503          	lw	a0,0(a5)
-    3000:	01c56533          	or	a0,a0,t3
-    3004:	00a7a023          	sw	a0,0(a5)
-    3008:	0047a503          	lw	a0,4(a5)
-    300c:	fe055ee3          	bgez	a0,3008 <pqcrystals_dilithium_masked_signature.constprop.0+0x12e4>
-    3010:	0007a503          	lw	a0,0(a5)
-    3014:	00156513          	ori	a0,a0,1
-    3018:	00a7a023          	sw	a0,0(a5)
-    301c:	0047a503          	lw	a0,4(a5)
-    3020:	fe055ee3          	bgez	a0,301c <pqcrystals_dilithium_masked_signature.constprop.0+0x12f8>
-    3024:	00b7a623          	sw	a1,12(a5)
-    3028:	00b7a423          	sw	a1,8(a5)
-    302c:	0007a503          	lw	a0,0(a5)
-    3030:	01c56533          	or	a0,a0,t3
-    3034:	00a7a023          	sw	a0,0(a5)
-    3038:	0047a503          	lw	a0,4(a5)
-    303c:	fe055ee3          	bgez	a0,3038 <pqcrystals_dilithium_masked_signature.constprop.0+0x1314>
-    3040:	40070413          	addi	s0,a4,1024
-    3044:	00030513          	mv	a0,t1
-    3048:	00028c93          	mv	s9,t0
-    304c:	02d12823          	sw	a3,48(sp)
-    3050:	00072283          	lw	t0,0(a4)
-    3054:	40072683          	lw	a3,1024(a4)
-    3058:	00450513          	addi	a0,a0,4 # 10000004 <__stack_top+0xffc0008>
-    305c:	00470713          	addi	a4,a4,4
-    3060:	00d2c2b3          	xor	t0,t0,a3
-    3064:	fe552e23          	sw	t0,-4(a0)
-    3068:	fee414e3          	bne	s0,a4,3050 <pqcrystals_dilithium_masked_signature.constprop.0+0x132c>
-    306c:	03012683          	lw	a3,48(sp)
-    3070:	0167aa23          	sw	s6,20(a5)
-    3074:	0157ac23          	sw	s5,24(a5)
-    3078:	20000713          	li	a4,512
-    307c:	00e7ae23          	sw	a4,28(a5)
-    3080:	0347a023          	sw	s4,32(a5)
-    3084:	0017a023          	sw	ra,0(a5)
-    3088:	0107a823          	sw	a6,16(a5)
-    308c:	0007a623          	sw	zero,12(a5)
-    3090:	0067a423          	sw	t1,8(a5)
-    3094:	0007a703          	lw	a4,0(a5)
-    3098:	000c8293          	mv	t0,s9
-    309c:	01c76733          	or	a4,a4,t3
-    30a0:	00e7a023          	sw	a4,0(a5)
-    30a4:	0047a703          	lw	a4,4(a5)
-    30a8:	fe075ee3          	bgez	a4,30a4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1380>
-    30ac:	0007a703          	lw	a4,0(a5)
-    30b0:	06012503          	lw	a0,96(sp)
-    30b4:	00a76733          	or	a4,a4,a0
-    30b8:	00e7a023          	sw	a4,0(a5)
-    30bc:	0047a703          	lw	a4,4(a5)
-    30c0:	fe075ee3          	bgez	a4,30bc <pqcrystals_dilithium_masked_signature.constprop.0+0x1398>
-    30c4:	0057a623          	sw	t0,12(a5)
-    30c8:	00d7a423          	sw	a3,8(a5)
-    30cc:	0007a703          	lw	a4,0(a5)
-    30d0:	01a76733          	or	a4,a4,s10
-    30d4:	00e7a023          	sw	a4,0(a5)
-    30d8:	0047a703          	lw	a4,4(a5)
-    30dc:	fe075ee3          	bgez	a4,30d8 <pqcrystals_dilithium_masked_signature.constprop.0+0x13b4>
-    30e0:	0007a823          	sw	zero,16(a5)
-    30e4:	0007a703          	lw	a4,0(a5)
-    30e8:	00176713          	ori	a4,a4,1
-    30ec:	00e7a023          	sw	a4,0(a5)
-    30f0:	0047a703          	lw	a4,4(a5)
-    30f4:	fe075ee3          	bgez	a4,30f0 <pqcrystals_dilithium_masked_signature.constprop.0+0x13cc>
-    30f8:	01f28733          	add	a4,t0,t6
-    30fc:	00e7a623          	sw	a4,12(a5)
-    3100:	0077a423          	sw	t2,8(a5)
-    3104:	0007a703          	lw	a4,0(a5)
-    3108:	08000537          	lui	a0,0x8000
-    310c:	18450513          	addi	a0,a0,388 # 8000184 <__stack_top+0x7fc0188>
-    3110:	00a76733          	or	a4,a4,a0
-    3114:	00e7a023          	sw	a4,0(a5)
-    3118:	0047a703          	lw	a4,4(a5)
-    311c:	fe075ee3          	bgez	a4,3118 <pqcrystals_dilithium_masked_signature.constprop.0+0x13f4>
-    3120:	04412703          	lw	a4,68(sp)
-    3124:	40468693          	addi	a3,a3,1028
-    3128:	40428293          	addi	t0,t0,1028
-    312c:	40030313          	addi	t1,t1,1024
-    3130:	dce692e3          	bne	a3,a4,2ef4 <pqcrystals_dilithium_masked_signature.constprop.0+0x11d0>
-    3134:	06812403          	lw	s0,104(sp)
-    3138:	06c12583          	lw	a1,108(sp)
-    313c:	02412703          	lw	a4,36(sp)
-    3140:	008006b7          	lui	a3,0x800
-    3144:	100407b7          	lui	a5,0x10040
-    3148:	38468693          	addi	a3,a3,900 # 800384 <__stack_top+0x7c0388>
-    314c:	00e7a623          	sw	a4,12(a5) # 1004000c <__stack_top+0x10000010>
-    3150:	00b7a423          	sw	a1,8(a5)
-    3154:	0007a603          	lw	a2,0(a5)
-    3158:	00d66633          	or	a2,a2,a3
-    315c:	00c7a023          	sw	a2,0(a5)
-    3160:	0047a603          	lw	a2,4(a5)
-    3164:	fe065ee3          	bgez	a2,3160 <pqcrystals_dilithium_masked_signature.constprop.0+0x143c>
-    3168:	05c12603          	lw	a2,92(sp)
-    316c:	08070713          	addi	a4,a4,128
-    3170:	40058593          	addi	a1,a1,1024
-    3174:	fce61ce3          	bne	a2,a4,314c <pqcrystals_dilithium_masked_signature.constprop.0+0x1428>
-    3178:	00f00793          	li	a5,15
-    317c:	00fda023          	sw	a5,0(s11)
-    3180:	000da783          	lw	a5,0(s11)
-    3184:	fe07dee3          	bgez	a5,3180 <pqcrystals_dilithium_masked_signature.constprop.0+0x145c>
-    3188:	51000793          	li	a5,1296
-    318c:	00fda023          	sw	a5,0(s11)
-    3190:	01000793          	li	a5,16
-    3194:	00fda223          	sw	a5,4(s11)
-    3198:	03412783          	lw	a5,52(sp)
-    319c:	00fda623          	sw	a5,12(s11)
-    31a0:	000da823          	sw	zero,16(s11)
-    31a4:	000da783          	lw	a5,0(s11)
-    31a8:	0017e793          	ori	a5,a5,1
-    31ac:	00fda023          	sw	a5,0(s11)
-    31b0:	000da783          	lw	a5,0(s11)
-    31b4:	fe07dee3          	bgez	a5,31b0 <pqcrystals_dilithium_masked_signature.constprop.0+0x148c>
-    31b8:	0c000793          	li	a5,192
-    31bc:	00fda223          	sw	a5,4(s11)
-    31c0:	02412783          	lw	a5,36(sp)
-    31c4:	00fda623          	sw	a5,12(s11)
-    31c8:	000da823          	sw	zero,16(s11)
-    31cc:	000da783          	lw	a5,0(s11)
-    31d0:	0017e793          	ori	a5,a5,1
-    31d4:	00fda023          	sw	a5,0(s11)
-    31d8:	000da783          	lw	a5,0(s11)
-    31dc:	fe07dee3          	bgez	a5,31d8 <pqcrystals_dilithium_masked_signature.constprop.0+0x14b4>
-    31e0:	00c12703          	lw	a4,12(sp)
-    31e4:	01f00793          	li	a5,31
-    31e8:	4af72e23          	sw	a5,1212(a4)
-    31ec:	04c12783          	lw	a5,76(sp)
-    31f0:	000da683          	lw	a3,0(s11)
-    31f4:	00004737          	lui	a4,0x4
-    31f8:	00fda623          	sw	a5,12(s11)
-    31fc:	00100793          	li	a5,1
-    3200:	00fda223          	sw	a5,4(s11)
-    3204:	000da783          	lw	a5,0(s11)
-    3208:	40170713          	addi	a4,a4,1025 # 4401 <pqcrystals_dilithium_signature.constprop.0+0x94d>
-    320c:	00e7e7b3          	or	a5,a5,a4
-    3210:	00fda023          	sw	a5,0(s11)
-    3214:	000da783          	lw	a5,0(s11)
-    3218:	fe07dee3          	bgez	a5,3214 <pqcrystals_dilithium_masked_signature.constprop.0+0x14f0>
-    321c:	00dda023          	sw	a3,0(s11)
-    3220:	000da783          	lw	a5,0(s11)
-    3224:	0037e793          	ori	a5,a5,3
-    3228:	00fda023          	sw	a5,0(s11)
-    322c:	000da783          	lw	a5,0(s11)
-    3230:	fe07dee3          	bgez	a5,322c <pqcrystals_dilithium_masked_signature.constprop.0+0x1508>
-    3234:	00800793          	li	a5,8
-    3238:	00fda223          	sw	a5,4(s11)
-    323c:	02412783          	lw	a5,36(sp)
-    3240:	10040a37          	lui	s4,0x10040
-    3244:	02fda623          	sw	a5,44(s11)
-    3248:	020da823          	sw	zero,48(s11)
-    324c:	000da783          	lw	a5,0(s11)
-    3250:	0027e793          	ori	a5,a5,2
-    3254:	00fda023          	sw	a5,0(s11)
-    3258:	000da783          	lw	a5,0(s11)
-    325c:	fe07dee3          	bgez	a5,3258 <pqcrystals_dilithium_masked_signature.constprop.0+0x1534>
-    3260:	fffe2537          	lui	a0,0xfffe2
-    3264:	0001e7b7          	lui	a5,0x1e
-    3268:	5f850513          	addi	a0,a0,1528 # fffe25f8 <__stack_top+0xfffa25fc>
-    326c:	b5078793          	addi	a5,a5,-1200 # 1db50 <__BSS_END__+0x8750>
-    3270:	00a787b3          	add	a5,a5,a0
-    3274:	07010713          	addi	a4,sp,112
-    3278:	00e78533          	add	a0,a5,a4
-    327c:	efcfe0ef          	jal	1978 <pqcrystals_dilithium_poly_challenge.constprop.0>
-    3280:	04012783          	lw	a5,64(sp)
-    3284:	00fa2423          	sw	a5,8(s4) # 10040008 <__stack_top+0x1000000c>
-    3288:	000a2703          	lw	a4,0(s4)
-    328c:	100407b7          	lui	a5,0x10040
-    3290:	00376713          	ori	a4,a4,3
-    3294:	00ea2023          	sw	a4,0(s4)
-    3298:	0047a703          	lw	a4,4(a5) # 10040004 <__stack_top+0x10000008>
-    329c:	fe075ee3          	bgez	a4,3298 <pqcrystals_dilithium_masked_signature.constprop.0+0x1574>
-    32a0:	01012703          	lw	a4,16(sp)
-    32a4:	100406b7          	lui	a3,0x10040
-    32a8:	00e7a423          	sw	a4,8(a5)
-    32ac:	00e7a623          	sw	a4,12(a5)
-    32b0:	0007a703          	lw	a4,0(a5)
-    32b4:	00476713          	ori	a4,a4,4
-    32b8:	00e7a023          	sw	a4,0(a5)
-    32bc:	0046a783          	lw	a5,4(a3) # 10040004 <__stack_top+0x10000008>
-    32c0:	fe07dee3          	bgez	a5,32bc <pqcrystals_dilithium_masked_signature.constprop.0+0x1598>
-    32c4:	0001e7b7          	lui	a5,0x1e
-    32c8:	fffedab7          	lui	s5,0xfffed
-    32cc:	f48a8a93          	addi	s5,s5,-184 # fffecf48 <__stack_top+0xfffacf4c>
-    32d0:	b5078713          	addi	a4,a5,-1200 # 1db50 <__BSS_END__+0x8750>
-    32d4:	07010613          	addi	a2,sp,112
-    32d8:	01570733          	add	a4,a4,s5
-    32dc:	fffe3cb7          	lui	s9,0xfffe3
-    32e0:	00c70ab3          	add	s5,a4,a2
-    32e4:	01c12b03          	lw	s6,28(sp)
-    32e8:	b5078713          	addi	a4,a5,-1200
-    32ec:	00080eb7          	lui	t4,0x80
+    2ef0:	06b12423          	sw	a1,104(sp)
+    2ef4:	06812623          	sw	s0,108(sp)
+    2ef8:	04812703          	lw	a4,72(sp)
+    2efc:	0001e5b7          	lui	a1,0x1e
+    2f00:	01f68433          	add	s0,a3,t6
+    2f04:	9ed72c23          	sw	a3,-1544(a4)
+    2f08:	9e872e23          	sw	s0,-1540(a4)
+    2f0c:	b5058713          	addi	a4,a1,-1200 # 1db50 <__BSS_END__+0x8750>
+    2f10:	b5058593          	addi	a1,a1,-1200
+    2f14:	07010393          	addi	t2,sp,112
+    2f18:	01270733          	add	a4,a4,s2
+    2f1c:	018585b3          	add	a1,a1,s8
+    2f20:	00770733          	add	a4,a4,t2
+    2f24:	0117a823          	sw	a7,16(a5) # 10040010 <__stack_top+0x10000014>
+    2f28:	007583b3          	add	t2,a1,t2
+    2f2c:	00000993          	li	s3,0
+    2f30:	00000c93          	li	s9,0
+    2f34:	0007a583          	lw	a1,0(a5)
+    2f38:	0015e593          	ori	a1,a1,1
+    2f3c:	00b7a023          	sw	a1,0(a5)
+    2f40:	0047a583          	lw	a1,4(a5)
+    2f44:	fe05dee3          	bgez	a1,2f40 <pqcrystals_dilithium_masked_signature.constprop.0+0x121c>
+    2f48:	0003a583          	lw	a1,0(t2)
+    2f4c:	0197a623          	sw	s9,12(a5)
+    2f50:	00200c93          	li	s9,2
+    2f54:	00058663          	beqz	a1,2f60 <pqcrystals_dilithium_masked_signature.constprop.0+0x123c>
+    2f58:	00b7a423          	sw	a1,8(a5)
+    2f5c:	00400c93          	li	s9,4
+    2f60:	0007a583          	lw	a1,0(a5)
+    2f64:	0195e5b3          	or	a1,a1,s9
+    2f68:	01d5e5b3          	or	a1,a1,t4
+    2f6c:	00b7a023          	sw	a1,0(a5)
+    2f70:	0047a583          	lw	a1,4(a5)
+    2f74:	fe05dee3          	bgez	a1,2f70 <pqcrystals_dilithium_masked_signature.constprop.0+0x124c>
+    2f78:	02098ee3          	beqz	s3,37b4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1a90>
+    2f7c:	00062583          	lw	a1,0(a2)
+    2f80:	10000393          	li	t2,256
+    2f84:	00001cb7          	lui	s9,0x1
+    2f88:	00b12423          	sw	a1,8(sp)
+    2f8c:	00762223          	sw	t2,4(a2)
+    2f90:	07010593          	addi	a1,sp,112
+    2f94:	a48c8393          	addi	t2,s9,-1464 # a48 <_start-0x5b8>
+    2f98:	00b383b3          	add	t2,t2,a1
+    2f9c:	00762a23          	sw	t2,20(a2)
+    2fa0:	a48c8393          	addi	t2,s9,-1464
+    2fa4:	00b383b3          	add	t2,t2,a1
+    2fa8:	00812583          	lw	a1,8(sp)
+    2fac:	00a62c23          	sw	a0,24(a2)
+    2fb0:	02762a23          	sw	t2,52(a2)
+    2fb4:	02a62c23          	sw	a0,56(a2)
+    2fb8:	0175e5b3          	or	a1,a1,s7
+    2fbc:	00b62023          	sw	a1,0(a2)
+    2fc0:	00062583          	lw	a1,0(a2)
+    2fc4:	fe05dee3          	bgez	a1,2fc0 <pqcrystals_dilithium_masked_signature.constprop.0+0x129c>
+    2fc8:	01000593          	li	a1,16
+    2fcc:	00b7aa23          	sw	a1,20(a5)
+    2fd0:	0007ac23          	sw	zero,24(a5)
+    2fd4:	100005b7          	lui	a1,0x10000
+    2fd8:	00b7ae23          	sw	a1,28(a5)
+    2fdc:	00100593          	li	a1,1
+    2fe0:	00b7a823          	sw	a1,16(a5)
+    2fe4:	0007a583          	lw	a1,0(a5)
+    2fe8:	0015e593          	ori	a1,a1,1
+    2fec:	00b7a023          	sw	a1,0(a5)
+    2ff0:	0047a583          	lw	a1,4(a5)
+    2ff4:	fe05dee3          	bgez	a1,2ff0 <pqcrystals_dilithium_masked_signature.constprop.0+0x12cc>
+    2ff8:	00e7a623          	sw	a4,12(a5)
+    2ffc:	00e7a423          	sw	a4,8(a5)
+    3000:	0007a583          	lw	a1,0(a5)
+    3004:	01c5e5b3          	or	a1,a1,t3
+    3008:	00b7a023          	sw	a1,0(a5)
+    300c:	0047a583          	lw	a1,4(a5)
+    3010:	fe05dee3          	bgez	a1,300c <pqcrystals_dilithium_masked_signature.constprop.0+0x12e8>
+    3014:	0007a583          	lw	a1,0(a5)
+    3018:	0015e593          	ori	a1,a1,1
+    301c:	00b7a023          	sw	a1,0(a5)
+    3020:	0047a583          	lw	a1,4(a5)
+    3024:	fe05dee3          	bgez	a1,3020 <pqcrystals_dilithium_masked_signature.constprop.0+0x12fc>
+    3028:	00a7a623          	sw	a0,12(a5)
+    302c:	00a7a423          	sw	a0,8(a5)
+    3030:	0007a583          	lw	a1,0(a5)
+    3034:	01c5e5b3          	or	a1,a1,t3
+    3038:	00b7a023          	sw	a1,0(a5)
+    303c:	0047a583          	lw	a1,4(a5)
+    3040:	fe05dee3          	bgez	a1,303c <pqcrystals_dilithium_masked_signature.constprop.0+0x1318>
+    3044:	40070393          	addi	t2,a4,1024
+    3048:	00030593          	mv	a1,t1
+    304c:	00028c93          	mv	s9,t0
+    3050:	02d12823          	sw	a3,48(sp)
+    3054:	00072283          	lw	t0,0(a4)
+    3058:	40072683          	lw	a3,1024(a4)
+    305c:	00458593          	addi	a1,a1,4 # 10000004 <__stack_top+0xffc0008>
+    3060:	00470713          	addi	a4,a4,4
+    3064:	00d2c2b3          	xor	t0,t0,a3
+    3068:	fe55ae23          	sw	t0,-4(a1)
+    306c:	fee394e3          	bne	t2,a4,3054 <pqcrystals_dilithium_masked_signature.constprop.0+0x1330>
+    3070:	03012683          	lw	a3,48(sp)
+    3074:	0167aa23          	sw	s6,20(a5)
+    3078:	0157ac23          	sw	s5,24(a5)
+    307c:	20000713          	li	a4,512
+    3080:	00e7ae23          	sw	a4,28(a5)
+    3084:	0347a023          	sw	s4,32(a5)
+    3088:	0017a023          	sw	ra,0(a5)
+    308c:	0107a823          	sw	a6,16(a5)
+    3090:	0007a623          	sw	zero,12(a5)
+    3094:	0067a423          	sw	t1,8(a5)
+    3098:	0007a703          	lw	a4,0(a5)
+    309c:	000c8293          	mv	t0,s9
+    30a0:	01c76733          	or	a4,a4,t3
+    30a4:	00e7a023          	sw	a4,0(a5)
+    30a8:	0047a703          	lw	a4,4(a5)
+    30ac:	fe075ee3          	bgez	a4,30a8 <pqcrystals_dilithium_masked_signature.constprop.0+0x1384>
+    30b0:	0007a703          	lw	a4,0(a5)
+    30b4:	06012583          	lw	a1,96(sp)
+    30b8:	00b76733          	or	a4,a4,a1
+    30bc:	00e7a023          	sw	a4,0(a5)
+    30c0:	0047a703          	lw	a4,4(a5)
+    30c4:	fe075ee3          	bgez	a4,30c0 <pqcrystals_dilithium_masked_signature.constprop.0+0x139c>
+    30c8:	0057a623          	sw	t0,12(a5)
+    30cc:	00d7a423          	sw	a3,8(a5)
+    30d0:	0007a703          	lw	a4,0(a5)
+    30d4:	01a76733          	or	a4,a4,s10
+    30d8:	00e7a023          	sw	a4,0(a5)
+    30dc:	0047a703          	lw	a4,4(a5)
+    30e0:	fe075ee3          	bgez	a4,30dc <pqcrystals_dilithium_masked_signature.constprop.0+0x13b8>
+    30e4:	0007a823          	sw	zero,16(a5)
+    30e8:	0007a703          	lw	a4,0(a5)
+    30ec:	00176713          	ori	a4,a4,1
+    30f0:	00e7a023          	sw	a4,0(a5)
+    30f4:	0047a703          	lw	a4,4(a5)
+    30f8:	fe075ee3          	bgez	a4,30f4 <pqcrystals_dilithium_masked_signature.constprop.0+0x13d0>
+    30fc:	01f28733          	add	a4,t0,t6
+    3100:	00e7a623          	sw	a4,12(a5)
+    3104:	0087a423          	sw	s0,8(a5)
+    3108:	0007a703          	lw	a4,0(a5)
+    310c:	080005b7          	lui	a1,0x8000
+    3110:	18458593          	addi	a1,a1,388 # 8000184 <__stack_top+0x7fc0188>
+    3114:	00b76733          	or	a4,a4,a1
+    3118:	00e7a023          	sw	a4,0(a5)
+    311c:	0047a703          	lw	a4,4(a5)
+    3120:	fe075ee3          	bgez	a4,311c <pqcrystals_dilithium_masked_signature.constprop.0+0x13f8>
+    3124:	04412703          	lw	a4,68(sp)
+    3128:	40468693          	addi	a3,a3,1028
+    312c:	40428293          	addi	t0,t0,1028
+    3130:	40030313          	addi	t1,t1,1024
+    3134:	dce692e3          	bne	a3,a4,2ef8 <pqcrystals_dilithium_masked_signature.constprop.0+0x11d4>
+    3138:	06812583          	lw	a1,104(sp)
+    313c:	06c12403          	lw	s0,108(sp)
+    3140:	02412703          	lw	a4,36(sp)
+    3144:	008006b7          	lui	a3,0x800
+    3148:	100407b7          	lui	a5,0x10040
+    314c:	38468693          	addi	a3,a3,900 # 800384 <__stack_top+0x7c0388>
+    3150:	00e7a623          	sw	a4,12(a5) # 1004000c <__stack_top+0x10000010>
+    3154:	00b7a423          	sw	a1,8(a5)
+    3158:	0007a603          	lw	a2,0(a5)
+    315c:	00d66633          	or	a2,a2,a3
+    3160:	00c7a023          	sw	a2,0(a5)
+    3164:	0047a603          	lw	a2,4(a5)
+    3168:	fe065ee3          	bgez	a2,3164 <pqcrystals_dilithium_masked_signature.constprop.0+0x1440>
+    316c:	05c12603          	lw	a2,92(sp)
+    3170:	08070713          	addi	a4,a4,128
+    3174:	40058593          	addi	a1,a1,1024
+    3178:	fce61ce3          	bne	a2,a4,3150 <pqcrystals_dilithium_masked_signature.constprop.0+0x142c>
+    317c:	00f00793          	li	a5,15
+    3180:	00fda023          	sw	a5,0(s11)
+    3184:	000da783          	lw	a5,0(s11)
+    3188:	fe07dee3          	bgez	a5,3184 <pqcrystals_dilithium_masked_signature.constprop.0+0x1460>
+    318c:	51000793          	li	a5,1296
+    3190:	00fda023          	sw	a5,0(s11)
+    3194:	01000793          	li	a5,16
+    3198:	00fda223          	sw	a5,4(s11)
+    319c:	03412783          	lw	a5,52(sp)
+    31a0:	00fda623          	sw	a5,12(s11)
+    31a4:	000da823          	sw	zero,16(s11)
+    31a8:	000da783          	lw	a5,0(s11)
+    31ac:	0017e793          	ori	a5,a5,1
+    31b0:	00fda023          	sw	a5,0(s11)
+    31b4:	000da783          	lw	a5,0(s11)
+    31b8:	fe07dee3          	bgez	a5,31b4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1490>
+    31bc:	0c000793          	li	a5,192
+    31c0:	00fda223          	sw	a5,4(s11)
+    31c4:	02412783          	lw	a5,36(sp)
+    31c8:	00fda623          	sw	a5,12(s11)
+    31cc:	000da823          	sw	zero,16(s11)
+    31d0:	000da783          	lw	a5,0(s11)
+    31d4:	0017e793          	ori	a5,a5,1
+    31d8:	00fda023          	sw	a5,0(s11)
+    31dc:	000da783          	lw	a5,0(s11)
+    31e0:	fe07dee3          	bgez	a5,31dc <pqcrystals_dilithium_masked_signature.constprop.0+0x14b8>
+    31e4:	00c12703          	lw	a4,12(sp)
+    31e8:	01f00793          	li	a5,31
+    31ec:	4af72e23          	sw	a5,1212(a4)
+    31f0:	05812783          	lw	a5,88(sp)
+    31f4:	000da683          	lw	a3,0(s11)
+    31f8:	00004737          	lui	a4,0x4
+    31fc:	00fda623          	sw	a5,12(s11)
+    3200:	00100793          	li	a5,1
+    3204:	00fda223          	sw	a5,4(s11)
+    3208:	000da783          	lw	a5,0(s11)
+    320c:	40170713          	addi	a4,a4,1025 # 4401 <pqcrystals_dilithium_signature.constprop.0+0x94d>
+    3210:	00e7e7b3          	or	a5,a5,a4
+    3214:	00fda023          	sw	a5,0(s11)
+    3218:	000da783          	lw	a5,0(s11)
+    321c:	fe07dee3          	bgez	a5,3218 <pqcrystals_dilithium_masked_signature.constprop.0+0x14f4>
+    3220:	00dda023          	sw	a3,0(s11)
+    3224:	000da783          	lw	a5,0(s11)
+    3228:	0037e793          	ori	a5,a5,3
+    322c:	00fda023          	sw	a5,0(s11)
+    3230:	000da783          	lw	a5,0(s11)
+    3234:	fe07dee3          	bgez	a5,3230 <pqcrystals_dilithium_masked_signature.constprop.0+0x150c>
+    3238:	00800793          	li	a5,8
+    323c:	00fda223          	sw	a5,4(s11)
+    3240:	02412783          	lw	a5,36(sp)
+    3244:	10040a37          	lui	s4,0x10040
+    3248:	02fda623          	sw	a5,44(s11)
+    324c:	020da823          	sw	zero,48(s11)
+    3250:	000da783          	lw	a5,0(s11)
+    3254:	0027e793          	ori	a5,a5,2
+    3258:	00fda023          	sw	a5,0(s11)
+    325c:	000da783          	lw	a5,0(s11)
+    3260:	fe07dee3          	bgez	a5,325c <pqcrystals_dilithium_masked_signature.constprop.0+0x1538>
+    3264:	fffe2537          	lui	a0,0xfffe2
+    3268:	0001e7b7          	lui	a5,0x1e
+    326c:	5f850513          	addi	a0,a0,1528 # fffe25f8 <__stack_top+0xfffa25fc>
+    3270:	b5078793          	addi	a5,a5,-1200 # 1db50 <__BSS_END__+0x8750>
+    3274:	00a787b3          	add	a5,a5,a0
+    3278:	07010713          	addi	a4,sp,112
+    327c:	00e78533          	add	a0,a5,a4
+    3280:	ef8fe0ef          	jal	1978 <pqcrystals_dilithium_poly_challenge.constprop.0>
+    3284:	04012783          	lw	a5,64(sp)
+    3288:	00fa2423          	sw	a5,8(s4) # 10040008 <__stack_top+0x1000000c>
+    328c:	000a2703          	lw	a4,0(s4)
+    3290:	100407b7          	lui	a5,0x10040
+    3294:	00376713          	ori	a4,a4,3
+    3298:	00ea2023          	sw	a4,0(s4)
+    329c:	0047a703          	lw	a4,4(a5) # 10040004 <__stack_top+0x10000008>
+    32a0:	fe075ee3          	bgez	a4,329c <pqcrystals_dilithium_masked_signature.constprop.0+0x1578>
+    32a4:	01012703          	lw	a4,16(sp)
+    32a8:	100406b7          	lui	a3,0x10040
+    32ac:	00e7a423          	sw	a4,8(a5)
+    32b0:	00e7a623          	sw	a4,12(a5)
+    32b4:	0007a703          	lw	a4,0(a5)
+    32b8:	00476713          	ori	a4,a4,4
+    32bc:	00e7a023          	sw	a4,0(a5)
+    32c0:	0046a783          	lw	a5,4(a3) # 10040004 <__stack_top+0x10000008>
+    32c4:	fe07dee3          	bgez	a5,32c0 <pqcrystals_dilithium_masked_signature.constprop.0+0x159c>
+    32c8:	0001e7b7          	lui	a5,0x1e
+    32cc:	fffedab7          	lui	s5,0xfffed
+    32d0:	f48a8a93          	addi	s5,s5,-184 # fffecf48 <__stack_top+0xfffacf4c>
+    32d4:	b5078713          	addi	a4,a5,-1200 # 1db50 <__BSS_END__+0x8750>
+    32d8:	07010613          	addi	a2,sp,112
+    32dc:	01570733          	add	a4,a4,s5
+    32e0:	fffe3cb7          	lui	s9,0xfffe3
+    32e4:	00c70ab3          	add	s5,a4,a2
+    32e8:	00080eb7          	lui	t4,0x80
+    32ec:	b5078713          	addi	a4,a5,-1200
     32f0:	9f8c8c93          	addi	s9,s9,-1544 # fffe29f8 <__stack_top+0xfffa29fc>
     32f4:	b5078793          	addi	a5,a5,-1200
     32f8:	f3be8e93          	addi	t4,t4,-197 # 7ff3b <__stack_top+0x3ff3f>
     32fc:	00001337          	lui	t1,0x1
     3300:	fffe3837          	lui	a6,0xfffe3
     3304:	019787b3          	add	a5,a5,s9
-    3308:	01d6a823          	sw	t4,16(a3)
-    330c:	41430313          	addi	t1,t1,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
-    3310:	01070733          	add	a4,a4,a6
-    3314:	00c787b3          	add	a5,a5,a2
-    3318:	000b0c13          	mv	s8,s6
+    3308:	01c12b03          	lw	s6,28(sp)
+    330c:	01d6a823          	sw	t4,16(a3)
+    3310:	41430313          	addi	t1,t1,1044 # 1414 <pqcrystals_dilithium_polyvec_matrix_expand+0x1d0>
+    3314:	01070733          	add	a4,a4,a6
+    3318:	00c787b3          	add	a5,a5,a2
     331c:	04912423          	sw	s1,72(sp)
-    3320:	00040b13          	mv	s6,s0
+    3320:	00040c13          	mv	s8,s0
     3324:	000a8d13          	mv	s10,s5
     3328:	00c70a33          	add	s4,a4,a2
     332c:	10040bb7          	lui	s7,0x10040
@@ -2287,14 +2287,14 @@ Disassembly of section .text:
     3334:	05512223          	sw	s5,68(sp)
     3338:	000e8413          	mv	s0,t4
     333c:	00030493          	mv	s1,t1
-    3340:	009b06b3          	add	a3,s6,s1
+    3340:	009c06b3          	add	a3,s8,s1
     3344:	9eda2e23          	sw	a3,-1540(s4)
     3348:	00c12683          	lw	a3,12(sp)
-    334c:	009c0733          	add	a4,s8,s1
+    334c:	009b0733          	add	a4,s6,s1
     3350:	fffe27b7          	lui	a5,0xfffe2
     3354:	4ce6aa23          	sw	a4,1236(a3)
     3358:	0001e737          	lui	a4,0x1e
-    335c:	4d86a823          	sw	s8,1232(a3)
+    335c:	4d66a823          	sw	s6,1232(a3)
     3360:	4d078793          	addi	a5,a5,1232 # fffe24d0 <__stack_top+0xfffa24d4>
     3364:	b5070693          	addi	a3,a4,-1200 # 1db50 <__BSS_END__+0x8750>
     3368:	00f686b3          	add	a3,a3,a5
@@ -2308,7 +2308,7 @@ Disassembly of section .text:
     3388:	07010613          	addi	a2,sp,112
     338c:	01970733          	add	a4,a4,s9
     3390:	efaa2c23          	sw	s10,-264(s4)
-    3394:	9f6a2c23          	sw	s6,-1544(s4)
+    3394:	9f8a2c23          	sw	s8,-1544(s4)
     3398:	00c686b3          	add	a3,a3,a2
     339c:	00c70733          	add	a4,a4,a2
     33a0:	01012603          	lw	a2,16(sp)
@@ -2399,8 +2399,8 @@ Disassembly of section .text:
     34f4:	07010713          	addi	a4,sp,112
     34f8:	404d0d13          	addi	s10,s10,1028
     34fc:	00e787b3          	add	a5,a5,a4
-    3500:	404b0b13          	addi	s6,s6,1028
-    3504:	404c0c13          	addi	s8,s8,1028
+    3500:	404c0c13          	addi	s8,s8,1028
+    3504:	404b0b13          	addi	s6,s6,1028
     3508:	e2fd1ce3          	bne	s10,a5,3340 <pqcrystals_dilithium_masked_signature.constprop.0+0x161c>
     350c:	000407b7          	lui	a5,0x40
     3510:	e3c78793          	addi	a5,a5,-452 # 3fe3c <__BSS_END__+0x2aa3c>
@@ -2530,7 +2530,7 @@ Disassembly of section .text:
     3700:	28051e63          	bnez	a0,399c <pqcrystals_dilithium_masked_signature.constprop.0+0x1c78>
     3704:	404a0a13          	addi	s4,s4,1028
     3708:	404b8b93          	addi	s7,s7,1028
-    370c:	e74410e3          	bne	s0,s4,356c <pqcrystals_dilithium_masked_signature.constprop.0+0x1848>
+    370c:	e68a10e3          	bne	s4,s0,356c <pqcrystals_dilithium_masked_signature.constprop.0+0x1848>
     3710:	fffe67b7          	lui	a5,0xfffe6
     3714:	0001e6b7          	lui	a3,0x1e
     3718:	6f878793          	addi	a5,a5,1784 # fffe66f8 <__stack_top+0xfffa66fc>
@@ -2572,19 +2572,19 @@ Disassembly of section .text:
     37a8:	00058693          	mv	a3,a1
     37ac:	00f72623          	sw	a5,12(a4)
     37b0:	fd1ff06f          	j	3780 <pqcrystals_dilithium_masked_signature.constprop.0+0x1a5c>
-    37b4:	003ff537          	lui	a0,0x3ff
-    37b8:	00a7a823          	sw	a0,16(a5)
+    37b4:	003ff5b7          	lui	a1,0x3ff
+    37b8:	00b7a823          	sw	a1,16(a5)
     37bc:	00e7a623          	sw	a4,12(a5)
-    37c0:	0007a503          	lw	a0,0(a5)
-    37c4:	01e56533          	or	a0,a0,t5
-    37c8:	00a7a023          	sw	a0,0(a5)
-    37cc:	0047a503          	lw	a0,4(a5)
-    37d0:	fe055ee3          	bgez	a0,37cc <pqcrystals_dilithium_masked_signature.constprop.0+0x1aa8>
+    37c0:	0007a583          	lw	a1,0(a5)
+    37c4:	01e5e5b3          	or	a1,a1,t5
+    37c8:	00b7a023          	sw	a1,0(a5)
+    37cc:	0047a583          	lw	a1,4(a5)
+    37d0:	fe05dee3          	bgez	a1,37cc <pqcrystals_dilithium_masked_signature.constprop.0+0x1aa8>
     37d4:	0117a823          	sw	a7,16(a5)
-    37d8:	00440413          	addi	s0,s0,4
-    37dc:	00058c93          	mv	s9,a1
+    37d8:	00438393          	addi	t2,t2,4
+    37dc:	00050c93          	mv	s9,a0
     37e0:	00100993          	li	s3,1
-    37e4:	f4cff06f          	j	2f30 <pqcrystals_dilithium_masked_signature.constprop.0+0x120c>
+    37e4:	f50ff06f          	j	2f34 <pqcrystals_dilithium_masked_signature.constprop.0+0x1210>
     37e8:	0007a703          	lw	a4,0(a5)
     37ec:	00001537          	lui	a0,0x1
     37f0:	20250513          	addi	a0,a0,514 # 1202 <UnityPrint.part.0+0x1e>
@@ -2668,7 +2668,7 @@ Disassembly of section .text:
     3928:	fe06dee3          	bgez	a3,3924 <pqcrystals_dilithium_masked_signature.constprop.0+0x1c00>
     392c:	40470713          	addi	a4,a4,1028
     3930:	40048493          	addi	s1,s1,1024
-    3934:	fce410e3          	bne	s0,a4,38f4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1bd0>
+    3934:	fc8710e3          	bne	a4,s0,38f4 <pqcrystals_dilithium_masked_signature.constprop.0+0x1bd0>
     3938:	0001e737          	lui	a4,0x1e
     393c:	fffe67b7          	lui	a5,0xfffe6
     3940:	6f878793          	addi	a5,a5,1784 # fffe66f8 <__stack_top+0xfffa66fc>
@@ -2694,9 +2694,9 @@ Disassembly of section .text:
     3990:	c41fd0ef          	jal	15d0 <pqcrystals_dilithium_polyveck_add_make_hint>
     3994:	03700793          	li	a5,55
     3998:	00a7fa63          	bgeu	a5,a0,39ac <pqcrystals_dilithium_masked_signature.constprop.0+0x1c88>
-    399c:	02c12783          	lw	a5,44(sp)
+    399c:	02812783          	lw	a5,40(sp)
     39a0:	00178793          	addi	a5,a5,1
-    39a4:	02f12623          	sw	a5,44(sp)
+    39a4:	02f12423          	sw	a5,40(sp)
     39a8:	ec5fe06f          	j	286c <pqcrystals_dilithium_masked_signature.constprop.0+0xb48>
     39ac:	fffee737          	lui	a4,0xfffee
     39b0:	0001e6b7          	lui	a3,0x1e
@@ -4580,7 +4580,7 @@ Disassembly of section .text:
     56e8:	0044a783          	lw	a5,4(s1)
     56ec:	fe07dee3          	bgez	a5,56e8 <pqcrystals_dilithium_crypto_sign_keypair.constprop.0+0x6d0>
     56f0:	40088893          	addi	a7,a7,1024
-    56f4:	ff1690e3          	bne	a3,a7,56d4 <pqcrystals_dilithium_crypto_sign_keypair.constprop.0+0x6bc>
+    56f4:	fed890e3          	bne	a7,a3,56d4 <pqcrystals_dilithium_crypto_sign_keypair.constprop.0+0x6bc>
     56f8:	0000d7b7          	lui	a5,0xd
     56fc:	ffff3637          	lui	a2,0xffff3
     5700:	c0060613          	addi	a2,a2,-1024 # ffff2c00 <__stack_top+0xfffb2c04>
@@ -4739,7 +4739,7 @@ Disassembly of section .text:
     5964:	fe07dee3          	bgez	a5,5960 <pqcrystals_dilithium_crypto_sign_keypair.constprop.0+0x948>
     5968:	14068693          	addi	a3,a3,320
     596c:	40060613          	addi	a2,a2,1024
-    5970:	fcd81ee3          	bne	a6,a3,594c <pqcrystals_dilithium_crypto_sign_keypair.constprop.0+0x934>
+    5970:	fd069ee3          	bne	a3,a6,594c <pqcrystals_dilithium_crypto_sign_keypair.constprop.0+0x934>
     5974:	100407b7          	lui	a5,0x10040
     5978:	04078793          	addi	a5,a5,64 # 10040040 <__stack_top+0x10000044>
     597c:	00f00713          	li	a4,15

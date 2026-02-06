@@ -27,16 +27,6 @@ void masked_polyveck_eta_unpack(masked_polyveck *r, const uint8_t *a) {
 }
 
 
-static void masked_polyvec_ntt(masked_poly *r, unsigned int len) {
-    unsigned int i, j;
-
-    for(j = 0; j < MASKING_N; j++)
-        for(i = 0; i < len; i++)
-            poly_ntt(&r[i].share[j]);
-}
-
-
-
 void masked_polyvecl_ntt(masked_polyvecl *r) {
     unsigned int i, j;
 
@@ -69,9 +59,7 @@ void masked_polyvecl_uniform_gamma1(masked_polyvecl *y, const masked_crh rhoprim
     masked_poly_ptr y_ptr;
     masked_stream256_init(rhoprime, L*nonce);
     for (i = 0; i < L; i++) {
-        for (j = 0; j < MASKING_N; j++) {
-            y_ptr.share[j] = &y->share[j].vec[i];
-        }
+        masked_polyvecl_to_poly_ptr(&y_ptr, y, i);
 
         masked_poly_ptr_uniform_gamma1_fromhw(&y_ptr, rhoprime, L*nonce + i + 1, i != (L - 1));
     }
@@ -167,6 +155,7 @@ int masked_polyveck_pointwise_invntt_sub_chknorm(masked_polyveck *r, const maske
 void masked_polyveck_unmask(polyveck *a, const masked_polyveck *r) {
     unsigned int i;
     masked_poly_ptr_const r_ptr;
+
     for (i = 0; i < K; i++) {
         masked_polyveck_to_poly_ptr_const(&r_ptr, r, i);
         masked_poly_ptr_unmask(&a->vec[i], &r_ptr);

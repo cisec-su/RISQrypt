@@ -45,7 +45,7 @@ void masked_poly_ptr_unpack(const masked_poly_ptr *r, const uint8_t *a, unsigned
 void masked_poly_ptr_uniform_gamma1_fromhw(const masked_poly_ptr *y, const masked_crh rhoprime, uint16_t nonce_next, int init_next);
 
 #define masked_poly_ptr_uniform_gamma1_fromhw_inner DILITHIUM_NAMESPACE(masked_poly_ptr_uniform_gamma1_fromhw_inner)
-void masked_poly_ptr_uniform_gamma1_fromhw_inner(const masked_poly_ptr *y, const masked_crh rhoprime, uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2]);
+void masked_poly_ptr_uniform_gamma1_fromhw_inner(const masked_poly_ptr *y, const masked_crh rhoprime, const uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2]);
 
 #define masked_poly_ptr_decompose DILITHIUM_NAMESPACE(masked_poly_ptr_decompose)
 void masked_poly_ptr_decompose(poly *v1, const masked_poly_ptr *v0, const masked_poly_ptr_const *v);

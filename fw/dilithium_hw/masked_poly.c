@@ -56,7 +56,7 @@ void masked_poly_ptr_unpack(const masked_poly_ptr *r, const uint8_t *a, unsigned
 }
 
 
-void masked_poly_ptr_uniform_gamma1_fromhw_inner(const masked_poly_ptr *y, const masked_crh rhoprime, uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2]) {
+void masked_poly_ptr_uniform_gamma1_fromhw_inner(const masked_poly_ptr *y, const masked_crh rhoprime, const uint32_t buf[MASKING_N][POLYZ_PACKEDBYTES >> 2]) {
     unsigned int i;
 
     for(i = 0; i < MASKING_N; i++) {
