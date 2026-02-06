@@ -154,8 +154,8 @@ void masked_poly_getnoise_eta2_fromhw(masked_poly *r, const masked_sym seed) {
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif    
-    uint8_t buf[MASKING_N][KYBER_ETA1*KYBER_N/4];
-    masked_ptr ptr = {buf[0], buf[1]};
+    uint32_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2) >> 5];
+    masked_ptr ptr = {(uint8_t*) buf[0], (uint8_t*) buf[1]};
     masked_prf_squeeze(ptr, sizeof(buf) / MASKING_N);
     masked_cbd_eta2(r, buf);
 }

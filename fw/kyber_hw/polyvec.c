@@ -139,8 +139,6 @@ void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int
   }
 }
 
-#define GEN_MATRIX_NBLOCKS ((12*KYBER_N/8*(1 << 12)/KYBER_Q \
-                             + XOF_BLOCKBYTES)/XOF_BLOCKBYTES)
 
 void polyvec_pointwise_acc_fromseed_core(poly *r, const uint8_t seed[KYBER_SYMBYTES], int j, const polyvec *b, int intt, int tohw, int clr, int transposed)
 {
@@ -154,7 +152,7 @@ void polyvec_pointwise_acc_fromseed_core(poly *r, const uint8_t seed[KYBER_SYMBY
     dst = (uint32_t*) r->coeffs;
 
   ntt_lite_set_bound((KYBER_Q << 16) | (KYBER_Q));
-  ntt_lite_set_inv2((GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES) >> 2);
+  ntt_lite_set_inv2(XOF_BLOCKBYTES >> 2);
   gen_poly_tohw(seed, j, 1, transposed, 1);
   ntt_lite_pwm((uint32_t*) r->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) &b->vec[0].coeffs);
 

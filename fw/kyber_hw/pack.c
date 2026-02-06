@@ -110,8 +110,6 @@ void unpack_ciphertext(polyvec *b, poly *v, const uint8_t c[KYBER_INDCPA_BYTES])
 
 
 void absorb_routine(const uint8_t seed[KYBER_SYMBYTES], int i, int j, int transposed) {
-  // xof_init();
-
   if(transposed)
     xof_absorb(seed, i, j);
   else
@@ -132,17 +130,15 @@ void absorb_routine(const uint8_t seed[KYBER_SYMBYTES], int i, int j, int transp
 *              - int transposed:      boolean deciding whether A or A^T
 *                                     is generated
 **************************************************/
-#define GEN_MATRIX_NBLOCKS ((12*KYBER_N/8*(1 << 12)/KYBER_Q \
-                             + XOF_BLOCKBYTES)/XOF_BLOCKBYTES)
 // Not static for benchmarking
 void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
 {
   unsigned int ctr, i, j, k;
   unsigned int buflen, off;
-  uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
-  ntt_lite_set_inv2((GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES) >> 2);
+  uint32_t buf[XOF_BLOCKBYTES >> 2];
+  ntt_lite_set_inv2((1*XOF_BLOCKBYTES) >> 2);
   ntt_lite_set_bound((KYBER_Q << 16) | (KYBER_Q));
-  int next_i, next_j;
+  int next_i, next_j, ret;
 
   absorb_routine(seed, 0, 0, transposed);
 
@@ -157,12 +153,14 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
         next_j = j + 1;
         next_i = i;
       }
-      xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
+      do {
+        xof_squeezeblocks((uint8_t*) buf, 1);
+        ret = ntt_lite_rejsamp((uint32_t*) a[i].vec[j].coeffs, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
+      } while(ret == NTT_LITE_REJSAMP_IP);      
 
       if (next_i != KYBER_K) {
         absorb_routine(seed, next_i, next_j, transposed);
       }
-      ntt_lite_rejsamp((uint32_t*) a[i].vec[j].coeffs, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
     }
   }
   poly_set_inv2();
@@ -172,9 +170,13 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
 
 void gen_poly_tohw(const uint8_t seed[KYBER_SYMBYTES], unsigned int next_i, unsigned int next_j, int transposed, int absorb_next)
 {
-  uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2] __attribute__((aligned(4)));
-  xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS);
-  ntt_lite_rejsamp(NTT_LITE_OUTPUT_DIS, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
+  uint32_t buf[XOF_BLOCKBYTES >> 2];
+  int ret;
+
+  do {
+    xof_squeezeblocks((uint8_t*) buf, 1);
+    ret = ntt_lite_rejsamp(NTT_LITE_OUTPUT_DIS, (uint32_t*) buf, 12, NTT_LITE_REJSAMP_CENTER_DIS);
+  } while(ret == NTT_LITE_REJSAMP_IP);
   if (absorb_next) {
     absorb_routine(seed, next_i, next_j, transposed);
   }

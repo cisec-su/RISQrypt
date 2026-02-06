@@ -115,8 +115,8 @@ void masked_polyvec_getnoise_eta1_fromhw(masked_polyvec *r, const masked_sym see
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif
-    uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2)/8];
-    masked_ptr ptr = {buf[0], buf[1]};
+    uint32_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2) >> 5];
+    masked_ptr ptr = {(uint8_t*) buf[0], (uint8_t*) buf[1]};
     unsigned int i;
 
     for (i = 0; i < KYBER_K; i++) {

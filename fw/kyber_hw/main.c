@@ -246,13 +246,19 @@ static masked_poly mpoly_cbd_ __attribute__((aligned(4)));
 
 void test_masked_cbd() {
  
-    BENCH_INIT() 
+    uint32_t buf32[MASKING_N][(KYBER_N*KYBER_ETA2*2) >> 5];
     unsigned int i;
+    BENCH_INIT() 
 
     poly_init_q();
 
+    for (i = 0; i < (KYBER_N*KYBER_ETA2*2) >> 3; i++) {
+        ((uint8_t*) (buf32[0]))[i] = buf[0][i];
+        ((uint8_t*) (buf32[1]))[i] = buf[1][i];
+    }
+
     BENCH_START() 
-    masked_cbd_eta2(&mpoly_cbd_, buf);
+    masked_cbd_eta2(&mpoly_cbd_, buf32);
 
     BENCH_END(MASKED_CBD)
 

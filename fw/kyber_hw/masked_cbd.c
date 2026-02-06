@@ -6,7 +6,7 @@
 
 
 
-static void masked_cbd_eta2_core(poly *r[MASKING_N], const uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA2*2)/8]) {
+static void masked_cbd_eta2_core(poly *r[MASKING_N], const uint32_t buf[MASKING_N][(KYBER_N*KYBER_ETA2*2) >> 5]) {
     unsigned int i, j;
     poly t[MASKING_N][KYBER_ETA2*2];
 
@@ -19,10 +19,9 @@ static void masked_cbd_eta2_core(poly *r[MASKING_N], const uint8_t buf[MASKING_N
         ntt_lite_sub((uint32_t*) r[i]->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) t[i][3].coeffs);    
     }
 }
-    
 
 
-void masked_cbd_eta2(masked_poly *r, const uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2)/8]) {
+void masked_cbd_eta2(masked_poly *r, const uint32_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2) >> 5]) {
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif    
@@ -31,8 +30,7 @@ void masked_cbd_eta2(masked_poly *r, const uint8_t buf[MASKING_N][(KYBER_N*KYBER
 }
 
 
-
-void masked_cbd_eta2_i(masked_polyvec *r, const uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2)/8], unsigned int i) {
+void masked_cbd_eta2_i(masked_polyvec *r, const uint32_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2) >> 5], unsigned int i) {
 #if MASKING_N != 2
 #error "This implementation requires MASKING_N = 2"
 #endif    
@@ -41,7 +39,7 @@ void masked_cbd_eta2_i(masked_polyvec *r, const uint8_t buf[MASKING_N][(KYBER_N*
 }
 
 
-void masked_cbd_eta1_i(masked_polyvec *r, const uint8_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2)/8], unsigned int i) {
+void masked_cbd_eta1_i(masked_polyvec *r, const uint32_t buf[MASKING_N][(KYBER_N*KYBER_ETA1*2) >> 5], unsigned int i) {
 #if KYBER_ETA1 == 2
     masked_cbd_eta2_i(r, buf, i);
 #else
