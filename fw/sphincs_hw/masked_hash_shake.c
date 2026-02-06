@@ -3,9 +3,11 @@
 
 #include "address.h"
 #include "masked_fips202.h"
+#include "fips202.h"
 #include "utils_masked.h"
 #include "params.h"
 #include "hash_masked.h"
+#include "randombytes.h"
 
 // Non-masked functions from original file
 void initialize_hash_function(spx_ctx* ctx)
