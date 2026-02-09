@@ -1,3 +1,4 @@
+import random
 import estraces
 from tqdm.notebook import tnrange
 import numpy as np
@@ -13,10 +14,9 @@ import sys
 
 sys.path.append('../../../../../PhD/high_order_non_profiled/scaredcu/')
 
-import scaredcu as scaredcu
 
 class TTestTraceCollector:
-    def __init__(self, proj_name, label=None, input_len=32, output_len=16, offset=0):
+    def __init__(self, proj_name, label="", input_len=32, output_len=16, offset=0):
         self.proj_name = proj_name
         self.label = label
         self.input_len = input_len
@@ -25,6 +25,10 @@ class TTestTraceCollector:
         self.bs_file = "../vivado/risqrypt_cw305.runs/impl_1/fpga_top.bit"
         self.offset = offset
         self.scope = None
+        self.ab_seq_seed = None
+        self.ab_seq_chunk = 1
+        self.ab_seq_chunk1 = 1000
+        self.const_seed = os.urandom(self.input_len//2)
 
     def set_offset(self, offset):
         self.offset = offset
@@ -43,44 +47,27 @@ class TTestTraceCollector:
         self.target.output_len = self.output_len
 
     def set_prng_on(self):
-        self.target.simpleserial_write('l', [])
+        self.target.simpleserial_write('l', os.urandom(8))
         self.target.simpleserial_wait_ack()
+        time.sleep(0.5)
 
     def set_prng_off(self):
         self.target.simpleserial_write('g', [])
         self.target.simpleserial_wait_ack()
 
     def ths_name(self, random, prng_off=False, N=1000):
-        if self.label is not None:
-            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}_{self.label}.ets"
-        else:
-            return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}.ets"
+        return f"traces/{self.proj_name}_N{N}_prngoff{int(prng_off)}_r{random}_o{self.offset}_{self.label}.ets"
 
-    def read_ths(self, N=5000, prng_off=False):
+    def delete_traces(self, N=5000, prng_off=False):
         filename_0 = self.ths_name(random=0, prng_off=prng_off, N=N)
-        ths_0 = estraces.read_ths_from_ets_file(filename_0)
+        if os.path.exists(filename_0):
+            os.remove(filename_0)
         filename_1 = self.ths_name(random=1, prng_off=prng_off, N=N)
-        ths_1 = estraces.read_ths_from_ets_file(filename_1)
-        print(ths_0)
-        print(ths_1)
-        return ths_0, ths_1
-    
-    def read_ths_gpu(self, N=5000, prng_off=False):
-        filename_0 = self.ths_name(random=0, prng_off=prng_off, N=N)
-        ths_0 = scaredcu.estraces.ets_format.read_ths_from_ets_file(filename_0)
-        filename_1 = self.ths_name(random=1, prng_off=prng_off, N=N)
-        ths_1 = scaredcu.estraces.ets_format.read_ths_from_ets_file(filename_1)
-        print(ths_0)
-        print(ths_1)
-        return ths_0, ths_1
+        if os.path.exists(filename_1):
+            os.remove(filename_1)
 
     def get_analysis_obj(self, N=5000, prng_off=False):
-        ths_0, ths_1 = self.read_ths(N=N, prng_off=prng_off)
-        return TTestAnalysis(ths_0, ths_1, filename=f"{self.proj_name}_N{N}_prngoff{int(prng_off)}_o{self.offset}")
-    
-    def get_analysis_obj_gpu(self, N=5000, prng_off=False):
-        ths_0, ths_1 = self.read_ths_gpu(N=N, prng_off=prng_off)
-        return TTestAnalysis(ths_0, ths_1)
+        return TTestAnalysis(self.proj_name, offset=self.offset, label=self.label, N=N, prng_off=prng_off)
 
     def _default_setup(self, freq, gain, samples, mul=4):
         self.scope.adc.offset = self.offset
@@ -153,7 +140,50 @@ class TTestTraceCollector:
         seed_full = seed_temp + seed_mask
         return seed_full
 
-    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False, rand2rand=False):
+    def generate_balanced_AB_chunk1(self, N):
+        if N % self.ab_seq_chunk1 != 0:
+            raise ValueError("self.ab_seq_chunk1 must divide N")
+        if self.ab_seq_chunk1 % 2 != 0:
+            raise ValueError("self.ab_seq_chunk1 must be even for balance")
+
+        rng = np.random.default_rng(self.ab_seq_seed) if self.ab_seq_seed is not None else np.random.default_rng(random.randint(0, 2**32 - 1))
+
+        seq = np.empty((N, 2), dtype=int)
+
+        num_blocks = N // self.ab_seq_chunk1
+
+        for b in range(num_blocks):
+            pair_types = np.array([0] * (self.ab_seq_chunk1 // 2) + [1] * (self.ab_seq_chunk1 // 2))
+            rng.shuffle(pair_types)
+
+            for i, t in enumerate(pair_types):
+                idx = b * self.ab_seq_chunk1 + i
+                if t == 0:
+                    seq[idx] = (0, 1)
+                else:
+                    seq[idx] = (1, 0)
+
+        return seq.ravel()
+
+    def generate_balanced_AB(self, N):
+        seq = np.empty(N*2, dtype=int)
+
+        rng = np.random.default_rng(self.ab_seq_seed) if self.ab_seq_seed is not None else np.random.default_rng(random.randint(0, 2**32 - 1))
+
+        idx = 0
+
+        while idx < N:
+            n = min(self.ab_seq_chunk, N - idx)
+
+            batch = np.array([0] * n + [1] * n)
+            rng.shuffle(batch)
+
+            seq[2*idx:2*idx + 2 * n] = batch
+            idx += n
+
+        return seq
+
+    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False, rand2rand=False, random_order=True, balanced_chunk1=False):
         if prng_off:
             self.set_prng_off()
         else:
@@ -164,44 +194,46 @@ class TTestTraceCollector:
         es_writer_0 = estraces.ETSWriter(filename=filename_0, overwrite=overwrite)
         filename_1 = self.ths_name(random=1, prng_off=prng_off, N=N)
         es_writer_1 = estraces.ETSWriter(filename=filename_1, overwrite=overwrite)
-        const_seed = os.urandom(self.input_len//2)
-        for _ in tnrange(N, desc='Capturing traces'):
-            # const input
-            if rand2rand:
-                const_seed = os.urandom(self.input_len//2)
-            const_seed_full = self.set_input(const_seed, prng_off)
-            ret = cw.capture_trace(self.scope, self.target, const_seed_full, None)
-            if not ret:
-                print("Failed capture")
-                continue
-            if check_output:
-                assert self.check_output(ret.textout, const_seed), "Output mismatch!"
-            es_writer_0.write_samples(np.array(ret.wave))
-            es_writer_0.write_metadata('s', np.frombuffer(const_seed, dtype=np.uint8))
-            #dummy input
-            if dummy_inbetween_0:
-                dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
-                ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
+        const_seed = self.const_seed
+
+        if random_order:
+            ab_seq = self.generate_balanced_AB(N) if self.ab_seq_chunk > 1 or not balanced_chunk1 else self.generate_balanced_AB_chunk1(N)
+
+        for i0 in tnrange(N, desc='Capturing traces'):
+            for i1 in range(2):
+                i = i0 * 2 + i1
+
+                if random_order:
+                    trace_class = ab_seq[i]
+                else:
+                    trace_class = i % 2
+
+                if trace_class == 0:
+                    es_writer = es_writer_0
+                else:
+                    es_writer = es_writer_1
+
+                if trace_class == 0 and not rand2rand:
+                    seed = const_seed
+                else:
+                    seed = os.urandom(self.input_len//2)
+
+                seed_full = self.set_input(seed, prng_off)
+                ret = cw.capture_trace(self.scope, self.target, seed_full, None)
                 if not ret:
                     print("Failed capture")
                     continue
-            # rand input
-            seed = os.urandom(self.input_len//2)
-            seed_full = self.set_input(seed, prng_off)
-            ret = cw.capture_trace(self.scope, self.target, seed_full, None)
-            if not ret:
-                print("Failed capture")
-                continue
-            if check_output:
-                assert self.check_output(ret.textout, seed), "Output mismatch!"
-            es_writer_1.write_samples(np.array(ret.wave))
-            es_writer_1.write_metadata('s', np.frombuffer(seed, dtype=np.uint8))
-            #dummy input
-            if dummy_inbetween_1:
-                dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
-                ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
-                if not ret:
-                    print("Failed capture")
-                    continue
+                if check_output:
+                    assert self.check_output(ret.textout, seed), "Output mismatch!"
+                es_writer.write_samples(np.array(ret.wave))
+                es_writer.write_metadata('s', np.frombuffer(seed, dtype=np.uint8))
+
+                if (trace_class == 0 and dummy_inbetween_0) or (trace_class == 1 and dummy_inbetween_1):
+                    dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
+                    ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
+                    if not ret:
+                        print("Failed capture")
+                        continue
+
         es_writer_0.close()
         es_writer_1.close()
