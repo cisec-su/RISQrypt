@@ -9,7 +9,7 @@
  * wots.c, it is called from the stand-alone benchmark code to characterize
  * the performance
  */
-struct leaf_info_x1 {
+struct leaf_info_x1_masked {
     unsigned char *wots_sig1; // changed struct for secret sharing to do masking
     unsigned char *wots_sig2; // before only "unsigned char *wots_sig;"
     uint32_t wots_sign_leaf; /* The index of the WOTS we're using to sign */
@@ -21,7 +21,7 @@ struct leaf_info_x1 {
 /* Macro to set the leaf_info to something 'benign', that is, it would */
 /* run with the same time as it does during the real signing process */
 /* Used only by the benchmark code */
-#define INITIALIZE_LEAF_INFO_X1(info, addr, step_buffer) { \
+#define INITIALIZE_LEAF_INFO_X1_MASKED(info, addr, step_buffer) { \
     info.wots_sig1 = 0;             \
     info.wots_sig2 = 0;             \
     info.wots_sign_leaf = ~0u;      \

@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "utils_masked.h"
-#include "hash_masked.h"
-#include "thash_masked.h"
-#include "wots_masked.h"
-#include "wotsx1_masked.h"
+#include "masked_utils.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
+#include "masked_wots.h"
+#include "masked_wotsx1.h"
 #include "address.h"
 #include "params.h"
 
@@ -14,7 +14,7 @@ void wots_gen_leafx1_masked(unsigned char *dest1, unsigned char *dest2,
                             const spx_ctx *ctx,
                             uint32_t leaf_idx, void *v_info) 
 {
-    struct leaf_info_x1 *info = v_info;
+    struct leaf_info_x1_masked *info = (struct leaf_info_x1_masked *)v_info;
     uint32_t *leaf_addr = info->leaf_addr;
     uint32_t *pk_addr = info->pk_addr;
     unsigned int i, k;

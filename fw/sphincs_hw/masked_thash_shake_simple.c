@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "thash_masked.h"
+#include "masked_thash.h"
 #include "address.h"
 #include "params.h"
-#include "utils_masked.h"
+#include "masked_utils.h"
 #include "masked_fips202.h"
 
 void masked_thash(unsigned char *out1, unsigned char *out2,

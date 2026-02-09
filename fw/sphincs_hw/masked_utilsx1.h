@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "params.h"
-#include "context_masked.h"
+#include "masked_context.h"
 
 /**
  * For a given leaf index, computes the authentication path and the resulting

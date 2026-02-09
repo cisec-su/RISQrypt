@@ -4,13 +4,13 @@
 #include "address.h"
 #include "masked_fips202.h"
 #include "fips202.h"
-#include "utils_masked.h"
+#include "masked_utils.h"
 #include "params.h"
-#include "hash_masked.h"
+#include "masked_hash.h"
 #include "randombytes.h"
 
 // Non-masked functions from original file
-void initialize_hash_function(spx_ctx* ctx)
+void initialize_hash_function_masked(spx_ctx* ctx)
 {
     (void)ctx; /* Suppress an 'unused parameter' warning. */
 }
@@ -72,7 +72,7 @@ void gen_message_random_masked(unsigned char *R,
  * Outputs the message digest and the index of the leaf. The index is split in
  * the tree index and the leaf index, for convenient copying to an address.
  */
-void hash_message(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
+void hash_message_masked(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
                   const unsigned char *R, const unsigned char *pk,
                   const unsigned char *m, unsigned long long mlen,
                   const spx_ctx *ctx)
@@ -88,12 +88,12 @@ void hash_message(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
     unsigned char *bufp = buf;
     uint64_t s_inc[26];
 
-    shake256_inc_init(s_inc);
-    shake256_inc_absorb(s_inc, R, SPX_N);
-    shake256_inc_absorb(s_inc, pk, SPX_PK_BYTES);
-    shake256_inc_absorb(s_inc, m, mlen);
-    shake256_inc_finalize(s_inc);
-    shake256_inc_squeeze(buf, SPX_DGST_BYTES, s_inc);
+    shake256_inc_init((uint32_t *)s_inc);
+    shake256_inc_absorb((uint32_t *)s_inc, R, SPX_N);
+    shake256_inc_absorb((uint32_t *)s_inc, pk, SPX_PK_BYTES);
+    shake256_inc_absorb((uint32_t *)s_inc, m, mlen);
+    shake256_inc_finalize((uint32_t *)s_inc);
+    shake256_inc_squeeze(buf, SPX_DGST_BYTES, (uint32_t *)s_inc);
 
     memcpy(digest, bufp, SPX_FORS_MSG_BYTES);
     bufp += SPX_FORS_MSG_BYTES;

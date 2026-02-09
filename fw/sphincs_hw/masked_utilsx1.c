@@ -1,9 +1,9 @@
 #include <string.h>
 
-#include "utils_masked.h"
-#include "utilsx1_masked.h"
+#include "masked_utils.h"
+#include "masked_utilsx1.h"
 #include "params.h"
-#include "thash_masked.h"
+#include "masked_thash.h"
 #include "address.h"
 
 // Masked version of the treehashx1 function

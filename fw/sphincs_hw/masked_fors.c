@@ -2,11 +2,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "fors_masked.h"
-#include "utils_masked.h"
-#include "utilsx1_masked.h"
-#include "hash_masked.h"
-#include "thash_masked.h"
+#include "masked_fors.h"
+#include "masked_utils.h"
+#include "masked_utilsx1.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
 #include "address.h"
 #include "randombytes.h"
 
@@ -34,7 +34,7 @@ static void fors_gen_sk_masked(unsigned char *sk1, unsigned char *sk2,
                                const spx_ctx *ctx,
                                uint32_t fors_leaf_addr[8])
 {
-    prf_addr_masked(sk1, sk2, ctx, fors_leaf_addr);
+    masked_prf_addr(sk1, sk2, ctx, fors_leaf_addr);
 }
 
 // Masked version of fors_sk_to_leaf
