@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "params.h"
-#include "context_masked.h"
+#include "masked_context.h"
 
 /**
  * Takes a WOTS signature and an n-byte message, computes a WOTS public key.

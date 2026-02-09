@@ -1,48 +1,20 @@
-#include <cstdint>
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
 
 #include "api.h"
-#include "thash_masked.h"
+#include "masked_thash.h"
 #include "params.h"
-#include "wots_masked.h"
-#include "fors_masked.h"
-#include "hash_masked.h"
+#include "masked_wots.h"
+#include "masked_fors.h"
+#include "masked_hash.h"
 #include "thash.h"
 #include "address.h"
 #include "randombytes.h"
-#include "utils_masked.h"
-#include "merkle_masked.h"
+#include "masked_utils.h"
+#include "masked_merkle.h"
 // Non masked functions from original file
-size_t crypto_sign_secretkeybytes(void)
-{
-    return CRYPTO_SECRETKEYBYTES;
-}
-
-/*
- * Returns the length of a public key, in bytes
- */
-size_t crypto_sign_publickeybytes(void)
-{
-    return CRYPTO_PUBLICKEYBYTES;
-}
-
-/*
- * Returns the length of a signature, in bytes
- */
-size_t crypto_sign_bytes(void)
-{
-    return CRYPTO_BYTES;
-}
-
-/*
- * Returns the length of the seed required to generate a key pair, in bytes
- */
-size_t crypto_sign_seedbytes(void)
-{
-    return CRYPTO_SEEDBYTES;
-}
+// Non-masked functions removed (provided by sign.c)
 
 
 // Masked version of crypto_sign_seed_keypair
@@ -68,7 +40,7 @@ int crypto_sign_seed_keypair_masked(unsigned char *pk, unsigned char *sk,
 
     // This hook allows the hash function instantiation to do whatever
     // preparation or computation it needs, based on the public seed
-    initialize_hash_function(&ctx);
+    initialize_hash_function_masked(&ctx);
 
     // Compute root node of the top-most subtree using masked function
     merkle_gen_root_masked(sk + 3*SPX_N, &ctx);
@@ -110,7 +82,7 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
         ctx.sk_seed2[j] = rand_mask[j]; // R
     }
 
-    initialize_hash_function(&ctx);
+    initialize_hash_function_masked(&ctx);
 
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
@@ -121,7 +93,7 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
     gen_message_random_masked(sig, sk_prf, optrand, m, mlen, &ctx);
 
     // Derive the message digest and leaf index from R, PK and M
-    hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    hash_message_masked(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     // Set up addressses for WOTS leaf by converting the size
@@ -186,13 +158,13 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
 
     memcpy(ctx.pub_seed, pk, SPX_N);
 
-    initialize_hash_function(&ctx);
+    initialize_hash_function_masked(&ctx);
 
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
     set_type(wots_pk_addr, SPX_ADDR_TYPE_WOTSPK);
 
-    hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    hash_message_masked(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     // Set up addressses for WOTS leaf by converting the size

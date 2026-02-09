@@ -21,6 +21,13 @@
 #define u32_to_bytes SPX_NAMESPACE(u32_to_bytes)
 void u32_to_bytes(unsigned char *out, uint32_t in);
 
+#define ull_to_bytes SPX_NAMESPACE(ull_to_bytes)
+void ull_to_bytes(unsigned char *out, unsigned int outlen,
+                  unsigned long long in);
+
+#define bytes_to_ull SPX_NAMESPACE(bytes_to_ull)
+unsigned long long bytes_to_ull(const unsigned char *in, unsigned int inlen);
+
 /**
  * Computes a root node given a leaf and an auth path.
  * Expects address to be complete other than the tree_height and tree_index.

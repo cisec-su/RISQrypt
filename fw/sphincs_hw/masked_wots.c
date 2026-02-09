@@ -1,64 +1,18 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "utils_masked.h"
-#include "utilsx1_masked.h"
-#include "hash_masked.h"
-#include "thash_masked.h"
-#include "wots_masked.h"
-#include "wotsx1_masked.h"
+#include "masked_utils.h"
+#include "utils.h"
+#include "masked_utilsx1.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
+#include "masked_wots.h"
+#include "masked_wotsx1.h"
 #include "address.h"
 #include "params.h"
 #include "randombytes.h"
 
-// Non-masked functions from original file
-static void base_w(unsigned int *output, const int out_len,
-                   const unsigned char *input)
-{
-    int in = 0;
-    int out = 0;
-    unsigned char total;
-    int bits = 0;
-    int consumed;
-
-    for (consumed = 0; consumed < out_len; consumed++) {
-        if (bits == 0) {
-            total = input[in];
-            in++;
-            bits += 8;
-        }
-        bits -= SPX_WOTS_LOGW;
-        output[out] = (total >> bits) & (SPX_WOTS_W - 1);
-        out++;
-    }
-}
-
-/* Computes the WOTS+ checksum over a message (in base_w). */
-static void wots_checksum(unsigned int *csum_base_w,
-                          const unsigned int *msg_base_w)
-{
-    unsigned int csum = 0;
-    unsigned char csum_bytes[(SPX_WOTS_LEN2 * SPX_WOTS_LOGW + 7) / 8];
-    unsigned int i;
-
-    /* Compute checksum. */
-    for (i = 0; i < SPX_WOTS_LEN1; i++) {
-        csum += SPX_WOTS_W - 1 - msg_base_w[i];
-    }
-
-    /* Convert checksum to base_w. */
-    /* Make sure expected empty zero bits are the least significant bits. */
-    csum = csum << ((8 - ((SPX_WOTS_LEN2 * SPX_WOTS_LOGW) % 8)) % 8);
-    ull_to_bytes(csum_bytes, sizeof(csum_bytes), csum);
-    base_w(csum_base_w, SPX_WOTS_LEN2, csum_bytes);
-}
-
-/* Takes a message and derives the matching chain lengths. */
-void chain_lengths(unsigned int *lengths, const unsigned char *msg)
-{
-    base_w(lengths, SPX_WOTS_LEN1, msg);
-    wots_checksum(lengths + SPX_WOTS_LEN1, lengths);
-}
+// Non-masked functions removed (provided by wots.c)
 
 // Masked version of gen_chain
 static void gen_chain_masked(unsigned char *out1, unsigned char *out2,

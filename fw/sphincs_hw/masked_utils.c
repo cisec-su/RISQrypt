@@ -1,51 +1,16 @@
 #include <string.h>
 
-#include "utils_masked.h"
+#include "masked_utils.h"
 #include "params.h"
-#include "hash_masked.h"
-#include "thash_masked.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
 #include "address.h"
 #include "randombytes.h"
-#include "wotsx1_masked.h" 
+#include "masked_wotsx1.h" 
 
 
 // Non-masked functions from original file
-/**
- * Converts the value of 'in' to 'outlen' bytes in big-endian byte order.
- */
-void ull_to_bytes(unsigned char *out, unsigned int outlen,
-                  unsigned long long in)
-{
-    int i;
-
-    /* Iterate over out in decreasing order, for big-endianness. */
-    for (i = (signed int)outlen - 1; i >= 0; i--) {
-        out[i] = in & 0xff;
-        in = in >> 8;
-    }
-}
-
-void u32_to_bytes(unsigned char *out, uint32_t in)
-{
-    out[0] = (unsigned char)(in >> 24);
-    out[1] = (unsigned char)(in >> 16);
-    out[2] = (unsigned char)(in >> 8);
-    out[3] = (unsigned char)in;
-}
-
-/**
- * Converts the inlen bytes in 'in' from big-endian byte order to an integer.
- */
-unsigned long long bytes_to_ull(const unsigned char *in, unsigned int inlen)
-{
-    unsigned long long retval = 0;
-    unsigned int i;
-
-    for (i = 0; i < inlen; i++) {
-        retval |= ((unsigned long long)in[i]) << (8*(inlen - 1 - i));
-    }
-    return retval;
-}
+// Non-masked functions removed (provided by utils.c)
 
 // Masked version of compute_root
 void compute_root_masked(unsigned char *root1, unsigned char *root2,
@@ -135,7 +100,7 @@ void compute_root_masked(unsigned char *root1, unsigned char *root2,
 }
 
 //Masked version of treehash
-void treehash_masked(unsigned char *root1, unsigned char *root2, 
+void treemasked_hash(unsigned char *root1, unsigned char *root2, 
                      unsigned char *auth_path, 
                      const spx_ctx* ctx,
                      uint32_t leaf_idx, uint32_t idx_offset, 

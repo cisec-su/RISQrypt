@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "utils_masked.h"
-#include "utilsx1_masked.h"
-#include "wots_masked.h"
-#include "wotsx1_masked.h"
-#include "merkle_masked.h"
+#include "masked_utils.h"
+#include "masked_utilsx1.h"
+#include "masked_wots.h"
+#include "masked_wotsx1.h"
+#include "masked_merkle.h"
 #include "address.h"
 #include "params.h"
 //  To generate masked merkle tree structure, unlike previous implementations,
@@ -22,8 +22,10 @@ void merkle_sign_masked(uint8_t *sig, unsigned char *root,
     // The Auth Path is written directly to the output buffer 
     unsigned char *auth_path = sig + SPX_WOTS_BYTES;
     
-    struct leaf_info_x1 info = { 0 };
     unsigned int steps[ SPX_WOTS_LEN ];
+    struct leaf_info_x1_masked info = { 0 };
+
+    INITIALIZE_LEAF_INFO_X1_MASKED(info, wots_addr, steps);
 
     // Prepare split buffers for the WOTS signature
     SPX_VLA(uint8_t, wots_sig1, SPX_WOTS_BYTES);
