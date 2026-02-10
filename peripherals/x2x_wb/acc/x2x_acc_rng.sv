@@ -16,13 +16,14 @@ module x2x_acc_rng
         output     [15:0]  x2x_fresh_rnd_shares_8bit [27:0],
         output reg         rnd_x2x_ready,
         output reg [31:0]  rnd_ref,
-        output reg         rnd_ref_ready
-        
+        output reg         rnd_ref_ready,
+        output     [15:0]  rnd_misc_0,
+        output     [15:0]  rnd_misc_1
     );
 
 
-wire [223:0] stream_out1; 
-wire [223:0] stream_out2;
+wire [239:0] stream_out1; 
+wire [239:0] stream_out2;
 wire [239:0] stream_out3; 
 wire [239:0] stream_out4; 
 
@@ -48,7 +49,7 @@ end
 
 
 x2x_acc_lfsr #(
-    .DATA_WIDTH(224)
+    .DATA_WIDTH(240)
 ) RNG1 (
     .clk(clk),
     .rst_n(rst_n & ~ctrl_prng_off),
@@ -59,7 +60,7 @@ x2x_acc_lfsr #(
 );
 
 x2x_acc_lfsr #(
-    .DATA_WIDTH(224)
+    .DATA_WIDTH(240)
 ) RNG2 (
     .clk(clk),
     .rst_n(rst_n & ~ctrl_prng_off),
@@ -185,6 +186,10 @@ end
 always @(*) begin
     x2x_fresh_rnd_shares[5] = {stream_out4[239:224], stream_out3[239:224]};    
 end
+
+
+assign rnd_misc_0 = stream_out1[239:224];
+assign rnd_misc_1 = stream_out2[239:224];
 
 
 endmodule

@@ -127,7 +127,6 @@ reg onebit_addr_routine;
 
 reg [31:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
 reg [31:0] shares_one_bit [SHARES - 1 : 0][1:0];
-// reg write_s[0], write_s[1];
 reg write_s[SHARES-1:0];
 
 wire dualprime;
@@ -144,11 +143,19 @@ wire rng_non_zero;
 reg reg_wen;
 
 
+wire [15:0] rnd_misc_0;
+wire [15:0] rnd_misc_1;
+
+reg x2x_init, x2x_init_q;
+wire x2x_valid_result_int;
+
+
 assign onebit_inc_amount = ctrl_dual_mode ? (ctrl_data_len >> (log_stride + 1)) : (ctrl_data_len >> log_stride);
 assign dualprime = ctrl_dual_mode & ctrl_data_type;
 
 assign ctr_array = ctr_iter << LOGB;
 
+assign x2x_valid_result_int = x2x_valid_result && (!x2x_init_q);
 
 always @(*)
 begin
@@ -179,7 +186,9 @@ x2x_acc_rng x2x_acc_rng_inst (
     .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
     .rnd_x2x_ready(rnd_x2x_ready),
     .rnd_ref(rnd_ref),
-    .rnd_ref_ready(rnd_ref_ready)
+    .rnd_ref_ready(rnd_ref_ready),
+    .rnd_misc_0(rnd_misc_0),
+    .rnd_misc_1(rnd_misc_1)
 );
 
 
@@ -195,7 +204,7 @@ end
 always @(*) begin
     fsm_next_state = fsm_state;
     // ctrl
-    ctrl_busy    = 1'b1; // (fsm_state != ST_IDLE)&&(fsm_state != ST_PRNG)&&(fsm_state != ST_RESET);
+    ctrl_busy    = 1'b1;
     ctrl_seed_ip = 1'b0;
     ctrl_done = 1'b0;
     // mem
@@ -205,10 +214,6 @@ always @(*) begin
         mem_we[i] = 1'b0;
         mem_o_data[i] = 32'd0;
     end
-    // mem_addr = 32'd0;
-    // mem_re = 1'b0;
-    // mem_we = 1'b0;
-    // mem_o_data = reg_s0r;//0;
     // internal
     ctr_block_r_mem_rst = 1'b0;
     ctr_block_r_mem_inc = 1'b0;
@@ -248,6 +253,8 @@ always @(*) begin
 
     reg_wen = 0;
 
+    x2x_init = 0;
+
     case(fsm_state)
     
     ST_IDLE:
@@ -267,7 +274,6 @@ always @(*) begin
     begin
         ctrl_busy = 1'b0;
         ctrl_seed_ip = 1'b1;
-        // mem_o_data[0] = shares[0][ctr_block_r_mem];
         if(ctr_prng == PRNG_INIT_CC)
             fsm_next_state = ST_IDLE;
     end   
@@ -390,6 +396,17 @@ always @(*) begin
                 ctr_block_r_mem_rst = 1;
             end
         end
+
+    if (fsm_next_state == ST_MASK_SEND) begin
+        x2x_valid_data = 1;
+        x2x_init = 1;
+        // random indexes are magic numbers as these are not used actual operation
+        x2x_original_data[0][0] = {rnd_misc_0, rnd_misc_0};
+        x2x_original_data[0][1] = {rnd_misc_1, rnd_misc_1};
+        x2x_original_data[1][0] = {rnd_misc_0, rnd_misc_0};
+        x2x_original_data[1][1] = {rnd_misc_1, rnd_misc_1};
+    end
+
     end
     ST_MASK_SEND:
     begin
@@ -472,7 +489,7 @@ always @(*) begin
             end
         end
 
-        if(x2x_valid_result) begin
+        if(x2x_valid_result_int) begin
             ctr_block_w_reg_inc = 1;
             /////////////////////// OUTPUT FOR SHARE 0 ////////////////////////
             // for dual prime, we send output for every two cycle
@@ -511,7 +528,7 @@ always @(*) begin
 
         x2x_ready_result = 1;
         x2x_valid_rng = rnd_ready;
-        if(x2x_valid_result)
+        if(x2x_valid_result_int)
         begin
             if(ctrl_one_bit_mode)
             begin
@@ -581,11 +598,15 @@ always @(*) begin
             end
         end
 
+        x2x_valid_data = 1;
+        x2x_original_data[0][0] = {rnd_misc_0, rnd_misc_0};
+        x2x_original_data[0][1] = {rnd_misc_1, rnd_misc_1};
+        x2x_original_data[1][0] = {rnd_misc_0, rnd_misc_0};
+        x2x_original_data[1][1] = {rnd_misc_1, rnd_misc_1};
 
     end
     ST_PUT_DATA_0:
     begin
-        // reg0_rsel = 1;
         mem_o_data[0] = shares[0][ctr_block_r_mem];
         if(ctrl_one_bit_mode)
         begin
@@ -893,17 +914,28 @@ always @(posedge clk) begin
 end
 
 
+
+always @(posedge clk) begin
+    if (!rst_n) begin
+        x2x_init_q <= 0;
+    end
+    else if (x2x_init) begin
+        x2x_init_q <= 1;
+    end
+    else if (x2x_valid_result) begin
+        x2x_init_q <= 0;
+    end
+end
+
+
 for (genvar i = 0; i < SHARES; i = i + 1) begin
     always @(posedge clk) begin
         if (!rst_n) 
         begin
-            // for (int i = 0; i < SHARES; i = i + 1)
-            // begin
-                shares_one_bit[i][0] <= 0;
-                shares_one_bit[i][1] <= 0;
-                for (int j = 0; j < BURST_LEN; j = j + 1)
-                    shares[i][j] <= 0;
-            // end
+            shares_one_bit[i][0] <= 0;
+            shares_one_bit[i][1] <= 0;
+            for (int j = 0; j < BURST_LEN; j = j + 1)
+                shares[i][j] <= 0;
         end 
         else 
         begin
@@ -914,7 +946,7 @@ for (genvar i = 0; i < SHARES; i = i + 1) begin
                 else
                     shares[i][ctr_block_w_mem] <= (i == 1 && ctrl_share_mode) ? 0 : mem_i_data[i];
             end
-            else if (x2x_valid_result && reg_wen)
+            else if (x2x_valid_result_int && reg_wen)
             begin
                 if(ctrl_one_bit_mode)
                 begin

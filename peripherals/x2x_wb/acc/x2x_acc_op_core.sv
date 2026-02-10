@@ -119,33 +119,15 @@ always @(posedge clk) begin
 end
 
 
-
-// if (HALFCYCLE) begin
-    always @(posedge clk) begin
-        original_data_int             <= original_data;
-        // x2x_fresh_rnd_shares_d0 <= x2x_fresh_rnd_shares[4]; // [4] is the mod q sample, output of rej. sampling
-        x2x_fresh_rnd_shares_d        <= x2x_fresh_rnd_shares_q[4];//x2x_fresh_rnd_shares_d0;
-        x2x_fresh_rnd_shares_q        <= x2x_fresh_rnd_shares;//(valid_data) ? x2x_fresh_rnd_shares : '{default: '0};
-        x2x_fresh_rnd_shares_8bit_q   <= x2x_fresh_rnd_shares_8bit;
-        valid_data_int                <= valid_data;
-        valid_rng_int                 <= valid_rng;
-        rnd_ref_int                   <= rnd_ref;
-    end
-// end
-// else begin
-//     always @(*) begin
-//         original_data_int = original_data;
-//         x2x_fresh_rnd_shares_q = x2x_fresh_rnd_shares;
-//         valid_data_int = valid_data;
-//         valid_rng_int = valid_rng;
-//         rnd_ref_int = rnd_ref;
-//     end
-// end
-
-
-// always @(posedge clk) begin
-//     x2x_fresh_rnd_shares_d <= x2x_fresh_rnd_shares_d0;
-// end
+always @(posedge clk) begin
+    original_data_int             <= original_data;
+    x2x_fresh_rnd_shares_d        <= x2x_fresh_rnd_shares_q[4];
+    x2x_fresh_rnd_shares_q        <= x2x_fresh_rnd_shares;
+    x2x_fresh_rnd_shares_8bit_q   <= x2x_fresh_rnd_shares_8bit;
+    valid_data_int                <= valid_data;
+    valid_rng_int                 <= valid_rng;
+    rnd_ref_int                   <= rnd_ref;
+end
 
 
 assign modulus_mask_c = (data_type == 0) ?          (modulus)    :
