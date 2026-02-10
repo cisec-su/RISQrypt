@@ -230,6 +230,7 @@ void pasta_simple() {
 
     for (size_t i = 0; i < N; i++) {
         A.coeffs[i] = (i+1) % Q;
+        C.coeffs[i] = (i+1) % Q;
     }
 
     reset_random_state();  // Reset BEFORE matmul_soft
@@ -241,6 +242,7 @@ void pasta_simple() {
     matmul(&C, &A);
     BENCH_END(MATMUL)
     TEST_ASSERT_EQUAL_HEX32_ARRAY(B.coeffs, C.coeffs, N);
+
 
     reset_random_state();  // Reset 
     BENCH_START()
@@ -282,29 +284,27 @@ void pasta_simple() {
         pasta_key[i] = (1) % Q;  // Set key ONCE before both encryptions
     }
 
-    print_string("plain...\n");
-    print_u32_arr(A.coeffs,5);
-    print_string("key...\n");
-    print_u32_arr(pasta_key,5);
+    //print_string("plain...\n");
+    //print_u32_arr(A.coeffs,5);
+    //print_string("key...\n");
+    //print_u32_arr(pasta_key,5);
     reset_random_state();  // Reset
     BENCH_START()
     pasta_encrypt_one_block(&C, &A, pasta_key);
     BENCH_END(PASTA_ENCRYPT_ONE_BLOCK)
-    print_string("Encrypting one block...\n");
-    print_string("cipher...\n");
-    print_u32_arr(C.coeffs,5);
+    //print_string("Encrypting one block...\n");
+    //print_string("cipher...\n");
+    //print_u32_arr(C.coeffs,5);
     TEST_ASSERT_EQUAL_HEX32_ARRAY(C.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);   
 
-    /*
     reset_random_state();  // Reset
     BENCH_START()
     pasta_encrypt_one_block_soft(&E, &A, pasta_key);
     BENCH_END(PASTA_ENCRYPT_ONE_BLOCK_SOFT)
-    print_string("cipher2...\n");
-    print_u32_arr(E.coeffs,5);
+    //print_string("cipher2...\n");
+    //print_u32_arr(E.coeffs,5);
 
-    */
-    //TEST_ASSERT_EQUAL_HEX32_ARRAY(C.coeffs, E.coeffs, N);   
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(E.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);   
 
 
     TEST_ASSERT_EQUAL_INT(0, ret);

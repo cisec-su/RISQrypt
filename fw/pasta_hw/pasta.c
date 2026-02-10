@@ -20,9 +20,8 @@ static uint64_t squeeze_counter = 0;
  * @param A Input polynomial
  */
 void sbox_cube(poly *B, poly *A) {
-    poly A_square;
-    poly_pointwise(&A_square, A, A);
-    poly_pointwise(B, A, (const poly *)&A_square);
+    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->coeffs, A->coeffs);
+    ntt_lite_pwm(B->coeffs, NTT_LITE_INPUT_DIS, A->coeffs);
 }
 
 void sbox_cube_soft(poly *B, const poly *A) {
@@ -43,28 +42,13 @@ void sbox_cube_soft(poly *B, const poly *A) {
  */
 void sbox_feistel(poly *B, const poly *A) {
     // Feistel function implementation
-    poly C_square;
-    poly C;  // Shifted version of A
-
-    // Shift A by one element to the right
-    C.coeffs[0] = 0x00000;
-    for (size_t i = 1; i < N; i++) {
-        C.coeffs[i] = A->coeffs[i - 1];
-    }
-
-    // Now C is shifted: C[0]=0, C[1]=A[0], C[2]=A[1], ..., C[N-1]=A[N-2]
-    poly_pointwise(&C_square, (const poly *)&C, (const poly *)&C);  // C_square = C^2
-    poly_add(B, A, (const poly *)&C_square);          // B = A + C^2
-
-    // poly_add doesn't do modular reduction, so we need to do it manually
-    for (size_t i = 0; i < N; i++) {
-        int32_t val = B->coeffs[i];
-        if (val >= Q) {
-            B->coeffs[i] = val % Q;
-        } else if (val < 0) {
-            B->coeffs[i] = (val % Q + Q) % Q;
-        }
-    }
+    uint32_t C[N+1];  // Shifted version of A
+    ntt_lite_set_bound(0);
+    C[0] = 0x00000;
+    //ntt_lite_mul_const(C,NTT_LITE_INPUT_DIS); //C[0] = 0x00000;
+    ntt_lite_add_const(C + 1, A->coeffs); 
+    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, C, C);  // C_square = C^2
+    ntt_lite_add(B->coeffs, NTT_LITE_INPUT_DIS, A->coeffs); // B = A + C^2
 }
 
 void sbox_feistel_soft(poly *B, const poly *A) {
@@ -85,41 +69,10 @@ void sbox_feistel_soft(poly *B, const poly *A) {
  * @param A First input polynomial
  * @param B Second input polynomial
  */
-void calculate_row(poly *C, const poly *B, const poly *A) {
-
-    poly AB_LAST;
-    ntt_lite_set_clr();
-    ntt_lite_set_bound(B->coeffs[N-1]);
-    ntt_lite_mul_const((uint32_t*)AB_LAST.coeffs, (const uint32_t*)A->coeffs);
-
-    poly B_shifted;  // Shifted version of B
-    // Shift B by one element to the right
-    B_shifted.coeffs[0] = 0;
-    for (size_t i = 1; i < N; i++) {
-        B_shifted.coeffs[i] = B->coeffs[i - 1];
-    }
-
-    poly_add(C, (const poly *)&AB_LAST, &B_shifted);
-
-    // poly_add doesn't do modular reduction, so we need to do it manually
-    for (size_t i = 0; i < N; i++) {
-        int32_t val = C->coeffs[i];
-        if (val >= Q) {
-            C->coeffs[i] = val % Q;
-        } else if (val < 0) {
-            C->coeffs[i] = (val % Q + Q) % Q;
-        }
-    }
-
-    // Reset bound to default to avoid affecting subsequent operations
-    ntt_lite_set_bound(0);
-
-    // Bu print'i silince bir şeyler yanlış oluyor
-    // ilk eleman hatalı üretiliyor 
-    if(squeeze_counter < 130) {
-        print_string("ERROR!!!! ..\n");
-        print_u32_arr(C->coeffs,5);
-    }
+void calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
+    ntt_lite_set_bound(B[N]);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A->coeffs);
+    ntt_lite_add(C, NTT_LITE_INPUT_DIS, B);
 }
 
 void calculate_row_soft(poly *C, const poly *B, const poly *A) {
@@ -147,37 +100,23 @@ void calculate_row_soft(poly *C, const poly *B, const poly *A) {
  * @param A_right Input right polynomial
  */
 void mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
+
     ntt_lite_set_bound(2);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_left->coeffs);
+    ntt_lite_add(B_left->coeffs, NTT_LITE_INPUT_DIS, A_right->coeffs);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_right->coeffs); 
+    ntt_lite_add(B_right->coeffs, NTT_LITE_INPUT_DIS, A_left->coeffs);
 
-    poly TWO_A_left, TWO_A_right;
+    // ----- B_left = 2*A_left + A_right -----
+    //ntt_lite_add(NTT_LITE_OUTPUT_DIS,A_left->coeffs,A_left->coeffs);
+    //ntt_lite_add(B_left->coeffs,NTT_LITE_INPUT_DIS,A_right->coeffs);
+    //ntt_lite_add(NTT_LITE_OUTPUT_DIS,A_right->coeffs,A_right->coeffs);
+    //ntt_lite_add(B_right->coeffs,NTT_LITE_INPUT_DIS,A_left->coeffs);
 
-    ntt_lite_set_clr();
-    ntt_lite_mul_const((uint32_t*)TWO_A_left.coeffs, (const uint32_t*)A_left->coeffs);
-    ntt_lite_set_clr();
-    ntt_lite_mul_const((uint32_t*)TWO_A_right.coeffs, (const uint32_t*)A_right->coeffs);
-
-    poly_add(B_left, (const poly *)&TWO_A_left, A_right);
-    poly_add(B_right, A_left, (const poly *)&TWO_A_right);
-
-    // poly_add doesn't do modular reduction, so we need to do it manually
-    for (size_t i = 0; i < N; i++) {
-        int32_t val = B_left->coeffs[i];
-        if (val >= Q) {
-            B_left->coeffs[i] = val % Q;
-        } else if (val < 0) {
-            B_left->coeffs[i] = (val % Q + Q) % Q;
-        }
-
-        val = B_right->coeffs[i];
-        if (val >= Q) {
-            B_right->coeffs[i] = val % Q;
-        } else if (val < 0) {
-            B_right->coeffs[i] = (val % Q + Q) % Q;
-        }
-    }
-
-    // Reset bound to default to avoid affecting subsequent operations
-    ntt_lite_set_bound(0);
+    //poly C;
+    //ntt_lite_add(C.coeffs, A_left->coeffs, A_right->coeffs);
+    //ntt_lite_add(B_left->coeffs, C.coeffs, A_left->coeffs);
+    //ntt_lite_add(B_right->coeffs, C.coeffs, A_right->coeffs);
 }
 
 void mix_soft(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
@@ -288,55 +227,23 @@ void get_random_vector(poly *p, int allow_zero) {
  */
 void matmul(poly *new_state, const poly *state) {
     poly rand;
-    poly curr_row;
+    uint32_t curr_row[N << 1];
+    size_t i;
 
     // Generate random vector (no zeros)
     get_random_vector(&rand, 0);
 
-    // Initialize curr_row with rand
-    for (size_t i = 0; i < N; i++) {
-        curr_row.coeffs[i] = rand.coeffs[i];
-    }
+    ntt_lite_set_bound(0);
+    ntt_lite_add_const(curr_row + N, rand.coeffs); 
+    ntt_lite_mul_const(curr_row, NTT_LITE_INPUT_DIS);
 
     // For each row in the matrix
-    for (size_t i = 0; i < N; i++) {
-
-
-        //print_string("curr_row...\n");
-        //print_u32_arr(curr_row.coeffs,5);
-
-        // Compute dot product: acc = sum(curr_row[j] * state[j]) mod Q
-        uint64_t acc = 0;
-        poly temp;
-        ntt_lite_set_clr();
-
-        poly_pointwise(&temp, (const poly *)&curr_row, state);
-        
-        // Ensure modular reduction after pointwise multiplication
-        for (size_t j = 0; j < N; j++) {
-            int32_t val = temp.coeffs[j];
-            if (val >= Q) {
-                temp.coeffs[j] = val % Q;
-            } else if (val < 0) { // Handle negative values???? WHY?
-                temp.coeffs[j] = (val % Q + Q) % Q;
-            }
-        }
-
-        for (size_t j = 0; j < N; j++) {
-            uint64_t mult = (uint64_t)temp.coeffs[j];
-            acc = (acc + mult) % Q;
-        }
-
-        new_state->coeffs[i] = (int32_t)acc;
-
+    for (i = 0; i < N; i++) {
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, curr_row + N - i, state->coeffs); 
+        ntt_lite_sum(&(new_state->coeffs[i]), NTT_LITE_INPUT_DIS);
         // Calculate next row if not last iteration
         if (i != N - 1) {
-            poly next_row;
-            calculate_row(&next_row, (const poly *)&curr_row, &rand);
-            // Update curr_row for next iteration
-            for (size_t k = 0; k < N; k++) {
-                curr_row.coeffs[k] = next_row.coeffs[k];
-            }
+            calculate_row(curr_row + N - i - 1, curr_row + N - i - 1, &rand); 
         }
     }
 }
@@ -388,19 +295,8 @@ void matmul_soft(poly *new_state, const poly *state) {
  */
 void add_rc(poly *B, const poly *A) {
     poly rand;
-
     get_random_vector(&rand, 1);
-    poly_add(B, A, (const poly *)&rand);
-
-    // poly_add doesn't do modular reduction, so we need to do it manually
-    for (size_t i = 0; i < N; i++) {
-        int32_t val = B->coeffs[i];
-        if (val >= Q) {
-            B->coeffs[i] = val % Q;
-        } else if (val < 0) {
-            B->coeffs[i] = (val % Q + Q) % Q;
-        }
-    }
+    poly_add(B, A, &rand);
 }
 
 void add_rc_soft(poly *B, const poly *A) {
@@ -436,26 +332,52 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, int r) {
     // Step 1: Matrix multiplication on both states
     matmul(&temp1, A);
     matmul(&temp2, B);
-
-    //print_string("temp1: \n");
-    //print_u32_arr(temp1.coeffs,5);
-    //print_string("temp2: \n");
-    //print_u32_arr(temp2.coeffs,5);
     
     // Step 2: Add random constants to both states
-    add_rc(&temp3, &temp1);
-    add_rc(&temp4, &temp2);
+    poly rand;
+    //add_rc(&temp3, &temp1);
+    get_random_vector(&rand, 1);
+    ntt_lite_add(temp3.coeffs, temp1.coeffs, rand.coeffs);
+
+    //add_rc(&temp4, &temp2);
+    get_random_vector(&rand, 1);
+    ntt_lite_add(temp4.coeffs, temp2.coeffs, rand.coeffs);
     
     // Step 3: Mix the two states
-    mix(&temp5, &temp6, &temp3, &temp4);
+    //mix(&temp5, &temp6, &temp3, &temp4);
+    ntt_lite_set_bound(2);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
+    ntt_lite_add(temp5.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs); 
+    ntt_lite_add(temp6.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
     
     // Step 4: Apply S-box (cube for last round, feistel otherwise)
     if (r == PASTA_R - 1) {
-        sbox_cube(C, &temp5);
-        sbox_cube(D, &temp6);
+        //sbox_cube(C, &temp5);
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, temp5.coeffs, temp5.coeffs);
+        ntt_lite_pwm(C->coeffs, NTT_LITE_INPUT_DIS, temp5.coeffs);
+        //sbox_cube(D, &temp6);
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, temp6.coeffs, temp6.coeffs);
+        ntt_lite_pwm(D->coeffs, NTT_LITE_INPUT_DIS, temp6.coeffs);
     } else {
-        sbox_feistel(C, &temp5);
-        sbox_feistel(D, &temp6);
+        //sbox_feistel(C, &temp5);
+        // Feistel function implementation
+        uint32_t CC[N+1];  // Shifted version of A
+        ntt_lite_set_bound(0);
+        CC[0] = 0x00000;
+        //ntt_lite_mul_const(C,NTT_LITE_INPUT_DIS); //C[0] = 0x00000;
+        ntt_lite_add_const(CC + 1, temp5.coeffs); 
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, CC, CC);  // C_square = C^2
+        ntt_lite_add(C->coeffs, NTT_LITE_INPUT_DIS, temp5.coeffs); // B = A + C^2
+
+        //sbox_feistel(D, &temp6);
+        //uint32_t CC[N+1];  // Shifted version of A
+        ntt_lite_set_bound(0);
+        CC[0] = 0x00000;
+        //ntt_lite_mul_const(C,NTT_LITE_INPUT_DIS); //C[0] = 0x00000;
+        ntt_lite_add_const(CC + 1, temp6.coeffs); 
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, CC, CC);  // C_square = C^2
+        ntt_lite_add(D->coeffs, NTT_LITE_INPUT_DIS, temp6.coeffs); // B = A + C^2
     }
 }
 
@@ -496,43 +418,49 @@ void pasta_round_soft(poly *C, poly *D, const poly *A, const poly *B, int r) {
  *
  * @param keystream Output polynomial containing the generated keystream
  * @param key Input key array (size 2*N = 256 elements)
- * @param nonce Nonce value
- * @param block_counter Block counter value
  */
-void gen_keystream(poly *keystream, const int32_t *key, uint64_t nonce, uint64_t block_counter) {
+void gen_keystream(poly *keystream, const int32_t *key) {
     // Initialize random state (equivalent to init_shake)
     reset_random_state();
 
     poly state1, state2;
+    poly final_state2;
+    size_t i;
+    int r;
+    poly temp1, temp2;
 
-    // Initialize states from key
-    for (size_t i = 0; i < N; i++) {
-        state1.coeffs[i] = key[i];
-        state2.coeffs[i] = key[N + i];
-    }
+    ntt_lite_set_bound(0);
+    ntt_lite_add_const(state1.coeffs, key); 
+    ntt_lite_add_const(state2.coeffs, key + N);
+
 
     // Run PASTA_R rounds
-    for (int r = 0; r < PASTA_R; r++) {
-        poly new_state1, new_state2;
-        //print_string("state1state1:\n");
-        //print_u32_arr(state1.coeffs,5);
-        pasta_round(&new_state1, &new_state2, &state1, &state2, r);
-        state1 = new_state1;
-        state2 = new_state2;
+    for (r = 0; r < PASTA_R; r++) {
+        pasta_round(&state1, &state2, &state1, &state2, r);
     }
 
     // Final matmul on both states
-    poly temp1, temp2;
     matmul(&temp1, &state1);
     matmul(&temp2, &state2);
 
+    poly rand;
+
     // Final add_rc on both states
-    add_rc(&state1, &temp1);
-    add_rc(&state2, &temp2);
+    //add_rc(&state1, &temp1);
+    //add_rc(&state2, &temp2);
+    get_random_vector(&rand, 1);
+    poly_add(&state1, &temp1, &rand);
+    get_random_vector(&rand, 1);
+    poly_add(&state2, &temp2, &rand);
 
     // Final mix (state1 becomes the keystream)
-    poly final_state2;
-    mix(keystream, &final_state2, &state1, &state2);
+    //mix(keystream, &final_state2, &state1, &state2);
+    ntt_lite_set_bound(2);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, state1.coeffs);
+    ntt_lite_add(keystream->coeffs, NTT_LITE_INPUT_DIS, state2.coeffs);
+    //no need!.. ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, state2.coeffs); 
+    //no need!.. ntt_lite_add(final_state2.coeffs, NTT_LITE_INPUT_DIS, state1.coeffs);
+
 }
 
 void gen_keystream_soft(poly *keystream, const int32_t *key, uint64_t nonce, uint64_t block_counter) {
@@ -583,19 +511,43 @@ void gen_keystream_soft(poly *keystream, const int32_t *key, uint64_t nonce, uin
  * @param key Input key array (size 2*N = 256 elements)
  */
 void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int32_t *key) {
-    uint64_t nonce = NONCE_CONST;
+    // Generate keystream for this block (hardware-accelerated)
 
-    // Copy plaintext to ciphertext
-    for (size_t i = 0; i < N; i++) {
-        ciphertext->coeffs[i] = plaintext->coeffs[i];
+    // Initialize random state (equivalent to init_shake)
+    reset_random_state();
+    poly rand;
+    poly state1, state2;
+    poly temp1, temp2;
+    size_t r;
+
+    ntt_lite_set_bound(0);
+    ntt_lite_add_const(state1.coeffs, key); 
+    ntt_lite_add_const(state2.coeffs, key + N);
+
+    // Run PASTA_R rounds
+    for (r = 0; r < PASTA_R; r++) {
+        pasta_round(&state1, &state2, &state1, &state2, r);
     }
 
-    // Process each block
-    poly keystream;
+    // Final matmul on both states
+    matmul(&temp1, &state1);
+    matmul(&temp2, &state2);
 
-    // Generate keystream for this block (hardware-accelerated)
-    gen_keystream(&keystream, key, nonce, 0);
-    poly_add(ciphertext, plaintext, &keystream);
+    // Final add_rc on both states
+    //add_rc(&state1, &temp1);
+    //add_rc(&state2, &temp2);
+    get_random_vector(&rand, 1);
+    poly_add(&state1, &temp1, &rand);
+    get_random_vector(&rand, 1);
+    poly_add(&state2, &temp2, &rand);
+
+    // Final mix (state1 becomes the keystream)
+    //mix(keystream, &final_state2, &state1, &state2);
+    ntt_lite_set_bound(2);
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, state1.coeffs);
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, state2.coeffs);
+
+    ntt_lite_add(ciphertext->coeffs, NTT_LITE_INPUT_DIS, plaintext->coeffs);
 }
 void pasta_encrypt_one_block_soft(poly *ciphertext, const poly *plaintext, const int32_t *key) {
     uint64_t nonce = NONCE_CONST;
