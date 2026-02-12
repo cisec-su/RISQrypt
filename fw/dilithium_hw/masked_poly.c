@@ -124,7 +124,7 @@ int masked_poly_ptr_chknorm(const masked_poly_ptr *r, const masked_poly_ptr *tem
             dst = NTT_LITE_OUTPUT_DIS;
         }
         else {
-            ntt_lite_set_clr();
+            ntt_lite_set_clr_with_twiddle();
             dst = (uint32_t*) temp->share[i]->coeffs;
         }
         ntt_lite_decompress_floor(dst, (uint32_t*) temp->share[i]->coeffs, 23);
@@ -184,7 +184,7 @@ int masked_poly_ptr_pointwise_invntt_sub_chknorm(const masked_poly_ptr *r, const
         poly_init_invntt();
         ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
         if (i != (MASKING_N - 1)) {
-            ntt_lite_set_clr();
+            ntt_lite_set_clr_with_twiddle();
         }
         ntt_lite_sub_rev((uint32_t*) r->share[i]->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->share[i]->coeffs);
 
