@@ -8,7 +8,7 @@ module x2x_acc_randgen
         output reg [31:0] DATA_OUT
     );
 
-always @(posedge clk/* or negedge rst_n*/) begin
+always @(posedge clk) begin
     if (!rst_n) 
     begin
         valid_result <= 0;

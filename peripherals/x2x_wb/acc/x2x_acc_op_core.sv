@@ -57,6 +57,7 @@ module x2x_acc_op_core
     
     // DATA 1 + 2
     input logic [PARAM_WIDTH-1:0]   original_data              [1:0][N_SHARES      -1:0],
+    (* keep = "true" *)
     output reg  [PARAM_WIDTH-1:0]   converted_data             [1:0][N_SHARES      -1:0],
     
     input logic [            1:0]   opcode                                              ,
@@ -78,13 +79,16 @@ reg [PARAM_WIDTH-1:0] modulus_int_c ;
 reg [PARAM_WIDTH-1:0] modulus_mask  ;
 reg [PARAM_WIDTH-1:0] modulus_int   ;
 
-reg [31:0] rnd_ref_int;
-
-reg [PARAM_WIDTH-1:0]   original_data_int             [1:0][N_SHARES      -1:0];
+(* keep = "true" *)
+reg [31:0] rnd_ref_q;
+(* keep = "true" *)
+reg [PARAM_WIDTH-1:0]   original_data_q             [1:0][N_SHARES      -1:0];
+(* keep = "true" *)
 reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_q           [RND_SHARES    -1:0];
-reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_d                                 ;
-reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_d0                                ;
-reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_c             [RND_SHARES    -1:0];
+(* keep = "true" *)
+reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_d                               ;
+reg [PARAM_WIDTH-1:0]   x2x_fresh_rnd_shares_int         [RND_SHARES    -1:0];
+(* keep = "true" *)
 reg [BOX_WIDTH  -1:0]   x2x_fresh_rnd_shares_8bit_q      [RND_SHARES_BOX-1:0];
 
 reg valid_data_int;
@@ -120,13 +124,13 @@ end
 
 
 always @(posedge clk) begin
-    original_data_int             <= original_data;
+    original_data_q               <= original_data;
     x2x_fresh_rnd_shares_d        <= x2x_fresh_rnd_shares_q[4];
     x2x_fresh_rnd_shares_q        <= x2x_fresh_rnd_shares;
     x2x_fresh_rnd_shares_8bit_q   <= x2x_fresh_rnd_shares_8bit;
     valid_data_int                <= valid_data;
     valid_rng_int                 <= valid_rng;
-    rnd_ref_int                   <= rnd_ref;
+    rnd_ref_q                     <= rnd_ref;
 end
 
 
@@ -160,9 +164,10 @@ x2x_acc_randgen randgen(
     .rst_n        (rst_n                ),
     .valid_data   (randgen_valid_data   ),
     .valid_result (randgen_valid_result ),
-    .DATA_IN      (rnd_ref_int          ),
+    .DATA_IN      (rnd_ref_q            ),
     .DATA_OUT     (randgen_data_out     )
 );
+
 
 
 x2x_acc_refresh refresh(
@@ -182,7 +187,7 @@ x2x_acc_refresh refresh(
 );
 
 
-(* dont_touch *)
+
 X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .HALFCYCLE          (HALFCYCLE     ),
     .PARAM_WIDTH        (PARAM_WIDTH   ),
@@ -201,7 +206,7 @@ X2X_32b_2SHARE_HALFCYCLE_STREAM #(
     .valid_result           (x2x_valid_result           ),
     .modulus                (modulus_int                ),
     .modulus_twoc           (modulus_complement         ),
-    .fresh_rnd_shares       (x2x_fresh_rnd_shares_c     ),
+    .fresh_rnd_shares       (x2x_fresh_rnd_shares_int     ),
     .fresh_rnd_shares_8bit  (x2x_fresh_rnd_shares_8bit_q),
     .original_data          (x2x_original_data          ),
     .converted_data         (x2x_converted_data_raw     )
@@ -233,19 +238,8 @@ begin
 
 
     for (int i = 0; i < 10; i = i + 1) begin
-        x2x_fresh_rnd_shares_c[i] = x2x_fresh_rnd_shares_q[i];
+        x2x_fresh_rnd_shares_int[i] = x2x_fresh_rnd_shares_q[i];
     end
-
-    // x2x_fresh_rnd_shares_c[0] = x2x_fresh_rnd_shares_q[0];
-    // x2x_fresh_rnd_shares_c[1] = x2x_fresh_rnd_shares_q[1];
-    // x2x_fresh_rnd_shares_c[2] = x2x_fresh_rnd_shares_q[2];
-    // x2x_fresh_rnd_shares_c[3] = x2x_fresh_rnd_shares_q[3];
-    // x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_q[4];//x2x_fresh_rnd_shares_d0;//x2x_fresh_rnd_shares[4];
-    // x2x_fresh_rnd_shares_c[5] = x2x_fresh_rnd_shares_q[5];
-    // x2x_fresh_rnd_shares_c[6] = x2x_fresh_rnd_shares_q[6];
-    // x2x_fresh_rnd_shares_c[7] = x2x_fresh_rnd_shares_q[7];
-    // x2x_fresh_rnd_shares_c[8] = x2x_fresh_rnd_shares_q[8];
-    // x2x_fresh_rnd_shares_c[9] = x2x_fresh_rnd_shares_q[9];
 
     
     if(opcode == `X2X_CMD_PRNG)
@@ -264,10 +258,10 @@ begin
     else if(opcode == `X2X_CMD_X2X)
     begin
 
-        x2x_original_data_raw[0][0] = original_data_int[0][0];
-        x2x_original_data_raw[0][1] = original_data_int[0][1];
-        x2x_original_data_raw[1][0] = original_data_int[1][0];
-        x2x_original_data_raw[1][1] = original_data_int[1][1];
+        x2x_original_data_raw[0][0] = original_data_q[0][0];
+        x2x_original_data_raw[0][1] = original_data_q[0][1];
+        x2x_original_data_raw[1][0] = original_data_q[1][0];
+        x2x_original_data_raw[1][1] = original_data_q[1][1];
         
         converted_data_int[0][0] = x2x_converted_data[0][0];
         converted_data_int[0][1] = x2x_converted_data[0][1];
@@ -277,7 +271,7 @@ begin
         x2x_valid_data = valid_data_int;
         valid_result_int = x2x_valid_result;
 
-        x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_q[4];
+        x2x_fresh_rnd_shares_int[4] = x2x_fresh_rnd_shares_q[4];
 
     end
     
@@ -285,8 +279,8 @@ begin
     begin
         if(dual_mode && !data_type)
         begin
-            refresh_data_in1 = {original_data_int[1][0][15:0],original_data_int[0][0][15:0]};
-            refresh_data_in2 = {original_data_int[1][1][15:0],original_data_int[0][1][15:0]};
+            refresh_data_in1 = {original_data_q[1][0][15:0],original_data_q[0][0][15:0]};
+            refresh_data_in2 = {original_data_q[1][1][15:0],original_data_q[0][1][15:0]};
             converted_data_int[0][0] = refresh_data_out1[15:0];
             converted_data_int[0][1] = refresh_data_out2[15:0];
             converted_data_int[1][0] = refresh_data_out1[31:16];
@@ -294,13 +288,13 @@ begin
         end
         else
         begin
-            refresh_data_in1 = original_data_int[0][0];
-            refresh_data_in2 = original_data_int[0][1];
+            refresh_data_in1 = original_data_q[0][0];
+            refresh_data_in2 = original_data_q[0][1];
             converted_data_int[0][0] = refresh_data_out1;
             converted_data_int[0][1] = refresh_data_out2;
         end
         
-        refresh_rnd_ref = rnd_ref_int;
+        refresh_rnd_ref = rnd_ref_q;
         refresh_valid_data = valid_data_int;
         valid_result_int = refresh_valid_result;
     end
@@ -309,8 +303,8 @@ begin
     begin
         if(dual_mode && !data_type)
         begin
-            refresh_data_in1 = {original_data_int[1][0][15:0],original_data_int[0][0][15:0]};
-            refresh_data_in2 = {original_data_int[1][1][15:0],original_data_int[0][1][15:0]};
+            refresh_data_in1 = {original_data_q[1][0][15:0],original_data_q[0][0][15:0]};
+            refresh_data_in2 = {original_data_q[1][1][15:0],original_data_q[0][1][15:0]};
             
             x2x_original_data_raw[0][0] = refresh_data_out1[15:0];
             x2x_original_data_raw[0][1] = refresh_data_out2[15:0];
@@ -319,8 +313,8 @@ begin
         end
         else
         begin
-            refresh_data_in1 = original_data_int[0][0];
-            refresh_data_in2 = original_data_int[0][1];
+            refresh_data_in1 = original_data_q[0][0];
+            refresh_data_in2 = original_data_q[0][1];
             
             x2x_original_data_raw[0][0] = refresh_data_out1;
             x2x_original_data_raw[0][1] = refresh_data_out2;
@@ -331,13 +325,13 @@ begin
         converted_data_int[1][0] = x2x_converted_data[1][0];
         converted_data_int[1][1] = x2x_converted_data[1][1];
         
-        refresh_rnd_ref = rnd_ref_int;
+        refresh_rnd_ref = rnd_ref_q;
         refresh_valid_data = valid_data_int;
         
         x2x_valid_data = refresh_valid_result;
         valid_result_int = x2x_valid_result;
 
-        x2x_fresh_rnd_shares_c[4] = x2x_fresh_rnd_shares_d;
+        x2x_fresh_rnd_shares_int[4] = x2x_fresh_rnd_shares_d;
     end
     
 end

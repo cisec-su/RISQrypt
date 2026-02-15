@@ -6,7 +6,6 @@ module x2x_acc_fsm
         parameter SHARES  = 2 ,
         parameter LOGL    = 10,
         parameter PARAM_WIDTH = 0,
-        parameter RND_SHARES_8bit = 0,
         parameter N_SHARES = 0,
         
         parameter BURST_LEN = 16, // MINIMUM 2
@@ -125,8 +124,10 @@ reg [5:0] bit_index;
 reg [31:0] addr_offset;
 reg onebit_addr_routine;
 
-reg [31:0] shares [SHARES - 1 : 0][BURST_LEN - 1:0];
-reg [31:0] shares_one_bit [SHARES - 1 : 0][1:0];
+reg [31:0] shares         [SHARES-1:0][BURST_LEN-1:0];
+reg [31:0] shares_one_bit [SHARES-1:0][1:0];
+
+
 reg write_s[SHARES-1:0];
 
 wire dualprime;
@@ -186,9 +187,7 @@ x2x_acc_rng x2x_acc_rng_inst (
     .x2x_fresh_rnd_shares_8bit(x2x_fresh_rnd_shares_8bit),
     .rnd_x2x_ready(rnd_x2x_ready),
     .rnd_ref(rnd_ref),
-    .rnd_ref_ready(rnd_ref_ready),
-    .rnd_misc_0(rnd_misc_0),
-    .rnd_misc_1(rnd_misc_1)
+    .rnd_ref_ready(rnd_ref_ready)
 );
 
 
@@ -400,11 +399,12 @@ always @(*) begin
     if (fsm_next_state == ST_MASK_SEND) begin
         x2x_valid_data = 1;
         x2x_init = 1;
-        // random indexes are magic numbers as these are not used actual operation
-        x2x_original_data[0][0] = {rnd_misc_0, rnd_misc_0};
-        x2x_original_data[0][1] = {rnd_misc_1, rnd_misc_1};
-        x2x_original_data[1][0] = {rnd_misc_0, rnd_misc_0};
-        x2x_original_data[1][1] = {rnd_misc_1, rnd_misc_1};
+        for (int i = 0; i < PARAM_WIDTH; i = i + 1) begin
+            x2x_original_data[0][0][i] = rnd_ref[PARAM_WIDTH - i - 1];
+            x2x_original_data[1][0][i] = rnd_ref[PARAM_WIDTH - i - 1];
+            x2x_original_data[0][1][i] = (i < (PARAM_WIDTH - 1))? rnd_ref[PARAM_WIDTH - i - 2] : rnd_ref[PARAM_WIDTH - 1];
+            x2x_original_data[1][1][i] = (i < (PARAM_WIDTH - 1))? rnd_ref[PARAM_WIDTH - i - 2] : rnd_ref[PARAM_WIDTH - 1];
+        end
     end
 
     end
@@ -556,7 +556,6 @@ always @(*) begin
                     begin
                         fsm_next_state = ST_PUT_DATA_1;
                     end
-                    // ctr_block_r_mem_rst = 1;
                     ctr_block_w_reg_rst = 1;
                 end
                 else 
@@ -599,10 +598,12 @@ always @(*) begin
         end
 
         x2x_valid_data = 1;
-        x2x_original_data[0][0] = {rnd_misc_0, rnd_misc_0};
-        x2x_original_data[0][1] = {rnd_misc_1, rnd_misc_1};
-        x2x_original_data[1][0] = {rnd_misc_0, rnd_misc_0};
-        x2x_original_data[1][1] = {rnd_misc_1, rnd_misc_1};
+        for (int i = 0; i < PARAM_WIDTH; i = i + 1) begin
+            x2x_original_data[0][0][i] = rnd_ref[PARAM_WIDTH - i - 1];
+            x2x_original_data[1][0][i] = rnd_ref[PARAM_WIDTH - i - 1];
+            x2x_original_data[0][1][i] = (i < (PARAM_WIDTH - 1))? rnd_ref[PARAM_WIDTH - i - 2] : rnd_ref[PARAM_WIDTH - 1];
+            x2x_original_data[1][1][i] = (i < (PARAM_WIDTH - 1))? rnd_ref[PARAM_WIDTH - i - 2] : rnd_ref[PARAM_WIDTH - 1];
+        end
 
     end
     ST_PUT_DATA_0:

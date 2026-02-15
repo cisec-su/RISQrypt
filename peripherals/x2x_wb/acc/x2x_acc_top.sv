@@ -117,7 +117,6 @@ assign fsm_prng_off = (PRNG_OFF_EN) ? ctrl_prng_off : 1'b0;
 
 
 
-(* dont_touch *)
 x2x_acc_op_core #(
     .HALFCYCLE          (HALFCYCLE      ),
     .PARAM_WIDTH        (PARAM_WIDTH    ),
@@ -164,8 +163,6 @@ x2x_acc_fsm #(
     .SHARES       (SHARES     ),
     .LOGL         (LOGL       ),
     .PARAM_WIDTH  (PARAM_WIDTH),
-    //.RND_SHARES   (RND_SHARES ),
-    //.RND_SHARES_8bit   (RND_SHARES_8bit ),
     .N_SHARES     (N_SHARES_2SHARE   ),
     .RND_SHARES_2SHARE         (RND_SHARES_2SHARE),
     .RND_SHARES_2SHARE_BOX    (RND_SHARES_2SHARE_BOX),

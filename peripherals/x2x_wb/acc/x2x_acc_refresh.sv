@@ -10,8 +10,9 @@ module x2x_acc_refresh
         input                   data_type,
         input                   valid_data,
         input [31:0]            modulus,
-          
+        (* keep = "true" *)
         output reg [31:0]       A_out,
+        (* keep = "true" *)
         output reg [31:0]       B_out,
         output reg              valid_result
     );
