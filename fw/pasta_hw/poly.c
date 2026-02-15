@@ -2,17 +2,17 @@
 #include <stddef.h>
 #include "params.h"
 #include "poly.h"
+#include "symmetric.h"
 #include "ntt_lite.h"
 #include "util.h"
 
-
 #define INV2 0x8001 
+
 
 void poly_init_q() {
     const uint32_t q = Q;
     const uint32_t mu[2] = {0x0000ffff, 0x0000ffff}; // mu = floor(2^{2*word_size} / q) 
     const uint32_t inv2 = INV2; 
-    //ntt_lite_load_q(q, mu, 8, 23, inv2, NTT_LITE_MODE_SINGLE); //dilithium
     ntt_lite_load_q(q, mu, 7, 17, inv2, NTT_LITE_MODE_SINGLE); //pasta
 }
 
@@ -112,3 +112,55 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
     ntt_lite_add((uint32_t*)c->coeffs, NTT_LITE_INPUT_DIS,(uint32_t*)c->coeffs);
 }
 
+
+/*************************************************
+* Name:        poly_uniform
+*
+* Description: Sample polynomial with uniformly random coefficients
+*              in [0,Q-1] by performing rejection sampling on the
+*              output stream of SHAKE256(nonce|block_ctr|poly_ctr) 
+*
+* Arguments:   - poly *a: pointer to output polynomial
+*              - const uint8_t nonce[]: byte array with nonce of length nonceBYTES
+*              - uint16_t block_ctr: 2-byte block_ctr
+**************************************************/
+void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero)
+{
+
+    //print_string("\npolyctr: ");
+    //print_u32_int(poly_ctr);
+    //print_string("\t block_ctr: ");
+    //print_u32_int(block_ctr);
+    //print_string("\t allow_zero: ");
+    //print_u32_int(allow_zero);
+    //print_string("\n");
+
+    poly b;
+    unsigned int buflen = 4*STREAM128_BLOCKBYTES;
+    uint32_t buf[(STREAM128_BLOCKBYTES>>2)*4]; // 316 -> 128
+
+    if (allow_zero == 0) {
+        stream128_init(nonce, block_ctr, poly_ctr);
+        stream128_squeeze((uint8_t*) buf, (N >> 1) << 2);
+        ntt_lite_decode(NTT_LITE_OUTPUT_DIS, buf, 16);
+        ntt_lite_set_bound(1); // add +1
+        ntt_lite_add_const((uint32_t*)a->coeffs,NTT_LITE_INPUT_DIS);
+        //print_u32_arr(a->coeffs,5);
+    } else {
+
+#ifdef REJ_SAMP_DIS
+        stream128_init(nonce, block_ctr, poly_ctr);
+        stream128_squeeze((uint8_t*) buf, (N >> 1) << 2);
+        ntt_lite_decode((uint32_t*)a->coeffs, buf, 16);
+#else 
+        stream128_init(nonce, block_ctr, poly_ctr);
+        stream128_squeezeblocks((uint8_t*) buf, 4);
+
+        ntt_lite_set_inv2((STREAM128_BLOCKBYTES>>2)*4); //input size 1008 --todo! bunlari bir defa set edebilirsin
+        ntt_lite_set_bound(Q);
+        ntt_lite_rejsamp((uint32_t*) a->coeffs, buf, 17, NTT_LITE_REJSAMP_CENTER_DIS);
+        //print_u32_arr(a->coeffs,5);
+#endif
+
+    }
+}

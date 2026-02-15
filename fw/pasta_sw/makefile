@@ -1,18 +1,17 @@
-PROJ = pasta_hw
+PROJ = pasta_sw
 
 TOOLCHAIN_DIR = ../../sdk/toolchain
 LIB_DIR = ../../sdk/lib
 
 SRC  = main.c
-SRC += poly.c
 SRC += pasta.c
-SRC += symmetric.c
+SRC += fips202.c
+SRC += ../kyber_asm/keccakf1600_asm.S
 SRC += ../common/unity.c
 
 INC = -I../common
 
 CFLAGS += -DBUSY_CHECK_DIS
-CFLAGS += -DREJ_SAMP_DIS
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
