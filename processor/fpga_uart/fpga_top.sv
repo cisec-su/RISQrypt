@@ -47,7 +47,7 @@ parameter USB_ADDR_WIDTH   = 21      ;
 parameter CW305_FIFO_BSIZE = 128     ;
 parameter PRNG_OFF_EN      = 1       ;
 `else
-parameter SYS_CLK_FREQ   = 50000000;
+parameter SYS_CLK_FREQ   = 61000000;
 parameter PRNG_OFF_EN    = 0       ;
 `endif
 parameter UART_BAUD      = 115200  ;
@@ -91,7 +91,7 @@ parameter CW305_END      = 32'h1004_1003;
 
 
 localparam NUM_ACCS      = (MODE == 2)? 3 : (MODE == 1)? 2 : 0;
-localparam NUM_DMA_ACCS  = (MODE == 2)? 4 : (MODE == 1)? 2 : 0;
+localparam NUM_DMA_ACCS  = (MODE == 2)? 5 : (MODE == 1)? 2 : 0;
 localparam NUM_DMA_ACCS_ = (NUM_DMA_ACCS == 0) ? 1 : NUM_DMA_ACCS; // to avoid zero-width arrays
 `ifdef CW305
 localparam CW305_SLAVE   = 1;
@@ -544,17 +544,17 @@ keccak_acc_top #(
     .wb_rst_i  (wb_rst_i  [7]),
     .wb_clk_i  (wb_clk_i  [7]),
     
-    .dma_cyc_i  (dma_cyc_i  [1]),
-    .dma_stb_i  (dma_stb_i  [1]),
-    .dma_we_i   (dma_we_i   [1]),
-    .dma_adr_i  (dma_adr_i  [1]),
-    .dma_dat_i  (dma_dat_i  [1]),
-    .dma_sel_i  (dma_sel_i  [1]),
-    .dma_stall_o(dma_stall_o[1]),
-    .dma_ack_o  (dma_ack_o  [1]),
-    .dma_dat_o  (dma_dat_o  [1]),
-    .dma_err_o  (dma_err_o  [1]),
-    .dma_rst_i  (dma_rst_i  [1])
+    .dma_cyc_i  (dma_cyc_i  [MODE:1]),
+    .dma_stb_i  (dma_stb_i  [MODE:1]),
+    .dma_we_i   (dma_we_i   [MODE:1]),
+    .dma_adr_i  (dma_adr_i  [MODE:1]),
+    .dma_dat_i  (dma_dat_i  [MODE:1]),
+    .dma_sel_i  (dma_sel_i  [MODE:1]),
+    .dma_stall_o(dma_stall_o[MODE:1]),
+    .dma_ack_o  (dma_ack_o  [MODE:1]),
+    .dma_dat_o  (dma_dat_o  [MODE:1]),
+    .dma_err_o  (dma_err_o  [MODE:1]),
+    .dma_rst_i  (dma_rst_i  [MODE:1])
 );
 
 end
@@ -578,17 +578,17 @@ x2x_acc_top #(
     .wb_rst_i  (wb_rst_i  [8]),
     .wb_clk_i  (wb_clk_i  [8]),
     
-    .dma_cyc_i  (dma_cyc_i  [3:2]),
-    .dma_stb_i  (dma_stb_i  [3:2]),
-    .dma_we_i   (dma_we_i   [3:2]),
-    .dma_adr_i  (dma_adr_i  [3:2]),
-    .dma_dat_i  (dma_dat_i  [3:2]),
-    .dma_sel_i  (dma_sel_i  [3:2]),
-    .dma_stall_o(dma_stall_o[3:2]),
-    .dma_ack_o  (dma_ack_o  [3:2]),
-    .dma_dat_o  (dma_dat_o  [3:2]),
-    .dma_err_o  (dma_err_o  [3:2]),
-    .dma_rst_i  (dma_rst_i  [3:2])
+    .dma_cyc_i  (dma_cyc_i  [4:3]),
+    .dma_stb_i  (dma_stb_i  [4:3]),
+    .dma_we_i   (dma_we_i   [4:3]),
+    .dma_adr_i  (dma_adr_i  [4:3]),
+    .dma_dat_i  (dma_dat_i  [4:3]),
+    .dma_sel_i  (dma_sel_i  [4:3]),
+    .dma_stall_o(dma_stall_o[4:3]),
+    .dma_ack_o  (dma_ack_o  [4:3]),
+    .dma_dat_o  (dma_dat_o  [4:3]),
+    .dma_err_o  (dma_err_o  [4:3]),
+    .dma_rst_i  (dma_rst_i  [4:3])
 );
 
 end
