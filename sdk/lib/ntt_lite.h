@@ -18,6 +18,9 @@
 #define NTT_LITE_REJSAMP_CENTER_EN   ((uint32_t) 0x1)
 #define NTT_LITE_REJSAMP_CENTER_DIS  ((uint32_t) 0x0)
 
+#define NTT_LITE_REJSAMP_DONE        ((uint32_t) 0x0)
+#define NTT_LITE_REJSAMP_IP          ((uint32_t) 0x1)
+
 
 int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t logq, uint32_t inv2, uint32_t mode);
 

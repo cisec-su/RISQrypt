@@ -13,12 +13,13 @@ typedef volatile uint32_t I;
 typedef struct
 {
     IO ctrl;       // BASE_ADDR + 0x00000000
-    I  din_addr;   // BASE_ADDR + 0x00000004
-    IO dout_addr;  // BASE_ADDR + 0x00000008
-    IO bound;      // BASE_ADDR + 0x0000000C
-    IO q;          // BASE_ADDR + 0x00000010
-    IO mu[2];      // BASE_ADDR + 0x00000014
-    IO inv2;       // BASE_ADDR + 0x0000001C
+    I  status;     // BASE_ADDR + 0x00000004
+    I  din_addr;   // BASE_ADDR + 0x00000008
+    IO dout_addr;  // BASE_ADDR + 0x0000000C
+    IO bound;      // BASE_ADDR + 0x00000010
+    IO q;          // BASE_ADDR + 0x00000014
+    IO mu[2];      // BASE_ADDR + 0x0000001C
+    IO inv2;       // BASE_ADDR + 0x00000020
 } ntt_lite_regs_t;
 
 
@@ -79,10 +80,6 @@ typedef struct
 #define NTT_LITE_CTRL_D_M                  ((uint32_t) 0x1F)
 #define NTT_LITE_CTRL_D_V                  (NTT_LITE_CTRL_D_M << NTT_LITE_CTRL_D_S)
 
-#define NTT_LITE_CTRL_CHKNORM_S            ((uint32_t) 26 )
-#define NTT_LITE_CTRL_CHKNORM_M            ((uint32_t) 0x1)
-#define NTT_LITE_CTRL_CHKNORM_V            (NTT_LITE_CTRL_CHKNORM_M << NTT_LITE_CTRL_CHKNORM_S)
-
 #define NTT_LITE_CTRL_RHS_CONST_EN_S       ((uint32_t) 27 )
 #define NTT_LITE_CTRL_RHS_CONST_EN_M       ((uint32_t) 0x1)
 #define NTT_LITE_CTRL_RHS_CONST_EN_V       (NTT_LITE_CTRL_RHS_CONST_EN_M << NTT_LITE_CTRL_RHS_CONST_EN_S)
@@ -91,13 +88,22 @@ typedef struct
 #define NTT_LITE_CTRL_ROUND_DIS_M          ((uint32_t) 0x1)
 #define NTT_LITE_CTRL_ROUND_DIS_V          (NTT_LITE_CTRL_ROUND_DIS_M << NTT_LITE_CTRL_ROUND_DIS_S)
 
-#define NTT_LITE_CTRL_BUSY_S               ((uint32_t) 30 )
-#define NTT_LITE_CTRL_BUSY_M               ((uint32_t) 0x1)
-#define NTT_LITE_CTRL_BUSY_V               (NTT_LITE_CTRL_BUSY_M << NTT_LITE_CTRL_BUSY_S)
 
-#define NTT_LITE_CTRL_DONE_S               ((uint32_t) 31 )
-#define NTT_LITE_CTRL_DONE_M               ((uint32_t) 0x1)
-#define NTT_LITE_CTRL_DONE_V               (NTT_LITE_CTRL_DONE_M << NTT_LITE_CTRL_DONE_S)
+#define NTT_LITE_STATUS_CHKNORM_S          ((uint32_t) 26 )
+#define NTT_LITE_STATUS_CHKNORM_M          ((uint32_t) 0x1)
+#define NTT_LITE_STATUS_CHKNORM_V          (NTT_LITE_STATUS_CHKNORM_M << NTT_LITE_STATUS_CHKNORM_S)
+
+#define NTT_LITE_STATUS_REJSAMP_IP_S       ((uint32_t) 27 )
+#define NTT_LITE_STATUS_REJSAMP_IP_M       ((uint32_t) 0x1)
+#define NTT_LITE_STATUS_REJSAMP_IP_V       (NTT_LITE_STATUS_REJSAMP_IP_M << NTT_LITE_STATUS_REJSAMP_IP_S)
+
+#define NTT_LITE_STATUS_BUSY_S             ((uint32_t) 30 )
+#define NTT_LITE_STATUS_BUSY_M             ((uint32_t) 0x1)
+#define NTT_LITE_STATUS_BUSY_V             (NTT_LITE_STATUS_BUSY_M << NTT_LITE_STATUS_BUSY_S)
+
+#define NTT_LITE_STATUS_DONE_S             ((uint32_t) 31 )
+#define NTT_LITE_STATUS_DONE_M             ((uint32_t) 0x1)
+#define NTT_LITE_STATUS_DONE_V             (NTT_LITE_STATUS_DONE_M << NTT_LITE_STATUS_DONE_S)
 
 
 #endif
