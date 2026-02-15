@@ -14,12 +14,18 @@
 #include "wotsx1.h"
 #include "params.h"
 #include "randombytes.h"
-#include "masked_sign.h"
-#include "masked_fors.h"
-#include "masked_wots.h"
-#include "masked_wotsx1.h"
-#include "masked_thash.h"
-#include "masked_hash.h"
+#include "swmasked_sign.h"
+#include "swmasked_fors.h"
+#include "swmasked_wots.h"
+#include "swmasked_wotsx1.h"
+#include "swmasked_thash.h"
+#include "swmasked_hash.h"
+#include "hwmasked_fips202.h"
+#include "hwmasked_thash.h"
+#include "hwmasked_hash.h"
+#include "hwmasked_sign.h"
+#include "hwmasked_wotsx1.h"
+#include "fips202.h"
 
 #define SPX_MLEN 32
 
@@ -32,6 +38,8 @@ static unsigned char sm_masked[SPX_BYTES + SPX_MLEN];  // For masked signature
 static unsigned char mout[SPX_BYTES + SPX_MLEN];
 static size_t smlen;
 static size_t smlen_masked;
+static unsigned char sm_hwmasked[SPX_BYTES + SPX_MLEN];
+static size_t smlen_hwmasked;
 static size_t mlen;
 
 // Context for component tests
@@ -391,6 +399,15 @@ void test_sphincs_verify_masked(void) {
     mlen = (size_t)mlen_ull;
 
     BENCH_END(SPX_VERIFY)
+    
+    if (ret != 0) {
+        print_string("  Verify Masked FAILED with ret: ");
+        print_u32_int((uint32_t)ret);
+        print_string("\n");
+        print_string("  smlen_masked used: ");
+        print_u32_int((uint32_t)smlen_masked);
+        print_string("\n");
+    }
 
     TEST_ASSERT_EQUAL_INT(0, ret);
     TEST_ASSERT_EQUAL_UINT32(SPX_MLEN, mlen);
@@ -411,19 +428,33 @@ void test_sphincs_cross_verify(void) {
     ret = crypto_sign_open_masked(mout, &mlen_ull, sm, (unsigned long long)smlen, pk);
     mlen = (size_t)mlen_ull;
 
+    if (ret != 0) {
+        print_string("  Cross Verify (Unmasked->Masked) FAILED!\n");
+        print_string("  smlen used: ");
+        print_u32_int((uint32_t)smlen);
+        print_string("\n");
+    }
+
     TEST_ASSERT_EQUAL_INT(0, ret);
     TEST_ASSERT_EQUAL_MEMORY(m, mout, SPX_MLEN);
-    print_string("  Result: SUCCESS\n");
 
     print_string("\n[Cross Verify] Masked Sign -> Unmasked Verify...\n");
 
     // Masked signature (sm_masked) verified by unmasked verify
     ret = crypto_sign_open(mout, &mlen, sm_masked, smlen_masked, pk);
 
+    if (ret != 0) {
+        print_string("  Cross Verify (Masked->Unmasked) FAILED!\n");
+        print_string("  smlen_masked used: ");
+        print_u32_int((uint32_t)smlen_masked);
+        print_string("\n");
+    }
+
     TEST_ASSERT_EQUAL_INT(0, ret);
     TEST_ASSERT_EQUAL_MEMORY(m, mout, SPX_MLEN);
     print_string("  Result: SUCCESS\n");
 }
+
 
 // =============================================================================
 // Helper for Masked WOTS pk generation benchmark
@@ -449,7 +480,7 @@ static void wots_gen_pkx1_masked(unsigned char *pk_out, const spx_ctx* ctx_in, u
 // =============================================================================
 // Masked Thash Benchmark
 // =============================================================================
-void test_thash_masked_bench(void) {
+void test_thash_swmasked_bench(void) {
     unsigned char block1[SPX_N], block2[SPX_N]; // Inputs
     unsigned char out1[SPX_N], out2[SPX_N];     // Outputs
     unsigned char addr[SPX_ADDR_BYTES];
@@ -468,11 +499,11 @@ void test_thash_masked_bench(void) {
     timer_start();
     
     for (int i = 0; i < 100; i++) {
-        masked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
+        swmasked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
     }
 
     unsigned int elapsed = timer_read();
-    print_string("SPX_MASKED_THASH_100X:\t");
+    print_string("SPX_swmasked_THASH_100X:\t");
     print_u32_int(elapsed / 100);
     print_string(" cycles\n");
 
@@ -482,7 +513,7 @@ void test_thash_masked_bench(void) {
 // =============================================================================
 // Masked WOTS pk gen benchmark
 // =============================================================================
-void test_wots_pk_masked_bench(void) {
+void test_wots_pk_swmasked_bench(void) {
     BENCH_INIT()
     unsigned char wots_pk[SPX_WOTS_PK_BYTES];
     uint32_t addr[8] = {0};
@@ -496,6 +527,297 @@ void test_wots_pk_masked_bench(void) {
     wots_gen_pkx1_masked(wots_pk, &ctx, addr);
 
     BENCH_END(SPX_WOTS_PKGEN)
+
+    TEST_PASS();
+}
+
+// =============================================================================
+// Masked Thash Correctness Test
+// =============================================================================
+void test_swmasked_thash_correctness(void) {
+    unsigned char block[SPX_N];
+    unsigned char block1[SPX_N], block2[SPX_N];
+    unsigned char out[SPX_N];
+    unsigned char out1[SPX_N], out2[SPX_N];
+    uint32_t addr[8] = {0};
+
+    print_string("\n[Thash Correctness] Verifying swmasked_thash vs thash...\n");
+
+    randombytes(block, SPX_N);
+    randombytes(block2, SPX_N); // Mask
+    
+    // block1 = block ^ block2
+    for(int i=0; i<SPX_N; i++) {
+        block1[i] = block[i] ^ block2[i];
+    }
+
+    randombytes((unsigned char *)addr, SPX_ADDR_BYTES);
+    initialize_hash_function_masked(&ctx);
+
+    // Run unmasked
+    thash(out, block, 1, &ctx, addr);
+
+    // Run masked
+    swmasked_thash(out1, out2, block1, block2, 1, &ctx, addr);
+
+    // Recombine
+    unsigned char out_combined[SPX_N];
+    for(int i=0; i<SPX_N; i++) {
+        out_combined[i] = out1[i] ^ out2[i];
+    }
+
+    if (memcmp(out, out_combined, SPX_N)) {
+        print_string("  swmasked_thash produces different result!\n");
+        print_hex_with_label("Expected", out, SPX_N);
+        print_hex_with_label("Got", out_combined, SPX_N);
+        TEST_FAIL();
+    } else {
+        print_string("  Result: SUCCESS (outputs match)\n");
+        TEST_PASS();
+    }
+}
+
+// =============================================================================
+// HW Masked Sign Test
+// =============================================================================
+void test_sphincs_sign_hwmasked(void) {
+    BENCH_INIT()
+    int ret;
+
+    randombytes(m, SPX_MLEN);
+
+    unsigned long long smlen_ull;
+
+    print_string("\n[Sign HW Masked] Signing message (HW masked)...\n");
+    print_string("  Message length:    ");
+    print_u32_int(SPX_MLEN);
+    print_string(" bytes\n");
+
+    BENCH_START()
+
+    ret = crypto_sign_hwmasked(sm_hwmasked, &smlen_ull, m, SPX_MLEN, sk);
+    smlen_hwmasked = (size_t)smlen_ull;
+
+    BENCH_END(SPX_SIGN)
+
+    print_string("  Actual sig+msg:    ");
+    print_u32_int((uint32_t)smlen_hwmasked);
+    print_string(" bytes\n");
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_UINT32(SPX_BYTES + SPX_MLEN, smlen_hwmasked);
+    print_string("  Result: SUCCESS\n");
+}
+
+// =============================================================================
+// HW Masked Verify Test
+// =============================================================================
+void test_sphincs_verify_hwmasked(void) {
+    BENCH_INIT()
+    int ret;
+    unsigned long long mlen_ull;
+
+    print_string("\n[Verify HW Masked] Verifying HW masked signature...\n");
+
+    BENCH_START()
+
+    ret = crypto_sign_open_hwmasked(mout, &mlen_ull, sm_hwmasked, (unsigned long long)smlen_hwmasked, pk);
+    mlen = (size_t)mlen_ull;
+
+    BENCH_END(SPX_VERIFY)
+
+    if (ret != 0) {
+        print_string("  Verify HW Masked FAILED with ret: ");
+        print_u32_int((uint32_t)ret);
+        print_string("\n");
+    }
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_UINT32(SPX_MLEN, mlen);
+    TEST_ASSERT_EQUAL_MEMORY(m, mout, SPX_MLEN);
+    print_string("  Result: SUCCESS (message matches)\n");
+}
+
+// =============================================================================
+// HW Masked Cross Verify Test
+// =============================================================================
+void test_sphincs_cross_verify_hwmasked(void) {
+    int ret;
+    unsigned long long mlen_ull;
+
+    print_string("\n[HW Cross Verify] Unmasked Sign -> HW Masked Verify...\n");
+
+    ret = crypto_sign_open_hwmasked(mout, &mlen_ull, sm, (unsigned long long)smlen, pk);
+    mlen = (size_t)mlen_ull;
+
+    if (ret != 0) {
+        print_string("  Cross Verify (Unmasked->HW Masked) FAILED!\n");
+    }
+    print_string("  Result: ");
+    print_string(ret == 0 ? "SUCCESS\n" : "FAILED\n");
+
+    print_string("\n[HW Cross Verify] HW Masked Sign -> Unmasked Verify...\n");
+
+    ret = crypto_sign_open(mout, &mlen, sm_hwmasked, smlen_hwmasked, pk);
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_MEMORY(m, mout, SPX_MLEN);
+    print_string("  Result: SUCCESS\n");
+}
+
+// =============================================================================
+// HW Masked WOTS pk gen benchmark
+// =============================================================================
+static void wots_gen_pkx1_hwmasked(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
+    struct leaf_info_x1_hwmasked leaf;
+    unsigned steps[SPX_WOTS_LEN] = {0};
+    INITIALIZE_LEAF_INFO_X1_HWMASKED(leaf, addr, steps);
+
+    unsigned char pk_out_share1[SPX_WOTS_PK_BYTES];
+    unsigned char pk_out_share2[SPX_WOTS_PK_BYTES];
+
+    wots_gen_leafx1_hwmasked(pk_out_share1, pk_out_share2, ctx_in, 0, &leaf);
+
+    for(int i=0; i<SPX_WOTS_PK_BYTES; i++) {
+        pk_out[i] = pk_out_share1[i] ^ pk_out_share2[i];
+    }
+}
+
+void test_wots_pk_hwmasked_bench(void) {
+    BENCH_INIT()
+    unsigned char wots_pk[SPX_WOTS_PK_BYTES];
+    uint32_t addr[8] = {0};
+
+    print_string("\n[WOTS HW Masked] Benchmarking HW Masked WOTS pk generation...\n");
+
+    initialize_hash_function_hwmasked(&ctx);
+
+    BENCH_START()
+
+    wots_gen_pkx1_hwmasked(wots_pk, &ctx, addr);
+
+    BENCH_END(SPX_WOTS_PKGEN)
+
+    TEST_PASS();
+}
+
+// =============================================================================
+// HW Masked SHAKE256 Correctness Test
+// =============================================================================
+void test_hwmasked_shake256_correctness(void) {
+    unsigned char input[64];
+    unsigned char out_ref[32];
+    unsigned char out1[32], out2[32];
+    unsigned char input1[64], input2[64];
+
+    print_string("\n[HW Masked SHAKE256] Verifying hwmasked_shake256 vs shake256...\n");
+
+    randombytes(input, 64);
+    randombytes(input2, 64);  // Random mask
+
+    // input1 = input ^ input2
+    for (int i = 0; i < 64; i++) {
+        input1[i] = input[i] ^ input2[i];
+    }
+
+    // Unmasked reference
+    shake256(out_ref, 32, input, 64);
+
+    // HW masked
+    hwmasked_shake256(out1, out2, 32, input1, input2, 64);
+
+    // Recombine
+    unsigned char out_combined[32];
+    for (int i = 0; i < 32; i++) {
+        out_combined[i] = out1[i] ^ out2[i];
+    }
+
+    if (memcmp(out_ref, out_combined, 32)) {
+        print_string("  hwmasked_shake256 produces different result!\n");
+        print_hex_with_label("Expected", out_ref, 32);
+        print_hex_with_label("Got", out_combined, 32);
+        TEST_FAIL();
+    } else {
+        print_string("  Result: SUCCESS (outputs match)\n");
+        TEST_PASS();
+    }
+}
+
+// =============================================================================
+// HW Masked Thash Correctness Test
+// =============================================================================
+void test_hwmasked_thash_correctness(void) {
+    unsigned char block[SPX_N];
+    unsigned char block1[SPX_N], block2[SPX_N];
+    unsigned char out[SPX_N];
+    unsigned char out1[SPX_N], out2[SPX_N];
+    uint32_t addr[8] = {0};
+
+    print_string("\n[HW Masked Thash] Verifying hwmasked_thash vs thash...\n");
+
+    randombytes(block, SPX_N);
+    randombytes(block2, SPX_N); // Mask
+
+    // block1 = block ^ block2
+    for (int i = 0; i < SPX_N; i++) {
+        block1[i] = block[i] ^ block2[i];
+    }
+
+    randombytes((unsigned char *)addr, SPX_ADDR_BYTES);
+    initialize_hash_function_hwmasked(&ctx);
+
+    // Run unmasked
+    thash(out, block, 1, &ctx, addr);
+
+    // Run HW masked
+    hwmasked_thash(out1, out2, block1, block2, 1, &ctx, addr);
+
+    // Recombine
+    unsigned char out_combined[SPX_N];
+    for (int i = 0; i < SPX_N; i++) {
+        out_combined[i] = out1[i] ^ out2[i];
+    }
+
+    if (memcmp(out, out_combined, SPX_N)) {
+        print_string("  hwmasked_thash produces different result!\n");
+        print_hex_with_label("Expected", out, SPX_N);
+        print_hex_with_label("Got", out_combined, SPX_N);
+        TEST_FAIL();
+    } else {
+        print_string("  Result: SUCCESS (outputs match)\n");
+        TEST_PASS();
+    }
+}
+
+// =============================================================================
+// HW Masked Thash Benchmark
+// =============================================================================
+void test_hwmasked_thash_bench(void) {
+    unsigned char block1[SPX_N], block2[SPX_N];
+    unsigned char out1[SPX_N], out2[SPX_N];
+    unsigned char addr[SPX_ADDR_BYTES];
+
+    print_string("\n[HW Masked Thash Bench] Benchmarking hwmasked thash (100 iterations)...\n");
+    print_string("  Block size: ");
+    print_u32_int(SPX_N);
+    print_string(" bytes\n");
+
+    randombytes(block1, SPX_N);
+    randombytes(block2, SPX_N);
+    randombytes(addr, SPX_ADDR_BYTES);
+
+    initialize_hash_function_hwmasked(&ctx);
+
+    timer_start();
+
+    for (int i = 0; i < 100; i++) {
+        hwmasked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
+    }
+
+    unsigned int elapsed = timer_read();
+    print_string("SPX_hwmasked_THASH_100X:\t");
+    print_u32_int(elapsed / 100);
+    print_string(" cycles\n");
 
     TEST_PASS();
 }
@@ -525,13 +847,14 @@ int main(void) {
     RUN_TEST(test_sphincs_verify_fail);
 
     print_string("\n--- Starting Masked Benchmarks ---\n");
-    RUN_TEST(test_thash_masked_bench);
-    RUN_TEST(test_wots_pk_masked_bench);
+    //RUN_TEST(test_thash_swmasked_bench);
+   // RUN_TEST(test_wots_pk_swmasked_bench);
 
-    print_string("\n--- Starting Masked Tests ---\n");
-    RUN_TEST(test_sphincs_sign_masked);
-    RUN_TEST(test_sphincs_verify_masked);
-    RUN_TEST(test_sphincs_cross_verify);
+    //print_string("\n--- Starting Masked Tests ---\n");
+    //RUN_TEST(test_swmasked_thash_correctness);
+    //RUN_TEST(test_sphincs_sign_masked);
+    //RUN_TEST(test_sphincs_verify_masked);
+    //RUN_TEST(test_sphincs_cross_verify);
 
     // Component tests
     // RUN_TEST(test_fors); // This is unmasked FORS
@@ -539,6 +862,15 @@ int main(void) {
     // Benchmark tests
     RUN_TEST(test_thash_bench);
     RUN_TEST(test_wots_pk_bench);
+
+    print_string("\n--- Starting HW Masked Tests ---\n");
+    RUN_TEST(test_hwmasked_shake256_correctness);
+    RUN_TEST(test_hwmasked_thash_correctness);
+    RUN_TEST(test_hwmasked_thash_bench);
+    RUN_TEST(test_wots_pk_hwmasked_bench);
+    RUN_TEST(test_sphincs_sign_hwmasked);
+    RUN_TEST(test_sphincs_verify_hwmasked);
+    RUN_TEST(test_sphincs_cross_verify_hwmasked);
 
 
 

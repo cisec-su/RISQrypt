@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "masked_utils.h"
+#include "swmasked_utils.h"
 #include "utils.h"
-#include "masked_utilsx1.h"
-#include "masked_hash.h"
-#include "masked_thash.h"
-#include "masked_wots.h"
-#include "masked_wotsx1.h"
+#include "swmasked_utilsx1.h"
+#include "swmasked_hash.h"
+#include "swmasked_thash.h"
+#include "swmasked_wots.h"
+#include "swmasked_wotsx1.h"
 #include "address.h"
 #include "params.h"
 #include "randombytes.h"
@@ -29,7 +29,7 @@ static void gen_chain_masked(unsigned char *out1, unsigned char *out2,
     // Iterate steps calls to the hash function
     for (i = start; i < (start+steps) && i < SPX_WOTS_W; i++) {
         set_hash_addr(addr, i); 
-        masked_thash(out1, out2, out1, out2, 1, ctx, addr); // Output shares, Input shares, 1 block WOTS hashing
+        swmasked_thash(out1, out2, out1, out2, 1, ctx, addr); // Output shares, Input shares, 1 block WOTS hashing
     }
 }
 

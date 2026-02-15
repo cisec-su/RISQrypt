@@ -2,11 +2,11 @@
 #include <string.h>
 
 #include "address.h"
-#include "masked_fips202.h"
+#include "swmasked_fips202.h"
 #include "fips202.h"
-#include "masked_utils.h"
+#include "swmasked_utils.h"
 #include "params.h"
-#include "masked_hash.h"
+#include "swmasked_hash.h"
 #include "randombytes.h"
 
 // Non-masked functions from original file
@@ -61,7 +61,7 @@ void gen_message_random_masked(unsigned char *R,
     unsigned char R1[SPX_N];
     unsigned char R2[SPX_N];
     
-    masked_shake256(R1, R2, SPX_N, buf1, buf2, total_len);
+    swmasked_shake256(R1, R2, SPX_N, buf1, buf2, total_len);
     
     // Recombine R
     for(int i=0; i<SPX_N; i++) R[i] = R1[i] ^ R2[i];
@@ -115,7 +115,7 @@ void hash_message_masked(unsigned char *digest, uint64_t *tree, uint32_t *leaf_i
 }
 
 // Masked version of prf_addr
-void masked_prf_addr(unsigned char *out1, unsigned char *out2, 
+void swmasked_prf_addr(unsigned char *out1, unsigned char *out2, 
                     const spx_ctx *ctx,
                     const uint32_t addr[8]){
     unsigned char buf1[2*SPX_N + SPX_ADDR_BYTES];
@@ -125,5 +125,5 @@ void masked_prf_addr(unsigned char *out1, unsigned char *out2,
     memcpy(buf1 + SPX_N + SPX_ADDR_BYTES, ctx->sk_seed1, SPX_N); // Copy first share 
     memset(buf2, 0, SPX_N+SPX_ADDR_BYTES); // Public seed and adress equal to 0 for XOR
     memcpy(buf2 + SPX_N + SPX_ADDR_BYTES, ctx->sk_seed2, SPX_N); // Copy second share
-    masked_shake256(out1,out2, SPX_N, buf1, buf2, 2*SPX_N + SPX_ADDR_BYTES); // Masked SHAKE256
+    swmasked_shake256(out1,out2, SPX_N, buf1, buf2, 2*SPX_N + SPX_ADDR_BYTES); // Masked SHAKE256
 }

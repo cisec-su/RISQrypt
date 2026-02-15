@@ -1,5 +1,5 @@
-#if !defined( WOTSX1_MASKED_H_ )
-#define WOTSX1_MASKED_H_ 
+#if !defined( WOTSX1_swmasked_H_ )
+#define WOTSX1_swmasked_H_ 
 
 #include <string.h>
 
@@ -35,4 +35,4 @@ void wots_gen_leafx1_masked(unsigned char *dest1, unsigned char *dest2,
                             const spx_ctx *ctx,
                             uint32_t leaf_idx, void *v_info);
 
-#endif /* WOTSX1_MASKED_H_ */
+#endif /* WOTSX1_swmasked_H_ */

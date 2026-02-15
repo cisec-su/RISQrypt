@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "masked_utils.h"
-#include "masked_utilsx1.h"
-#include "masked_wots.h"
-#include "masked_wotsx1.h"
-#include "masked_merkle.h"
+#include "swmasked_utils.h"
+#include "swmasked_utilsx1.h"
+#include "swmasked_wots.h"
+#include "swmasked_wotsx1.h"
+#include "swmasked_merkle.h"
 #include "address.h"
 #include "params.h"
 //  To generate masked merkle tree structure, unlike previous implementations,

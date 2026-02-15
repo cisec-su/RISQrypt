@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "util.h"
 
 #include "fors.h"
 #include "utils.h"

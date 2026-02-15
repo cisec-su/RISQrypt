@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "masked_utils.h"
-#include "masked_hash.h"
-#include "masked_thash.h"
-#include "masked_wots.h"
-#include "masked_wotsx1.h"
+#include "swmasked_utils.h"
+#include "swmasked_hash.h"
+#include "swmasked_thash.h"
+#include "swmasked_wots.h"
+#include "swmasked_wotsx1.h"
 #include "address.h"
 #include "params.h"
 
@@ -50,7 +50,7 @@ void wots_gen_leafx1_masked(unsigned char *dest1, unsigned char *dest2,
         set_type(leaf_addr, SPX_ADDR_TYPE_WOTSPRF);
 
         // Split the secret seed into two shares for the start of the chain
-        masked_prf_addr(buffer1, buffer2, ctx, leaf_addr);
+        swmasked_prf_addr(buffer1, buffer2, ctx, leaf_addr);
 
         set_type(leaf_addr, SPX_ADDR_TYPE_WOTS);
 
@@ -69,14 +69,14 @@ void wots_gen_leafx1_masked(unsigned char *dest1, unsigned char *dest2,
             // Iterate one step on the chain
             set_hash_addr(leaf_addr, k);
 
-            masked_thash(buffer1, buffer2, // Output
+            swmasked_thash(buffer1, buffer2, // Output
                          buffer1, buffer2, // Input
                          1, ctx, leaf_addr);
         }
     }
 
     // Do the final thash to generate the masked pub keys
-    masked_thash(dest1, dest2, 
+    swmasked_thash(dest1, dest2, 
                  pk_buffer1, pk_buffer2, 
                  SPX_WOTS_LEN, ctx, pk_addr);
 }

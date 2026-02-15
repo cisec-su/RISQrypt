@@ -5,6 +5,8 @@
 #include "util.h"
 #include "api.h"
 #include "benchmark.h"
+#include "swmasked_sign.h"
+#include "randombytes.h"
 
 
 extern unsigned int keccak_cc;
@@ -33,15 +35,26 @@ void test() {
     static unsigned char m__[32];
     static unsigned char sm__[SPX_BYTES + 32];
     static unsigned char mout__[SPX_BYTES + 32];
+#ifdef MASKING_EN
     unsigned long long smlen__;
     unsigned long long mlen__;
+#else
+    size_t smlen__;
+    size_t mlen__;
+#endif
     int ret;
 
     BENCH_INIT()
     reset_modules_cc();
     BENCH_START()
 
+#ifndef MASKING_EN
     crypto_sign_keypair(pk__, sk__);
+#else
+    unsigned char seed[3*SPX_N];
+    randombytes(seed, 3*SPX_N);
+    crypto_sign_seed_keypair_masked(pk__, sk__, seed);
+#endif
 
     BENCH_END(SPX_KEYPAIR)
     print_modules_cc(time, 0);
@@ -51,7 +64,11 @@ void test() {
 
     BENCH_START()
 
+#ifndef MASKING_EN
     crypto_sign(sm__, &smlen__, m__, 32, sk__);
+#else
+    crypto_sign_masked(sm__, &smlen__, m__, 32, sk__);
+#endif
 
     BENCH_END(SPX_SIGN)
     print_modules_cc(time, 0);
@@ -61,7 +78,11 @@ void test() {
 
     BENCH_START()
 
+#ifndef MASKING_EN
     ret = crypto_sign_open(mout__, &mlen__, sm__, smlen__, pk__);
+#else 
+    ret = crypto_sign_open_masked(mout__, &mlen__, sm__, smlen__, pk__);
+#endif
     (void) ret;
     (void) mout__;
     (void) mlen__;

@@ -1,10 +1,10 @@
-#ifndef SPX_masked_fors_H
-#define SPX_masked_fors_H
+#ifndef SPX_swmasked_fors_H
+#define SPX_swmasked_fors_H
 
 #include <stdint.h>
 
 #include "params.h"
-#include "masked_context.h"
+#include "swmasked_context.h"
 
 /**
  * Signs a message m, deriving the secret key from sk_seed and the FTS address.

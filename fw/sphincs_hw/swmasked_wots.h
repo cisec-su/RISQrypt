@@ -1,10 +1,10 @@
-#ifndef SPX_WOTS_MASKED_H
-#define SPX_WOTS_MASKED_H
+#ifndef SPX_WOTS_swmasked_H
+#define SPX_WOTS_swmasked_H
 
 #include <stdint.h>
 
 #include "params.h"
-#include "masked_context.h"
+#include "swmasked_context.h"
 
 /**
  * Takes a WOTS signature and an n-byte message, computes a WOTS public key.

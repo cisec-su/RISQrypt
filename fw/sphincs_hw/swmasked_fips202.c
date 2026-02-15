@@ -1,4 +1,4 @@
-#include "masked_fips202.h"
+#include "swmasked_fips202.h"
 #include <string.h>
 #include "randombytes.h"
 
@@ -57,7 +57,7 @@ static void sec_and(uint64_t *z0, uint64_t *z1, uint64_t x0, uint64_t x1, uint64
     *z1 = (x1 & y1) ^ r ^ (x0 & y1) ^ (x1 & y0);
 }
 
-static void theta(masked_state_t *state) {
+static void theta(swmasked_state_t *state) {
     unsigned int x, y, s;
     uint64_t C[N_SHARES][5];
     uint64_t D[N_SHARES][5];
@@ -86,7 +86,7 @@ static void theta(masked_state_t *state) {
     }
 }
 
-static void rho(masked_state_t *state) {
+static void rho(swmasked_state_t *state) {
     unsigned int x = 1, y = 0;
     
     // Iterate through the 24 offsets (skipping 0,0 which stays 0)
@@ -105,7 +105,7 @@ static void rho(masked_state_t *state) {
     }
 }
 
-static void pi(masked_state_t *state) {
+static void pi(swmasked_state_t *state) {
     uint64_t temp[N_SHARES][25];
     unsigned int x, y, s;
 
@@ -129,7 +129,7 @@ static void pi(masked_state_t *state) {
     }
 }
 
-static void chi(masked_state_t *state) {
+static void chi(swmasked_state_t *state) {
     unsigned int j;
     uint64_t C[N_SHARES][5]; // Slices
 
@@ -164,12 +164,12 @@ static void chi(masked_state_t *state) {
     }
 }
 
-static void iota(masked_state_t *state, int round) {
+static void iota(swmasked_state_t *state, int round) {
     // Only apply to first share
     state->s[0][0] ^= KeccakRoundConstants[round];
 }
 
-void masked_keccak_f1600(masked_state_t *state) {
+void swmasked_keccak_f1600(swmasked_state_t *state) {
     for (int i = 0; i < 24; ++i) {
         theta(state);
         rho(state); 
@@ -179,16 +179,16 @@ void masked_keccak_f1600(masked_state_t *state) {
     }
 }
 
-void masked_keccak_inc_init(masked_state_t *state) {
-    memset(state, 0, sizeof(masked_state_t));
+void swmasked_keccak_inc_init(swmasked_state_t *state) {
+    memset(state, 0, sizeof(swmasked_state_t));
 }
 
 
-void masked_shake256(unsigned char *out1, unsigned char *out2, size_t outlen,
+void swmasked_shake256(unsigned char *out1, unsigned char *out2, size_t outlen,
                      const unsigned char *in1, const unsigned char *in2, size_t inlen)
 {
-    masked_state_t state;
-    masked_keccak_inc_init(&state);
+    swmasked_state_t state;
+    swmasked_keccak_inc_init(&state);
 
     // 1. ABSORB PHASE
     while (inlen >= SHAKE256_RATE) {
@@ -199,7 +199,7 @@ void masked_shake256(unsigned char *out1, unsigned char *out2, size_t outlen,
         }
         
         // Permute
-        masked_keccak_f1600(&state);
+        swmasked_keccak_f1600(&state);
         
         in1 += SHAKE256_RATE;
         in2 += SHAKE256_RATE;
@@ -230,7 +230,7 @@ void masked_shake256(unsigned char *out1, unsigned char *out2, size_t outlen,
     }
 
     // Final Permutation before squeezing
-    masked_keccak_f1600(&state);
+    swmasked_keccak_f1600(&state);
 
     // 4. SQUEEZE PHASE
     size_t out_offset = 0;
@@ -257,7 +257,7 @@ void masked_shake256(unsigned char *out1, unsigned char *out2, size_t outlen,
 
         // If we need more output, permute again
         if (out_offset < outlen) {
-            masked_keccak_f1600(&state);
+            swmasked_keccak_f1600(&state);
         }
     }
 }
