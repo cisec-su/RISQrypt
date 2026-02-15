@@ -1,15 +1,15 @@
-#ifndef SPX_HASH_MASKED_H
-#define SPX_HASH_MASKED_H
+#ifndef SPX_HASH_swmasked_H
+#define SPX_HASH_swmasked_H
 
 #include <stdint.h>
-#include "masked_context.h"
+#include "swmasked_context.h"
 #include "params.h"
 
 #define initialize_hash_function_masked SPX_NAMESPACE(initialize_hash_function_masked)
 void initialize_hash_function_masked(spx_ctx *ctx);
 
-#define masked_prf_addr SPX_NAMESPACE(masked_prf_addr)
-void masked_prf_addr(unsigned char *out1, unsigned char *out2, 
+#define swmasked_prf_addr SPX_NAMESPACE(swmasked_prf_addr)
+void swmasked_prf_addr(unsigned char *out1, unsigned char *out2, 
                     const spx_ctx *ctx,
                     const uint32_t addr[8]);
                     

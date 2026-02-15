@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "util.h"
 
-#include "masked_fors.h"
-#include "masked_utils.h"
-#include "masked_utilsx1.h"
-#include "masked_hash.h"
-#include "masked_thash.h"
+#include "swmasked_fors.h"
+#include "swmasked_utils.h"
+#include "swmasked_utilsx1.h"
+#include "swmasked_hash.h"
+#include "swmasked_thash.h"
 #include "address.h"
 #include "randombytes.h"
 
@@ -34,7 +35,7 @@ static void fors_gen_sk_masked(unsigned char *sk1, unsigned char *sk2,
                                const spx_ctx *ctx,
                                uint32_t fors_leaf_addr[8])
 {
-    masked_prf_addr(sk1, sk2, ctx, fors_leaf_addr);
+    swmasked_prf_addr(sk1, sk2, ctx, fors_leaf_addr);
 }
 
 // Masked version of fors_sk_to_leaf
@@ -43,7 +44,7 @@ static void fors_sk_to_leaf_masked(unsigned char *leaf1, unsigned char *leaf2,
                                    const spx_ctx *ctx,
                                    uint32_t fors_leaf_addr[8])
 {
-    masked_thash(leaf1, leaf2, sk1, sk2, 1, ctx, fors_leaf_addr);
+    swmasked_thash(leaf1, leaf2, sk1, sk2, 1, ctx, fors_leaf_addr);
 }
 
 
@@ -56,6 +57,7 @@ static void fors_gen_leafx1_masked(unsigned char *leaf1, unsigned char *leaf2,
     uint32_t *fors_leaf_addr = fors_info->leaf_addrx;
 
     set_tree_index(fors_leaf_addr, addr_idx); // Only set the parts that the caller doesn't set 
+    set_tree_height(fors_leaf_addr, 0);
     set_type(fors_leaf_addr, SPX_ADDR_TYPE_FORSPRF);
 
     // Generate masked secret scalar 
@@ -102,6 +104,7 @@ void fors_sign_masked(unsigned char *sig, unsigned char *pk,
 
     for (i = 0; i < SPX_FORS_TREES; i++) {
         idx_offset = i * (1 << SPX_FORS_HEIGHT);
+        set_type(fors_tree_addr, SPX_ADDR_TYPE_FORSPRF);
 
         set_tree_height(fors_tree_addr, 0);
         set_tree_index(fors_tree_addr, indices[i] + idx_offset);
@@ -133,7 +136,7 @@ void fors_sign_masked(unsigned char *sig, unsigned char *pk,
     unsigned char pk1[SPX_N];
     unsigned char pk2[SPX_N];
 
-    masked_thash(pk1, pk2,      // output
+    swmasked_thash(pk1, pk2,      // output
                  roots1, roots2, // input
                  SPX_FORS_TREES, ctx, fors_pk_addr);
 
@@ -207,7 +210,7 @@ void fors_pk_from_sig_masked(unsigned char *pk,
     unsigned char pk1[SPX_N];
     unsigned char pk2[SPX_N];
     
-    masked_thash(pk1, pk2, roots1, roots2, SPX_FORS_TREES, ctx, fors_pk_addr);
+    swmasked_thash(pk1, pk2, roots1, roots2, SPX_FORS_TREES, ctx, fors_pk_addr);
 
     // Recombine 
     for(int j=0; j<SPX_N; j++) {

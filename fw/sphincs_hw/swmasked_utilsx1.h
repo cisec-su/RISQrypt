@@ -1,9 +1,9 @@
-#ifndef SPX_UTILSX4_MASKED_H
-#define SPX_UTILSX4_MASKED_H
+#ifndef SPX_UTILSX4_swmasked_H
+#define SPX_UTILSX4_swmasked_H
 
 #include <stdint.h>
 #include "params.h"
-#include "masked_context.h"
+#include "swmasked_context.h"
 
 /**
  * For a given leaf index, computes the authentication path and the resulting

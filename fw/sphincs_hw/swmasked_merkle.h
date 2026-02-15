@@ -1,5 +1,5 @@
-#if !defined( MERKLE_MASKED_H_ )
-#define MERKLE_MASKED_H_
+#if !defined( MERKLE_swmasked_H_ )
+#define MERKLE_swmasked_H_
 
 #include <stdint.h>
 
@@ -13,4 +13,4 @@ void merkle_sign_masked(uint8_t *sig, unsigned char *root,
 /* Compute the root node of the top-most subtree. */
 #define merkle_gen_root_masked SPX_NAMESPACE(merkle_gen_root_masked)
 void merkle_gen_root_masked(unsigned char *root, const spx_ctx* ctx);
-#endif /* MERKLE_MASKED_H_ */
+#endif /* MERKLE_swmasked_H_ */

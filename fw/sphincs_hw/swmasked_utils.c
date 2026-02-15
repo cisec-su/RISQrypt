@@ -1,12 +1,12 @@
 #include <string.h>
 
-#include "masked_utils.h"
+#include "swmasked_utils.h"
 #include "params.h"
-#include "masked_hash.h"
-#include "masked_thash.h"
+#include "swmasked_hash.h"
+#include "swmasked_thash.h"
 #include "address.h"
 #include "randombytes.h"
-#include "masked_wotsx1.h" 
+#include "swmasked_wotsx1.h" 
 
 
 // Non-masked functions from original file
@@ -62,7 +62,7 @@ void compute_root_masked(unsigned char *root1, unsigned char *root2,
         // Pick the right or left neighbor, depending on parity of the node. 
         if (leaf_idx & 1) {
             // Output of thash goes to the right half of the buffer.
-            masked_thash(buffer1 + SPX_N, buffer2 + SPX_N, // output
+            swmasked_thash(buffer1 + SPX_N, buffer2 + SPX_N, // output
                          buffer1, buffer2,                 // input (Left||Right)
                          2, ctx, addr);
             
@@ -75,7 +75,7 @@ void compute_root_masked(unsigned char *root1, unsigned char *root2,
         }
         else {
             // The previous hash result is the left child.
-            masked_thash(buffer1, buffer2, 
+            swmasked_thash(buffer1, buffer2, 
                          buffer1, buffer2, 
                          2, ctx, addr);
 
@@ -96,11 +96,11 @@ void compute_root_masked(unsigned char *root1, unsigned char *root2,
     set_tree_index(addr, leaf_idx + idx_offset);
     
     // Final hash to get the root shares
-    masked_thash(root1, root2, buffer1, buffer2, 2, ctx, addr);
+    swmasked_thash(root1, root2, buffer1, buffer2, 2, ctx, addr);
 }
 
 //Masked version of treehash
-void treemasked_hash(unsigned char *root1, unsigned char *root2, 
+void treeswmasked_hash(unsigned char *root1, unsigned char *root2, 
                      unsigned char *auth_path, 
                      const spx_ctx* ctx,
                      uint32_t leaf_idx, uint32_t idx_offset, 
@@ -160,7 +160,7 @@ void treemasked_hash(unsigned char *root1, unsigned char *root2,
             memcpy(in_buf2 + SPX_N, stack2 + (offset - 1)*SPX_N, SPX_N);
 
             // Hash the top-most masked nodes 
-            masked_thash(stack1 + (offset - 2)*SPX_N, // Out1
+            swmasked_thash(stack1 + (offset - 2)*SPX_N, // Out1
                          stack2 + (offset - 2)*SPX_N, // Out2
                          in_buf1, in_buf2,            // In1, In2
                          2, ctx, tree_addr);

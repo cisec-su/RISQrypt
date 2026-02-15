@@ -1,9 +1,9 @@
-#ifndef SPX_masked_utils_H
-#define SPX_masked_utils_H
+#ifndef SPX_swmasked_utils_H
+#define SPX_swmasked_utils_H
 
 #include <stdint.h>
 #include "params.h"
-#include "masked_context.h"
+#include "swmasked_context.h"
 
 
 /* To support MSVC use alloca() instead of VLAs. See #20. */

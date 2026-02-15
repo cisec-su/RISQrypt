@@ -1,9 +1,9 @@
 #include <string.h>
 
-#include "masked_utils.h"
-#include "masked_utilsx1.h"
+#include "swmasked_utils.h"
+#include "swmasked_utilsx1.h"
 #include "params.h"
-#include "masked_thash.h"
+#include "swmasked_thash.h"
 #include "address.h"
 
 // Masked version of the treehashx1 function
@@ -77,7 +77,7 @@ void treehashx1_masked(unsigned char *root1, unsigned char *root2,
             memcpy(&current2[0], left2, SPX_N);
 
             // Call masked thash 
-            masked_thash(&current1[1 * SPX_N], &current2[1 * SPX_N], // Output
+            swmasked_thash(&current1[1 * SPX_N], &current2[1 * SPX_N], // Output
                          &current1[0 * SPX_N], &current2[0 * SPX_N], // Input
                          2, ctx, tree_addr);
         }

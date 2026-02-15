@@ -1,21 +1,19 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
+#include "util.h"
 
 #include "api.h"
-#include "masked_thash.h"
+#include "swmasked_thash.h"
 #include "params.h"
-#include "masked_wots.h"
-#include "masked_fors.h"
-#include "masked_hash.h"
+#include "swmasked_wots.h"
+#include "swmasked_fors.h"
+#include "swmasked_hash.h"
 #include "thash.h"
 #include "address.h"
 #include "randombytes.h"
-#include "masked_utils.h"
-#include "masked_merkle.h"
-// Non masked functions from original file
-// Non-masked functions removed (provided by sign.c)
-
+#include "swmasked_utils.h"
+#include "swmasked_merkle.h"
 
 // Masked version of crypto_sign_seed_keypair
 int crypto_sign_seed_keypair_masked(unsigned char *pk, unsigned char *sk,
@@ -97,8 +95,8 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
     sig += SPX_N;
 
     // Set up addressses for WOTS leaf by converting the size
-    tree_addr_bytes[0] = (uint32_t)(tree >> 32);
-    tree_addr_bytes[1] = (uint32_t)(tree);
+    tree_addr_bytes[0] = (uint32_t)(tree);
+    tree_addr_bytes[1] = (uint32_t)(tree >> 32);
 
     set_tree_addr(wots_addr, tree_addr_bytes);
     set_keypair_addr(wots_addr, idx_leaf);
@@ -110,6 +108,9 @@ int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
 
     for (i = 0; i < SPX_D; i++) {
         set_layer_addr(tree_addr, i);
+        // Size conversion
+        tree_addr_bytes[0] = (uint32_t)(tree);
+        tree_addr_bytes[1] = (uint32_t)(tree >> 32);
         set_tree_addr(tree_addr, tree_addr_bytes);
 
         copy_subtree_addr(wots_addr, tree_addr);
@@ -168,8 +169,8 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
     sig += SPX_N;
 
     // Set up addressses for WOTS leaf by converting the size
-    tree_addr_bytes[0] = (uint32_t)(tree >> 32);
-    tree_addr_bytes[1] = (uint32_t)tree;
+    tree_addr_bytes[0] = (uint32_t)(tree);
+    tree_addr_bytes[1] = (uint32_t)(tree >> 32);
 
     set_tree_addr(wots_addr, tree_addr_bytes);
     set_keypair_addr(wots_addr, idx_leaf);
@@ -181,8 +182,8 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
         set_layer_addr(tree_addr, i);
 
         // Size conversion
-        tree_addr_bytes[0] = (uint32_t)(tree >> 32);
-        tree_addr_bytes[1] = (uint32_t)tree;
+        tree_addr_bytes[0] = (uint32_t)(tree);
+        tree_addr_bytes[1] = (uint32_t)(tree >> 32);
         set_tree_addr(tree_addr, tree_addr_bytes);
 
         copy_subtree_addr(wots_addr, tree_addr);
@@ -196,7 +197,6 @@ int crypto_sign_verify_masked(const uint8_t *sig, size_t siglen,
         thash(leaf, wots_pk, SPX_WOTS_LEN, &ctx, wots_pk_addr);
 
         
-
         // Share1 = leaf, Share2 = 0s.
         unsigned char zero_buf[SPX_N] = {0};
         compute_root_masked(root1, root2, leaf, zero_buf, 
