@@ -10,11 +10,6 @@ from .ttest_analysis import TTestAnalysis
 import subprocess
 
 
-import sys
-
-sys.path.append('../../../../../PhD/high_order_non_profiled/scaredcu/')
-
-
 class TTestTraceCollector:
     def __init__(self, proj_name, label="", input_len=32, output_len=16, offset=0):
         self.proj_name = proj_name
@@ -183,7 +178,11 @@ class TTestTraceCollector:
 
         return seq
 
-    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False, rand2rand=False, random_order=True, balanced_chunk1=False):
+    def collect_traces(self, N=5000, prng_off=False, overwrite=False, check_output=True, init_input=False, dummy_inbetween_0=False, dummy_inbetween_1=False, rand2rand=False, random_order=True, balanced_chunk1=False, coin_flip=False):
+
+        if random_order and coin_flip:
+            raise ValueError("random_order and coin_flip cannot both be True")
+
         if prng_off:
             self.set_prng_off()
         else:
@@ -197,43 +196,45 @@ class TTestTraceCollector:
         const_seed = self.const_seed
 
         if random_order:
-            ab_seq = self.generate_balanced_AB(N) if self.ab_seq_chunk > 1 or not balanced_chunk1 else self.generate_balanced_AB_chunk1(N)
+            ab_seq = self.generate_balanced_AB(N//2) if self.ab_seq_chunk > 1 or not balanced_chunk1 else self.generate_balanced_AB_chunk1(N//2)
 
-        for i0 in tnrange(N, desc='Capturing traces'):
-            for i1 in range(2):
-                i = i0 * 2 + i1
-
-                if random_order:
-                    trace_class = ab_seq[i]
+        for i in tnrange(N, desc='Capturing traces'):
+            if coin_flip:
+                if random.random() < 0.5:
+                    trace_class = 0
                 else:
-                    trace_class = i % 2
+                    trace_class = 1
+            elif random_order:
+                trace_class = ab_seq[i]
+            else:
+                trace_class = i % 2
 
-                if trace_class == 0:
-                    es_writer = es_writer_0
-                else:
-                    es_writer = es_writer_1
+            if trace_class == 0:
+                es_writer = es_writer_0
+            else:
+                es_writer = es_writer_1
 
-                if trace_class == 0 and not rand2rand:
-                    seed = const_seed
-                else:
-                    seed = os.urandom(self.input_len//2)
+            if trace_class == 0 and not rand2rand:
+                seed = const_seed
+            else:
+                seed = os.urandom(self.input_len//2)
 
-                seed_full = self.set_input(seed, prng_off)
-                ret = cw.capture_trace(self.scope, self.target, seed_full, None)
+            seed_full = self.set_input(seed, prng_off)
+            ret = cw.capture_trace(self.scope, self.target, seed_full, None)
+            if not ret:
+                print("Failed capture")
+                continue
+            if check_output:
+                assert self.check_output(ret.textout, seed), "Output mismatch!"
+            es_writer.write_samples(np.array(ret.wave))
+            es_writer.write_metadata('s', np.frombuffer(seed, dtype=np.uint8))
+
+            if (trace_class == 0 and dummy_inbetween_0) or (trace_class == 1 and dummy_inbetween_1):
+                dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
+                ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
                 if not ret:
                     print("Failed capture")
                     continue
-                if check_output:
-                    assert self.check_output(ret.textout, seed), "Output mismatch!"
-                es_writer.write_samples(np.array(ret.wave))
-                es_writer.write_metadata('s', np.frombuffer(seed, dtype=np.uint8))
-
-                if (trace_class == 0 and dummy_inbetween_0) or (trace_class == 1 and dummy_inbetween_1):
-                    dummy_seed = self.set_input(bytes([0]*(self.input_len//2)), True)
-                    ret = cw.capture_trace(self.scope, self.target, dummy_seed, None)
-                    if not ret:
-                        print("Failed capture")
-                        continue
 
         es_writer_0.close()
         es_writer_1.close()
