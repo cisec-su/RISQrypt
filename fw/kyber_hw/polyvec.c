@@ -112,27 +112,26 @@ void polyvec_unpack_ntt(polyvec *r, const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES
 void polyvec_pointwise_acc_core(poly *r, const polyvec *a, const polyvec *b, int intt, int tohw, int clr)
 {
   unsigned int i;
-  uint32_t *dst, *rhs;
+  uint32_t *dst;
 
-  if (tohw)
-    dst = NTT_LITE_OUTPUT_DIS;
-  else
-    dst = (uint32_t*) r->coeffs;
-
-  ntt_lite_pwm((uint32_t*) r->coeffs, (uint32_t*) &a->vec[0].coeffs, (uint32_t*) &b->vec[0].coeffs);
+  ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) &a->vec[0].coeffs, (uint32_t*) &b->vec[0].coeffs);
 
   for(i = 1; i < KYBER_K; i++) {
-    if ((i == (KYBER_K - 1)) && (tohw || intt)) {
-      rhs = NTT_LITE_OUTPUT_DIS;
+    if ((i == (KYBER_K - 1)) && !(tohw || intt)) {
+      dst = (uint32_t*) r->coeffs;
     } else {
-      rhs = (uint32_t*) r->coeffs;
+      dst = NTT_LITE_OUTPUT_DIS;
     }
 
     if ((i == (KYBER_K - 1)) && clr)
       ntt_lite_set_clr();
 
-    ntt_lite_mac(rhs, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
+    ntt_lite_mac(dst, (uint32_t*) &a->vec[i].coeffs, (uint32_t*) &b->vec[i].coeffs);
   }
+  if (tohw)
+    dst = NTT_LITE_OUTPUT_DIS;
+  else
+    dst = (uint32_t*) r->coeffs;
   if (intt) {
     poly_init_invntt();  
     ntt_lite_backward_ntt(dst, NTT_LITE_INPUT_DIS);
