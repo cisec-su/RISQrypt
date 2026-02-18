@@ -18,17 +18,8 @@ typedef struct{
 #define masked_polyvec_ntt KYBER_NAMESPACE(_masked_polyvec_ntt)
 void masked_polyvec_ntt(masked_polyvec *r);
 
-#define masked_polyvec_pointwise_acc_invntt_i KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_i)
-void masked_polyvec_pointwise_acc_invntt_i(masked_polyvec *r, const masked_polyvec *a, const polyvec *b, unsigned int i);
-
-#define masked_polyvec_pointwise_acc_invntt KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt)
-void masked_polyvec_pointwise_acc_invntt(masked_poly *r, const masked_polyvec *a, const polyvec *b);
-
 #define masked_polyvec_pointwise_acc_invntt_sub KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_sub)
 void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyvec *a, const polyvec *b, const poly *c);
-
-#define masked_polyvec_pointwise_acc_invntt_tohw KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_tohw)
-void masked_polyvec_pointwise_acc_invntt_tohw(masked_poly *r, const masked_polyvec *a, const polyvec *b);
 
 #define masked_polyvec_pointwise_acc_invntt_add_i KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_add_i)
 void masked_polyvec_pointwise_acc_invntt_add_i(masked_polyvec *r, const masked_polyvec *a, const polyvec *b, const masked_polyvec *c, unsigned int i);
@@ -46,9 +37,6 @@ void masked_polyvec_getnoise_eta1_fromhw(masked_polyvec *r, const masked_sym see
 
 #define masked_polyvec_getnoise_eta2_fromhw KYBER_NAMESPACE(_masked_polyvec_getnoise_eta2_fromhw)
 void masked_polyvec_getnoise_eta2_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
-
-#define masked_polyvec_add KYBER_NAMESPACE(_masked_polyvec_add)
-void masked_polyvec_add(masked_polyvec *r, const masked_polyvec *a, const masked_polyvec *b);
 
 #define masked_polyvec_u32_acc KYBER_NAMESPACE(_masked_polyvec_u32_acc)
 void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const masked_poly_u32 *b);

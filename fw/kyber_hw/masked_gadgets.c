@@ -42,7 +42,7 @@ void masked_gadgets_A2B_2k(masked_poly *r, const masked_poly *a) {
 
 
 void masked_gadgets_A2B_2k_u32(masked_poly_u32 *r, const masked_poly_u32 *a) {
-    x2x_a2b((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->share[1].coeffs, (uint32_t*) a->share[0].coeffs, KYBER_N);
+    x2x_ref_a2b((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->share[1].coeffs, (uint32_t*) a->share[0].coeffs, KYBER_N);
 }
 
 
@@ -109,7 +109,7 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
     uint32_t *src;
 
     masked_gadgets_init_q_carrier();
-#ifndef TTEST
+#ifndef TTEST_PRNG_OFF
     x2x_prng_read_nonzero(rng_buffer, buffer_len);
 #else
     for (j = 0; j < buffer_len; j++) {
@@ -136,6 +136,7 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
         x2x_a_ref(t[1], t[0], t[1], t[0], 16);
     }
 
+#ifndef TTEST
 #if MASKING_N > 2
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, t[0], t[1]);
     for (i = 2; i < MASKING_N - 1; i++) {
@@ -144,6 +145,9 @@ int masked_gadgets_zero_test_mul(masked_u32 a) {
     ntt_lite_add(t[0], NTT_LITE_INPUT_DIS, t[MASKING_N - 1]);
 #else
     ntt_lite_add(t[0], t[0], t[1]);
+#endif
+#else
+    t[0][0] = 0;
 #endif
 
     return (t[0][0] != 0);
