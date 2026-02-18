@@ -32,98 +32,6 @@
 #include "inner.h"
 #include "timer.h"
 #include "util.h"
-/* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
-
-// void
-// Zf(hash_to_point_vartime)(
-// 	inner_shake256_context *sc,
-// 	uint16_t *x, unsigned logn)
-// {
-// 	/*
-// 	 * Maximum optimization: process 68 samples (136 bytes = SHAKE256_RATE) 
-// 	 * per extraction to minimize function call overhead.
-// 	 */
-// 	size_t n;
-// 	unsigned int time;
-
-// 	n = (size_t)1 << logn;
-// 	print_string("\n common.c line 60 Zf(hash_to_point_vartime) timer");
-// 	timer_reset();
-// 	timer_start();
-	
-// 	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
-// 	while (n >= 68) {
-// 		uint8_t buf[136];
-// 		inner_shake256_extract(sc, buf, 136);
-
-// 		print_string("+++++++++: ");
-// 		print_hex(buf, 136, 0);
-// 		print_string("\n");
-		
-// 		for (unsigned i = 0; i < 68 && n > 0; i++) {
-// 			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
-// 			if (w < 61445) {
-// 				while (w >= 12289) {
-// 					w -= 12289;
-// 				}
-// 				*x++ = (uint16_t)w;
-// 				n--;
-// 			}
-// 		}
-// 	}
-	
-// 	/* Process 16 samples at a time for remaining */
-// 	while (n >= 16) {
-// 		uint8_t buf[32];
-// 		inner_shake256_extract(sc, buf, 32);
-		
-// 		for (unsigned i = 0; i < 16 && n > 0; i++) {
-// 			uint32_t w = ((unsigned)buf[i*2] << 8) | (unsigned)buf[i*2 + 1];
-// 			if (w < 61445) {
-// 				while (w >= 12289) {
-// 					w -= 12289;
-// 				}
-// 				*x++ = (uint16_t)w;
-// 				n--;
-// 			}
-// 		}
-// 	}
-	
-// 	/* Handle remaining samples one at a time */
-// 	uint32_t buf[34];
-// 	uint8_t *buf_ptr = (uint8_t*) buf;
-// 	int flag = 1;
-// 	inner_shake256_extract(sc, (uint8_t*) &buf, 136);
-// 	while (n > 0) {
-// 		uint32_t w;
-
-// 		// if (flag) {
-// 		// 	buf_ptr = (uint8_t*) &buf;
-// 		// 	flag = 0;
-// 		// }
-// 		// else {
-// 		// 	buf_ptr += 2;
-// 		// 	flag = 1;
-// 		// }
-// 		w = ((unsigned)buf_ptr[0] << 8) | (unsigned)buf_ptr[1];
-// 		buf_ptr += 2;
-// 		print_string("from sha ");
-// 		print_u32(w);
-// 		print_string("\n");
-// 		if (w < 61445) {
-// 			while (w >= 12289) {
-// 				w -= 12289;
-// 			}
-// 			*x++ = (uint16_t)w;
-// 			n--;
-// 		}
-// 	}
-// 	time = timer_read();
-// 	print_string("\nTime: ");
-// 	print_u32_int(time);
-// 	print_string(" cycles");
-// 	print_string("\n");
-// }
 
 void
 Zf(hash_to_point_vartime)(
@@ -147,13 +55,13 @@ Zf(hash_to_point_vartime)(
 	uint32_t w;
 
 	n = (size_t)1 << logn;
-	print_string("\n common.c line 60 Zf(hash_to_point_vartime) timer");
-	timer_reset();
-	timer_start();
+	// print_string("\n common.c line 60 Zf(hash_to_point_vartime) timer");
+	// timer_reset();
+	// timer_start();
 	
 	while (n > 0) {
 
-		if (buf_ptr == buf) {
+		if (buf_ptr == (uint8_t*)buf) {
 			inner_shake256_extract(sc, (void *)buf, sizeof(buf));
 		}
 		w = ((unsigned)buf_ptr[0] << 8) | (unsigned)buf_ptr[1];
@@ -166,15 +74,15 @@ Zf(hash_to_point_vartime)(
 			while (w >= 12289) {
 				w -= 12289;
 			}
-			*x ++ = (uint16_t)w;
-			n --;
+			*x++ = (uint16_t)w;
+			n--;
 		}
 	}
-	time = timer_read();
-	print_string("\nTime: ");
-	print_u32_int(time);
-	print_string(" cycles");
-	print_string("\n");
+	// time = timer_read();
+	// print_string("\nTime: ");
+	// print_u32_int(time);
+	// print_string(" cycles");
+	// print_string("\n");
 }
 
 /* HW Keccak optimized: Original extracted 2 bytes/call, now 136 bytes (68 samples) per call */
@@ -226,8 +134,7 @@ Zf(hash_to_point_ct)(
 	};
 
 	unsigned n, n2, u, m, p, over;
-	uint16_t *tt1, tt2[63];
-
+	uint16_t *tt1, tt2[63] __attribute__((aligned(4)));
 	/*
 	 * We first generate m 16-bit value. Values 0..n-1 go to x[].
 	 * Values n..2*n-1 go to tt1[]. Values 2*n and later go to tt2[].
@@ -243,59 +150,41 @@ Zf(hash_to_point_ct)(
 	tt1 = (uint16_t *)tmp;
 		
 	unsigned int time;
-	/*
-	* Hash message to point.
-	*/
-	print_string("\n common.c line 139 Zf(hash_to_point_ct) timer");
-	timer_reset();
-	timer_start();
 
-	/* Process 68 samples (136 bytes = SHAKE256_RATE) at a time */
-	for (u = 0; u + 67 < m; u += 68) {
-		uint8_t buf[136];
-		unsigned i;
-		
-		inner_shake256_extract(sc, buf, 136);
-		
-		for (i = 0; i < 68; i++) {
-			unsigned idx = u + i;
-			uint32_t w = ((uint32_t)buf[i*2] << 8) | (uint32_t)buf[i*2 + 1];
-			uint32_t wr;
-			
+	// print_string("\n common.c line 154 Zf(hash_to_point_ct) timer");
+	// timer_reset();
+	// timer_start();
+
+	/*
+	 * Squeeze all needed bytes at once into a large buffer.
+	 * For logn=9:  m=717,  need 1434 bytes = 359 words (360 rounded)
+	 * For logn=10: m=1311, need 2622 bytes = 656 words
+	 * Max: 1311*2 = 2622 bytes < 2720 bytes = 680 uint32_t
+	 */
+	{
+		uint32_t buf32[680] __attribute__((aligned(4)));
+		uint8_t *buf = (uint8_t *)buf32;
+		size_t squeeze_words = (m * 2 + 3) >> 2; /* round up to words */
+
+		inner_shake256_extract(sc, buf, squeeze_words << 2);
+
+		for (u = 0; u < m; u++) {
+			uint32_t w, wr;
+
+			w = ((uint32_t)buf[u*2] << 8) | (uint32_t)buf[u*2 + 1];
 			wr = w - ((uint32_t)24578 & (((w - 24578) >> 31) - 1));
 			wr = wr - ((uint32_t)24578 & (((wr - 24578) >> 31) - 1));
 			wr = wr - ((uint32_t)12289 & (((wr - 12289) >> 31) - 1));
 			wr |= ((w - 61445) >> 31) - 1;
-			
-			if (idx < n) {
-				x[idx] = (uint16_t)wr;
-			} else if (idx < n2) {
-				tt1[idx - n] = (uint16_t)wr;
+
+			if (u < n) {
+				x[u] = (uint16_t)wr;
+			} else if (u < n2) {
+				tt1[u - n] = (uint16_t)wr;
 			} else {
-				tt2[idx - n2] = (uint16_t)wr;
+				tt2[u - n2] = (uint16_t)wr;
 			}
 		}
-	}
-	
-	/* Handle remaining samples one at a time */
-	while (u < m) {
-		uint8_t buf[2];
-		uint32_t w, wr;
-
-		inner_shake256_extract(sc, buf, 2);
-		w = ((uint32_t)buf[0] << 8) | (uint32_t)buf[1];
-		wr = w - ((uint32_t)24578 & (((w - 24578) >> 31) - 1));
-		wr = wr - ((uint32_t)24578 & (((wr - 24578) >> 31) - 1));
-		wr = wr - ((uint32_t)12289 & (((wr - 12289) >> 31) - 1));
-		wr |= ((w - 61445) >> 31) - 1;
-		if (u < n) {
-			x[u] = (uint16_t)wr;
-		} else if (u < n2) {
-			tt1[u - n] = (uint16_t)wr;
-		} else {
-			tt2[u - n2] = (uint16_t)wr;
-		}
-		u++;
 	}
 
 	/*
@@ -382,11 +271,11 @@ Zf(hash_to_point_ct)(
 			*d = (uint16_t)(dv ^ (mk & (sv ^ dv)));
 		}
 	}
-	time = timer_read();
-	print_string("\nTime: ");
-	print_u32_int(time);
-	print_string(" cycles");
-	print_string("\n");
+	// time = timer_read();
+	// print_string("\nTime: ");
+	// print_u32_int(time);
+	// print_string(" cycles");
+	// print_string("\n");
 }
 
 /*

@@ -172,7 +172,7 @@ void keccak_newapi(void) {
     if (memcmp(out, golden_abcdefgh_dil, 32) == 0) print_string(" RESULT: PASS\n");
     else print_string(" RESULT: FAIL\n");
 
-    /* TEST 3: Unaligned pointer test (Similar to sig + 1) 
+    /* TEST 3: Unaligned pointer test (Similar to sig + 1) */
     uint8_t buf[12] = {0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 0, 0, 0};
     print_string("\n[TEST] shake256(buf + 1) - Unaligned 8 bytes...\n");
     shake256_init(&sc);
@@ -184,7 +184,7 @@ void keccak_newapi(void) {
     print_string(" Got:    "); print_hex(out, 32, 0);
 
     if (memcmp(out, golden_abcdefgh_dil, 32) == 0) print_string(" RESULT: PASS\n");
-    else print_string(" RESULT: FAIL (Unaligned Access Issue)\n");*/
+    else print_string(" RESULT: FAIL (Unaligned Access Issue)\n");
 
     /* TEST 4: Incremental Squeeze Test */
     print_string("\n[TEST] Incremental Squeeze (2x 4 bytes)...\n");

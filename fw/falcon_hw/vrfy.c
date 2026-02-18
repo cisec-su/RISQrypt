@@ -33,6 +33,7 @@
 #include "util.h"
 #include "middle_val.h"
 #include "ntt_lite.h"
+#include "poly.h"
 
 /* ===================================================================== */
 /*
@@ -528,7 +529,7 @@ Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
 
     if (call_count == 0) {
 
-        //print_string("\n--- Checking COMPRESSED Intermediates ---\n");
+        print_string("\n--- Checking COMPRESSED Intermediates ---\n");
 
         gold_ntt  = mid_ntt_s2_comp;
 
@@ -540,7 +541,7 @@ Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
 
     } else if (call_count == 1) {
 
-        //print_string("\n--- Checking PADDED Intermediates ---\n");
+        print_string("\n--- Checking PADDED Intermediates ---\n");
 
         gold_ntt  = mid_ntt_s2_pad;
 
@@ -552,7 +553,7 @@ Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
 
     } else {
 
-        //print_string("\n--- Checking CT Intermediates ---\n");
+        print_string("\n--- Checking CT Intermediates ---\n");
 
         gold_ntt  = mid_ntt_s2_ct;
 

@@ -3,7 +3,14 @@
 
 #include "config.h"
 
-#define FALCON_NAMESPACE(s) pqcrystals_falcon_##s
+#define FALCON_NAMESPACE(s) falcon_##s
+
+#define N 256
+// #define Q 8380417
+// #define D 13
+// #define ROOT_OF_UNITY 1753
+
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
