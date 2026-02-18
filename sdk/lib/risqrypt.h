@@ -1,5 +1,5 @@
-#ifndef HORNET_H_
-#define HORNET_H_
+#ifndef RISQRYPT_H_
+#define RISQRYPT_H_
 
 #include <stdint.h>
 

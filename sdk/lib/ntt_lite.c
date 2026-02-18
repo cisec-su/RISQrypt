@@ -1,5 +1,5 @@
 #include "ntt_lite.h"
-#include "hornet.h"
+#include "risqrypt.h"
 #include "sdk_benchmark.h"
 
 
