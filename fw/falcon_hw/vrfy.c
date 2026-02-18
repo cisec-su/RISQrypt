@@ -525,45 +525,45 @@ Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
 
 
 
-    // Select golden vectors based on call count
+    // // Select golden vectors based on call count
 
-    if (call_count == 0) {
+    // if (call_count == 0) {
 
-        print_string("\n--- Checking COMPRESSED Intermediates ---\n");
+    //     print_string("\n--- Checking COMPRESSED Intermediates ---\n");
 
-        gold_ntt  = mid_ntt_s2_comp;
+    //     gold_ntt  = mid_ntt_s2_comp;
 
-        gold_mul  = mid_montymul_comp;
+    //     gold_mul  = mid_montymul_comp;
 
-        gold_intt = mid_intt_comp;
+    //     gold_intt = mid_intt_comp;
 
-        gold_sub  = mid_sub_c0_comp;
+    //     gold_sub  = mid_sub_c0_comp;
 
-    } else if (call_count == 1) {
+    // } else if (call_count == 1) {
 
-        print_string("\n--- Checking PADDED Intermediates ---\n");
+    //     print_string("\n--- Checking PADDED Intermediates ---\n");
 
-        gold_ntt  = mid_ntt_s2_pad;
+    //     gold_ntt  = mid_ntt_s2_pad;
 
-        gold_mul  = mid_montymul_pad;
+    //     gold_mul  = mid_montymul_pad;
 
-        gold_intt = mid_intt_pad;
+    //     gold_intt = mid_intt_pad;
 
-        gold_sub  = mid_sub_c0_pad;
+    //     gold_sub  = mid_sub_c0_pad;
 
-    } else {
+    // } else {
 
-        print_string("\n--- Checking CT Intermediates ---\n");
+    //     print_string("\n--- Checking CT Intermediates ---\n");
 
-        gold_ntt  = mid_ntt_s2_ct;
+    //     gold_ntt  = mid_ntt_s2_ct;
 
-        gold_mul  = mid_montymul_ct;
+    //     gold_mul  = mid_montymul_ct;
 
-        gold_intt = mid_intt_ct;
+    //     gold_intt = mid_intt_ct;
 
-        gold_sub  = mid_sub_c0_ct;
+    //     gold_sub  = mid_sub_c0_ct;
 
-    }
+    // }
 
 
 
