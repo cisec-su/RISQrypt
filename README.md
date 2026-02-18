@@ -7,13 +7,13 @@ RISQrypt is a hardware/software co-design framework targeting efficient implemen
 
 ## 🚀 Supported Algorithms
 
-- CRYSTALS-Kyber (Key Encapsulation Mechanism)
-- CRYSTALS-Dilithium (Digital Signature Scheme)
+- CRYSTALS-Kyber (ML-KEM)
+- CRYSTALS-Dilithium (ML-DSA)
 
 ## 🚀 Coming Soon
-- SPHINCS+
-- Falcon
-- Pasta, Hera (Transciphering algorithms for Fully Homomorphic Encryption)
+- SPHINCS+ (SLH-DSA)
+- Falcon (FN-DSA)
+- Pasta, Rubato (Transciphering algorithms for Fully Homomorphic Encryption)
 
 ---
 
