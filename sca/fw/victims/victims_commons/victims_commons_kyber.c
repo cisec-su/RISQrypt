@@ -84,7 +84,7 @@ static void vck_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 
     poly_init_q();
     for(i = 0; i < MASKING_N; i++) {
-        ntt_lite_decode(t[i], t[i], 12);
+        ntt_lite_decode(t[i], t[i], 11);
     }
 
     masked_gadgets_init_q();
@@ -165,7 +165,7 @@ void vck_print_polyvec_unmasked(const masked_polyvec *mpv, const char *label) {
 void vck_masked_msg_from_seed(masked_msg dst, const uint8_t src[VCK_SEED_LEN], uint8_t nonce) {
     volatile uint32_t pad;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
-    keccak_absorb((uint32_t*) src, (uint32_t*) (src + (KYBER_SYMBYTES >> 1)), KYBER_SYMBYTES >> 3);
+    keccak_absorb((uint32_t*) src, (uint32_t*) (src + (VCK_SEED_LEN >> 1)), VCK_SEED_LEN >> 3);
     pad = (SHAKE_PAD << 8) | ((uint32_t) nonce);
     keccak_finish((uint32_t*) &pad);
     keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], KYBER_INDCPA_MSGBYTES >> 2);

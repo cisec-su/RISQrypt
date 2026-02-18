@@ -106,8 +106,19 @@ class TTestTraceCollector:
             else:
                 assert False, "ADC test failed!"
 
-    def build_fw(self, verbose=False):
-        cmd = "make" if not verbose else "make VERBOSE=1"
+    def build_fw(self, verbose=False, **make_flags):
+        cmd = "make"
+
+        if verbose:
+            cmd += " VERBOSE=1"
+
+        for key, value in make_flags.items():
+            if isinstance(value, bool):
+                if value:
+                    cmd += f" {key}=1"
+            else:
+                cmd += f" {key}={value}"
+
         subprocess.run(
             cmd,
             cwd=self.fw_dir(),

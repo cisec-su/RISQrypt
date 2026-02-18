@@ -40,6 +40,11 @@ ifdef VERBOSE
 CFLAGS += -DVERBOSE
 endif
 
+ifdef TTEST_PRNG_OFF
+CFLAGS += -DTTEST_PRNG_OFF
+endif
+CFLAGS += -DTTEST
+
 OPTIMIZATION = -O3
 
 include $(CW305_DRIVER_DIR)/makefile

@@ -47,7 +47,7 @@ parameter USB_ADDR_WIDTH   = 21      ;
 parameter CW305_FIFO_BSIZE = 128     ;
 parameter PRNG_OFF_EN      = 1       ;
 `else
-parameter SYS_CLK_FREQ   = 61000000;
+parameter SYS_CLK_FREQ   = 60000000;
 parameter PRNG_OFF_EN    = 0       ;
 `endif
 parameter UART_BAUD      = 115200  ;

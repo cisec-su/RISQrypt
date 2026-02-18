@@ -1,8 +1,12 @@
 #include "ntt_lite.h"
 #include "x2x.h"
 #include "keccak.h"
+#include "params.h"
 #include "masked_symmetric.h"
 #include "masked_gadgets.h"
+#include "masked.h"
+#include "masked_poly.h"
+#include "masked_polyvec.h"
 #ifdef VERBOSE
 #include "util.h"
 #endif
@@ -13,37 +17,139 @@
 #define POLY_SAMPLE_BYTES (N * sizeof(uint32_t))
 
 
-void vcd_print_poly_shares(const masked_poly *mp, const char *label) {
+// void vcd_print_poly_shares(const masked_poly *mp, const char *label) {
+// #ifdef VERBOSE
+//     print_string(label);
+//     print_string(" Share 0 Coeffs: ");
+//     print_u32_arr((uint32_t*) mp->share[0].coeffs, 8);
+//     print_u32_arr((uint32_t*) mp->share[0].coeffs + N - 8, 8);
+//     print_string("\n");
+//     print_string(label);
+//     print_string(" Share 1 Coeffs: ");
+//     print_u32_arr((uint32_t*) mp->share[1].coeffs, 8);
+//     print_u32_arr((uint32_t*) mp->share[1].coeffs + N - 8, 8);
+//     print_string("\n");
+// #endif
+// }
+
+
+void vcd_print_polyveck_shares(const masked_polyveck *mpv, const char *label) {
 #ifdef VERBOSE
-    print_string(label);
-    print_string(" Share 0 Coeffs: ");
-    print_u32_arr((uint32_t*) mp->share[0].coeffs, 8);
-    print_u32_arr((uint32_t*) mp->share[0].coeffs + N - 8, 8);
-    print_string("\n");
-    print_string(label);
-    print_string(" Share 1 Coeffs: ");
-    print_u32_arr((uint32_t*) mp->share[1].coeffs, 8);
-    print_u32_arr((uint32_t*) mp->share[1].coeffs + N - 8, 8);
-    print_string("\n");
+    for (size_t i = 0; i < K; i++) {
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_string(" Share 0 Coeffs: ");
+        print_u32_arr((uint32_t*) mpv->share[0].vec[i].coeffs, 8);
+        print_u32_arr((uint32_t*) mpv->share[0].vec[i].coeffs + N - 8, 8);
+        print_string("\n");
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_string(" Share 1 Coeffs: ");
+        print_u32_arr((uint32_t*) mpv->share[1].vec[i].coeffs, 8);
+        print_u32_arr((uint32_t*) mpv->share[1].vec[i].coeffs + N - 8, 8);
+        print_string("\n");
+    }
 #endif
 }
 
 
-void vcd_print_poly_unmasked(const masked_poly *mp, const char *label) {
+void vcd_print_polyveck_shares_unmasked(const masked_polyveck *mpv, const char *label) {
 #ifdef VERBOSE
     poly temp;
-    unsigned int i;
+    for (size_t i = 0; i < K; i++) {
+        for (size_t j = 0; j < N; j++) {
+            temp.coeffs[j] = (mpv->share[0].vec[i].coeffs[j] + mpv->share[1].vec[i].coeffs[j]) % Q;
+        }        
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_u32_arr((uint32_t*) temp.coeffs, 8);
+        print_u32_arr((uint32_t*) temp.coeffs + N - 8, 8);
+        print_string("\n");
+    }
+#endif
+}
 
-    for (i = 0; i < N; i++) {
-        temp.coeffs[i] = (mp->share[0].coeffs[i] + mp->share[1].coeffs[i]) % Q;
+
+
+void vcd_print_polyvecl_shares(const masked_polyvecl *mpv, const char *label) {
+#ifdef VERBOSE
+    for (size_t i = 0; i < K; i++) {
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_string(" Share 0 Coeffs: ");
+        print_u32_arr((uint32_t*) mpv->share[0].vec[i].coeffs, 8);
+        print_u32_arr((uint32_t*) mpv->share[0].vec[i].coeffs + N - 8, 8);
+        print_string("\n");
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_string(" Share 1 Coeffs: ");
+        print_u32_arr((uint32_t*) mpv->share[1].vec[i].coeffs, 8);
+        print_u32_arr((uint32_t*) mpv->share[1].vec[i].coeffs + N - 8, 8);
+        print_string("\n");
+    }
+#endif
+}
+
+
+void vcd_print_polyvecl_shares_unmasked(const masked_polyvecl *mpv, const char *label) {
+#ifdef VERBOSE
+    poly temp;
+    for (size_t i = 0; i < L; i++) {
+        for (size_t j = 0; j < N; j++) {
+            temp.coeffs[j] = (mpv->share[0].vec[i].coeffs[j] + mpv->share[1].vec[i].coeffs[j]) % Q;
+        }        
+        print_string(label);
+        print_string("[");
+        print_u32_int(i);
+        print_string("]");
+        print_u32_arr((uint32_t*) temp.coeffs, 8);
+        print_u32_arr((uint32_t*) temp.coeffs + N - 8, 8);
+        print_string("\n");
+    }
+#endif
+}
+
+
+void vcd_print_maskedseed_shares_unmasked(const masked_seed ms, const char *label) {
+#ifdef VERBOSE
+    uint8_t temp[SEEDBYTES];
+    for (size_t j = 0; j < SEEDBYTES; j++) {
+        temp[j] = ms[0][j] ^ ms[1][j];
     }
     print_string(label);
-    print_string(" Unmasked Coeffs: ");
-    print_u32_arr((uint32_t*) temp.coeffs, 8);
-    print_u32_arr((uint32_t*) temp.coeffs + N - 8, 8);
+    print_string(": ");
+    print_hex(temp, SEEDBYTES, 0);
     print_string("\n");
 #endif
 }
+
+
+
+// void vcd_print_poly_unmasked(const masked_poly *mp, const char *label) {
+// #ifdef VERBOSE
+//     poly temp;
+//     unsigned int i;
+
+//     for (i = 0; i < N; i++) {
+//         temp.coeffs[i] = (mp->share[0].coeffs[i] + mp->share[1].coeffs[i]) % Q;
+//     }
+//     print_string(label);
+//     print_string(" Unmasked Coeffs: ");
+//     print_u32_arr((uint32_t*) temp.coeffs, 8);
+//     print_u32_arr((uint32_t*) temp.coeffs + N - 8, 8);
+//     print_string("\n");
+// #endif
+// }
 
 
 static void vcd_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8_t src[VCD_SEED_LEN], uint8_t nonce, uint32_t decode_len) {
@@ -70,6 +176,18 @@ static void vcd_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
     for(i = 0; i < MASKING_N; i++) {
         ntt_lite_decode(t[i], t[i], decode_len);
     }
+
+#ifdef VERBOSE
+    print_string("Poly tB Share 0 Coeffs: ");
+    print_u32_arr((uint32_t*) t[0], 8);
+    print_u32_arr((uint32_t*) t[0] + N - 8, 8);
+    print_string("\n");
+    print_string("Poly t Share 1 Coeffs: ");
+    print_u32_arr((uint32_t*) t[1], 8);
+    print_u32_arr((uint32_t*) t[1] + N - 8, 8);
+    print_string("\n");
+#endif
+
     masked_gadgets_init_q();
     x2x_b2a(t[1], t[0], t[1], t[0], N);
 
@@ -89,19 +207,53 @@ static void vcd_masked_poly_from_seed_core(uint32_t *dst[MASKING_N], const uint8
 }
 
 
-void vcd_masked_poly_from_seed(masked_poly *dst, const uint8_t src[VCD_SEED_LEN]) {
-    uint32_t *dst_ptr[MASKING_N] = {(uint32_t*) dst->share[0].coeffs, (uint32_t*) dst->share[1].coeffs};
-    vcd_masked_poly_from_seed_core(dst_ptr, src, 0x0, 23);
-#ifdef VERBOSE
-    vcd_print_poly_unmasked(dst, "Poly Masked");
-#endif
+// void vcd_masked_poly_from_seed(masked_poly *dst, const uint8_t src[VCD_SEED_LEN]) {
+//     uint32_t *dst_ptr[MASKING_N] = {(uint32_t*) dst->share[0].coeffs, (uint32_t*) dst->share[1].coeffs};
+//     vcd_masked_poly_from_seed_core(dst_ptr, src, 0x0, 22);
+// #ifdef VERBOSE
+//     vcd_print_poly_unmasked(dst, "Poly Masked");
+// #endif
+// }
+
+
+// void vcd_masked_poly_gamma2_from_seed(masked_poly *dst, const uint8_t src[VCD_SEED_LEN]) {
+//     uint32_t *dst_ptr[MASKING_N] = {(uint32_t*) dst->share[0].coeffs, (uint32_t*) dst->share[1].coeffs};
+//     vcd_masked_poly_from_seed_core(dst_ptr, src, 0x0, 22);
+// #ifdef VERBOSE
+//     vcd_print_poly_unmasked(dst, "Poly Masked");
+// #endif
+// }
+
+
+void vcd_masked_polyveck_from_seed(masked_polyveck *dst, const uint8_t src[VCD_SEED_LEN]) {
+    size_t i, j;
+    uint32_t *dst_ptr[MASKING_N];
+    for (i = 0; i < K; i++) {
+        for (j = 0; j < MASKING_N; j++) {
+            dst_ptr[j] = (uint32_t*) dst->share[j].vec[i].coeffs;
+        }
+        vcd_masked_poly_from_seed_core(dst_ptr, src, (i) << 2, 22);
+    }
 }
 
 
-void vcd_masked_poly_gamma2_from_seed(masked_poly *dst, const uint8_t src[VCD_SEED_LEN]) {
-    uint32_t *dst_ptr[MASKING_N] = {(uint32_t*) dst->share[0].coeffs, (uint32_t*) dst->share[1].coeffs};
-    vcd_masked_poly_from_seed_core(dst_ptr, src, 0x0, 17);
-#ifdef VERBOSE
-    vcd_print_poly_unmasked(dst, "Poly Masked");
-#endif
+void vcd_masked_polyvecl_from_seed(masked_polyvecl *dst, const uint8_t src[VCD_SEED_LEN]) {
+    size_t i, j;
+    uint32_t *dst_ptr[MASKING_N];
+    for (i = 0; i < L; i++) {
+        for (j = 0; j < MASKING_N; j++) {
+            dst_ptr[j] = (uint32_t*) dst->share[j].vec[i].coeffs;
+        }
+        vcd_masked_poly_from_seed_core(dst_ptr, src, (i << 2) ^ 1, 22);
+    }
+}
+
+
+void vcd_masked_msg_from_seed(masked_seed dst, const uint8_t src[VCD_SEED_LEN]) {
+    volatile uint32_t pad;
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
+    keccak_absorb((uint32_t*) src, (uint32_t*) (src + (VCD_SEED_LEN >> 1)), VCD_SEED_LEN >> 3);
+    pad = (SHAKE_PAD << 8) | ((uint32_t) 0xFF);
+    keccak_finish((uint32_t*) &pad);
+    keccak_squeeze((uint32_t*) dst[0], (uint32_t*) dst[1], SEEDBYTES >> 2);
 }

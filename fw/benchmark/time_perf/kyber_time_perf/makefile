@@ -1,4 +1,4 @@
-PROJ = kyber_profiling
+PROJ = kyber_time_perf
 
 TOOLCHAIN_DIR = ../../../../sdk/toolchain
 
@@ -29,7 +29,6 @@ INC += -I../../../common
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
-CFLAGS += -DSDK_BENCHMARK_ENABLED
 CFLAGS += -DBUSY_CHECK_DIS
 
 OPTIMIZATION = -O3 # Default is -O0

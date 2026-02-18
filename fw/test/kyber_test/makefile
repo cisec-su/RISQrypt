@@ -1,10 +1,10 @@
-PROJ = kyber_profiling
+PROJ = kyber_test
 
-TOOLCHAIN_DIR = ../../../../sdk/toolchain
+TOOLCHAIN_DIR = ../../../sdk/toolchain
 
-LIB_DIR = ../../../../sdk/lib
+LIB_DIR = ../../../sdk/lib
 
-KYBER_HW_DIR = ../../../kyber_hw
+KYBER_HW_DIR = ../../kyber_hw
 
 SRC =  main.c
 SRC += $(KYBER_HW_DIR)/indcpa.c
@@ -23,14 +23,18 @@ SRC += $(KYBER_HW_DIR)/masked_polyvec.c
 SRC += $(KYBER_HW_DIR)/masked_cbd.c
 SRC += $(KYBER_HW_DIR)/masked_symmetric.c
 SRC += $(KYBER_HW_DIR)/masked_kem.c
+SRC += ../../common/unity.c
 
 INC = -I$(KYBER_HW_DIR)
-INC += -I../../../common
+INC += -I../../common
+
+CFLAGS += -DBUSY_CHECK_DIS
+CFLAGS += -DTEST_RNG
+
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
-CFLAGS += -DSDK_BENCHMARK_ENABLED
-CFLAGS += -DBUSY_CHECK_DIS
+# CFLAGS = # Use as needed
 
 OPTIMIZATION = -O3 # Default is -O0
 

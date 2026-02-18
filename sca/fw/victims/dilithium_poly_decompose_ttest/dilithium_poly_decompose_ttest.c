@@ -10,16 +10,15 @@
 #include "victims_commons_util.h"
 
 
-#define CIPHERGEN_RETURN_HASH
 #define SLEEP_LOOP 1024
+
+#define ZERO_STACK_SIZE 8192
 
 
 masked_poly a;
 masked_poly r;
 poly b;
-masked_poly a_dummy;
-masked_poly r_dummy;
-poly b_dummy;
+
 
 uint8_t get_poly(uint8_t* p, uint8_t len)
 {
@@ -33,7 +32,7 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////// real input masking //////////////////////
-    vcd_masked_poly_gamma2_from_seed(&a, p);
+    vcd_masked_poly_from_seed(&a, p);
 #ifdef VERBOSE
     vcd_print_poly_shares(&a, "Poly");
 #endif
@@ -43,16 +42,19 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     for (size_t i = 0; i < len; i++) {
         p[i] = 0;
     }
-    vcd_masked_poly_gamma2_from_seed(&a_dummy, p);
-    memset(&a_dummy, 0, sizeof(a_dummy));
-    masked_poly_decompose(&b_dummy, &r_dummy, &a_dummy);
-    (void) r_dummy;
-    (void) b_dummy;
+    // vcd_masked_poly_gamma2_from_seed(&a_dummy, p);
+    // poly_init_q();
+    // masked_gadgets_init_q();
+    // memset(&a_dummy, 0, sizeof(a_dummy));
+    // masked_poly_decompose(&b_dummy, &r_dummy, &a_dummy);
+    // (void) r_dummy;
+    // (void) b_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     ////////////////////// initialize modules ///////////////////////
     poly_init_q();
     masked_gadgets_init_q();
+    zero_stack(ZERO_STACK_SIZE);
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
@@ -61,7 +63,6 @@ uint8_t get_poly(uint8_t* p, uint8_t len)
     /////////////////////////////////////////////////////////////////
     ////////////////////// trigger and action ///////////////////////
     cw305_trigger_up();
-    // vcu_sleep(25000);
 #ifdef VERBOSE
     timer_reset();
     timer_start();
@@ -110,7 +111,7 @@ int main(void)
 
 
     simpleserial_init();
-    simpleserial_addcmd('l', 0, vcu_prng_on);
+    simpleserial_addcmd('l', 8, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
     simpleserial_addcmd('p', VCD_SEED_LEN, get_poly);
 

@@ -75,7 +75,7 @@ int main(void)
 
 
     simpleserial_init();
-    simpleserial_addcmd('l', 0, vcu_prng_on);
+    simpleserial_addcmd('l', 8, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
     simpleserial_addcmd('p', 16, get_poly);
 
