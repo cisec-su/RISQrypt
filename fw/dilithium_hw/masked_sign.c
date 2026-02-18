@@ -9,70 +9,6 @@
 #include "masked_symmetric.h"
 
 
-// typedef struct {
-//   masked_poly vec[L];
-// } masked_polyvecl;
-
-
-// typedef struct {
-//   polyvecl share[MASKING_N];
-// } masked_polyvecl;
-
-
-// typedef struct {
-//   masked_poly vec[K];
-// } masked_polyveck;
-
-
-// typedef struct {
-//   polyveck share[MASKING_N];
-// } masked_polyveck;
-
-/* Convert between masked_polyvecl and masked_polyvecl representations */
-// void masked_polyvecl_to_shares(masked_polyvecl *dst, const masked_polyvecl *src) {
-//     for(int i = 0; i < MASKING_N; i++) {
-//         for(int j = 0; j < L; j++) {
-//             for (int k = 0; k < N; k++) {
-//                 dst->share[i].vec[j].coeffs[k] = src->vec[j].share[i].coeffs[k];
-//             }
-//         }
-//     }
-// }
-
-
-
-// void masked_polyvecl_from_shares(masked_polyvecl *dst, const masked_polyvecl *src) {
-//     for(int i = 0; i < MASKING_N; i++) {
-//         for(int j = 0; j < L; j++) {
-//             for (int k = 0; k < N; k++) {
-//                 dst->vec[j].share[i].coeffs[k] = src->share[i].vec[j].coeffs[k];
-//             }
-//         }
-//     }
-// }
-
-// /* Convert between masked_polyveck and masked_polyveck representations */
-// void masked_polyveck_to_shares(masked_polyveck *dst, const masked_polyveck *src) {
-//     for(int i = 0; i < MASKING_N; i++) {
-//         for(int j = 0; j < K; j++) {
-//             for (int k = 0; k < N; k++) {
-//                 dst->share[i].vec[j].coeffs[k] = src->vec[j].share[i].coeffs[k];
-//             }
-//         }
-//     }
-// }
-
-// void masked_polyveck_from_shares(masked_polyveck *dst, const masked_polyveck *src) {
-//     for(int i = 0; i < MASKING_N; i++) {
-//         for(int j = 0; j < K; j++) {
-//             for (int k = 0; k < N; k++) {
-//                 dst->vec[j].share[i].coeffs[k] = src->share[i].vec[j].coeffs[k];
-//             }
-//         }
-//     }
-// }
-
-
 
 int masked_crypto_sign_signature_init(polyvecl mat[K],
                                       uint8_t *tr,
@@ -118,7 +54,6 @@ int masked_crypto_sign_signature_core(uint8_t *sig,
     poly cp;
     masked_poly_ptr temp_ptr;
 
-    int i;
     int flag;
 
     temp_ptr.share[0] = &y.share[0].vec[0];

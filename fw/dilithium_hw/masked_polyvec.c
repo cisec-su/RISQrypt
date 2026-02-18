@@ -49,8 +49,12 @@ void masked_polyveck_invntt(masked_polyveck *r) {
     unsigned int i, j;
 
     for(i = 0; i < MASKING_N; i++)
-        for(j = 0; j < K; j++)
+        for(j = 0; j < K; j++) {
+            if (j == (K - 1)) {
+                ntt_lite_set_clr();
+            }
             ntt_lite_backward_ntt((uint32_t*) &r->share[i].vec[j].coeffs, (uint32_t*) &r->share[i].vec[j].coeffs);
+        }
 }
 
 
@@ -79,7 +83,7 @@ void masked_polyvecl_pointwise_acc(masked_poly_ptr *w, const polyvecl *u, const 
             }
             else {
                 dst = (uint32_t*) w->share[j]->coeffs;
-                ntt_lite_set_clr();
+                ntt_lite_set_clr_with_twiddle();
             }
             ntt_lite_mac(dst, (uint32_t*) &v->share[j].vec[i].coeffs, (uint32_t*) &u->vec[i].coeffs);
         }
