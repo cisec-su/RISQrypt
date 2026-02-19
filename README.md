@@ -62,7 +62,9 @@ All firmware is built using `make` and uploaded via UART using the RISQrypt boot
 ### 🔐 Kyber Test
 
 ```bash
+cd fw/test/kyber_test
 make
+cd ../../../
 python3 sdk/toolchain/bootloader.py -f fw/test/kyber_test/kyber_test
 ```
 
@@ -71,8 +73,10 @@ python3 sdk/toolchain/bootloader.py -f fw/test/kyber_test/kyber_test
 ### ✍️ Dilithium Test
 
 ```bash
+cd fw/test/dilithium_test
 make
-python3 sdk/toolchain/bootloader.py -f fw/test/kyber_test/dilithium_test
+cd ../../../
+python3 sdk/toolchain/bootloader.py -f fw/test/dilithium_test/dilithium_test
 ```
 
 ---
@@ -86,7 +90,9 @@ Performance benchmarks measure execution time of cryptographic operations.
 ### 📊 Kyber Time Benchmark
 
 ```bash
+cd fw/benchmark/time_perf/kyber_time_perf
 make
+cd ../../../../
 python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/kyber_time_perf/kyber_time_perf
 ```
 
@@ -95,7 +101,9 @@ python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/kyber_time_perf/ky
 ### 📊 Dilithium Time Benchmark
 
 ```bash
+cd fw/benchmark/time_perf/dilithium_time_perf
 make
+cd ../../../../
 python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/dilithium_time_perf/dilithium_time_perf
 ```
 
