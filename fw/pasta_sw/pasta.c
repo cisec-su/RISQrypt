@@ -100,23 +100,6 @@ void mix_soft(poly *B_left, poly *B_right, const poly *A_left, const poly *A_rig
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Performs element-wise modular multiplication: c[i] = (a[i] * b[i]) mod Q
- *        Pure software implementation
- *
- * @param c Output polynomial
- * @param a First input polynomial
- * @param b Second input polynomial
- */
-void poly_pointwise_soft(poly *c, const poly *a, const poly *b) {
-    size_t i;
-    uint64_t product;
-    for (i = 0; i < N; i++) {
-        product = (uint64_t)a->coeffs[i] * (uint64_t)b->coeffs[i];
-        c->coeffs[i] = (int32_t)(product % Q);
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @brief Generate a random polynomial using SHAKE128
@@ -326,26 +309,22 @@ void pasta_encrypt_one_block_soft(poly *ciphertext, const poly *plaintext, const
     matmul_soft(&new_state2, &state2, nonce, block_ctr, poly_ctr);
     poly_ctr = poly_ctr + 1;
 
-    //add_rc_soft(&state1, &temp1);
     allow_zero = 1;
-    poly_uniform_soft(&temp1,nonce, block_ctr, poly_ctr,allow_zero);
-    
+    poly_uniform_soft(&temp1, nonce, block_ctr, poly_ctr, allow_zero);
+
     poly_ctr = poly_ctr + 1;
-    for(i=0;i<N;i++)
+    for(i = 0; i < N; i++)
         state1.coeffs[i] = (new_state1.coeffs[i] + temp1.coeffs[i]) % Q;
-    
-    //add_rc_soft(&state2, &temp2);
-    poly_uniform_soft(&temp2,nonce, block_ctr, poly_ctr,allow_zero);
+
+    poly_uniform_soft(&temp2, nonce, block_ctr, poly_ctr, allow_zero);
     poly_ctr = poly_ctr + 1;
-    for(i=0;i<N;i++)
+    for(i = 0; i < N; i++)
         state2.coeffs[i] = (new_state2.coeffs[i] + temp2.coeffs[i]) % Q;
-    // Step 3: Mix the two states
 
     // Final mix (state1 becomes the keystream)
     mix_soft(&temp1, &final_state2, &state1, &state2);
 
-    //add_rc_soft(&state2, &temp2);
-    for(i=0;i<N;i++)
+    for(i = 0; i < N; i++)
         ciphertext->coeffs[i] = (temp1.coeffs[i] + plaintext->coeffs[i]) % Q;
 }
 

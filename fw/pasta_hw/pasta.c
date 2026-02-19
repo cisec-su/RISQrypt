@@ -26,12 +26,11 @@ void sbox_cube(poly *B, poly *A) {
  * @param A Input polynomial
  */
 void sbox_feistel(poly *B, const poly *A) {
-    // Feistel function implementation
+    // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
     uint32_t C[N+1];  // Shifted version of A
     ntt_lite_set_bound(0);
     C[0] = 0x00000;
-    //ntt_lite_mul_const(C,NTT_LITE_INPUT_DIS); //C[0] = 0x00000;
-    ntt_lite_add_const(C + 1, A->coeffs); 
+    ntt_lite_add_const(C + 1, A->coeffs);
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, C, C);  // C_square = C^2
     ntt_lite_add(B->coeffs, NTT_LITE_INPUT_DIS, A->coeffs); // B = A + C^2
 }
@@ -62,10 +61,12 @@ void calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
  * @param A_right Input right polynomial
  */
 void mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
+    // B_left = 2*A_left + A_right, B_right = A_left + 2*A_right
+    // Uses single ntt_lite_set_bound call for both operations
     ntt_lite_set_bound(2);
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_left->coeffs);
     ntt_lite_add(B_left->coeffs, NTT_LITE_INPUT_DIS, A_right->coeffs);
-    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_right->coeffs); 
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_right->coeffs);
     ntt_lite_add(B_right->coeffs, NTT_LITE_INPUT_DIS, A_left->coeffs);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,65 +124,41 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
     poly temp1, temp2;  // After matmul
     poly temp3, temp4;  // After add_rc
     poly temp5, temp6;  // After mix
-    uint32_t CC[N+1];  // Shifted version of A
-
     poly rand;
-    int allow_zero;
     uint8_t poly_ctr;
-    allow_zero = 1;
 
-    poly_ctr = (r<<2);
-    
+    poly_ctr = (r << 2);
+
+    // Matrix multiplication on both states
     matmul(&temp1, A, nonce, block_ctr, poly_ctr);
-    poly_ctr = poly_ctr + 1;
+    poly_ctr++;
 
     matmul(&temp2, B, nonce, block_ctr, poly_ctr);
-    poly_ctr = poly_ctr + 1;
+    poly_ctr++;
 
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero);
-    poly_ctr = poly_ctr + 1;
+    // Add round constants (random polynomials with allow_zero=1)
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1);
+    poly_ctr++;
     ntt_lite_add(temp3.coeffs, temp1.coeffs, rand.coeffs);
 
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero);
-    poly_ctr = poly_ctr + 1;
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1);
+    poly_ctr++;
     ntt_lite_add(temp4.coeffs, temp2.coeffs, rand.coeffs);
-    
-    // Step 3: Mix the two states
-    //mix(&temp5, &temp6, &temp3, &temp4);
-    //temp6  = 2*temp4 + temp3
 
+    // Step 3: Mix the two states - single bound set for both mix operations
     ntt_lite_set_bound(2);
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
     ntt_lite_add(temp5.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
-    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs); 
+    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs);
     ntt_lite_add(temp6.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
     
     // Step 4: Apply S-box (cube for last round, feistel otherwise)
     if (r == PASTA_R - 1) {
-        //sbox_cube(C, &temp5);
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, temp5.coeffs, temp5.coeffs);
-        ntt_lite_pwm(C->coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
-        //sbox_cube(D, &temp6);
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, temp6.coeffs, temp6.coeffs);
-        ntt_lite_pwm(D->coeffs, NTT_LITE_INPUT_DIS, NTT_LITE_INPUT_DIS);
+        sbox_cube(C, &temp5);
+        sbox_cube(D, &temp6);
     } else {
-        //sbox_feistel(C, &temp5);
-        // Feistel function implementation
-        ntt_lite_set_bound(0);
-        CC[0] = 0x00000;
-        //ntt_lite_mul_const(C,NTT_LITE_INPUT_DIS); //C[0] = 0x00000;
-        ntt_lite_add_const(CC + 1, temp5.coeffs); 
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, CC, CC);  // C_square = C^2
-        ntt_lite_add(C->coeffs, NTT_LITE_INPUT_DIS, temp5.coeffs); // B = A + C^2
-
-        //sbox_feistel(D, &temp6);
-        //uint32_t CC[N+1];  // Shifted version of A
-        ntt_lite_set_bound(0);
-        CC[0] = 0x00000;
-        //ntt_lite_mul_const(C,NTT_LITE_INPUT_DIS); //C[0] = 0x00000;
-        ntt_lite_add_const(CC + 1, temp6.coeffs); 
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, CC, CC);  // C_square = C^2
-        ntt_lite_add(D->coeffs, NTT_LITE_INPUT_DIS, temp6.coeffs); // B = A + C^2
+        sbox_feistel(C, &temp5);
+        sbox_feistel(D, &temp6);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,8 +180,8 @@ void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int3
     poly rand;
     poly state1, state2;
     poly temp1, temp2;
-    uint8_t poly_ctr;
     size_t r;
+    uint8_t poly_ctr;
     uint64_t block_ctr;
     int allow_zero;
 
@@ -220,27 +197,27 @@ void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int3
         pasta_round(&state1, &state2, &state1, &state2, nonce, block_ctr, r);
     }
     
-    poly_ctr = (PASTA_R<<2);
+    poly_ctr = (PASTA_R << 2);
 
     // Final matmul on both states
     matmul(&temp1, &state1, nonce, block_ctr, poly_ctr);
-    poly_ctr = poly_ctr + 1;
+    poly_ctr++;
     matmul(&temp2, &state2, nonce, block_ctr, poly_ctr);
-    poly_ctr = poly_ctr + 1;
+    poly_ctr++;
+
+    // Add final round constants
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero);
+    poly_ctr++;
+    poly_add(&state1, &temp1, &rand);
 
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero);
-    poly_ctr = poly_ctr + 1;
-    poly_add(&state1, &temp1, &rand);
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero);
-    poly_ctr = poly_ctr + 1;
+    poly_ctr++;
     poly_add(&state2, &temp2, &rand);
 
     // Final mix (state1 becomes the keystream)
-    //mix(keystream, &final_state2, &state1, &state2);
     ntt_lite_set_bound(2);
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, state1.coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, state2.coeffs);
-
     ntt_lite_add(ciphertext->coeffs, NTT_LITE_INPUT_DIS, plaintext->coeffs);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -127,14 +127,6 @@ void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
 void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero)
 {
 
-    //print_string("\npolyctr: ");
-    //print_u32_int(poly_ctr);
-    //print_string("\t block_ctr: ");
-    //print_u32_int(block_ctr);
-    //print_string("\t allow_zero: ");
-    //print_u32_int(allow_zero);
-    //print_string("\n");
-
     poly b;
     unsigned int buflen = 4*STREAM128_BLOCKBYTES;
     uint32_t buf[(STREAM128_BLOCKBYTES>>2)*4]; // 316 -> 128
@@ -145,7 +137,6 @@ void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr,
         ntt_lite_decode(NTT_LITE_OUTPUT_DIS, buf, 16);
         ntt_lite_set_bound(1); // add +1
         ntt_lite_add_const((uint32_t*)a->coeffs,NTT_LITE_INPUT_DIS);
-        //print_u32_arr(a->coeffs,5);
     } else {
 
 #ifdef REJ_SAMP_DIS
@@ -155,11 +146,9 @@ void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr,
 #else 
         stream128_init(nonce, block_ctr, poly_ctr);
         stream128_squeezeblocks((uint8_t*) buf, 4);
-
         ntt_lite_set_inv2((STREAM128_BLOCKBYTES>>2)*4); //input size 1008 --todo! bunlari bir defa set edebilirsin
         ntt_lite_set_bound(Q);
         ntt_lite_rejsamp((uint32_t*) a->coeffs, buf, 17, NTT_LITE_REJSAMP_CENTER_DIS);
-        //print_u32_arr(a->coeffs,5);
 #endif
 
     }
