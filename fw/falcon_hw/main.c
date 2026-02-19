@@ -6,7 +6,6 @@
 #include "util.h"
 #include "symmetric.h"
 #include "keccak.h"
-#include "keccak_tests.h"
 #include "falcon.h"
 
 #include "extracted_vectors.h"
@@ -22,7 +21,6 @@
 
 /* General purpose large buffer for tests (72KB to be safe for all operations) */
 #define WORK_BUFFER_SIZE (72 * 1024)
-#define FALCON_Q 12289
 
 /* Allocate actual memory for operations */
 static uint8_t pool_buffer[WORK_BUFFER_SIZE] __attribute__((aligned(4)));
@@ -30,22 +28,22 @@ static uint8_t pool_buffer[WORK_BUFFER_SIZE] __attribute__((aligned(4)));
 /* Pointers used by tests */
 uint8_t *tmpvv;
 size_t tmpvv_len;
-
+extern uint32_t psi_inv[256];
+extern uint32_t psi[256];
+extern uint32_t zetas[256];
 
 uint32_t sig_buffer[256] __attribute__((aligned(4)));
 
 void test_falcon_verify() {
     int result;
     unsigned int time;
-    /* sig_ptr = sig_buffer + 3 bytes, so sig_ptr + 1 = sig_buffer + 4 = aligned!
-     * This is critical: falcon_verify_start does shake256_inject(sig + 1, 40)
-     * which passes the address to HW Keccak DMA. DMA requires 4-byte alignment. */
+
     uint8_t *sig_ptr = ((uint8_t*) sig_buffer) + 3;
 
     print_string("\n=== Falcon-512 Verification ===\n");
 
     /* ----------------------------------------------------------------
-     * TEST 1: COMPRESSED SIGNATURE adresleri kontrol et aligned mi değil mi ? 32 bite align olmalı adresler 4ün katı bizim accelaratorlerde 4un katı olmak zorunda __attribute__((aligned(4))) kullan 32 bit array tanımla cast et
+     * TEST 1: COMPRESSED SIGNATURE
      * ---------------------------------------------------------------- */
     print_string("[TEST] Verify COMPRESSED... ");
     
@@ -79,7 +77,6 @@ void test_falcon_verify() {
 
     /* ----------------------------------------------------------------
      * TEST 2: PADDED SIGNATURE
-     * Copy into sig_buffer+3 so that sig+1 (nonce) is 4-byte aligned
      * ---------------------------------------------------------------- */
     print_string("[TEST] Verify PADDED...     ");
 
@@ -111,7 +108,6 @@ void test_falcon_verify() {
 
     /* ----------------------------------------------------------------
      * TEST 3: CT (CONSTANT-TIME) SIGNATURE
-     * Copy into sig_buffer+3 so that sig+1 (nonce) is 4-byte aligned
      * ---------------------------------------------------------------- */
     print_string("[TEST] Verify CT...         ");
 
@@ -151,18 +147,110 @@ void test_falcon_verify() {
     print_string("\n=== Falcon-512 Verification END===\n");
 }
 
+/* ================================================================== */
+/* HW NTT INTEGRATION TEST                                            */
+/* ================================================================== */
+void test_hw_ntt() {
+    print_string("\n=== HW NTT Test ===\n");
+
+    poly a;
+    int pass;
+
+    poly_init_q();
+
+    for (int i = 0 ; i < N ; i++){
+        a.coeffs[i] = i;
+    }
+    int32_t orig[N];
+    for (int i = 0; i < N; i++) orig[i] = a.coeffs[i];
+
+    print_string("  In[0..3]: ");
+    print_u32_arr((uint32_t*)a.coeffs, 8);
+
+    poly_init_ntt();
+    ntt_lite_forward_ntt((uint32_t*)a.coeffs, (uint32_t*)a.coeffs);
+
+    print_string("  NTT[0..3]: ");
+    print_u32_arr((uint32_t*)a.coeffs, 8);
+
+    poly_init_invntt();
+    ntt_lite_backward_ntt((uint32_t*)a.coeffs, (uint32_t*)a.coeffs);
+
+    print_string("  Out[0..3]: ");
+    print_u32_arr((uint32_t*)a.coeffs, 8);
+    print_string("  Exp[0..3]: ");
+    print_u32_arr((uint32_t*)orig, 8);
+
+    pass = 1;
+    for (int i = 0; i < N; i++) {
+        if (a.coeffs[i] != orig[i]) {
+            print_string("  FAIL["); print_u32_int(i);
+            print_string("] got="); print_u32(a.coeffs[i]);
+            print_string(" exp="); print_u32(orig[i]);
+            print_string("\n");
+            pass = 0;
+            if (i >= 3) break;
+        }
+    }
+    if (pass) print_string("  PASS\n");
+
+    /* ============================================================
+     * Test 2: NTT -> basemul -> iNTT
+     * ============================================================ */
+    print_string("\n[NTT + basemul + iNTT]\n");
+    poly b;
+    poly r;
+    /* Reset input */
+    for (int i = 0; i < N; i++) a.coeffs[i] = 0;
+    for (int i = 0; i < 2; i++) a.coeffs[i] = 1;
+
+    /* basemul with identity (all 1s) */
+    for (int i = 0; i < N; i++) b.coeffs[i] = 0;
+    for (int i = 0; i < 2; i++) b.coeffs[i] = 1;
+    poly_init_ntt();
+    ntt_lite_forward_ntt((uint32_t*)a.coeffs, (uint32_t*)a.coeffs);
+    ntt_lite_forward_ntt((uint32_t*)b.coeffs, (uint32_t*)b.coeffs);
+    poly_basemul(&r, &a, &b);
+
+    print_string("  basemul[0..3]: ");
+    // for (int i = 0; i < 16; i++) { print_u32(r.coeffs[i]); print_string(" "); }
+    print_u32_arr((uint32_t*)r.coeffs, 16);
+    print_string("\n");
+
+    /* Backward NTT */
+    poly_init_invntt();
+    ntt_lite_backward_ntt((uint32_t*)r.coeffs, (uint32_t*)r.coeffs);
+
+    print_string("  Out[0..3]: ");
+    // for (int i = 0; i < 4; i++) { print_u32(r.coeffs[i]); print_string(" "); }
+    print_u32_arr((uint32_t*)r.coeffs, 16);
+    print_string("\n");
+    print_string("  Exp[0..3]: ");
+    // for (int i = 0; i < 4; i++) { print_u32(orig[i]); print_string(" "); }
+    print_u32_arr((uint32_t*)orig, 16);
+    print_string("\n");
+
+    pass = 1;
+    for (int i = 0; i < N; i++) {
+        if (r.coeffs[i] != orig[i]) {
+            print_string("  FAIL["); print_u32_int(i);
+            print_string("] got="); print_u32(r.coeffs[i]);
+            print_string(" exp="); print_u32(orig[i]);
+            print_string("\n");
+            pass = 0;
+            if (i >= 3) break;
+        }
+    }
+    if (pass) print_string("  PASS\n");
+
+    print_string("\n=== HW NTT Test END ===\n");
+}
+
 int main() {
     tmpvv = pool_buffer;
     tmpvv_len = WORK_BUFFER_SIZE;
     
-    //these tests worked well for falcon API
-    // test_keccak_simple();
-    // test_keccak_golden();
-    // test_falcon_api();
-
-    //keccak_newapi();
-
-    //test_keccak_simple();
+    //test_hw_ntt();
     test_falcon_verify();
     
     

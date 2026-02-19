@@ -5,7 +5,7 @@
 
 #define FALCON_NAMESPACE(s) falcon_##s
 
-#define N 256
+#define N 512
 // #define Q 8380417
 // #define D 13
 // #define ROOT_OF_UNITY 1753
