@@ -19,8 +19,8 @@
 /* CONSTANTS & MACROS                                                 */
 /* ================================================================== */
 
-/* General purpose large buffer for tests (72KB to be safe for all operations) */
-#define WORK_BUFFER_SIZE (72 * 1024)
+/* General purpose large buffer for tests (5KB to be safe for all operations) */
+#define WORK_BUFFER_SIZE (5 * 1024)
 
 /* Allocate actual memory for operations */
 static uint8_t pool_buffer[WORK_BUFFER_SIZE] __attribute__((aligned(4)));
@@ -250,7 +250,7 @@ int main() {
     tmpvv = pool_buffer;
     tmpvv_len = WORK_BUFFER_SIZE;
     
-    //test_hw_ntt();
+    test_hw_ntt();
     test_falcon_verify();
     
     
