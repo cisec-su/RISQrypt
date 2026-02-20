@@ -7,6 +7,7 @@
 #define MODULUS_BIT_MASK (1<<17)-1 // 0x1FFFF
 
 #define PASTA_NAMESPACE(s) pasta_##s
+#define DILITHIUM_NAMESPACE(s) pqcrystals_dilithium_##s
 
-
- 
+#define MASKING_N 2
+#define LOG_MASKING_N 1

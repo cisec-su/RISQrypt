@@ -23,7 +23,7 @@ void poly_invntt_sub(poly *a, poly *b, poly *c);
 int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B);
 int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, const poly *u, uint32_t B);
 int poly_invntt_chknorm(poly *a, uint32_t B);
-void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero);
+void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero, int to_hw);
 
 
 #endif
