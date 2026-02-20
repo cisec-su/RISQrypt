@@ -4,7 +4,7 @@ TOOLCHAIN_DIR = ../../../sdk/toolchain
 
 LIB_DIR = ../../../sdk/lib
 
-DILITHIUM_DIR = ../../dilithium
+DILITHIUM_DIR = ../../src/dilithium
 
 SRC  = main.c
 SRC += $(DILITHIUM_DIR)/packing.c

@@ -4,7 +4,7 @@ TOOLCHAIN_DIR = ../../../../sdk/toolchain
 
 LIB_DIR = ../../../../sdk/lib
 
-KYBER_DIR = ../../../kyber
+KYBER_DIR = ../../../src/kyber
 
 SRC =  main.c
 SRC += $(KYBER_DIR)/indcpa.c

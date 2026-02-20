@@ -1,13 +1,13 @@
 `timescale 1ns/1ps
 
-module fpga_top_tb;
+module risqrypt_top_tb;
 
     // Testbench signals
     reg M100_clk_i;
     reg reset_i;
 
     // Instantiate the DUT (Device Under Test)
-    fpga_top dut (
+    risqrypt_top dut (
         .clk_i(M100_clk_i),
         .reset_i(reset_i),
         .rx_i(),        // Unconnected
