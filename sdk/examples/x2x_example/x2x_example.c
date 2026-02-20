@@ -7,7 +7,7 @@
 
 int main() {
 
-    uint32_t data[] = {0, 103, 2000, 3327};
+    uint32_t data[] = {0, 103, 2000, 3327, 3, 11, 1024, 2048, 3000, 3328, 311, 2424, 1234, 3210, 3326, 1};
     const unsigned int len = sizeof(data) / sizeof(data[0]);
 
     uint32_t share_in_0[len];
@@ -23,13 +23,13 @@ int main() {
 
     char hex_out[32];
 
-    uart_transmit_string("X2X Example: A2B\n\n", 20);
+    print_string("X2X Example: A2B\n");
 
-    x2x_set_modulus(&modulus, X2X_MODULUS_PRIME);
+    x2x_set_modulus(modulus, 12, X2X_MODULUS_PRIME, X2X_DUAL_MODE_DIS, X2X_REJ_SAMPLE_EN);
     x2x_seed(seed);
 
 
-    uart_transmit_string("Set Modulus Done\n\n", 18);
+    print_string("Set Modulus Done\n");
 
     for (i = 0; i < len; i++) {
         share_in_0[i] = i*100; // random
@@ -38,17 +38,18 @@ int main() {
             share_in_1[i] -= modulus;
         }
     }
+    print_u32_arr(share_in_0, len);
+    print_string("\n");
+    print_u32_arr(share_in_1, len);
+    print_string("\n");
 
     x2x_a2b(share_out_1, share_out_0, share_in_1, share_in_0, len);
 
-    uart_transmit_string("A2B Done\n\n", 18);
-
-    byte_to_hex(hex_out, (char *)share_out_0, 16);
-    uart_transmit_string(hex_out, 32);
-    uart_transmit_string("\n\n", 2);
-    byte_to_hex(hex_out, (char *)share_out_1, 16);
-    uart_transmit_string(hex_out, 32);
-    uart_transmit_string("\n\n", 2);
+    print_string("A2B Done\n");
+    print_u32_arr(share_out_0, len);
+    print_string("\n");
+    print_u32_arr(share_out_1, len);
+    print_string("\n");
 
     flag = 0;
     for (i = 0; i < len; i++) {
@@ -58,9 +59,9 @@ int main() {
     }
 
     if (!flag) {
-        uart_transmit_string("PASS\n\n", 6);
+        print_string("PASS\n");
     } else {
-        uart_transmit_string("FAIL\n\n", 6);
+        print_string("FAIL\n");
     }
 
     return 0;

@@ -8,7 +8,7 @@ CW305_DRIVER_DIR = ../../driver
 
 SIMPLESERIAL_DIR = ../../simpleserial
 
-KYBER_DIR = ../../../../fw/kyber
+KYBER_DIR = ../../../../fw/src/kyber
 
 VICTIMS_COMMONS_DIR = ../victims_commons
 
