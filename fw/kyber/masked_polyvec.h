@@ -1,0 +1,45 @@
+#ifndef MASKED_POLYVEC_H
+#define MASKED_POLYVEC_H
+
+#include "masked.h"
+#include "masked_poly.h"
+#include "polyvec.h"
+
+
+typedef struct{
+    polyvec share[MASKING_N];
+} masked_polyvec;
+
+typedef struct{
+    polyvec_u32 share[MASKING_N];
+} masked_polyvec_u32;
+
+
+#define masked_polyvec_ntt KYBER_NAMESPACE(_masked_polyvec_ntt)
+void masked_polyvec_ntt(masked_polyvec *r);
+
+#define masked_polyvec_pointwise_acc_invntt_sub KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_sub)
+void masked_polyvec_pointwise_acc_invntt_sub(masked_poly *r, const masked_polyvec *a, const polyvec *b, const poly *c);
+
+#define masked_polyvec_pointwise_acc_invntt_add_i KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_add_i)
+void masked_polyvec_pointwise_acc_invntt_add_i(masked_polyvec *r, const masked_polyvec *a, const polyvec *b, const masked_polyvec *c, unsigned int i);
+
+#define masked_polyvec_pointwise_acc_invntt_addchain KYBER_NAMESPACE(_masked_polyvec_pointwise_acc_invntt_addchain)
+void masked_polyvec_pointwise_acc_invntt_addchain(masked_poly *r, const masked_polyvec *a, const polyvec *b, const masked_poly *c, const masked_poly *d);
+
+#define masked_polyvec_sub_compress KYBER_NAMESPACE(_masked_polyvec_sub_compress)
+void masked_polyvec_sub_compress(masked_polyvec_u32 *r, const masked_polyvec *a, const uint8_t *b);
+
+void masked_polyvec_mask(masked_polyvec *r, const polyvec *a);
+
+#define masked_polyvec_getnoise_eta1_fromhw KYBER_NAMESPACE(_masked_polyvec_getnoise_eta1_fromhw)
+void masked_polyvec_getnoise_eta1_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
+
+#define masked_polyvec_getnoise_eta2_fromhw KYBER_NAMESPACE(_masked_polyvec_getnoise_eta2_fromhw)
+void masked_polyvec_getnoise_eta2_fromhw(masked_polyvec *r, const masked_sym seed, uint8_t *nonce);
+
+#define masked_polyvec_u32_acc KYBER_NAMESPACE(_masked_polyvec_u32_acc)
+void masked_polyvec_u32_acc(masked_u32 r, const masked_polyvec_u32 *a, const masked_poly_u32 *b);
+
+
+#endif
