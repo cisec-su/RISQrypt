@@ -7,7 +7,7 @@
 
 int main() {
 
-    uint32_t data[] = {0, 103, 2000, 3327};
+    uint32_t data[] = {0, 103, 2000, 3327, 3, 11, 1024, 2048, 3000, 3328, 311, 2424, 1234, 3210, 3326, 1};
     const unsigned int len = sizeof(data) / sizeof(data[0]);
 
     uint32_t share_in_0[len];
@@ -38,13 +38,17 @@ int main() {
             share_in_1[i] -= modulus;
         }
     }
+    print_u32_arr(share_in_0, len);
+    print_string("\n");
+    print_u32_arr(share_in_1, len);
+    print_string("\n");
 
     x2x_a2b(share_out_1, share_out_0, share_in_1, share_in_0, len);
 
     print_string("A2B Done\n");
-    print_u32(share_out_0[0]);
+    print_u32_arr(share_out_0, len);
     print_string("\n");
-    print_u32(share_out_1[0]);
+    print_u32_arr(share_out_1, len);
     print_string("\n");
 
     flag = 0;
