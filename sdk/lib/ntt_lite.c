@@ -1,5 +1,5 @@
 #include "ntt_lite.h"
-#include "hornet.h"
+#include "risqrypt.h"
 #include "sdk_benchmark.h"
 
 
@@ -13,7 +13,7 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, u
     BENCH_START(ntt_lite_cc);
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -125,7 +125,7 @@ int ntt_lite_set_clr() {
     BENCH_START(ntt_lite_cc);
 
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_SET_CLR;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -136,7 +136,7 @@ int ntt_lite_set_clr_with_twiddle() {
     BENCH_START(ntt_lite_cc);
 
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_SET_CLR | NTT_LITE_CTRL_OP_SWITCH_EN_V;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -147,7 +147,7 @@ static int ntt_lite_load_twiddle_core_op(const uint32_t *psi, uint32_t op, uint3
 
     NTT_LITE_REGS->din_addr = (uint32_t) psi;
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | op | op_switch;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     return 0;
 }
@@ -157,7 +157,7 @@ static int ntt_lite_load_twiddle_core(const uint32_t *psi) {
 
     NTT_LITE_REGS->din_addr = (uint32_t) psi;
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
     return 0;
 }
 
@@ -168,7 +168,7 @@ int ntt_lite_load_twiddle(const uint32_t *psi) {
     BENCH_START(ntt_lite_cc);
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -183,14 +183,14 @@ int ntt_lite_load_zeta(const uint32_t *zeta) {
     BENCH_START(ntt_lite_cc);
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
 
     NTT_LITE_REGS->din_addr = (uint32_t) zeta;
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_ZETA;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -203,7 +203,7 @@ static int ntt_lite_ntt_core(uint32_t *dst, const uint32_t *src, uint32_t op) {
     uint32_t out_dis;
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -219,7 +219,7 @@ static int ntt_lite_ntt_core(uint32_t *dst, const uint32_t *src, uint32_t op) {
 
     NTT_LITE_REGS->ctrl |= cmd | op;
 
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     return 0;
 }
@@ -267,7 +267,7 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
     uint32_t out_dis;
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -292,7 +292,7 @@ static int ntt_lite_pointwise_op(uint32_t *dst, const uint32_t *lhs, const uint3
 
     NTT_LITE_REGS->ctrl |= cmd | op | rhs_const | op_switch;
 
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     return 0;
 }
@@ -383,7 +383,7 @@ int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
     BENCH_START(ntt_lite_cc);
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -396,7 +396,7 @@ int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
         NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_START     | NTT_LITE_CTRL_OP_ENCODE | (d << NTT_LITE_CTRL_D_S);
     }
 
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -406,7 +406,7 @@ int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
 static int ntt_lite_decode_core(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t op) {
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -414,7 +414,7 @@ static int ntt_lite_decode_core(uint32_t *dst, const uint32_t *src, uint32_t d, 
     NTT_LITE_REGS->din_addr = (uint32_t) src;
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | (d << NTT_LITE_CTRL_D_S) | op;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     return 0;
 }
@@ -444,10 +444,12 @@ int ntt_lite_cbd(uint32_t *dst, const uint32_t *src, uint32_t d) {
 
 int ntt_lite_rejsamp(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t center) {
     uint32_t center_int;
+    uint32_t status;
+    int ret;
     BENCH_START(ntt_lite_cc);
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -461,10 +463,20 @@ int ntt_lite_rejsamp(uint32_t *dst, const uint32_t *src, uint32_t d, uint32_t ce
     NTT_LITE_REGS->din_addr = (uint32_t) src;
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
     NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_LOAD_TWIDDLE | NTT_LITE_CTRL_OP_REJSAMP | (d << NTT_LITE_CTRL_D_S) | center_int;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+
+    do {
+        status = NTT_LITE_REGS->status;
+    }
+    while(!(status & NTT_LITE_STATUS_DONE_V));
+
+    if (status & NTT_LITE_STATUS_REJSAMP_IP_V) {
+        ret = NTT_LITE_REJSAMP_IP;
+    } else {
+        ret = NTT_LITE_REJSAMP_DONE;
+    }
 
     BENCH_END(ntt_lite_cc);
-    return 0;
+    return ret;
 }
 
 
@@ -474,7 +486,7 @@ int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d) {
     uint32_t out_dis;
     BENCH_START(ntt_lite_cc);
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -489,7 +501,7 @@ int ntt_lite_compress(uint32_t *dst, const uint32_t *src, uint32_t d) {
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
 
     NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_COMPRESS | (d << NTT_LITE_CTRL_D_S);
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
     BENCH_END(ntt_lite_cc);
     return 0;
 }
@@ -502,7 +514,7 @@ static int ntt_lite_decompress_core(uint32_t *dst, const uint32_t *src, uint32_t
     uint32_t round_dis;
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -517,7 +529,9 @@ static int ntt_lite_decompress_core(uint32_t *dst, const uint32_t *src, uint32_t
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
 
     NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_DECOMPRESS | (d << NTT_LITE_CTRL_D_S) | round;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
+
+    return 0;
 }
 
 
@@ -548,7 +562,7 @@ int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src) {
     if (dst_1 != NTT_LITE_OUTPUT_DIS) {
         NTT_LITE_REGS->dout_addr = (uint32_t) dst_1;
         NTT_LITE_REGS->ctrl |= NTT_LITE_CTRL_CMD_READ_TWIDDLE;
-        while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+        while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
     }
 
     BENCH_END(ntt_lite_cc);
@@ -560,14 +574,14 @@ static int ntt_lite_read_core(uint32_t *dst, uint32_t cmd) {
     BENCH_START(ntt_lite_cc);
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
 
     NTT_LITE_REGS->dout_addr = (uint32_t) dst;
     NTT_LITE_REGS->ctrl |= cmd;
-    while(!(NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_DONE_V));
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -592,7 +606,7 @@ int ntt_lite_chknorm(const uint32_t *src) {
     int ret;
 
 #ifndef BUSY_CHECK_DIS
-    if ((NTT_LITE_REGS->ctrl & NTT_LITE_CTRL_BUSY_V)) {
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
         return -1;
     }
 #endif
@@ -607,10 +621,10 @@ int ntt_lite_chknorm(const uint32_t *src) {
     NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_CHKNORM;
 
     do {
-        status = NTT_LITE_REGS->ctrl;
-    } while(!(status & NTT_LITE_CTRL_DONE_V));
+        status = NTT_LITE_REGS->status;
+    } while(!(status & NTT_LITE_STATUS_DONE_V));
 
-    if (status & NTT_LITE_CTRL_CHKNORM_V) {
+    if (status & NTT_LITE_STATUS_CHKNORM_V) {
         ret = NTT_LITE_CHKNORM_FAIL;
     } else {
         ret = NTT_LITE_CHKNORM_SUCC;

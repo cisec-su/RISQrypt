@@ -39,7 +39,7 @@ uint8_t get_key(uint8_t* k, uint8_t len)
         c[i] = 1;
     }
     for (int i = 0; i < KYBER_PUBLICKEYBYTES; i++){
-        pk[i] = 3;
+        pk[i] = 1;
     }
     for (int i = 0; i < MASKING_N; i++){
         for (int j = 0; j < KYBER_SYMBYTES * 2; j++){
@@ -61,13 +61,7 @@ uint8_t get_key(uint8_t* k, uint8_t len)
         k[i] = 0;
     }
     vck_masked_polyvec_from_seed(&mskpv_dummy, k);
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
-    ////////////////////// dummy process ////////////////////////////
-    poly_init_q();
-    masked_gadgets_init_q();
-    masked_crypto_kem_dec_core(mss_dummy, c, pk, &mskpv_dummy, mhz);
-    (void) mss_dummy;
+    (void) mskpv_dummy;
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// sleep ///////////////////////////////
@@ -75,6 +69,17 @@ uint8_t get_key(uint8_t* k, uint8_t len)
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////// action //////////////////////////////
+    for (int i = 0; i < KYBER_CIPHERTEXTBYTES; i++){
+        c[i] = 1;
+    }
+    for (int i = 0; i < KYBER_PUBLICKEYBYTES; i++){
+        pk[i] = 1;
+    }
+    for (int i = 0; i < MASKING_N; i++){
+        for (int j = 0; j < KYBER_SYMBYTES * 2; j++){
+            mhz[i][j] = 1;
+        }
+    }
     poly_init_q();
     masked_gadgets_init_q();
     cw305_trigger_up();
@@ -107,7 +112,7 @@ int main(void)
     print_string("Kyber IndCCA Dec\n");
 
     simpleserial_init();
-    simpleserial_addcmd('l', 0, vcu_prng_on);
+    simpleserial_addcmd('l', 8, vcu_prng_on);
     simpleserial_addcmd('g', 0, vcu_prng_off);
     simpleserial_addcmd('p', VCK_SEED_LEN, get_key);
 

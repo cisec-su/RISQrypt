@@ -1,5 +1,5 @@
 #include "x2x.h"
-#include "hornet.h"
+#include "risqrypt.h"
 #include "sdk_benchmark.h"
 
 

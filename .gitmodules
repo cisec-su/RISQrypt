@@ -6,4 +6,5 @@
 	url = https://github.com/cisec-su/NTT-Lite.git
 [submodule "peripherals/x2x_wb/x2x"]
 	path = peripherals/x2x_wb/x2x
-	url = https://github.com/KULeuven-COSIC/X2X.git
+	url = https://github.com/cisec-su/X2X.git
+	branch = 32b_extension_fix_risqrypt

@@ -53,23 +53,23 @@ localparam DOUT_PTR_ADDR_START = 12'h0034;   // Offset for first share dout_addr
 localparam DOUT_PTR_ADDR_END   = DOUT_PTR_ADDR_START + ((SHARES - 1) << 2);      // Offset for last share dout_addr register
 
 // Bit-fields for ctrl register
-localparam CTRL_START_BIT      = 0;
-localparam CTRL_CONV_MODE_BIT  = 2;
-localparam CTRL_DATA_TYPE_BIT  = 3;   //readback
-localparam CTRL_DUAL_MODE_BIT  = 4;   //readback
-localparam CTRL_SHARE_MODE_BIT = 5; 
-localparam CTRL_MOD_SIZE_LSB   = 6; 
-localparam CTRL_MOD_SIZE_MSB   = 10;
-localparam CTRL_LOG_STRIDE_LSB = 13; 
-localparam CTRL_LOG_STRIDE_MSB = 15;
-localparam CTRL_ONE_BIT_MODE   = 11; 
-localparam CTRL_REJ_SAMP_BIT   = 12;
-localparam CTRL_OPCODE_LSB     = 16; 
-localparam CTRL_OPCODE_MSB     = 17;
-localparam CTRL_PRNG_OFF_BIT   = 28;
-localparam CTRL_SEED_IP_BIT    = 29;
-localparam CTRL_BUSY_BIT       = 30;
-localparam CTRL_DONE_BIT       = 31;
+localparam CTRL_START_BIT        = 0;
+localparam CTRL_CONV_MODE_BIT    = 2;
+localparam CTRL_DATA_TYPE_BIT    = 3;   //readback
+localparam CTRL_DUAL_MODE_BIT    = 4;   //readback
+localparam CTRL_SHARE_MODE_BIT   = 5; 
+localparam CTRL_MOD_SIZE_LSB     = 6; 
+localparam CTRL_MOD_SIZE_MSB     = 10;
+localparam CTRL_LOG_STRIDE_LSB   = 13; 
+localparam CTRL_LOG_STRIDE_MSB   = 15;
+localparam CTRL_ONE_BIT_MODE_BIT = 11; 
+localparam CTRL_REJ_SAMP_BIT     = 12;
+localparam CTRL_OPCODE_LSB       = 16; 
+localparam CTRL_OPCODE_MSB       = 17;
+localparam CTRL_PRNG_OFF_BIT     = 28;
+localparam CTRL_SEED_IP_BIT      = 29;
+localparam CTRL_BUSY_BIT         = 30;
+localparam CTRL_DONE_BIT         = 31;
 
 wire [31:0] addr_offset;
 reg done_q;
@@ -77,7 +77,7 @@ reg done_q;
 assign addr_offset = addr - BASE_ADDR;
 
 // DONE flag (Clear on Read)
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         done_q <= 1'b0;
     end else if (done) begin
@@ -88,7 +88,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 // START (Self-Clear)
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         start <= 1'd0;
     end
@@ -102,7 +102,7 @@ end
 
 if (PRNG_OFF_EN) begin
     // PRNG OFF (Self-Clear)
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n) begin
             prng_off <= 1'd0;
         end
@@ -117,7 +117,7 @@ end
 
 
 // CONV_MODE
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         conv_mode <= 1'd0;
     end
@@ -129,7 +129,7 @@ end
 
 
 // DATA_TYPE
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         data_type <= 1'd0;
     end
@@ -141,7 +141,7 @@ end
 
 
 // DUAL_MODE
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         dual_mode <= 1'd0;
     end
@@ -151,7 +151,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         share_mode <= 1'd0;
     end
@@ -160,16 +160,16 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         one_bit_mode <= 1'd0;
     end
     else if (we && (addr_offset == CTRL_ADDR)) begin
-        one_bit_mode <= wdata[CTRL_ONE_BIT_MODE];
+        one_bit_mode <= wdata[CTRL_ONE_BIT_MODE_BIT];
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         rej_samp <= 1'd0;
     end
@@ -178,7 +178,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         log_modulus <= 0;
     end
@@ -187,7 +187,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         log_stride <= 0;
     end
@@ -197,7 +197,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         arith_mode <= 1'd0;
     end
@@ -206,7 +206,7 @@ always @(posedge clk or negedge rst_n) begin
     //end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         opcode <= 2'b01;
     end
@@ -219,7 +219,7 @@ end
 generate
     for (genvar i = 0; i < SHARES; i = i + 1) begin : SHARE_GEN
         // (Write)
-        always @(posedge clk or negedge rst_n) begin
+        always @(posedge clk) begin
             if (!rst_n) begin
                 din_addr[i] <= 32'd0;
                 dout_addr[i] <= 32'd0;
@@ -235,7 +235,7 @@ generate
 endgenerate
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         data_len <= 32'd0;
     end else if (we) begin
@@ -245,7 +245,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         seed <= 64'd0;
     end else if (we) begin
@@ -259,7 +259,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 // START RNG (Self-Clear)
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         load_seed <= 1'd0;
     end
@@ -272,7 +272,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         modulus <= 32'd0;
     end else if (we) begin
@@ -283,7 +283,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 // (Read)
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         rdata <= 32'd0;
     end else if (re) begin

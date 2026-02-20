@@ -25,4 +25,5 @@ __pycache__/
 *.gen
 *.webtalk
 *.ets
+*.npy
 .vscode

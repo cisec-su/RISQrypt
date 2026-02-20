@@ -3,7 +3,7 @@ module memory_2rw_wb
         parameter FPGA_READMEM   = 1 ,
         parameter NUM_WMASKS     = 4 ,
         parameter DATA_WIDTH     = 32,
-        parameter ADDR_WIDTH     = 18,
+        parameter ADDR_WIDTH     = 10,
         parameter RAM_DEPTH      = 1 << ADDR_WIDTH,
         parameter ROM_START      = 16'h0000 ,
         parameter ROM_END        = 16'hFFFF ,

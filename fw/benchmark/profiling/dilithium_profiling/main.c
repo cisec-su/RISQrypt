@@ -8,6 +8,10 @@
 #include "timer.h"
 
 
+#define LOG_TEST_NUM 10
+#define TEST_NUM (1 << LOG_TEST_NUM)
+
+
 extern unsigned int ntt_lite_cc;
 extern unsigned int keccak_cc;
 extern unsigned int x2x_cc;
@@ -22,76 +26,94 @@ void reset_modules_cc() {
 }
 
 
-void print_modules_cc(unsigned int time, unsigned int shift) {
-    print_string("NTT-Lite cycles:\t");
-    print_u32_int(ntt_lite_cc >> shift);
-    print_string("\n");
-    print_string("Keccak cycles:\t");
-    print_u32_int(keccak_cc >> shift);
-    print_string("\n");
-    print_string("X2X cycles:\t");
-    print_u32_int(x2x_cc >> shift);
-    print_string("\n");
+void print_modules_cc(unsigned int time) {
+    BENCH_END_SHIFT_COL_T(NTT-Lite, LOG_TEST_NUM, ntt_lite_cc);
+    BENCH_END_SHIFT_COL_T(Keccak, LOG_TEST_NUM, keccak_cc);
+    BENCH_END_SHIFT_COL_T(X2X, LOG_TEST_NUM, x2x_cc);
     time = time - ntt_lite_cc - keccak_cc - x2x_cc;
-    print_string("SW cycles:\t");
-    print_u32_int(time >> shift);
-    print_string("\n");
+    BENCH_END_SHIFT_COL_T(SW, LOG_TEST_NUM, time);
+}
+
+
+void test_api() {
+    static uint8_t pk[CRYPTO_PUBLICKEYBYTES]  __attribute__((aligned(4)));
+    static uint8_t sk[CRYPTO_SECRETKEYBYTES] __attribute__((aligned(4)));
+    static uint8_t sig[CRYPTO_BYTES] __attribute__((aligned(4)));
+    static uint8_t msg[32] __attribute__((aligned(4)));
+    uint32_t msg_len = 32;
+    unsigned int sig_len;
+    int i, ret;
+
+    BENCH_INIT();
     reset_modules_cc();
-}
+    BENCH_START();
 
-
-void test() {
-    size_t sig_len;
-    int ret;
-    void *pk__;
-    void *sk__;
-    void *sig__;
-    uint8_t *msg__;
-    uint32_t msg_len__ = 32;
-    unsigned int log_test_num = 7;
-    unsigned int test_num = 1 << log_test_num;
-
-    BENCH_INIT()
-    reset_modules_cc(); 
-    BENCH_START()
-
-    crypto_sign_keypair(pk__, sk__);
-    (void) pk__;
-    (void) sk__;
-
-    BENCH_END(SIGN_KEYPAIR)
-    print_modules_cc(time, 0);
-
-    BENCH_START()
-    for (int i = 0; i < test_num; i++) {
-        msg__[0] += 1;
-#ifdef MASKING_EN
-        masked_crypto_sign_signature(sig__, &sig_len, msg__, msg_len__, sk__);
-#else
-        crypto_sign_signature(sig__, &sig_len, msg__, msg_len__, sk__);
-#endif
+    for (i = 0; i < TEST_NUM; i++) {
+        crypto_sign_keypair(pk, sk);
+        (void) pk;
+        (void) sk;
     }
-    (void) sig__;
-    (void) msg__;
-    (void) sig_len;
 
-    BENCH_END_SHIFT(SIGN_SIGNATURE, log_test_num)
-    print_modules_cc(time, log_test_num);
+    BENCH_END_SHIFT_COL(SIGN_KEYPAIR, LOG_TEST_NUM);
+    print_modules_cc(time);
+    BENCH_LINE();
 
-    BENCH_START() 
+    msg[0] = 0;
 
-    ret = crypto_sign_verify(sig__, CRYPTO_BYTES, msg__, msg_len__, pk__);
-    (void) ret;
+    reset_modules_cc();
+    BENCH_START();
 
-    BENCH_END(SIGN_VERIFY)
-    print_modules_cc(time, 0);
+    for (i = 0; i < TEST_NUM; i++) {
+        msg[0] += 1;
+        crypto_sign_signature(sig, &sig_len, msg, msg_len, sk);
+        (void) sig;
+    }
+
+    BENCH_END_SHIFT_COL(SIGN_SIGNATURE, LOG_TEST_NUM);
+    print_modules_cc(time);
+    BENCH_LINE();
+
+    msg[0] = 0;
+
+    reset_modules_cc();
+    BENCH_START();
+
+    for (i = 0; i < TEST_NUM; i++) {
+        msg[0] += 1;
+        masked_crypto_sign_signature(sig, &sig_len, msg, msg_len, sk);
+        (void) sig;
+    }
+
+    BENCH_END_SHIFT_COL(MASKED_SIGN_SIGNATURE, LOG_TEST_NUM);
+    print_modules_cc(time);
+    BENCH_LINE();
+
+    reset_modules_cc();
+    BENCH_START();
+
+    for (int i = 0; i < TEST_NUM; i++) {
+        ret = crypto_sign_verify(sig, CRYPTO_BYTES, msg, msg_len, pk);
+        (void) ret;
+    }
+
+    BENCH_END_SHIFT_COL(SIGN_VERIFY, LOG_TEST_NUM);
+    print_modules_cc(time);
 }
-
 
 int main() {
-#ifdef MASKING_EN
-    uint32_t seed[2] = {1, 1};
+    uint32_t seed[2] = {2, 3};
     x2x_seed(seed);
-#endif
-    test();
+
+    BENCH_LINE();
+    BENCH_LINE();
+    BENCH_TITLE("Dilithium");
+    BENCH_LINE();
+    BENCH_LINE();
+    BENCH_HEADER();
+    BENCH_LINE();
+
+    test_api();
+    BENCH_LINE();
+
+    print_string("Finished\n");
 }

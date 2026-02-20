@@ -47,7 +47,7 @@ assign wdata = wb_dat_i;
 assign wb_dat_o = rdata;
 
 // Wishbone protocol handling
-always @(posedge wb_clk_i or negedge rst_n) begin
+always @(posedge wb_clk_i/* or negedge rst_n*/) begin
     if (!rst_n) begin
         wb_ack_o   <= 1'b0;
         wb_err_o   <= 1'b0;
