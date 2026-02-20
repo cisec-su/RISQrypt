@@ -8,7 +8,7 @@ CW305_DRIVER_DIR = ../../driver
 
 SIMPLESERIAL_DIR = ../../simpleserial
 
-DILITHIUM_DIR = ../../../../fw/dilithium
+DILITHIUM_DIR = ../../../../fw/src/dilithium
 
 VICTIMS_COMMONS_DIR = ../victims_commons
 
