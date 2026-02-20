@@ -12,31 +12,28 @@ int main () {
     char hex_out[sizeof(uint32_t) << 1];
     unsigned int time;
 
-    uart_transmit_string("Timer Example\n\n", 16);
+    print_string("Timer Example\n");
 
     timer_start();
 
     time = timer_read();
-    uart_transmit_string("Timer Start: ", 13);
-    byte_to_hex(hex_out, (const char *)(&time), sizeof(uint32_t), 1);
-    uart_transmit_string(hex_out, sizeof(uint32_t) << 1);
-    uart_transmit_string("\n", 1);
+    print_string("Timer Start: ");
+    print_u32_int(time);
+    print_string("\n");
 
     for (i = 0; i < limit; i++) {
         if (i % 100 == 0) {
-            uart_transmit_string("Count: ", 7);
+            print_string("Count: ");
             time = timer_read();
-            byte_to_hex(hex_out, (const char *)(&time), sizeof(uint32_t), 1);
-            uart_transmit_string(hex_out, sizeof(uint32_t) << 1);
-            uart_transmit_string("\n", 1);
+            print_u32_int(time);
+            print_string("\n");
         }
     }
 
-    uart_transmit_string("Timer End: ", 11);
+    print_string("Timer End: ");
     time = timer_read();
-    byte_to_hex(hex_out, (const char *)(&time), sizeof(uint32_t), 1);
-    uart_transmit_string(hex_out, sizeof(uint32_t) << 1);
-    uart_transmit_string("\n", 1);
+    print_u32_int(time);
+    print_string("\n");
 
 
     return 0;

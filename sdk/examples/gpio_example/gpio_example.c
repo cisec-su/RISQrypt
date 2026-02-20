@@ -6,11 +6,11 @@ int main () {
 
     volatile int i;
     
-    print_string("GPIO Example\n\n");
+    print_string("GPIO Example\n");
 
     while (1) {
 
-        print_string("Heartbeat!\n\n");
+        print_string("Heartbeat!\n");
 
         gpio_write(0, 1);
         gpio_write(1, 0);
