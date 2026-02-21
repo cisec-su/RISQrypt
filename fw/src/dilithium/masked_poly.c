@@ -140,7 +140,7 @@ int masked_poly_ptr_chknorm(const masked_poly_ptr *r, const masked_poly_ptr *tem
     ntt_lite_add_const(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
 
     ntt_lite_set_bound(0);
-    flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+    flag = ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS);
 #else
     flag = NTT_LITE_CHKNORM_SUCC;
 #endif

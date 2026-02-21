@@ -70,6 +70,10 @@ int ntt_lite_sub_rev_const(uint32_t *dst, const uint32_t *lhs);
 
 int ntt_lite_sum(uint32_t* dst, const uint32_t *src);
 
+int ntt_lite_sq(uint32_t *dst, const uint32_t *src);
+
+int ntt_lite_sqadd(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
+
 int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d);
 
 int ntt_lite_decode(uint32_t *dst, const uint32_t *src, uint32_t d);
@@ -86,7 +90,13 @@ int ntt_lite_decompress_floor(uint32_t *dst, const uint32_t *src, uint32_t d);
 
 int ntt_lite_decompose(uint32_t *dst_1, uint32_t *dst_0, const uint32_t *src);
 
-int ntt_lite_chknorm(const uint32_t *src);
+int ntt_lite_chkinfnorm(const uint32_t *src);
+
+int ntt_lite_chkl1norm(const uint32_t *src);
+
+int ntt_lite_tocenter(uint32_t *dst, const uint32_t *src);
+
+int ntt_lite_fromcenter(uint32_t *dst, const uint32_t *src);
 
 int ntt_lite_make_hint(uint32_t *dst, const uint32_t *src_0, const uint32_t *src_1);
 

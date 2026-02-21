@@ -42,22 +42,15 @@ void poly_ntt(poly *a) {
 
 
 void poly_ntt_from_center(poly *a, const poly *b) {
-    ntt_lite_set_q(0);
     ntt_lite_set_bound(((Q >> 1) << 16) | (Q >> 1));
-    ntt_lite_add_const(NTT_LITE_OUTPUT_DIS, (uint32_t*) b->coeffs);
-    ntt_lite_set_q((Q << 16) | Q);
-    ntt_lite_sub_const(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
+    ntt_lite_fromcenter(NTT_LITE_OUTPUT_DIS, (uint32_t*) b->coeffs);
     ntt_lite_forward_ntt((uint32_t*) a->coeffs, NTT_LITE_INPUT_DIS);
 }
 
 
-void poly_invntt_sub_to_center(poly *a, const poly *b) {
+void poly_invntt_sub(poly *a, const poly *b) {
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
-    ntt_lite_sub(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) b->coeffs);
-    ntt_lite_set_bound(((Q >> 1) << 16) | (Q >> 1));
-    ntt_lite_add_const(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
-    ntt_lite_set_q(0);
-    ntt_lite_sub_const((uint32_t*) a->coeffs, NTT_LITE_INPUT_DIS);
+    ntt_lite_sub((uint32_t*) a->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) b->coeffs);
 }
 
 
@@ -78,7 +71,7 @@ void poly_decode(poly *r, const uint8_t *a) {
 
 
 void poly_hash_to_point(poly *x) {
-    size_t i;
+    unsigned int i;
     int ret;
     uint32_t buf[SHAKE256_RATE  >> 2];
     uint8_t *buf_ptr = (uint8_t*) buf;
@@ -103,28 +96,50 @@ void poly_hash_to_point(poly *x) {
 
 
 int poly_is_short(const poly *s1, const poly *s2) {
-    /*
-     * We use the l2-norm. Code below uses only 32-bit operations to
-     * compute the square of the norm with saturation to 2^32-1 if
-     * the value exceeds 2^31-1.
-     */
-    size_t u;
-    uint32_t s, ng;
-    int32_t z;
+    uint32_t temp[256];
+    unsigned int i;
+    uint32_t *src;
+    uint32_t *dst;
 
-    s = 0;
-    ng = 0;
-    for (u = 0; u < N; u ++) {
-        z = s1->coeffs[u];
-        s += (uint32_t)(z * z);
-        ng |= s;
-        z = s2->coeffs[u];
-        s += (uint32_t)(z * z);
-        ng |= s;
+    ntt_lite_set_ctrl(FALCON_LOG_N - 1, 0, NTT_LITE_MODE_SINGLE);
+
+    for (i = 0; i < ((N / 256) * 2); i ++) {
+        if (i < (N / 256)) {
+            src = (uint32_t*) s2->coeffs;
+            ntt_lite_set_q(1 << 16);
+            ntt_lite_set_bound(1 << LOG_Q);
+        }
+        else {
+            ntt_lite_set_q(Q);
+            ntt_lite_set_bound(Q >> 1);
+            src = (uint32_t*) s1->coeffs;
+        }
+        src += ((i & ((N / 256) - 1)) << 7); 
+        ntt_lite_decode(NTT_LITE_INPUT_DIS, src, 16);
+        ntt_lite_tocenter(NTT_LITE_OUTPUT_DIS, NTT_LITE_OUTPUT_DIS);
+
+        ntt_lite_set_q(0);
+        if (i == 0) {
+            ntt_lite_sq(temp, NTT_LITE_OUTPUT_DIS);
+        }
+        else {
+            if (i == (((N / 256) * 2) - 1)) {
+                dst = NTT_LITE_OUTPUT_DIS;
+            }
+            else {
+                dst = temp;
+            }
+            ntt_lite_sqadd(dst, NTT_LITE_OUTPUT_DIS, temp);
+        }
     }
-    s |= -(ng >> 31);
 
-  return s <= L2_BOUND;
+    ntt_lite_set_bound(L2_BOUND);
+    if (ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS) == NTT_LITE_CHKNORM_FAIL) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
 }
 
 

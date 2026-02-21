@@ -24,8 +24,8 @@ void poly_ntt(poly *a);
 #define poly_ntt_from_center FALCON_NAMESPACE(poly_ntt_from_center)
 void poly_ntt_from_center(poly *a, const poly *b);
 
-#define poly_invntt_sub_to_center FALCON_NAMESPACE(poly_invntt_sub)
-void poly_invntt_sub_to_center(poly *a, const poly *b);
+#define poly_invntt_sub FALCON_NAMESPACE(poly_invntt_sub)
+void poly_invntt_sub(poly *a, const poly *b);
 
 #define poly_basemul FALCON_NAMESPACE(poly_basemul)
 void poly_basemul(poly *r, const poly *a, const poly *b);

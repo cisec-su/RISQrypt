@@ -379,6 +379,42 @@ int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
 }
 
 
+int ntt_lite_sq(uint32_t *dst, const uint32_t *src) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+    ret = ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SQ, 0, 0);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
+int ntt_lite_sqadd(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+    ret = ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SQADD, 0, 0);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
+int ntt_lite_tocenter(uint32_t *dst, const uint32_t *src) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+    ret = ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_TOCENTER, 0, 0);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
+int ntt_lite_fromcenter(uint32_t *dst, const uint32_t *src) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+    ret = ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_FROMCENTER, 0, 0);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
 int ntt_lite_encode(uint32_t *dst, const uint32_t *src, uint32_t d) {
     BENCH_START(ntt_lite_cc);
 
@@ -598,11 +634,10 @@ int ntt_lite_read_poly(uint32_t *dst) {
 }
 
 
-int ntt_lite_chknorm(const uint32_t *src) {
+static int ntt_lite_chknorm(const uint32_t *src, uint32_t op) {
     
     uint32_t cmd;
     uint32_t status;
-    BENCH_START(ntt_lite_cc);
     int ret;
 
 #ifndef BUSY_CHECK_DIS
@@ -618,7 +653,7 @@ int ntt_lite_chknorm(const uint32_t *src) {
         NTT_LITE_REGS->din_addr = (uint32_t) src;
     }
 
-    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_CHKNORM;
+    NTT_LITE_REGS->ctrl |= cmd | op;
 
     do {
         status = NTT_LITE_REGS->status;
@@ -629,6 +664,23 @@ int ntt_lite_chknorm(const uint32_t *src) {
     } else {
         ret = NTT_LITE_CHKNORM_SUCC;
     }
+    return ret;
+}
+
+
+int ntt_lite_chkinfnorm(const uint32_t *src) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+    ret = ntt_lite_chknorm(src, NTT_LITE_CTRL_OP_CHKINFNORM);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
+int ntt_lite_chkl1norm(const uint32_t *src) {
+    int ret;
+    BENCH_START(ntt_lite_cc);
+    ret = ntt_lite_chknorm(src, NTT_LITE_CTRL_OP_CHKL1NORM);
     BENCH_END(ntt_lite_cc);
     return ret;
 }

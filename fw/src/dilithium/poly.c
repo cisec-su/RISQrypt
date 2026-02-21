@@ -109,7 +109,7 @@ int poly_invntt_chknorm(poly *a, uint32_t B) {
     unsigned int flag;
 
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, (uint32_t*) a->coeffs);
-    flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+    flag = ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
@@ -127,7 +127,7 @@ int poly_pointwise_add_invntt_chknorm(poly *r, const poly *v, const poly *c, con
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
     poly_init_invntt();
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
-    flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+    flag = ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
@@ -145,7 +145,7 @@ int poly_pointwise_invntt_sub_chknorm(poly *r, const poly *v, const poly *c, con
     poly_init_invntt();
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
     ntt_lite_sub_rev(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u->coeffs);
-    flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+    flag = ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }
@@ -249,7 +249,7 @@ void poly_use_hint_pack(uint8_t *r, const poly *a, const poly *h) {
 **************************************************/
 int poly_chknorm(const poly *a, int32_t B) {
     unsigned int flag;
-    flag = ntt_lite_chknorm((uint32_t*) a->coeffs);
+    flag = ntt_lite_chkinfnorm((uint32_t*) a->coeffs);
     if (flag == NTT_LITE_CHKNORM_FAIL) {
         return 1;
     }

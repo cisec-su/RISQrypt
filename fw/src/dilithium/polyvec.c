@@ -333,7 +333,7 @@ int polyveck_invntt_chknorm(polyveck *v, uint32_t B) {
 
     for(i = 0; i < K; i++) {
         ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, (uint32_t*) &v->vec[i].coeffs);
-        flag = ntt_lite_chknorm(NTT_LITE_INPUT_DIS);
+        flag = ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS);
         if (flag == NTT_LITE_CHKNORM_FAIL) {
             return 1;
         }
