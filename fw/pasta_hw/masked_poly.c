@@ -1,7 +1,6 @@
 #include "masked_poly.h"
 #include "masked_gadgets.h"
 #include "ntt_lite.h"
-#include "masked.h"
 
 void masked_poly_mask(masked_poly *r, const poly *a) {
     masked_gadgets_mask_poly(r, a);
@@ -33,12 +32,13 @@ void masked_poly_add(masked_poly *r, masked_poly *a, masked_poly *b){
 void masked_poly_mult_add_const(masked_poly *r, masked_poly *a, masked_poly *b){
     
     /*
+        CONST
         a = a0 a1 
         b = b0 b1
         r = r0 r1 
-        r0 = 2*a0+b0  
-        r1 = 2*a1+b1
-        r = 2*a+b
+        r0 = CONST*a0+b0  
+        r1 = CONST*a1+b1
+        r = CONST*a+b
     */
    
     unsigned int i;

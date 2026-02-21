@@ -7,7 +7,6 @@ SRC  = main.c
 SRC += poly.c
 SRC += pasta.c
 SRC += symmetric.c
-SRC += masked.c
 SRC += masked_poly.c
 SRC += masked_gadgets.c
 SRC += masked_pasta.c

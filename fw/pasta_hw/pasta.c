@@ -27,10 +27,6 @@ void sbox_cube(poly *B, poly *A) {
  */
 void sbox_feistel(poly *B, const poly *A) {
 
-    // masking with two-share
-    // önce index kaydır
-    // 
-
 
     // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
     uint32_t C[N+1];  // Shifted version of A
@@ -95,7 +91,7 @@ void matmul(poly *new_state, const poly *state, uint64_t nonce, uint64_t block_c
 
     int allow_zero = 0;
     // Generate random vector (no zeros)
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero,0);
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero, 0);
 
     ntt_lite_set_bound(0);
     ntt_lite_add_const(curr_row + N, rand.coeffs); 
@@ -129,7 +125,6 @@ void matmul(poly *new_state, const poly *state, uint64_t nonce, uint64_t block_c
 void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce, uint64_t block_ctr, int r) {
     poly temp1, temp2;  // After matmul
     poly temp3, temp4;  // After add_rc
-    poly temp5, temp6;  // After mix
     poly rand;
     uint8_t poly_ctr;
 
@@ -144,56 +139,59 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
 
     // Add round constants (random polynomials with allow_zero=1)
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
-    poly_ctr++;
     ntt_lite_add(temp3.coeffs, NTT_LITE_INPUT_DIS, temp1.coeffs);
+    poly_ctr++;
 
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
-    poly_ctr++;
     ntt_lite_add(temp4.coeffs, NTT_LITE_INPUT_DIS, temp2.coeffs);
+    poly_ctr++;
 
     // Step 3: Mix the two states - single bound set for both mix operations
     ntt_lite_set_bound(2);
-    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
-    ntt_lite_add(temp5.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
-    
-    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs);
-    ntt_lite_add(temp6.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
-    
+
     // Step 4: Apply S-box (cube for last round, feistel otherwise)
-    if (r == PASTA_R - 1) {
-        sbox_cube(C, &temp5);
-        sbox_cube(D, &temp6);
+    if (r == PASTA_R ){
+         // Final round: D output is discarded, only C is used
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
+        ntt_lite_add(C->coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
+    } else if (r == PASTA_R - 1) {
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
+        ntt_lite_add(temp1.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
+
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs);
+        ntt_lite_add(temp2.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
+        sbox_cube(C, &temp1);
+        sbox_cube(D, &temp2);
     } else {
-        sbox_feistel(C, &temp5);
-        sbox_feistel(D, &temp6);
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
+        ntt_lite_add(temp1.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
+
+        ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs);
+        ntt_lite_add(temp2.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
+        sbox_feistel(C, &temp1);
+        sbox_feistel(D, &temp2);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief PASTA encrypt one block (HW accelerated)
+ * @brief PASTA encrypt one block (unmasked, HW accelerated)
  *
  * Encrypts plaintext using PASTA cipher: keystream = PASTA(key, nonce) then
  * ciphertext = plaintext + keystream mod Q
  *
- * @param ciphertext Output polynomial
- * @param plaintext  Input polynomial
- * @param key        Input key array (size 2*N = 256 elements)
- * @param nonce      Nonce value
+ * @param ciphertext Output polynomial (plaintext XORed with keystream)
+ * @param plaintext  Input polynomial (unmasked)
+ * @param key        Input key array (size 2*N = 256 elements, two 128-element states)
+ * @param nonce      Nonce value for SHAKE128 seed
  */
 void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
     // Generate keystream for this block (hardware-accelerated)
-
-    poly rand;
     poly state1, state2;
-    poly temp1, temp2;
     size_t r;
-    uint8_t poly_ctr;
     uint64_t block_ctr;
-    int allow_zero;
 
     block_ctr = 0x0;
-    allow_zero = 1;
     
     poly_init_q();
 
@@ -202,33 +200,10 @@ void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int3
     ntt_lite_add_const(state2.coeffs, key + N);
 
     // Run PASTA_R rounds
-    for (r = 0; r < PASTA_R; r++) {
+    for (r = 0; r < PASTA_R+1; r++) {
         pasta_round(&state1, &state2, &state1, &state2, nonce, block_ctr, r);
     }
-    
-    poly_ctr = (PASTA_R << 2);
-
-    // Final matmul on both states
-    matmul(&temp1, &state1, nonce, block_ctr, poly_ctr);
-    poly_ctr++;
-    matmul(&temp2, &state2, nonce, block_ctr, poly_ctr);
-    poly_ctr++;
-
-    // Add final round constants
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero,0);
-    poly_ctr++;
-    poly_add(&state1, &temp1, &rand);
-
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero,0);
-    poly_ctr++;
-    poly_add(&state2, &temp2, &rand);
-
-    // Final mix (state1 becomes the keystream)
-    ntt_lite_set_bound(2);
-    ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, state1.coeffs);
-    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, state2.coeffs);
-    ntt_lite_add(ciphertext->coeffs, NTT_LITE_INPUT_DIS, plaintext->coeffs);
+    ntt_lite_add(ciphertext->coeffs, state1.coeffs, plaintext->coeffs);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
