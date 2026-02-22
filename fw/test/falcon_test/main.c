@@ -306,7 +306,7 @@ static const size_t test_sig_ct_len = 809;
 
 
 uint32_t sig_buffer[256];
-
+uint32_t pk_buffer[256];
 
 void setUp(void)
 {
@@ -321,14 +321,18 @@ void falcon_verify_compressed() {
     int ret;
     BENCH_INIT() 
 
+    memset(sig_buffer, 0, sizeof(sig_buffer));
+    memset(pk_buffer, 0, sizeof(pk_buffer));
     uint8_t *sig_ptr = ((uint8_t*) sig_buffer) + 3;
+    uint8_t *pk_ptr = ((uint8_t*) pk_buffer) + 3;
 
 
     memcpy(sig_ptr, test_sig_compressed, test_sig_compressed_len);
+    memcpy(pk_ptr, test_pubkey, sizeof(test_pubkey));
 
     BENCH_START() 
     ret = falcon_verify(sig_ptr, test_sig_compressed_len, FALCON_SIG_COMPRESSED,
-                        test_pubkey, sizeof(test_pubkey),
+                        pk_ptr, sizeof(test_pubkey),
                         test_message, test_message_len);
     BENCH_END(VERIFY_COMPRESSED)
     TEST_ASSERT_EQUAL_INT(0, ret);
@@ -337,7 +341,7 @@ void falcon_verify_compressed() {
 
     BENCH_START() 
     ret = falcon_verify(sig_ptr, test_sig_compressed_len, FALCON_SIG_COMPRESSED,
-                        test_pubkey, sizeof(test_pubkey),
+                        pk_ptr, sizeof(test_pubkey),
                         test_message, test_message_len);
     BENCH_END(VERIFY_COMPRESSED_BADSIG)
 
@@ -355,13 +359,18 @@ void falcon_verify_padded() {
 
     BENCH_INIT() 
 
+    memset(sig_buffer, 0, sizeof(sig_buffer));
+    memset(pk_buffer, 0, sizeof(pk_buffer));
     uint8_t *sig_ptr = ((uint8_t*) sig_buffer) + 3;
+    uint8_t *pk_ptr = ((uint8_t*) pk_buffer) + 3;
 
-    memcpy(sig_ptr, test_sig_padded, test_sig_padded_len);
+
+    memcpy(sig_ptr, test_sig_compressed, test_sig_compressed_len);
+    memcpy(pk_ptr, test_pubkey, sizeof(test_pubkey));
 
     BENCH_START() 
     ret = falcon_verify(sig_ptr, test_sig_padded_len, FALCON_SIG_PADDED,
-                           test_pubkey, sizeof(test_pubkey),
+                           pk_ptr, sizeof(test_pubkey),
                            test_message, test_message_len);
     BENCH_END(VERIFY_PADDED)
 
@@ -371,7 +380,7 @@ void falcon_verify_padded() {
 
     BENCH_START() 
     ret = falcon_verify(sig_ptr, test_sig_padded_len, FALCON_SIG_PADDED,
-                           test_pubkey, sizeof(test_pubkey),
+                           pk_ptr, sizeof(test_pubkey),
                            test_message, test_message_len);
     BENCH_END(VERIFY_PADDED_BADSIG)
 

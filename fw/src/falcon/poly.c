@@ -82,11 +82,7 @@ void poly_hash_to_point(poly *x) {
 
     do {
         falcon_shake256_squeezeblocks((uint8_t*) buf, 1);
-        for (i = 0; i < (SHAKE256_RATE  >> 2); i++) {
-            buf[i] = (((uint32_t)buf_ptr[i*4 + 2]) << 24) | (((uint32_t)buf_ptr[i*4 + 3]) << 16) |
-                     (((uint32_t)buf_ptr[i*4]) << 8) | (uint32_t)buf_ptr[i*4 + 1];
-        }
-        ret = ntt_lite_rejsamp(NTT_LITE_OUTPUT_DIS, (uint32_t*) buf, 16, NTT_LITE_REJSAMP_CENTER_DIS);
+        ret = ntt_lite_rejsamp_bigend(NTT_LITE_OUTPUT_DIS, (uint32_t*) buf, 16, NTT_LITE_REJSAMP_CENTER_DIS);
     } while(ret == NTT_LITE_REJSAMP_IP);
 
     ntt_lite_set_bound(1 << 16 | 1);
@@ -135,111 +131,35 @@ int poly_is_short(const poly *s1, const poly *s2) {
 
     ntt_lite_set_bound(L2_BOUND);
     if (ntt_lite_chkinfnorm(NTT_LITE_INPUT_DIS) == NTT_LITE_CHKNORM_FAIL) {
-        return 0;
+        return 1;
     }
     else {
-        return 1;
+        return 0;
     }
 }
 
 
 int poly_modq_decode(poly *r, const void *in, size_t max_in_len) {
-    size_t in_len, u;
-    const uint8_t *buf;
-    uint32_t acc;
-    int acc_len;
+    size_t in_len;
 
     in_len = ((N * 14) + 7) >> 3;
     if (in_len > max_in_len) {
-        return 0;
+        return 1;
     }
-    buf = in;
-    acc = 0;
-    acc_len = 0;
-    u = 0;
-    while (u < N) {
-        acc = (acc << 8) | (*buf ++);
-        acc_len += 8;
-        if (acc_len >= 14) {
-            unsigned w;
+    ntt_lite_decode_bigend((uint32_t*) r->coeffs, (uint32_t*) in, LOG_Q);
 
-            acc_len -= 14;
-            w = (acc >> acc_len) & 0x3FFF;
-            if (w >= 12289) {
-                return 0;
-            }
-            r->coeffs[u++] = (uint16_t)w;
-        }
-    }
-    if ((acc & (((uint32_t)1 << acc_len) - 1)) != 0) {
-        return 0;
-    }
-    return in_len;
+    // if ((acc & (((uint32_t)1 << acc_len) - 1)) != 0) {
+    //     return 0; TODO
+    // }
+    return 0;
 }
 
 
 int poly_comp_decode(poly *r, const void *in, size_t max_in_len) {
-    const uint8_t *buf;
-    size_t u, v;
-    uint32_t acc;
-    unsigned acc_len;
-
-    buf = in;
-    acc = 0;
-    acc_len = 0;
-    v = 0;
-    for (u = 0; u < N; u ++) {
-        unsigned b, s, m;
-
-        /*
-         * Get next eight bits: sign and low seven bits of the
-         * absolute value.
-         */
-        if (v >= max_in_len) {
-            return 0;
-        }
-        acc = (acc << 8) | (uint32_t)buf[v ++];
-        b = acc >> acc_len;
-        s = b & 128;
-        m = b & 127;
-
-        /*
-         * Get next bits until a 1 is reached.
-         */
-        for (;;) {
-            if (acc_len == 0) {
-                if (v >= max_in_len) {
-                    return 0;
-                }
-                acc = (acc << 8) | (uint32_t)buf[v ++];
-                acc_len = 8;
-            }
-            acc_len --;
-            if (((acc >> acc_len) & 1) != 0) {
-                break;
-            }
-            m += 128;
-            if (m > 2047) {
-                return 0;
-            }
-        }
-
-        /*
-         * "-0" is forbidden.
-         */
-        if (s && m == 0) {
-            return 0;
-        }
-
-        r->coeffs[u] = (int16_t)(s ? -(int)m : (int)m);
-    }
-
-    /*
-     * Unused bits in the last byte must be zero.
-     */
-    if ((acc & ((1u << acc_len) - 1u)) != 0) {
-        return 0;
-    }
-
-    return v;
+    ntt_lite_set_inv2((max_in_len + 3) >> 2);
+    ntt_lite_fndecompress((uint32_t*) r->coeffs, in);
+    // if ((acc & ((1u << acc_len) - 1u)) != 0) {
+    //     return 0; TODO
+    // }
+    return max_in_len;
 }

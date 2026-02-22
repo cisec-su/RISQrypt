@@ -167,7 +167,7 @@ int falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     /*
      * Decode public key.
      */
-    if (poly_modq_decode(&h, pk + 1, pubkey_len - 1) != pubkey_len - 1)
+    if (poly_modq_decode(&h, pk + 1, pubkey_len - 1))
     {
         return FALCON_ERR_FORMAT;
     }
@@ -212,7 +212,7 @@ int falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
     /*
      * Verify signature.
      */
-    if (!verify_raw(&hm, &sv, &h)) {
+    if (verify_raw(&hm, &sv, &h)) {
         return FALCON_ERR_BADSIG;
     }
     

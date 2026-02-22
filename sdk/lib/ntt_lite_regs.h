@@ -65,6 +65,7 @@ typedef struct
 #define NTT_LITE_CTRL_OP_SQADD             (((uint32_t) 0x13) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_TOCENTER          (((uint32_t) 0x14) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_FROMCENTER        (((uint32_t) 0x15) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_FNDECOMPRESS      (((uint32_t) 0x16) << NTT_LITE_CTRL_OP_S)
 
 
 #define NTT_LITE_CTRL_OP_SWITCH_EN_S       ((uint32_t) 12 )
@@ -94,6 +95,9 @@ typedef struct
 #define NTT_LITE_CTRL_ROUND_DIS_M          ((uint32_t) 0x1)
 #define NTT_LITE_CTRL_ROUND_DIS_V          (NTT_LITE_CTRL_ROUND_DIS_M << NTT_LITE_CTRL_ROUND_DIS_S)
 
+#define NTT_LITE_CTRL_BIGEND_EN_S          ((uint32_t) 29 )
+#define NTT_LITE_CTRL_BIGEND_EN_M          ((uint32_t) 0x1)
+#define NTT_LITE_CTRL_BIGEND_EN_V          (NTT_LITE_CTRL_BIGEND_EN_M << NTT_LITE_CTRL_BIGEND_EN_S)
 
 #define NTT_LITE_STATUS_CHKNORM_S          ((uint32_t) 26 )
 #define NTT_LITE_STATUS_CHKNORM_M          ((uint32_t) 0x1)
