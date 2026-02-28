@@ -6,7 +6,7 @@
 
 void sbox_feistel_soft(poly *B, const poly *A);
 void sbox_cube_soft(poly *B, const poly *A);
-void poly_pointwise_soft(poly *c, const poly *a, const poly *b);
+void poly_pointwise_soft(poly *C, const poly *A, const poly *B);
 void calculate_row_soft(poly *C, const poly *B, const poly *A);
 void mix_soft(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right);
 

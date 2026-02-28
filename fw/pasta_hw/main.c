@@ -64,8 +64,10 @@ void print_poly(const poly *p, size_t len) {
 
 void masked_pasta_simple() {
     size_t sig_len;
+    size_t i;
+    size_t j;
     int ret;
-    BENCH_INIT() 
+    BENCH_INIT()
 
     print_string("\n --- pasta_key pasta_key --- \n");
 
@@ -75,10 +77,10 @@ void masked_pasta_simple() {
     uint64_t nonce;
     uint64_t block_ctr;
 
-    for (size_t i = 0; i < N; i++) {
+    for (i = 0; i < N; i++) {
         plaintext.coeffs[i] = (1) % Q;
     }
-    for (size_t i = 0; i < 2*N; i++) {
+    for (i = 0; i < 2*N; i++) {
         pasta_key[i] = (1) % Q;  // Set key ONCE before both encryptions
     }
 
@@ -88,7 +90,7 @@ void masked_pasta_simple() {
     masked_pasta_encrypt_one_block(&ciphertext, &plaintext, pasta_key, nonce);
     BENCH_END(PASTA_ENCRYPT_ONE_BLOCK)
     print_u32_arr(ciphertext.coeffs,5);
-    TEST_ASSERT_EQUAL_HEX32_ARRAY(ciphertext.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);   
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(ciphertext.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);
 
     TEST_ASSERT_EQUAL_INT(0, ret);
 }
@@ -96,23 +98,23 @@ void masked_pasta_simple() {
 
 void pasta_simple() {
     size_t sig_len;
+    size_t i;
+    size_t j;
     int ret;
-    BENCH_INIT() 
+    BENCH_INIT()
 
     print_string("\n --- pasta_key pasta_key --- \n");
 
-
-    
     poly plaintext;
     poly ciphertext;
     uint32_t pasta_key[2 * N];
     uint64_t nonce;
     uint64_t block_ctr;
 
-    for (size_t i = 0; i < N; i++) {
+    for (i = 0; i < N; i++) {
         plaintext.coeffs[i] = (1) % Q;
     }
-    for (size_t i = 0; i < 2*N; i++) {
+    for (i = 0; i < 2*N; i++) {
         pasta_key[i] = (1) % Q;  // Set key ONCE before both encryptions
     }
 
@@ -122,9 +124,37 @@ void pasta_simple() {
     pasta_encrypt_one_block(&ciphertext, &plaintext, pasta_key, nonce);
     BENCH_END(PASTA_ENCRYPT_ONE_BLOCK)
     print_u32_arr(ciphertext.coeffs,5);
-    TEST_ASSERT_EQUAL_HEX32_ARRAY(ciphertext.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);   
-
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(ciphertext.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);
     TEST_ASSERT_EQUAL_INT(0, ret);
+
+
+}
+
+void poly_mult() {
+    size_t sig_len;
+    size_t i;
+    size_t j;
+    int ret;
+    BENCH_INIT()
+
+    print_string("\n --- pasta_key pasta_key --- \n");
+
+    poly A;
+    poly B;
+    poly C;
+
+    for (i = 0; i < N; i++) {
+        B.coeffs[i] = (1<<15) % Q;
+        A.coeffs[i] = (i*i) % Q;
+    }
+    
+    BENCH_START()
+    poly_pointwise(&C, &A, &B);
+    matmul(&C, &A, 0,0,0);
+    BENCH_END(PASTA_POLY_MULT)
+    print_u32_arr(C.coeffs,5);
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
 }
 
 int main() {
@@ -134,6 +164,7 @@ int main() {
     print_string("\n --- Pasta Unity Test Start --- \n");
     RUN_TEST(pasta_simple);
     RUN_TEST(masked_pasta_simple);
+    RUN_TEST(poly_mult);
     return(UnityEnd());
 }
 

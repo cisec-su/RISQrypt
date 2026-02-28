@@ -43,6 +43,7 @@ void pasta_simple() {
     poly ciphertext;
     size_t sig_len;
     size_t i;
+    size_t j;
     uint32_t pasta_key[2 * N];
     uint64_t nonce;
     uint64_t block_ctr;
@@ -69,12 +70,39 @@ void pasta_simple() {
     TEST_ASSERT_EQUAL_INT(0, ret); 
 }
 
+void poly_mult_soft() {
+    size_t sig_len;
+    size_t i;
+    size_t j;
+    int ret;
+    BENCH_INIT()
+
+    print_string("\n --- pasta_key pasta_key --- \n");
+
+    poly A;
+    poly B;
+    poly C;
+
+    for (i = 0; i < N; i++) {
+        B.coeffs[i] = (1<<15) % Q;
+        A.coeffs[i] = (i*i) % Q;
+    }
+    
+    BENCH_START()
+    matmul_soft(&C, &A, 0,0,0);
+    BENCH_END(PASTA_POLY_MULT)
+    print_u32_arr(C.coeffs,5);
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
+}
+
 int main() {
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
     x2x_seed(seed);
     print_string("\n --- Pasta Unity Test Start --- \n");
     RUN_TEST(pasta_simple);
+    RUN_TEST(poly_mult_soft);
     return(UnityEnd());
 }
 

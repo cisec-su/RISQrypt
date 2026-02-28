@@ -6,11 +6,11 @@
 #include "util.h"
 
 /**
- * @brief PASTA S-box Cube layer: B[i] = A[i]^3 mod Q
- *        Uses HW accelerator (ntt_lite_pwm)
- *
- * @param B Output polynomial
- * @param A Input polynomial
+ * @brief PASTA S-box cube layer
+ * @description Computes B[i] = A[i]^3 mod Q for all i using the hardware accelerator (ntt_lite_pwm). First computes A^2, then multiplies result by A
+ * @param B pointer to output polynomial
+ * @param A pointer to input polynomial
+ * @return void
  */
 void sbox_cube(poly *B, poly *A) {
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->coeffs, A->coeffs);
@@ -19,14 +19,13 @@ void sbox_cube(poly *B, poly *A) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief PASTA S-box Feistel layer: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
- *        Uses HW accelerator (ntt_lite_pwm, ntt_lite_add)
- *
- * @param B Output polynomial
- * @param A Input polynomial
+ * @brief PASTA S-box Feistel layer
+ * @description Computes the Feistel transformation: B[0] = A[0], B[i] = A[i] + A[i-1]^2 mod Q using the hardware accelerator. Shifts A left by one position (padding with 0), computes square of shifted version, then adds original A
+ * @param B pointer to output polynomial
+ * @param A pointer to input polynomial
+ * @return void
  */
 void sbox_feistel(poly *B, const poly *A) {
-
 
     // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
     uint32_t C[N+1];  // Shifted version of A
@@ -39,12 +38,12 @@ void sbox_feistel(poly *B, const poly *A) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief Calculate row operation: C[0] = A[0]*B[N-1], C[i] = A[i]*B[N-1] + B[i-1] for i >= 1
- *        Uses HW accelerator (ntt_lite_mul_const, ntt_lite_add)
- *
- * @param C Output array
- * @param B Input array (previous row)
- * @param A Input polynomial (first row)
+ * @brief Calculate next row for matrix multiplication
+ * @description Generates the next row of the PASTA matrix for row i: C[0] = A[0] * B[N-1]; C[i] = A[i] * B[N-1] + B[i-1] for i >= 1. Uses the hardware accelerator (ntt_lite_mul_const, ntt_lite_add). B[N] is used as the scalar bound
+ * @param C pointer to output coefficient array (length N)
+ * @param B pointer to previous row array (length N+1; B[N] is the scalar bound)
+ * @param A pointer to first row polynomial
+ * @return void
  */
 void calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
     ntt_lite_set_bound(B[N]);
@@ -54,13 +53,13 @@ void calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief PASTA linear mixing layer: B_left = 2*A_left + A_right, B_right = A_left + 2*A_right
- *        Uses HW accelerator (ntt_lite_mul_const, ntt_lite_add)
- *
- * @param B_left  Output left polynomial
- * @param B_right Output right polynomial
- * @param A_left  Input left polynomial
- * @param A_right Input right polynomial
+ * @brief PASTA linear mixing layer
+ * @description Applies the mixing transformation: B_left = 2 * A_left + A_right mod Q; B_right = A_left + 2 * A_right mod Q. Uses single hardware accelerator bound setting for both operations (bound=2)
+ * @param B_left pointer to output left polynomial
+ * @param B_right pointer to output right polynomial
+ * @param A_left pointer to input left polynomial
+ * @param A_right pointer to input right polynomial
+ * @return void
  */
 void mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
     // B_left = 2*A_left + A_right, B_right = A_left + 2*A_right
@@ -75,14 +74,13 @@ void mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
 
 /**
  * @brief Matrix-vector multiplication for PASTA
- *        new_state = M * state, where M is generated row-by-row using calculate_row
- *        Uses HW accelerator (ntt_lite_pwm, ntt_lite_sum)
- *
- * @param new_state Output polynomial (result of matrix-vector multiplication)
- * @param state     Input polynomial (vector to multiply)
- * @param nonce     Nonce for SHAKE128 seed
- * @param block_ctr Block counter for SHAKE128 seed
- * @param poly_ctr  Polynomial counter for SHAKE128 seed
+ * @description Computes new_state = M * state, where the matrix M is generated row-by-row dynamically using calculate_row and a random polynomial (rand) derived from the nonce/block_ctr/poly_ctr seed. The first row is rand, and subsequent rows are computed using calculate_row. Uses the hardware accelerator (ntt_lite_pwm for dot product, ntt_lite_sum for accumulation)
+ * @param new_state pointer to output polynomial
+ * @param state pointer to input state vector polynomial
+ * @param nonce nonce for SHAKE128 seed
+ * @param block_ctr block counter for SHAKE128 seed
+ * @param poly_ctr polynomial counter for SHAKE128 seed
+ * @return void
  */
 void matmul(poly *new_state, const poly *state, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
     poly rand;
@@ -110,19 +108,18 @@ void matmul(poly *new_state, const poly *state, uint64_t nonce, uint64_t block_c
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief PASTA round function (HW accelerated)
- *
- * Performs one round: matmul -> add_rc -> mix -> sbox
- *
- * @param C         Output polynomial for state 1
- * @param D         Output polynomial for state 2
- * @param A         Input polynomial for state 1
- * @param B         Input polynomial for state 2
- * @param nonce     Nonce for SHAKE128 seed
- * @param block_ctr Block counter for SHAKE128 seed
- * @param r         Round number (0-indexed)
+ * @brief PASTA round function
+ * @description Performs one PASTA cipher round consisting of: 1. Matrix multiplication (matmul) on both state A and B; 2. Add round constants (random polynomials); 3. Linear mixing (mix); 4. S-box operation: cube for last round (r == PASTA_R), Feistel for other rounds. Uses the hardware accelerator for all sub-operations
+ * @param C pointer to output polynomial for state 1
+ * @param D pointer to output polynomial for state 2
+ * @param A pointer to input polynomial for state 1
+ * @param B pointer to input polynomial for state 2
+ * @param nonce nonce for SHAKE128 seed
+ * @param block_ctr block counter for SHAKE128 seed
+ * @param r round number (0-indexed)
+ * @return void
  */
-void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce, uint64_t block_ctr, int r) {
+void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce, uint64_t block_ctr, size_t r) {
     poly temp1, temp2;  // After matmul
     poly temp3, temp4;  // After add_rc
     poly rand;
@@ -176,14 +173,12 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
 
 /**
  * @brief PASTA encrypt one block (unmasked, HW accelerated)
- *
- * Encrypts plaintext using PASTA cipher: keystream = PASTA(key, nonce) then
- * ciphertext = plaintext + keystream mod Q
- *
- * @param ciphertext Output polynomial (plaintext XORed with keystream)
- * @param plaintext  Input polynomial (unmasked)
- * @param key        Input key array (size 2*N = 256 elements, two 128-element states)
- * @param nonce      Nonce value for SHAKE128 seed
+ * @description Encrypts a plaintext block using the PASTA cipher: 1. Initializes two state polynomials from the key (first N coefficients in state1, second N in state2); 2. Runs PASTA_R+1 rounds; 3. Adds plaintext to final keystream state1. Ciphertext = plaintext + PASTA(key, nonce) mod Q
+ * @param ciphertext pointer to output polynomial
+ * @param plaintext pointer to input plaintext polynomial
+ * @param key pointer to key array (size 2*N coefficients)
+ * @param nonce 8-byte nonce value
+ * @return void
  */
 void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
     // Generate keystream for this block (hardware-accelerated)
@@ -192,15 +187,15 @@ void pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int3
     uint64_t block_ctr;
 
     block_ctr = 0x0;
-    
+
     poly_init_q();
 
     ntt_lite_set_bound(0);
-    ntt_lite_add_const(state1.coeffs, key); 
+    ntt_lite_add_const(state1.coeffs, key);
     ntt_lite_add_const(state2.coeffs, key + N);
 
     // Run PASTA_R rounds
-    for (r = 0; r < PASTA_R+1; r++) {
+    for (r = 0; r < (size_t)PASTA_R+1; r++) {
         pasta_round(&state1, &state2, &state1, &state2, nonce, block_ctr, r);
     }
     ntt_lite_add(ciphertext->coeffs, state1.coeffs, plaintext->coeffs);

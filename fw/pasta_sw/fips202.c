@@ -22,7 +22,7 @@
 * Returns the loaded 64-bit unsigned integer
 **************************************************/
 static uint64_t load64(const uint8_t x[8]) {
-  unsigned int i;
+  size_t i;
   uint64_t r = 0;
 
   for(i=0;i<8;i++)
@@ -40,7 +40,7 @@ static uint64_t load64(const uint8_t x[8]) {
 *              - uint64_t u: input 64-bit unsigned integer
 **************************************************/
 static void store64(uint8_t x[8], uint64_t u) {
-  unsigned int i;
+  size_t i;
 
   for(i=0;i<8;i++)
     x[i] = u >> 8*i;
@@ -365,7 +365,7 @@ static void KeccakF1600_StatePermute(uint64_t state[25])
 *                           Keccak-derived functions
 **************************************************/
 static void keccak_absorb(uint64_t s[25],
-                          unsigned int r,
+                          size_t r,
                           const uint8_t *m,
                           size_t mlen,
                           uint8_t p)
@@ -409,9 +409,9 @@ static void keccak_absorb(uint64_t s[25],
 static void keccak_squeezeblocks(uint8_t *out,
                                  size_t nblocks,
                                  uint64_t s[25],
-                                 unsigned int r)
+                                 size_t r)
 {
-  unsigned int i;
+  size_t i;
   while(nblocks > 0) {
     KeccakF1600_StatePermute(s);
     for(i=0;i<r/8;i++)
@@ -498,7 +498,7 @@ void shake256_squeezeblocks(uint8_t *out, size_t nblocks, keccak_state *state)
 **************************************************/
 void shake128(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
 {
-  unsigned int i;
+  size_t i;
   size_t nblocks = outlen/SHAKE128_RATE;
   uint8_t t[SHAKE128_RATE];
   keccak_state state;
@@ -528,7 +528,7 @@ void shake128(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
 **************************************************/
 void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
 {
-  unsigned int i;
+  size_t i;
   size_t nblocks = outlen/SHAKE256_RATE;
   uint8_t t[SHAKE256_RATE];
   keccak_state state;
@@ -557,7 +557,7 @@ void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen)
 **************************************************/
 void sha3_256(uint8_t h[32], const uint8_t *in, size_t inlen)
 {
-  unsigned int i;
+  size_t i;
   uint64_t s[25];
   uint8_t t[SHA3_256_RATE];
 
@@ -579,7 +579,7 @@ void sha3_256(uint8_t h[32], const uint8_t *in, size_t inlen)
 **************************************************/
 void sha3_512(uint8_t *h, const uint8_t *in, size_t inlen)
 {
-  unsigned int i;
+  size_t i;
   uint64_t s[25];
   uint8_t t[SHA3_512_RATE];
 

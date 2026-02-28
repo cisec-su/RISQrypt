@@ -6,11 +6,11 @@
 #include "util.h"
 
 /**
- * @brief PASTA S-box Cube layer: B[i] = A[i]^3 mod Q
- *        Pure software implementation
- *
- * @param B Output polynomial
- * @param A Input polynomial
+ * @brief PASTA S-box cube layer (pure software)
+ * @description Computes B[i] = A[i]^3 mod Q for all i using pure software arithmetic with 64-bit intermediate values to avoid overflow
+ * @param B pointer to output polynomial
+ * @param A pointer to input polynomial
+ * @return void
  */
 void sbox_cube_soft(poly *B, const poly *A) {
     size_t el;
@@ -26,11 +26,11 @@ void sbox_cube_soft(poly *B, const poly *A) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief PASTA S-box Feistel layer: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
- *        Pure software implementation
- *
- * @param B Output polynomial
- * @param A Input polynomial
+ * @brief PASTA S-box Feistel layer (pure software)
+ * @description Computes the Feistel transformation: B[0] = A[0], B[i] = A[i] + A[i-1]^2 mod Q using pure software arithmetic with 64-bit intermediate values
+ * @param B pointer to output polynomial
+ * @param A pointer to input polynomial
+ * @return void
  */
 void sbox_feistel_soft(poly *B, const poly *A) {
     size_t el;
@@ -46,12 +46,12 @@ void sbox_feistel_soft(poly *B, const poly *A) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief Calculate row operation: C[0] = A[0]*B[N-1], C[i] = A[i]*B[N-1] + B[i-1] for i >= 1
- *        Pure software implementation
- *
- * @param C Output polynomial
- * @param B Input polynomial (previous row)
- * @param A Input polynomial (first row)
+ * @brief Calculate next row for matrix multiplication (pure software)
+ * @description Generates the next row of the PASTA matrix: C[0] = A[0] * B[N-1] mod Q; C[i] = A[i] * B[N-1] + B[i-1] mod Q for i >= 1. Uses 64-bit arithmetic to safely handle intermediate results
+ * @param C pointer to output polynomial (result row)
+ * @param B pointer to previous row polynomial
+ * @param A pointer to first row polynomial
+ * @return void
  */
 void calculate_row_soft(poly *C, const poly *B, const poly *A) {
     size_t i;
@@ -76,13 +76,13 @@ void calculate_row_soft(poly *C, const poly *B, const poly *A) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief PASTA linear mixing layer: B_left = 2*A_left + A_right, B_right = A_left + 2*A_right
- *        Pure software implementation
- *
- * @param B_left  Output left polynomial
- * @param B_right Output right polynomial
- * @param A_left  Input left polynomial
- * @param A_right Input right polynomial
+ * @brief PASTA linear mixing layer (pure software)
+ * @description Applies the mixing transformation using pure software: B_left[i] = 2*A_left[i] + A_right[i] mod Q; B_right[i] = A_left[i] + 2*A_right[i] mod Q. Uses 64-bit arithmetic for safe intermediate computation
+ * @param B_left pointer to output left polynomial
+ * @param B_right pointer to output right polynomial
+ * @param A_left pointer to input left polynomial
+ * @param A_right pointer to input right polynomial
+ * @return void
  */
 void mix_soft(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
     size_t i;
@@ -100,22 +100,21 @@ void mix_soft(poly *B_left, poly *B_right, const poly *A_left, const poly *A_rig
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * @brief Generate a random polynomial using SHAKE128
- *        Pure software implementation using fips202
- *
- * @param p          Output polynomial
- * @param nonce      Nonce for SHAKE128 seed
- * @param block_ctr  Block counter for SHAKE128 seed
- * @param poly_ctr   Polynomial counter for SHAKE128 seed
- * @param allow_zero If 0: 16-bit extraction + 1, if 1: 17-bit rejection sampling
+ * @brief Generate uniformly random polynomial (pure software)
+ * @description Generates random polynomial coefficients in [0, Q-1] using SHAKE128 with rejection sampling: 1. Constructs seed from nonce || block_ctr || poly_ctr (17 bytes); 2. Calls shake128 to generate random bytes; 3. Reads 64-bit little-endian values, extracts lower 17 bits; 4. Performs rejection sampling: rejects candidates >= Q; 5. If allow_zero=0, also rejects zero coefficients
+ * @param p pointer to output polynomial
+ * @param nonce 8-byte nonce value
+ * @param block_ctr 8-byte block counter
+ * @param poly_ctr 1-byte polynomial counter
+ * @param allow_zero if 0: reject zero coefficients; if 1: allow all values in [0, Q-1]
+ * @return void
  */
 void poly_uniform_soft(poly *p, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero) {
-    int i;
+    size_t i;
     size_t pos;
     uint8_t seed[17];
-    uint32_t BUFSIZE = 8*128*4;
+    size_t BUFSIZE = 8*128*4;
     uint32_t candidate;
     uint64_t val;
     uint8_t buf[BUFSIZE];
@@ -161,16 +160,16 @@ void poly_uniform_soft(poly *p, uint64_t nonce, uint64_t block_ctr, uint8_t poly
     }
 
 }
+
 /**
- * @brief Matrix-vector multiplication for PASTA
- *        new_state = M * state, where M is generated row-by-row using calculate_row
- *        Pure software implementation
- *
- * @param new_state Output polynomial (result of matrix-vector multiplication)
- * @param state     Input polynomial (vector to multiply)
- * @param nonce     Nonce for SHAKE128 seed
- * @param block_ctr Block counter for SHAKE128 seed
- * @param poly_ctr  Polynomial counter for SHAKE128 seed
+ * @brief Matrix-vector multiplication for PASTA (pure software)
+ * @description Computes new_state = M * state where M is generated dynamically: 1. Generates random polynomial rand from seed (nonce || block_ctr || poly_ctr); 2. Initializes curr_row = rand; 3. For each row i: computes dot product of curr_row with state vector; 4. Updates curr_row for next iteration using calculate_row_soft. All arithmetic uses 64-bit intermediate values modulo Q
+ * @param new_state pointer to output polynomial
+ * @param state pointer to input state vector polynomial
+ * @param nonce nonce for SHAKE128 seed
+ * @param block_ctr block counter for SHAKE128 seed
+ * @param poly_ctr polynomial counter for SHAKE128 seed
+ * @return void
  */
 void matmul_soft(poly *new_state, const poly *state, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
     poly rand;
@@ -178,6 +177,7 @@ void matmul_soft(poly *new_state, const poly *state, uint64_t nonce, uint64_t bl
     poly next_row;
     size_t i;
     size_t j;
+    size_t k;
     uint64_t acc;
     uint64_t mult;
     int allow_zero;
@@ -204,33 +204,31 @@ void matmul_soft(poly *new_state, const poly *state, uint64_t nonce, uint64_t bl
         if (i != N - 1) {
             calculate_row_soft(&next_row, &curr_row, &rand);
             // Update curr_row for next iteration
-            for (size_t k = 0; k < N; k++) {
+            for (k = 0; k < N; k++) {
                 curr_row.coeffs[k] = next_row.coeffs[k];
             }
         }
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @brief PASTA round function (pure software)
- *
- * Performs one round: matmul -> add_rc -> mix -> sbox
- *
- * @param C         Output polynomial for state 1
- * @param D         Output polynomial for state 2
- * @param A         Input polynomial for state 1
- * @param B         Input polynomial for state 2
- * @param nonce     Nonce for SHAKE128 seed
- * @param block_ctr Block counter for SHAKE128 seed
- * @param r         Round number (0-indexed)
+ * @description Performs one PASTA cipher round using pure software: 1. Computes temp1 = matmul_soft(A), temp2 = matmul_soft(B); 2. Generates random constants RC1, RC2 and adds to temp1, temp2; 3. Applies mixing: temp5 = mix(temp1, temp2); 4. Applies S-box: cube for penultimate round, Feistel otherwise. All operations use 64-bit arithmetic for safe intermediate computation
+ * @param C pointer to output polynomial for state 1
+ * @param D pointer to output polynomial for state 2
+ * @param A pointer to input polynomial for state 1
+ * @param B pointer to input polynomial for state 2
+ * @param nonce nonce for SHAKE128 seed
+ * @param block_ctr block counter for SHAKE128 seed
+ * @param r round number (0-indexed)
+ * @return void
  */
 void pasta_round_soft(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce, uint64_t block_ctr, int r) {
     poly temp1, temp2;  // After matmul
     poly temp3, temp4;  // After add_rc
     poly temp5, temp6;  // After mix
     uint8_t poly_ctr;
-    uint8_t i;
+    size_t i;
     int allow_zero;
 
     poly_ctr = r << 2; 
@@ -263,17 +261,14 @@ void pasta_round_soft(poly *C, poly *D, const poly *A, const poly *B, uint64_t n
         sbox_feistel_soft(D, &temp6);
     }
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @brief PASTA encrypt one block (pure software)
- *
- * Encrypts plaintext using PASTA cipher: keystream = PASTA(key, nonce) then
- * ciphertext = plaintext + keystream mod Q
- *
- * @param ciphertext Output polynomial
- * @param plaintext  Input polynomial
- * @param key        Input key array (size 2*N = 256 elements)
- * @param nonce      Nonce value
+ * @description Encrypts a plaintext block using pure software PASTA implementation: 1. Initializes state1, state2 from key; 2. Runs PASTA_R rounds (each with matmul, RC add, mix, S-box); 3. Runs final matmul on both states; 4. Adds final round constants and applies final mixing; 5. XORs plaintext with final keystream to produce ciphertext. This is the reference software implementation used for correctness verification and benchmarking
+ * @param ciphertext pointer to output polynomial
+ * @param plaintext pointer to input plaintext polynomial
+ * @param key pointer to key array (size 2*N coefficients)
+ * @param nonce 8-byte nonce value
+ * @return void
  */
 void pasta_encrypt_one_block_soft(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
     poly state1, state2;
@@ -281,10 +276,10 @@ void pasta_encrypt_one_block_soft(poly *ciphertext, const poly *plaintext, const
     poly new_state1, new_state2;
     poly final_state2;
     size_t i;
+    size_t r;
     uint8_t poly_ctr;
     uint64_t block_ctr;
     int allow_zero;
-    int r;
 
     block_ctr = 0;
 
@@ -295,8 +290,8 @@ void pasta_encrypt_one_block_soft(poly *ciphertext, const poly *plaintext, const
     }
 
     // Run PASTA_R rounds
-    for (r = 0; r < PASTA_R; r++) {
-        pasta_round_soft(&new_state1, &new_state2, &state1, &state2, nonce, block_ctr, r);
+    for (r = 0; r < (size_t)PASTA_R; r++) {
+        pasta_round_soft(&new_state1, &new_state2, &state1, &state2, nonce, block_ctr, (int)r);
         state1 = new_state1;
         state2 = new_state2;
     }
@@ -330,3 +325,10 @@ void pasta_encrypt_one_block_soft(poly *ciphertext, const poly *plaintext, const
 
 
 
+
+void poly_pointwise_soft(poly *C, const poly *A, const poly *B) {
+    size_t i;
+    for(i = 0; i < N; i++) {
+        C->coeffs[i] = (A->coeffs[i] * B->coeffs[i]) % Q;
+    }   
+}
