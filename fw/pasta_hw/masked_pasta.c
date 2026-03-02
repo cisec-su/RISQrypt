@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include "params.h"
 #include "poly.h"
+#include "pasta.h"
 #include "ntt_lite.h"
 #include "util.h"
 #include "masked_gadgets.h"
@@ -13,7 +14,7 @@
  * @param A pointer to input masked polynomial
  * @return void
  */
-void masked_sbox_cube(masked_poly *B, const masked_poly *A) {
+void masked_pasta_sbox_cube(masked_poly *B, const masked_poly *A) {
     masked_poly_cube(B,A);
 }
 
@@ -26,23 +27,24 @@ void masked_sbox_cube(masked_poly *B, const masked_poly *A) {
  * @param A pointer to input masked polynomial
  * @return void
  */
-void masked_sbox_feistel(masked_poly *B, const masked_poly *A) {
+void masked_pasta_sbox_feistel(masked_poly *B, const masked_poly *A) {
     // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
-    masked_poly A_shifted; // 0 a0 a1 a2 a3 a4 ... a126
+    masked_poly A_shifted, A_refreshed; // 0 a0 a1 a2 a3 a4 ... a126
     masked_poly_right_shift(&A_shifted,A,1);
-    masked_poly_mac(B,&A_shifted,&A_shifted,A);
+    masked_gadgets_x2x_a_ref(&A_refreshed, &A_shifted);
+    masked_poly_mac(B,&A_shifted,&A_refreshed,A);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @brief Calculate next row for masked matrix multiplication
- * @description Generates the next row for the dynamic matrix in masked matmul: C[0] = A[0] * B[N-1]; C[i] = A[i] * B[N-1] + B[i-1] for i >= 1. Uses hardware accelerator (ntt_lite_mul_const, ntt_lite_add). B[N] is used as the scalar bound. The input A is an unmasked polynomial (the random generator), while C and B are raw coefficient arrays
+ * @description Generates the next row for the dynamic matrix in masked pasta_matmul: C[0] = A[0] * B[N-1]; C[i] = A[i] * B[N-1] + B[i-1] for i >= 1. Uses hardware accelerator (ntt_lite_mul_const, ntt_lite_add). B[N] is used as the scalar bound. The input A is an unmasked polynomial (the random generator), while C and B are raw coefficient arrays
  * @param C pointer to output coefficient array (length N)
  * @param B pointer to previous row coefficient array (length N+1; B[N] is the scalar)
  * @param A pointer to unmasked polynomial (first row/generator)
  * @return void
  */
-void masked_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
+void masked_pasta_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
     ntt_lite_set_bound(B[N]);
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A->coeffs);
     ntt_lite_add(C, NTT_LITE_INPUT_DIS, B);
@@ -51,7 +53,7 @@ void masked_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
 
 /**
  * @brief Masked matrix-vector multiplication for PASTA
- * @description Computes new_state = M * state where M is generated row-by-row, with operations performed directly on masked shares. For each row i and each share j: new_state.share[j][i] = sum_k (M[i][k] * state.share[j][k]). The matrix is generated using an unmasked random polynomial (rand), and the linear structure of matmul allows applying it independently to each masked share. Uses hardware accelerator (ntt_lite_pwm, ntt_lite_sum)
+ * @description Computes new_state = M * state where M is generated row-by-row, with operations performed directly on masked shares. For each row i and each share j: new_state.share[j][i] = sum_k (M[i][k] * state.share[j][k]). The matrix is generated using an unmasked random polynomial (rand), and the linear structure of pasta_matmul allows applying it independently to each masked share. Uses hardware accelerator (ntt_lite_pwm, ntt_lite_sum)
  * @param new_state pointer to output masked polynomial
  * @param state pointer to input masked polynomial
  * @param nonce nonce for SHAKE128 seed
@@ -59,7 +61,7 @@ void masked_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
  * @param poly_ctr polynomial counter for SHAKE128 seed
  * @return void
  */
-void masked_matmul(masked_poly *new_state, const masked_poly *state, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+void masked_pasta_matmul(masked_poly *new_state, const masked_poly *state, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
     poly rand;
     size_t j;
     size_t i;
@@ -80,11 +82,10 @@ void masked_matmul(masked_poly *new_state, const masked_poly *state, uint64_t no
         for (j=0; j<MASKING_N; j++) {
             ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, curr_row + N - i, state->share[j].coeffs);
             ntt_lite_sum(&(new_state->share[j].coeffs[i]), NTT_LITE_INPUT_DIS);
-            //refresh gerekli mi? 
         }
         // Calculate next row if not last iteration, public
         if (i != N - 1)
-            masked_calculate_row(curr_row + N - i - 1, curr_row + N - i - 1, &rand);
+            pasta_calculate_row(curr_row + N - i - 1, curr_row + N - i - 1, &rand);
     }
 
 }
@@ -92,7 +93,7 @@ void masked_matmul(masked_poly *new_state, const masked_poly *state, uint64_t no
 
 /**
  * @brief Masked PASTA round function
- * @description Performs one masked PASTA cipher round: 1. Masked matrix multiplication (masked_matmul) on states A and B; 2. Add round constants (unmasked random polynomials added only to share[0]); 3. Masked mixing via masked_poly_mult_add_const (implements 2*A + B and A + 2*B); 4. Masked S-box: cube for last round, Feistel otherwise. All operations preserve the two-share masking structure
+ * @description Performs one masked PASTA cipher round: 1. Masked matrix multiplication (masked_pasta_matmul) on states A and B; 2. Add round constants (unmasked random polynomials added only to share[0]); 3. Masked mixing via masked_poly_mult_add_const (implements 2*A + B and A + 2*B); 4. Masked S-box: cube for last round, Feistel otherwise. All operations preserve the two-share masking structure
  * @param C pointer to output masked polynomial for state 1
  * @param D pointer to output masked polynomial for state 2
  * @param A pointer to input masked polynomial for state 1
@@ -111,10 +112,10 @@ void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, co
     poly_ctr = (r << 2);
 
     // Matrix multiplication on both states
-    masked_matmul(&m_temp1, A, nonce, block_ctr, poly_ctr);
+    masked_pasta_matmul(&m_temp1, A, nonce, block_ctr, poly_ctr);
     poly_ctr++;
 
-    masked_matmul(&m_temp2, B, nonce, block_ctr, poly_ctr);
+    masked_pasta_matmul(&m_temp2, B, nonce, block_ctr, poly_ctr);
     poly_ctr++;
 
     // Add round constants (random polynomials with allow_zero=1)
@@ -137,15 +138,15 @@ void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, co
         masked_poly_mult_add_const(&m_temp3,&m_temp1,&m_temp2);
         masked_poly_mult_add_const(&m_temp1,&m_temp2,&m_temp1);
 
-        masked_sbox_cube(D, &m_temp1);
-        masked_sbox_cube(C, &m_temp3);
+        masked_pasta_sbox_cube(D, &m_temp1);
+        masked_pasta_sbox_cube(C, &m_temp3);
     } else {
         // Step 3: masked_mix the two states - single bound set for both masked_mix operations
         masked_poly_mult_add_const(&m_temp3,&m_temp1,&m_temp2);
         masked_poly_mult_add_const(&m_temp1,&m_temp2,&m_temp1);
 
-        masked_sbox_feistel(D, &m_temp1);
-        masked_sbox_feistel(C, &m_temp3);
+        masked_pasta_sbox_feistel(D, &m_temp1);
+        masked_pasta_sbox_feistel(C, &m_temp3);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +160,7 @@ void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, co
  * @param nonce 8-byte nonce value
  * @return void
  */
-void masked_pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
+void masked_pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
     // Generate keystream for this block (hardware-accelerated)
     size_t r;
     uint64_t block_ctr;
@@ -189,4 +190,4 @@ void masked_pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, con
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+//masked_poly_feistel yazılacak 

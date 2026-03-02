@@ -5,6 +5,6 @@
 #include "params.h"
 #include "poly.h"
 
-void masked_pasta_encrypt_one_block(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce);
+void masked_pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce);
 
 #endif

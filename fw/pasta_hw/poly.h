@@ -9,7 +9,6 @@ typedef struct {
   int32_t coeffs[N];
 } poly;
 
-
 void poly_add(poly *c, const poly *a, const poly *b);
 void poly_sub(poly *c, const poly *a, const poly *b);
 void poly_pointwise(poly *c, const poly *a, const poly *b);

@@ -124,10 +124,11 @@ void masked_poly_unmask(poly *a, const masked_poly *r) {
  * @return void
  */
 void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly *B) {
+#if MASKING_N != 2
+#error "Masking order not supported"
+#else
     poly r;
 
-    size_t buflen = 4*STREAM128_BLOCKBYTES;
-    uint32_t rng_buffer[buflen>>2];
     masked_gadgets_init_q();
     masked_gadgets_x2x_prng_read(&r, N); 
     
@@ -146,7 +147,7 @@ void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly
     ntt_lite_set_clr_with_twiddle();
     // c1 = a1*b1 + r'
     ntt_lite_mac(C->share[1].coeffs,A->share[1].coeffs, B->share[1].coeffs); 
-
+#endif
 }
 
 /**
@@ -158,9 +159,8 @@ void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly
  */
 void masked_poly_square(masked_poly *B, const masked_poly *A) {
     masked_poly CC;
-    masked_gadgets_x2x_a_ref(&CC, A); //masked_gad'e al
+    masked_gadgets_x2x_a_ref(&CC, A); 
     masked_poly_mult_mm(B,A,&CC);
-
 }
 
 /**
@@ -173,10 +173,9 @@ void masked_poly_square(masked_poly *B, const masked_poly *A) {
 void masked_poly_cube(masked_poly *B, const masked_poly *A) {
     masked_poly CC;
     masked_poly BB;
-    masked_gadgets_x2x_a_ref(&CC, A); //masked_gad'e al
+    masked_gadgets_x2x_a_ref(&CC, A); 
     masked_poly_mult_mm(&BB,A,&CC);
     masked_poly_mult_mm(B,A,&BB);
-
 }
 
 /**
@@ -189,25 +188,24 @@ void masked_poly_cube(masked_poly *B, const masked_poly *A) {
  * @return void
  */
 void masked_poly_mac( masked_poly *D, const masked_poly *A, const masked_poly *B, const masked_poly *C){ //affine transform
+#if MASKING_N != 2
+#error "Masking order not supported"
+#else
     //d = a*b + c
-    masked_poly CC;
-    poly r;
-
-    masked_gadgets_x2x_a_ref(&CC, C); //masked_gad'e al
 
     // c0 = a0*b0 + c
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->share[0].coeffs, B->share[0].coeffs);
-    ntt_lite_add(D->share[0].coeffs, NTT_LITE_INPUT_DIS, CC.share[0].coeffs);
+    ntt_lite_add(D->share[0].coeffs, NTT_LITE_INPUT_DIS, C->share[0].coeffs);
 
     // r' = a0*b1 + c
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->share[0].coeffs, B->share[1].coeffs);
-    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*)CC.share[1].coeffs);
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, C->share[1].coeffs);
 
     // r' = (a0*b1 + c) + (b0*a1)
     ntt_lite_mac(NTT_LITE_OUTPUT_DIS,B->share[0].coeffs, A->share[1].coeffs);
     // c1 = a1*b1 + r'
     ntt_lite_mac(D->share[1].coeffs,A->share[1].coeffs, B->share[1].coeffs);
-
+#endif
 }
 
 /**
@@ -219,11 +217,9 @@ void masked_poly_mac( masked_poly *D, const masked_poly *A, const masked_poly *B
  * @return void
  */
 void masked_poly_right_shift(masked_poly *B, const masked_poly *A, size_t shift_count) {
-
     size_t j;
     size_t i;
     uint32_t c[MASKING_N][N+1];
-
     
     ntt_lite_set_bound(0);
 
@@ -232,8 +228,7 @@ void masked_poly_right_shift(masked_poly *B, const masked_poly *A, size_t shift_
             c[i][j] = 0x00000;
         }
         ntt_lite_add_const(c[i] + shift_count, A->share[i].coeffs);
-    }
-    for(i = 0; i< MASKING_N; i++){
+        ntt_lite_set_clr_with_twiddle();
         ntt_lite_add_const(B->share[i].coeffs, c[i]);
     }
 }

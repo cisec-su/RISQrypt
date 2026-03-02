@@ -25,9 +25,6 @@ void masked_poly_mult_add_const(masked_poly *r,const masked_poly *a, const maske
 #define masked_poly_mult_mm PASTA_NAMESPACE(masked_poly_mult_mm)
 void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly *B);
 
-#define masked_poly_sec_exp PASTA_NAMESPACE(masked_poly_sec_exp)
-void masked_poly_sec_exp(masked_poly *B, const masked_poly *A, uint32_t e) ;
-
 #define masked_poly_cube PASTA_NAMESPACE(masked_poly_cube)
 void masked_poly_cube(masked_poly *B, const masked_poly *A);
 
