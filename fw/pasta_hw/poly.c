@@ -57,18 +57,6 @@ void poly_pointwise(poly *c, const poly *a, const poly *b) {
     ntt_lite_pwm((uint32_t*)c->coeffs, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
 }
 
-/**
- * @brief Pointwise multiplication with accumulation
- * @description Performs coefficient-wise multiplication and accumulates into c using the hardware accelerator. Result is multiplied by 2^{-32} for NTT inverse scaling, then added to c
- * @param c pointer to accumulating output polynomial
- * @param a pointer to first input polynomial
- * @param b pointer to second input polynomial
- * @return void
- */
-void poly_pointwise_acc(poly *c, const poly *a, const poly *b) {
-    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*)a->coeffs, (uint32_t*)b->coeffs);
-    ntt_lite_add((uint32_t*)c->coeffs, NTT_LITE_INPUT_DIS,(uint32_t*)c->coeffs);
-}
 
 
 /**

@@ -46,16 +46,15 @@ void pasta_test() {
     uint64_t block_ctr;
     int ret;
 
-    BENCH_INIT()
-    print_string("\n --- pasta_sw test --- \n");
-
-    /* generate constant key/nonce/ctr once */
-    BENCH_START()
-    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
     // assign plaintext
     for (size_t i = 0; i < N; i++) {
         plaintext.coeffs[i] = 1 % Q;
     }
+    print_string("\n --- pasta_sw test --- \n");
+
+    BENCH_INIT()
+    BENCH_START()
+    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
     BENCH_END(PASTA_KEY_GEN)
 
     /* perform software encryption */
@@ -66,43 +65,120 @@ void pasta_test() {
     TEST_ASSERT_EQUAL_INT(0, ret); 
 }
 
-void poly_mult_soft() {
-    size_t sig_len;
-    size_t i;
-    size_t j;
+void poly_uniform_soft() {
     int ret;
-    BENCH_INIT()
-
-    print_string("\n --- pasta_key pasta_key --- \n");
-
     poly A;
-    poly B;
-    poly C;
+
+    print_string("\n --- pasta_soft_poly_uniform --- \n");
+
+    BENCH_INIT()
+    BENCH_START()
+    pasta_soft_poly_uniform(&A, 0, 0, 0, 1);
+    BENCH_END(PASTA_POLY_UNIFORM)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+}
+
+void poly_mul_soft() {
+    size_t i;
+    int ret;
+
+    print_string("\n --- poly_mul_soft --- \n");
+    static poly A;
+    static poly B;
+    static poly C;
 
     for (i = 0; i < N; i++) {
         B.coeffs[i] = (1<<15) % Q;
         A.coeffs[i] = (i*i) % Q;
     }
-    
+
+    BENCH_INIT()
     BENCH_START()
-    // pasta_soft_matmul(&C, &A, 0,0,0);
-    // pasta_soft_poly_pointwise_mult(&C, &A, &B);
+    pasta_soft_poly_pointwise_mult(&C, &A, &B);
+    BENCH_END(PASTA_POLY_POINTWISE_MUL)
 
-    C.coeffs[0] = ((B.coeffs[0] * A.coeffs[0]) % Q ) + A.coeffs[1] % Q;
-
-    BENCH_END(PASTA_POLY_MULT)
-    // print_u32_arr(C.coeffs,5);
     TEST_ASSERT_EQUAL_INT(0, ret);
 
 }
 
+void poly_add_soft() {
+    size_t i;
+    int ret;
+
+    print_string("\n --- poly_add_soft --- \n");
+    static poly A;
+    static poly B;
+    static poly C;
+
+    for (i = 0; i < N; i++) {
+        B.coeffs[i] = (1<<15) % Q;
+        A.coeffs[i] = (i*i) % Q;
+    }
+
+    BENCH_INIT()
+    BENCH_START()
+    pasta_soft_poly_pointwise_add(&C, &A, &B);
+    BENCH_END(PASTA_POLY_POINTWISE_ADD)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
+}
+
+void coeff_mul_soft() {
+    size_t i;
+    int ret;
+
+    print_string("\n --- coeff_mul_soft --- \n");
+    volatile static poly A;
+    volatile static poly B;
+    volatile static poly C;
+
+    for (i = 0; i < N; i++) {
+        B.coeffs[i] = (1<<15) % Q;
+        A.coeffs[i] = (i*i) % Q;
+    }
+
+    BENCH_INIT()
+    BENCH_START()
+    C.coeffs[0] = (A.coeffs[0] * B.coeffs[0]) % Q;
+    BENCH_END(PASTA_COEFF_MUL)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+}
+
+void coeff_add_soft() {
+    size_t i;
+    int ret;
+
+    print_string("\n --- coeff_add_soft --- \n");
+    volatile static poly A;
+    volatile static poly B;
+    volatile static poly C;
+
+    for (i = 0; i < N; i++) {
+        B.coeffs[i] = (1<<15) % Q;
+        A.coeffs[i] = (i*i) % Q;
+    }
+
+    BENCH_INIT()
+    BENCH_START()
+    C.coeffs[0] = (A.coeffs[0] + B.coeffs[0]) % Q;
+    BENCH_END(PASTA_COEFF_ADD)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+}
+
 int main() {
-    uint32_t seed[2] = {1, 1};
+
     UnityBegin("main.c");
-    x2x_seed(seed);
-    print_string("\n --- Pasta Unity Test Start --- \n");
+    print_string("\n --- Pasta Test Start --- \n");
     RUN_TEST(pasta_test);
-    // RUN_TEST(poly_mult_soft);
+    RUN_TEST(poly_uniform_soft);    
+    RUN_TEST(poly_mul_soft);
+    RUN_TEST(poly_add_soft);
+    RUN_TEST(coeff_mul_soft);
+    RUN_TEST(coeff_add_soft);
     return(UnityEnd());
 }
 

@@ -7,6 +7,7 @@
 void pasta_soft_sbox_feistel(poly *B, const poly *A);
 void pasta_soft_sbox_cube(poly *B, const poly *A);
 void pasta_soft_poly_pointwise_mult(poly *C, const poly *A, const poly *B);
+void pasta_soft_poly_pointwise_add(poly *C, const poly *A, const poly *B);
 void pasta_soft_calculate_row(poly *C, const poly *B, const poly *A);
 void pasta_soft_mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right);
 void pasta_soft_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce);

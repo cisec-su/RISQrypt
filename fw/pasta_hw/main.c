@@ -66,17 +66,15 @@ void masked_pasta_test() {
     uint64_t nonce;
     uint64_t block_ctr;
 
-    BENCH_INIT()
-    print_string("\n -- masked pasta test -- \n");
-
-    /* initialize plaintext to all ones */
-    /* generate constant key/nonce/ctr once */
-    BENCH_START()
-    pasta_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
     // assign plaintext
     for (size_t i = 0; i < N; i++) {
         plaintext.coeffs[i] = 1 % Q;
     }
+    print_string("\n -- masked_pasta_hw_test -- \n");
+    BENCH_INIT()
+
+    BENCH_START()
+    pasta_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
     BENCH_END(PASTA_KEY_GEN)
 
     /* perform masked encryption */
@@ -99,16 +97,15 @@ void pasta_test() {
     uint64_t nonce;
     uint64_t block_ctr;
 
-    BENCH_INIT()
-    print_string("\n -- pasta_test -- \n");
-
-    /* generate key/nonce/ctr once */
-    BENCH_START()
-    pasta_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
     // assign plaintext
     for (size_t i = 0; i < N; i++) {
         plaintext.coeffs[i] = 1 % Q;
     }
+    print_string("\n -- pasta_hw_test -- \n");
+    BENCH_INIT()
+
+    BENCH_START()
+    pasta_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
     BENCH_END(PASTA_KEY_GEN)
 
     /* perform encryption */
@@ -121,12 +118,75 @@ void pasta_test() {
     TEST_ASSERT_EQUAL_INT(0, ret);
 }
 
+void pasta_poly_mul_test() {
+    size_t i;
+    int ret;
+    poly A,B,C;
+
+    // assign plaintext
+    for (size_t i = 0; i < N; i++) {
+        A.coeffs[i] = 1 % Q;
+        B.coeffs[i] = 1 % Q;
+    }
+    print_string("\n -- pasta_poly_mul_test -- \n");
+
+    BENCH_INIT()
+    BENCH_START()
+    poly_pointwise(&C, &A, &B);
+    BENCH_END(PASTA_POLY_POINTWISE_MUL)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+}
+
+void pasta_poly_add_test() {
+    size_t i;
+    int ret;
+    poly A,B,C;
+
+    // assign plaintext
+    for (size_t i = 0; i < N; i++) {
+        A.coeffs[i] = 1 % Q;
+        B.coeffs[i] = 1 % Q;
+    }
+    print_string("\n -- pasta_poly_add_test -- \n");
+
+    BENCH_INIT()
+    BENCH_START()
+    poly_add(&C, &A, &B);
+    BENCH_END(PASTA_POLY_POINTWISE_ADD)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+}
+
+void pasta_poly_uniform_test() {
+    size_t i;
+    int ret;
+    poly A,B,C;
+
+    // assign plaintext
+    for (size_t i = 0; i < N; i++) {
+        A.coeffs[i] = 1 % Q;
+        B.coeffs[i] = 1 % Q;
+    }
+    print_string("\n -- pasta_poly_uniform_test -- \n");
+    
+    BENCH_INIT()
+    BENCH_START()
+    poly_uniform(&A, 0, 0, 0, 0, 0);
+    BENCH_END(PASTA_POLY_UNIFORM)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+}
+
 int main() {
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
     x2x_seed(seed);
     RUN_TEST(pasta_test);
     RUN_TEST(masked_pasta_test);
+    RUN_TEST(pasta_poly_mul_test);
+    RUN_TEST(pasta_poly_add_test);
+    RUN_TEST(pasta_poly_uniform_test);
     return(UnityEnd());
 }
 

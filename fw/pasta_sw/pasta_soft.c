@@ -324,6 +324,29 @@ void pasta_soft_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *
 }
 
 
+/**
+ * @brief Pointwise addition of polynomials (pure software)
+ * @description Performs coefficient-wise addition: C[i] = (A[i] + B[i]) mod Q. All arithmetic uses 64-bit intermediate values for safe computation
+ * @param C pointer to output polynomial
+ * @param A pointer to first input polynomial
+ * @param B pointer to second input polynomial
+ * @return void
+ */
+void pasta_soft_poly_pointwise_add(poly *C, const poly *A, const poly *B) {
+    size_t i;
+    for(i = 0; i < N; i++) {
+        C->coeffs[i] = (A->coeffs[i] + B->coeffs[i]) % Q;
+    }   
+}
+
+/**
+ * @brief Pointwise multiplication of polynomials (pure software)
+ * @description Performs coefficient-wise multiplication: C[i] = (A[i] * B[i]) mod Q. Uses 64-bit arithmetic to prevent overflow during intermediate multiplication
+ * @param C pointer to output polynomial
+ * @param A pointer to first input polynomial
+ * @param B pointer to second input polynomial
+ * @return void
+ */
 void pasta_soft_poly_pointwise_mult(poly *C, const poly *A, const poly *B) {
     size_t i;
     for(i = 0; i < N; i++) {
