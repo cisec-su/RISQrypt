@@ -179,6 +179,11 @@ void pasta_poly_uniform_test() {
 }
 
 int main() {
+#ifdef REJ_SAMP_DIS
+    print_string("Rejection sampling: DISABLED\n");
+#else
+    print_string("Rejection sampling: ENABLED\n");
+#endif
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
     x2x_seed(seed);

@@ -13,7 +13,6 @@
 
 #define PASTA_NAMESPACE(s) pasta_##s
 
-
 typedef struct {
   int32_t coeffs[N];
 } poly;

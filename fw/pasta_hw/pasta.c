@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 #include "params.h"
 #include "poly.h"
 #include "ntt_lite.h"
@@ -29,9 +30,8 @@ void pasta_sbox_feistel(poly *B, const poly *A) {
 
     // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
     uint32_t C[N+1];  // Shifted version of A
-    ntt_lite_set_bound(0);
     C[0] = 0x00000;
-    ntt_lite_add_const(C + 1, A->coeffs);
+    memcpy(C + 1, A->coeffs, N * sizeof(uint32_t));
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, C, C);  // C_square = C^2
     ntt_lite_add(B->coeffs, NTT_LITE_INPUT_DIS, A->coeffs); // B = A + C^2
 }
@@ -189,7 +189,6 @@ void pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, 
     block_ctr = 0x0;
 
     poly_init_q();
-
     ntt_lite_set_bound(0);
     ntt_lite_add_const(state1.coeffs, key);
     ntt_lite_add_const(state2.coeffs, key + N);

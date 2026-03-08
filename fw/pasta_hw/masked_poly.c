@@ -3,6 +3,7 @@
 #include "ntt_lite.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <util.h>
 
 #include <stddef.h>
@@ -217,19 +218,11 @@ void masked_poly_mac( masked_poly *D, const masked_poly *A, const masked_poly *B
  * @return void
  */
 void masked_poly_right_shift(masked_poly *B, const masked_poly *A, size_t shift_count) {
-    size_t j;
     size_t i;
-    uint32_t c[MASKING_N][N+1];
-    
-    ntt_lite_set_bound(0);
 
-    for(i = 0; i< MASKING_N; i++){
-        for(j=0; j<shift_count; j++){
-            c[i][j] = 0x00000;
-        }
-        ntt_lite_add_const(c[i] + shift_count, A->share[i].coeffs);
-        ntt_lite_set_clr_with_twiddle();
-        ntt_lite_add_const(B->share[i].coeffs, c[i]);
+    for(i = 0; i < MASKING_N; i++){
+        memset(B->share[i].coeffs, 0, shift_count * sizeof(uint32_t));
+        memcpy(B->share[i].coeffs + shift_count, A->share[i].coeffs, (N - shift_count) * sizeof(uint32_t));
     }
 }
 

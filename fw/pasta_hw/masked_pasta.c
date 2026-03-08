@@ -130,8 +130,7 @@ void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, co
     ntt_lite_set_bound(2);
 
     if (r == PASTA_R) {
-        // Step 3: masked_mix the two states - single bound set for both masked_mix operations
-        masked_poly_mult_add_const(D,&m_temp2,&m_temp1);
+        // Step 3: only C is used after the final round; skip D computation
         masked_poly_mult_add_const(C,&m_temp1,&m_temp2);
     } else if (r == PASTA_R - 1){
         // Step 3: masked_mix the two states - single bound set for both masked_mix operations
