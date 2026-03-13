@@ -48,6 +48,14 @@ int crypto_sign_seed_keypair_masked(unsigned char *pk, unsigned char *sk,
     return 0;
 }
 
+int crypto_sign_keypair_masked(unsigned char *pk, unsigned char *sk)
+{
+  unsigned char seed[CRYPTO_SEEDBYTES];
+  randombytes(seed, CRYPTO_SEEDBYTES);
+  crypto_sign_seed_keypair_masked(pk, sk, seed);
+  return 0;
+}
+
 // Masked version of crypto_sign_signature
 int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
                           const uint8_t *m, size_t mlen, const uint8_t *sk)

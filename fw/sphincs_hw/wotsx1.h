@@ -1,8 +1,6 @@
 #if !defined( WOTSX1_H_ )
 #define WOTSX1_H_ 
 
-#include <string.h>
-
 /*
  * This is here to provide an interface to the internal wots_gen_leafx1
  * routine.  While this routine is not referenced in the package outside of
@@ -24,8 +22,8 @@ struct leaf_info_x1 {
     info.wots_sig = 0;             \
     info.wots_sign_leaf = ~0u;      \
     info.wots_steps = step_buffer; \
-    memcpy( &info.leaf_addr[0], addr, 32 ); \
-    memcpy( &info.pk_addr[0], addr, 32 ); \
+    for (unsigned int _ii = 0; _ii < 8; _ii++) info.leaf_addr[_ii] = (addr)[_ii]; \
+    for (unsigned int _ii = 0; _ii < 8; _ii++) info.pk_addr[_ii] = (addr)[_ii]; \
 }
 
 #define wots_gen_leafx1 SPX_NAMESPACE(wots_gen_leafx1)

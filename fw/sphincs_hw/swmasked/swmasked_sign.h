@@ -8,6 +8,8 @@
 int crypto_sign_seed_keypair_masked(unsigned char *pk, unsigned char *sk,
                              const unsigned char *seed);
 
+int crypto_sign_keypair_masked(unsigned char *pk, unsigned char *sk);
+
 int crypto_sign_signature_masked(uint8_t *sig, size_t *siglen,
                           const uint8_t *m, size_t mlen, const uint8_t *sk);
 

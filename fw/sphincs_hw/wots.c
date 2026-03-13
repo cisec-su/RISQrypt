@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 
 #include "utils.h"
 #include "utilsx1.h"
@@ -28,7 +27,7 @@ static void gen_chain(unsigned char *out, const unsigned char *in,
     uint32_t i;
 
     /* Initialize out with the value at position 'start'. */
-    memcpy(out, in, SPX_N);
+    for (uint32_t _i = 0; _i < SPX_N; _i++) out[_i] = in[_i];
 
     /* Iterate 'steps' calls to the hash function. */
     for (i = start; i < (start+steps) && i < SPX_WOTS_W; i++) {
