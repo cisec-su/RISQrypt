@@ -4,7 +4,7 @@ TOOLCHAIN_DIR = ../../sdk/toolchain
 LIB_DIR = ../../sdk/lib
 
 # SPHINCS+ Parameters
-PARAMS = sphincs-shake-128s
+PARAMS = sphincs-shake-128f
 THASH = simple
 
 # Source files

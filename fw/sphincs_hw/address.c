@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 
 #include "address.h"
 #include "params.h"
@@ -40,10 +39,14 @@ void set_type(uint32_t addr[8], uint32_t type)
 /*
  * Copy the layer and tree fields of the address structure.  This is used
  * when we're doing multiple types of hashes within the same Merkle tree
+ * SPX_OFFSET_TREE + 8 = 16 bytes = 4 uint32_t words
  */
 void copy_subtree_addr(uint32_t out[8], const uint32_t in[8])
 {
-    memcpy( out, in, SPX_OFFSET_TREE+8 );
+    out[0] = in[0];
+    out[1] = in[1];
+    out[2] = in[2];
+    out[3] = in[3];
 }
 
 /* These functions are used for OTS addresses. */
@@ -60,11 +63,15 @@ void set_keypair_addr(uint32_t addr[8], uint32_t keypair)
 /*
  * Copy the layer, tree and keypair fields of the address structure.  This is
  * used when we're doing multiple things within the same OTS keypair
+ * SPX_OFFSET_KP_ADDR = 20 sits within word index 5
  */
 void copy_keypair_addr(uint32_t out[8], const uint32_t in[8])
 {
-    memcpy( out, in, SPX_OFFSET_TREE+8 );
-    memcpy( (unsigned char *)out + SPX_OFFSET_KP_ADDR, (unsigned char *)in + SPX_OFFSET_KP_ADDR, 4); 
+    out[0] = in[0];
+    out[1] = in[1];
+    out[2] = in[2];
+    out[3] = in[3];
+    out[5] = in[5];
 }
 
 /*
@@ -104,3 +111,4 @@ void set_tree_index(uint32_t addr[8], uint32_t tree_index)
 {
     u32_to_bytes(&((unsigned char *)addr)[SPX_OFFSET_TREE_INDEX], tree_index );
 }
+

@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 
 #include "utils.h"
 #include "hash.h"
@@ -55,7 +54,8 @@ void wots_gen_leafx1(unsigned char *dest,
             /* Check if this is the value that needs to be saved as a */
             /* part of the WOTS signature */
             if (k == wots_k) {
-                memcpy( info->wots_sig + i * SPX_N, buffer, SPX_N );
+                for (unsigned int _j = 0; _j < SPX_N; _j++)
+                    info->wots_sig[i * SPX_N + _j] = buffer[_j];
             }
 
             /* Check if we hit the top of the chain */

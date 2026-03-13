@@ -1,4 +1,4 @@
-#include <string.h>
+#include <stdint.h>
 
 #include "utils.h"
 #include "utilsx1.h"
@@ -54,7 +54,7 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
             /* Check if we hit the top of the tree */
             if (h == tree_height) {
                 /* We hit the root; return it */
-                memcpy( root, &current[SPX_N], SPX_N );
+                for (uint32_t _i = 0; _i < SPX_N; _i++) root[_i] = current[SPX_N + _i];
                 return;
             }
 
@@ -63,9 +63,8 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
              * authentication path; if it is, write it out
              */
             if ((internal_idx ^ internal_leaf) == 0x01) {
-                memcpy( &auth_path[ h * SPX_N ],
-                        &current[SPX_N],
-                        SPX_N );
+                for (uint32_t _i = 0; _i < SPX_N; _i++)
+                    auth_path[h * SPX_N + _i] = current[SPX_N + _i];
             }
 
             /*
@@ -87,7 +86,7 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
             set_tree_index(tree_addr, internal_idx/2 + internal_idx_offset );
 
             unsigned char *left = &stack[h * SPX_N];
-            memcpy( &current[0], left, SPX_N );
+            for (uint32_t _i = 0; _i < SPX_N; _i++) current[_i] = left[_i];
             thash( &current[1 * SPX_N],
                    &current[0 * SPX_N],
                    2, ctx, tree_addr);
@@ -95,6 +94,6 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
 
         /* We've hit a left child; save the current for when we get the */
         /* corresponding right right */
-        memcpy( &stack[h * SPX_N], &current[SPX_N], SPX_N);
+        for (uint32_t _i = 0; _i < SPX_N; _i++) stack[h * SPX_N + _i] = current[SPX_N + _i];
     }
 }

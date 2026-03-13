@@ -350,6 +350,28 @@ void test_wots_pk_bench(void) {
 // =============================================================================
 // Main
 // =============================================================================
+
+void test_sphincs_keypair_masked(void) {
+    BENCH_INIT()
+    int ret;
+
+    print_string("\n[Keypair Masked] Generating masked key pair...\n");
+    print_string("  Output: pk[");
+    print_u32_int(SPX_PK_BYTES);
+    print_string("], sk[");
+    print_u32_int(SPX_SK_BYTES);
+    print_string("]\n");
+
+    BENCH_START()
+
+    ret = crypto_sign_keypair_masked(pk, sk);
+
+    BENCH_END(SPX_KEYPAIR)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    print_string("  Result: SUCCESS\n");
+}
+
 // =============================================================================
 // Masked Sign Test
 // =============================================================================
@@ -575,6 +597,27 @@ void test_swmasked_thash_correctness(void) {
         print_string("  Result: SUCCESS (outputs match)\n");
         TEST_PASS();
     }
+}
+
+void test_sphincs_keypair_hwmasked(void) {
+    BENCH_INIT()
+    int ret;
+
+    print_string("\n[Keypair HW Masked] Generating HW masked key pair...\n");
+    print_string("  Output: pk[");
+    print_u32_int(SPX_PK_BYTES);
+    print_string("], sk[");
+    print_u32_int(SPX_SK_BYTES);
+    print_string("]\n");
+
+    BENCH_START()
+
+    ret = crypto_sign_keypair_hwmasked(pk, sk);
+
+    BENCH_END(SPX_KEYPAIR)
+
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    print_string("  Result: SUCCESS\n");
 }
 
 // =============================================================================
@@ -822,6 +865,47 @@ void test_hwmasked_thash_bench(void) {
     TEST_PASS();
 }
 
+// keypair generation benchmark for SW masked implementation
+void test_masked_keypair_generation_bench(void) {
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES];
+    unsigned char sk[CRYPTO_SECRETKEYBYTES];
+
+    print_string("\n[Masked Keypair Generation Bench] Benchmarking masked keypair generation (100 iterations)...\n");
+
+    timer_start();
+
+    for (int i = 0; i < 1; i++) {
+        crypto_sign_keypair_masked(pk, sk);
+    }
+
+    unsigned int elapsed = timer_read();
+    print_string("SPX_masked_KEYPAIR_1X:\t");
+    print_u32_int(elapsed / 1);
+    print_string(" cycles\n");
+
+    TEST_PASS();
+}
+
+void test_hwmasked_keypair_generation_bench(void) {
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES];
+    unsigned char sk[CRYPTO_SECRETKEYBYTES];
+
+    print_string("\n[HW Masked Keypair Generation Bench] Benchmarking HW masked keypair generation (100 iterations)...\n");
+
+    timer_start();
+
+    for (int i = 0; i < 10; i++) {
+        crypto_sign_keypair_hwmasked(pk, sk);
+    }
+
+    unsigned int elapsed = timer_read();
+    print_string("SPX_hwmasked_KEYPAIR_10X:\t");
+    print_u32_int(elapsed / 10);
+    print_string(" cycles\n");
+
+    TEST_PASS();
+}
+
 // =============================================================================
 // Main
 // =============================================================================
@@ -852,6 +936,7 @@ int main(void) {
 
     //print_string("\n--- Starting Masked Tests ---\n");
     //RUN_TEST(test_swmasked_thash_correctness);
+    //RUN_TEST(test_sphincs_keypair_masked);
     //RUN_TEST(test_sphincs_sign_masked);
     //RUN_TEST(test_sphincs_verify_masked);
     //RUN_TEST(test_sphincs_cross_verify);
@@ -868,9 +953,13 @@ int main(void) {
     RUN_TEST(test_hwmasked_thash_correctness);
     RUN_TEST(test_hwmasked_thash_bench);
     RUN_TEST(test_wots_pk_hwmasked_bench);
+    RUN_TEST(test_sphincs_keypair_hwmasked);
     RUN_TEST(test_sphincs_sign_hwmasked);
     RUN_TEST(test_sphincs_verify_hwmasked);
     RUN_TEST(test_sphincs_cross_verify_hwmasked);
+
+    RUN_TEST(test_hwmasked_keypair_generation_bench);
+    //RUN_TEST(test_masked_keypair_generation_bench);
 
 
 

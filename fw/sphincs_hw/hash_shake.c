@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 
 #include "address.h"
 #include "utils.h"
@@ -16,17 +15,20 @@ void initialize_hash_function(spx_ctx* ctx)
 
 /*
  * Computes PRF(pk_seed, sk_seed, addr)
+ * Uses incremental SHAKE256 to absorb components directly, avoiding
+ * an intermediate buffer and memcpy.
  */
 void prf_addr(unsigned char *out, const spx_ctx *ctx,
               const uint32_t addr[8])
 {
-    unsigned char buf[2*SPX_N + SPX_ADDR_BYTES];
+    uint32_t s_inc[52];
 
-    memcpy(buf, ctx->pub_seed, SPX_N);
-    memcpy(buf + SPX_N, addr, SPX_ADDR_BYTES);
-    memcpy(buf + SPX_N + SPX_ADDR_BYTES, ctx->sk_seed, SPX_N);
-
-    shake256(out, SPX_N, buf, 2*SPX_N + SPX_ADDR_BYTES);
+    shake256_inc_init(s_inc);
+    shake256_inc_absorb(s_inc, ctx->pub_seed, SPX_N);
+    shake256_inc_absorb(s_inc, (const uint8_t *)addr, SPX_ADDR_BYTES);
+    shake256_inc_absorb(s_inc, ctx->sk_seed, SPX_N);
+    shake256_inc_finalize(s_inc);
+    shake256_inc_squeeze(out, SPX_N, s_inc);
 }
 
 /**
@@ -66,8 +68,8 @@ void hash_message(unsigned char *digest, uint32_t *tree, uint32_t *leaf_idx,
 #define SPX_LEAF_BYTES ((SPX_LEAF_BITS + 7) / 8)
 #define SPX_DGST_BYTES (SPX_FORS_MSG_BYTES + SPX_TREE_BYTES + SPX_LEAF_BYTES)
 
-    unsigned char buf[SPX_DGST_BYTES];
-    unsigned char *bufp = buf;
+    unsigned char tail_buf[SPX_TREE_BYTES + SPX_LEAF_BYTES];
+    unsigned char *bufp;
     uint32_t s_inc[52];
 
     shake256_inc_init(s_inc);
@@ -75,10 +77,12 @@ void hash_message(unsigned char *digest, uint32_t *tree, uint32_t *leaf_idx,
     shake256_inc_absorb(s_inc, pk, SPX_PK_BYTES);
     shake256_inc_absorb(s_inc, m, (size_t)mlen);
     shake256_inc_finalize(s_inc);
-    shake256_inc_squeeze(buf, SPX_DGST_BYTES, s_inc);
 
-    memcpy(digest, bufp, SPX_FORS_MSG_BYTES);
-    bufp += SPX_FORS_MSG_BYTES;
+    /* Squeeze digest portion directly into output — no intermediate copy */
+    shake256_inc_squeeze(digest, SPX_FORS_MSG_BYTES, s_inc);
+    /* Squeeze remaining tree/leaf bytes into a small buffer */
+    shake256_inc_squeeze(tail_buf, SPX_TREE_BYTES + SPX_LEAF_BYTES, s_inc);
+    bufp = tail_buf;
 
 #if SPX_TREE_BITS > 64
     #error For given height and depth, 64 bits cannot represent all subtrees

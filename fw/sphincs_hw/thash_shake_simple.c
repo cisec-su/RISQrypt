@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 
 #include "thash.h"
 #include "address.h"

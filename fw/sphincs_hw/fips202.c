@@ -1,6 +1,5 @@
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 #include "fips202.h"
 #include "keccak.h"
 
@@ -56,7 +55,8 @@ static void hw_finalize(hw_keccak_ctx *ctx) {
         return;
     }
     volatile uint32_t t = 0;
-    memcpy((void*)&t, ctx->buf, ctx->buf_len);
+    for (uint32_t _i = 0; _i < ctx->buf_len; _i++)
+        ((uint8_t *)&t)[_i] = ctx->buf[_i];
     uint8_t *t_bytes = (uint8_t*)&t;
     t_bytes[ctx->buf_len] = (uint8_t)ctx->pad;
     keccak_finish((uint32_t*)&t);
@@ -85,7 +85,7 @@ static void hw_squeeze(hw_keccak_ctx *ctx, uint8_t *output, size_t outlen) {
         while (outlen >= 4) {
             uint32_t t;
             keccak_squeeze(&t, NULL, 1);
-            memcpy(output, &t, 4);
+            for (unsigned int _i = 0; _i < 4; _i++) output[_i] = ((uint8_t *)&t)[_i];
             output += 4;
             outlen -= 4;
         }
@@ -95,8 +95,8 @@ static void hw_squeeze(hw_keccak_ctx *ctx, uint8_t *output, size_t outlen) {
     if (outlen > 0) {
         uint32_t t;
         keccak_squeeze(&t, NULL, 1);
-        memcpy(ctx->squeeze_buf, &t, 4);
-        memcpy(output, ctx->squeeze_buf, outlen);
+        for (unsigned int _i = 0; _i < 4; _i++) ctx->squeeze_buf[_i] = ((uint8_t *)&t)[_i];
+        for (unsigned int _i = 0; _i < outlen; _i++) output[_i] = ctx->squeeze_buf[_i];
         ctx->squeeze_ptr = outlen;
         ctx->squeeze_rem = 4 - outlen;
     }

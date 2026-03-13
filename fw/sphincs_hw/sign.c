@@ -59,12 +59,12 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
     spx_ctx ctx;
 
     /* Initialize SK_SEED, SK_PRF and PUB_SEED from seed. */
-    memcpy(sk, seed, CRYPTO_SEEDBYTES);
+    for (unsigned int _i = 0; _i < CRYPTO_SEEDBYTES; _i++) sk[_i] = seed[_i];
 
-    memcpy(pk, sk + 2*SPX_N, SPX_N);
+    for (unsigned int _i = 0; _i < SPX_N; _i++) pk[_i] = sk[2*SPX_N + _i];
 
-    memcpy(ctx.pub_seed, pk, SPX_N);
-    memcpy(ctx.sk_seed, sk, SPX_N);
+    for (unsigned int _i = 0; _i < SPX_N; _i++) ctx.pub_seed[_i] = pk[_i];
+    for (unsigned int _i = 0; _i < SPX_N; _i++) ctx.sk_seed[_i] = sk[_i];
 
     /* This hook allows the hash function instantiation to do whatever
        preparation or computation it needs, based on the public seed. */
@@ -73,7 +73,7 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
     /* Compute root node of the top-most subtree. */
     merkle_gen_root(sk + 3*SPX_N, &ctx);
 
-    memcpy(pk + SPX_N, sk + 3*SPX_N, SPX_N);
+    for (unsigned int _i = 0; _i < SPX_N; _i++) pk[SPX_N + _i] = sk[3*SPX_N + _i];
 
     return 0;
 }
@@ -112,8 +112,8 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     uint32_t wots_addr[8] = {0};
     uint32_t tree_addr[8] = {0};
 
-    memcpy(ctx.sk_seed, sk, SPX_N);
-    memcpy(ctx.pub_seed, pk, SPX_N);
+    for (unsigned int _i = 0; _i < SPX_N; _i++) ctx.sk_seed[_i] = sk[_i];
+    for (unsigned int _i = 0; _i < SPX_N; _i++) ctx.pub_seed[_i] = pk[_i];
 
     /* This hook allows the hash function instantiation to do whatever
        preparation or computation it needs, based on the public seed. */
@@ -189,7 +189,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
         return -1;
     }
 
-    memcpy(ctx.pub_seed, pk, SPX_N);
+    for (unsigned int _i = 0; _i < SPX_N; _i++) ctx.pub_seed[_i] = pk[_i];
 
     /* This hook allows the hash function instantiation to do whatever
        preparation or computation it needs, based on the public seed. */

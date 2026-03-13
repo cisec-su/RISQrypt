@@ -41,6 +41,19 @@ int crypto_sign_seed_keypair_hwmasked(unsigned char *pk, unsigned char *sk,
     return 0;
 }
 
+/*
+ * Generates an SPX key pair.
+ * Format sk: [SK_SEED || SK_PRF || PUB_SEED || root]
+ * Format pk: [PUB_SEED || root]
+ */
+int crypto_sign_keypair_hwmasked(unsigned char *pk, unsigned char *sk)
+{
+  unsigned char seed[CRYPTO_SEEDBYTES];
+  randombytes(seed, CRYPTO_SEEDBYTES);
+  crypto_sign_seed_keypair_hwmasked(pk, sk, seed);
+  return 0;
+}
+
 // HW masked version of crypto_sign_signature
 int crypto_sign_signature_hwmasked(uint8_t *sig, size_t *siglen,
                                    const uint8_t *m, size_t mlen, const uint8_t *sk)
