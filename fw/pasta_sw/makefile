@@ -13,7 +13,7 @@ SRC += ../common/unity.c
 INC = -I../common
 
 CFLAGS += -DBUSY_CHECK_DIS
-# CFLAGS += -DUSE_BARRETT  # Comment out to use % operator instead of Barrett reduction
+CFLAGS += -DUSE_BARRETT  # Comment out to use % operator instead of Barrett reduction
 
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
