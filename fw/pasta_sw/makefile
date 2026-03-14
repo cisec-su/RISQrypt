@@ -5,6 +5,7 @@ LIB_DIR = ../../sdk/lib
 
 SRC  = main.c
 SRC += pasta_soft.c
+SRC += masked_pasta_soft.c
 SRC += fips202.c
 SRC += ../kyber_asm/keccakf1600_asm.S
 SRC += ../common/unity.c

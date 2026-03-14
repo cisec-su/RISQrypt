@@ -25,15 +25,30 @@ static inline uint32_t barrett_reduce_acc(uint64_t x) {
     return (uint32_t)r;
 }
 #define MOD_Q_ACC(x) barrett_reduce_acc((uint64_t)(x))
+
+/* Lightweight modular addition: reduce sum of two coefficients each < Q.
+ * Result is always < 2*Q, so single conditional subtraction suffices. */
+static inline uint32_t mod_q_add(uint32_t a, uint32_t b) {
+    uint32_t sum = a + b;
+    return (sum >= Q) ? (sum - Q) : sum;
+}
+#define MOD_Q_ADD(a, b) mod_q_add((a), (b))
 #else
-#define MOD_Q(x)     ((x) % Q)
-#define MOD_Q_ACC(x) ((x) % Q)
+#define MOD_Q(x)       ((x) % Q)
+#define MOD_Q_ACC(x)   ((x) % Q)
+#define MOD_Q_ADD(a, b) (((a) + (b)) % Q)
 #endif
+
+extern const uint32_t PASTA_KEY[];
+extern const uint32_t PASTA_PLAINTEXT[];
+extern const uint64_t PASTA_NONCE;
+extern const uint64_t PASTA_BLOCK_CTR;
 
 void pasta_soft_sbox_feistel(poly *B, const poly *A);
 void pasta_soft_sbox_cube(poly *B, const poly *A);
 void pasta_soft_poly_pointwise_mult(poly *C, const poly *A, const poly *B);
 void pasta_soft_poly_pointwise_add(poly *C, const poly *A, const poly *B);
+void pasta_soft_poly_pointwise_sub(poly *C, const poly *A, const poly *B);
 void pasta_soft_calculate_row(int32_t *C, const int32_t *B, const poly *A);
 void pasta_soft_mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right);
 void pasta_soft_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce);

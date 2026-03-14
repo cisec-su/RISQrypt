@@ -10,6 +10,7 @@
 #define PASTA_R 3
 #define Q 65537
 #define MODULUS_BIT_MASK (1<<17)-1 // 0x1FFFF
+#define MASKING_N 2
 
 #define PASTA_NAMESPACE(s) pasta_##s
 

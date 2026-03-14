@@ -37,12 +37,12 @@ void pasta_soft_sbox_cube(poly *B, const poly *A) {
 void pasta_soft_sbox_feistel(poly *B, const poly *A) {
     size_t el;
     uint64_t square;
-    uint64_t sum;
+    uint32_t sq_reduced;
     B->coeffs[0] = A->coeffs[0];
     for (el = 1; el < N; el++) {
         square = (uint64_t)A->coeffs[el - 1] * A->coeffs[el - 1];
-        sum = square + A->coeffs[el];
-        B->coeffs[el] = MOD_Q(sum);
+        sq_reduced = MOD_Q(square);
+        B->coeffs[el] = MOD_Q_ADD(sq_reduced, A->coeffs[el]);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,11 +58,13 @@ void pasta_soft_sbox_feistel(poly *B, const poly *A) {
 void pasta_soft_calculate_row(int32_t *C, const int32_t *B, const poly *A) {
     size_t i;
     int32_t b_last = B[N];
-    uint64_t sum;
+    uint64_t product;
+    uint32_t prod_reduced;
 
     for (i = 0; i < N; i++) {
-        sum = (uint64_t)A->coeffs[i] * b_last + B[i];
-        C[i] = MOD_Q(sum);
+        product = (uint64_t)A->coeffs[i] * b_last;
+        prod_reduced = MOD_Q(product);
+        C[i] = MOD_Q_ADD(prod_reduced, B[i]);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,16 +80,20 @@ void pasta_soft_calculate_row(int32_t *C, const int32_t *B, const poly *A) {
  */
 void pasta_soft_mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
     size_t i;
-    uint64_t left_val;
-    uint64_t right_val;
+    uint64_t left_prod;
+    uint64_t right_prod;
+    uint32_t left_reduced;
+    uint32_t right_reduced;
     for (i = 0; i < N; i++) {
         // B_left[i] = 2*A_left[i] + A_right[i] mod Q
-        left_val = 2 * A_left->coeffs[i] + A_right->coeffs[i];
-        B_left->coeffs[i] = MOD_Q(left_val);
+        left_prod = 2 * A_left->coeffs[i];
+        left_reduced = MOD_Q(left_prod);
+        B_left->coeffs[i] = MOD_Q_ADD(left_reduced, A_right->coeffs[i]);
 
         // B_right[i] = A_left[i] + 2*A_right[i] mod Q
-        right_val = A_left->coeffs[i] + 2 * A_right->coeffs[i];
-        B_right->coeffs[i] = MOD_Q(right_val);
+        right_prod = 2 * A_right->coeffs[i];
+        right_reduced = MOD_Q(right_prod);
+        B_right->coeffs[i] = MOD_Q_ADD(A_left->coeffs[i], right_reduced);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,7 +205,6 @@ void pasta_soft_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t n
     poly temp3, temp4;  // After add_rc
     poly temp5, temp6;  // After pasta_mix
     uint8_t poly_ctr;
-    size_t i;
     int allow_zero;
 
     poly_ctr = r << 2;
@@ -211,20 +216,21 @@ void pasta_soft_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t n
     allow_zero = 1;
     pasta_soft_poly_uniform(&temp3, nonce, block_ctr, poly_ctr, allow_zero);
     poly_ctr = poly_ctr + 1;
-    for (i = 0; i < N; i++)
-        temp3.coeffs[i] = MOD_Q(temp3.coeffs[i] + temp1.coeffs[i]);
+    pasta_soft_poly_pointwise_add(&temp3, &temp3, &temp1);
 
     pasta_soft_poly_uniform(&temp4, nonce, block_ctr, poly_ctr, allow_zero);
     poly_ctr = poly_ctr + 1;
-    for (i = 0; i < N; i++)
-        temp4.coeffs[i] = MOD_Q(temp4.coeffs[i] + temp2.coeffs[i]);
+    pasta_soft_poly_pointwise_add(&temp4, &temp4, &temp2);
 
-    pasta_soft_mix(&temp5, &temp6, &temp3, &temp4);
+    if (r == PASTA_R) {
+        pasta_soft_mix(C, &temp6, &temp3, &temp4);
 
-    if (r == PASTA_R - 1) {
+    } else if (r == PASTA_R - 1) {
+        pasta_soft_mix(&temp5, &temp6, &temp3, &temp4);
         pasta_soft_sbox_cube(C, &temp5);
         pasta_soft_sbox_cube(D, &temp6);
     } else {
+        pasta_soft_mix(&temp5, &temp6, &temp3, &temp4);
         pasta_soft_sbox_feistel(C, &temp5);
         pasta_soft_sbox_feistel(D, &temp6);
     }
@@ -240,14 +246,10 @@ void pasta_soft_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t n
  */
 void pasta_soft_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
     poly state1, state2;
-    poly temp1, temp2;
     poly new_state1, new_state2;
-    poly final_state2;
-    int r;
+    size_t r;
     size_t i;
     uint64_t block_ctr;
-    uint8_t poly_ctr;
-    int allow_zero;
 
     block_ctr = 0;
 
@@ -257,36 +259,15 @@ void pasta_soft_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *
         state2.coeffs[i] = key[N + i];
     }
 
-    // Run PASTA_R rounds
-    for (r = 0; r < PASTA_R; r++) {
+    // Run PASTA_R+1 rounds
+    for (r = 0; r < (size_t)PASTA_R + 1; r++) {
         pasta_soft_round(&new_state1, &new_state2, &state1, &state2, nonce, block_ctr, r);
         state1 = new_state1;
         state2 = new_state2;
     }
-    poly_ctr = PASTA_R << 2;
 
-    // Final pasta_matmul on both states
-    pasta_soft_matmul(&new_state1, &state1, nonce, block_ctr, poly_ctr);
-    poly_ctr = poly_ctr + 1;
-    pasta_soft_matmul(&new_state2, &state2, nonce, block_ctr, poly_ctr);
-    poly_ctr = poly_ctr + 1;
-
-    allow_zero = 1;
-    pasta_soft_poly_uniform(&temp1, nonce, block_ctr, poly_ctr, allow_zero);
-    poly_ctr = poly_ctr + 1;
-    for (i = 0; i < N; i++)
-        state1.coeffs[i] = MOD_Q(new_state1.coeffs[i] + temp1.coeffs[i]);
-
-    pasta_soft_poly_uniform(&temp2, nonce, block_ctr, poly_ctr, allow_zero);
-    poly_ctr = poly_ctr + 1;
-    for (i = 0; i < N; i++)
-        state2.coeffs[i] = MOD_Q(new_state2.coeffs[i] + temp2.coeffs[i]);
-
-    // Final pasta_mix (state1 becomes the keystream)
-    pasta_soft_mix(&temp1, &final_state2, &state1, &state2);
-
-    for (i = 0; i < N; i++)
-        ciphertext->coeffs[i] = MOD_Q(temp1.coeffs[i] + plaintext->coeffs[i]);
+    // Add plaintext to state1
+    pasta_soft_poly_pointwise_add(ciphertext, &state1, plaintext);
 }
 
 
@@ -301,7 +282,26 @@ void pasta_soft_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *
 void pasta_soft_poly_pointwise_add(poly *C, const poly *A, const poly *B) {
     size_t i;
     for(i = 0; i < N; i++) {
-        C->coeffs[i] = MOD_Q(A->coeffs[i] + B->coeffs[i]);
+        C->coeffs[i] = MOD_Q_ADD(A->coeffs[i], B->coeffs[i]);
+    }
+}
+
+/**
+ * @brief Pointwise subtraction of polynomials (pure software)
+ * @description Performs coefficient-wise subtraction: C[i] = (A[i] - B[i]) mod Q. Uses modular arithmetic to handle negative results
+ * @param C pointer to output polynomial
+ * @param A pointer to first input polynomial
+ * @param B pointer to second input polynomial
+ * @return void
+ */
+void pasta_soft_poly_pointwise_sub(poly *C, const poly *A, const poly *B) {
+    size_t i;
+    uint32_t diff;
+    for(i = 0; i < N; i++) {
+        diff = A->coeffs[i] + Q - B->coeffs[i];
+        if (diff >= Q)
+            diff = diff - Q;
+        C->coeffs[i] = diff;
     }
 }
 
@@ -328,18 +328,20 @@ void pasta_soft_poly_pointwise_mult(poly *C, const poly *A, const poly *B) {
  * @return void
  */
 void pasta_soft_key_gen(int32_t *key, uint64_t *nonce, uint64_t *block_ctr){
-    // constant key of all ones (mod Q)
+    size_t i;
+
+    // copy key from constant array
     if (key != NULL) {
-        for (size_t i = 0; i < 2 * N; i++) {
-            key[i] = MOD_Q(1);
+        for (i = 0; i < 2 * N; i++) {
+            key[i] = PASTA_KEY[i];
         }
     }
 
-    // constant nonce and block counter
+    // use constant nonce and block counter
     if (nonce != NULL) {
-        *nonce = 0x123456789ULL;
+        *nonce = PASTA_NONCE;
     }
     if (block_ctr != NULL) {
-        *block_ctr = 0x0ULL;
+        *block_ctr = PASTA_BLOCK_CTR;
     }
 }

@@ -10,12 +10,72 @@
 #include "unity_internals.h"
 #include "benchmark.h"
 #include "pasta_soft.h"
+#include "masked_pasta_soft.h"
 
+////////////////////////////////////////////////////////////////
 /**
     secret_key = [1]*256
     plaintext  = [1]*128
     nonce = 0x123456789
 */
+const uint32_t PASTA_KEY[] = {
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+};
+
+const uint32_t PASTA_PLAINTEXT[] = {
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001, 0x00000001,
+};
+
+const uint64_t PASTA_NONCE = 0x123456789;
+
+const uint64_t PASTA_BLOCK_CTR = 0x0;
+
 static const uint32_t PASTA_SW_EXP_CIPHERTEXT[] = {
 0x00003e54, 0x0000c08b, 0x0000670c, 0x000012a5, 0x000065d4, 0x00001784, 0x0000c57b, 0x00002bcd,
 0x0000d582, 0x000026d4, 0x0000aadb, 0x0000d83f, 0x0000071a, 0x000041b7, 0x00007995, 0x0000c816,
@@ -61,32 +121,6 @@ void print_poly(const poly *p, size_t len) {
     }
 }
 
-void pasta_test() {
-
-    poly plaintext;
-    poly ciphertext;
-    uint32_t pasta_key[2 * N];
-    uint64_t nonce;
-    uint64_t block_ctr;
-
-    // assign plaintext
-    for (size_t i = 0; i < N; i++) {
-        plaintext.coeffs[i] = 1 % Q;
-    }
-    print_string("\n --- pasta_sw test --- \n");
-
-    BENCH_INIT()
-    BENCH_START()
-    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
-    BENCH_END(PASTA_KEY_GEN)
-
-    /* perform software encryption */
-    BENCH_START()
-    pasta_soft_encrypt(&ciphertext, &plaintext, pasta_key, nonce);
-    BENCH_END(PASTA_SOFT_ENCRYPT)
-    // print_u32_arr(ciphertext.coeffs, 5);
-    TEST_ASSERT_EQUAL_HEX32_ARRAY(PASTA_SW_EXP_CIPHERTEXT, ciphertext.coeffs, N);
-}
 
 void poly_uniform_soft() {
     int ret;
@@ -196,8 +230,67 @@ void coeff_add_soft() {
 
     TEST_ASSERT_EQUAL_INT(0, ret);
 }
-//mul_ 2946 cycles = 130+22*128 (26 cycles)
-//add_ 2562 cycles = 130+19*128 (23 cycles)
+
+void pasta_test() {
+
+    poly plaintext;
+    poly ciphertext;
+    uint32_t pasta_key[2 * N];
+    uint64_t nonce;
+    uint64_t block_ctr;
+    size_t i;
+
+    // assign plaintext from constant array
+    for (i = 0; i < N; i++) {
+        plaintext.coeffs[i] = PASTA_PLAINTEXT[i];
+    }
+    print_string("\n --- pasta_sw test --- \n");
+
+    BENCH_INIT()
+    BENCH_START()
+    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
+    BENCH_END(PASTA_KEY_GEN)
+
+    /* perform software encryption */
+    BENCH_START()
+    pasta_soft_encrypt(&ciphertext, &plaintext, (int32_t *)pasta_key, nonce);
+    BENCH_END(PASTA_SOFT_ENCRYPT)
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(PASTA_SW_EXP_CIPHERTEXT, ciphertext.coeffs, N);
+}
+
+/**
+ * @brief Test masked PASTA software encryption
+ * @description Verifies masked_pasta_soft_encrypt produces same result as unmasked version
+ */
+void masked_pasta_soft_test() {
+    static poly plaintext;
+    static poly ciphertext_masked;
+    uint32_t pasta_key[2 * N];
+    uint64_t nonce;
+    uint64_t block_ctr;
+    size_t i;
+
+    // Setup plaintext from constant array
+    for (i = 0; i < N; i++) {
+        plaintext.coeffs[i] = PASTA_PLAINTEXT[i];
+    }
+
+    print_string("\n --- masked_pasta_soft_encrypt test --- \n");
+
+    BENCH_INIT()
+    BENCH_START()
+    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
+    BENCH_END(PASTA_KEY_GEN)
+
+    // Run masked encryption
+    BENCH_START()
+    masked_pasta_soft_encrypt(&ciphertext_masked, &plaintext, (int32_t *)pasta_key, nonce);
+    BENCH_END(MASKED_PASTA_SOFT_ENCRYPT)
+
+    // Verify against test vector
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(PASTA_SW_EXP_CIPHERTEXT, ciphertext_masked.coeffs, N);
+}
+
 int main() {
 
     UnityBegin("main.c");
@@ -208,11 +301,11 @@ int main() {
     print_string("Reduction: % Q\n");
 #endif
     RUN_TEST(pasta_test);
-    RUN_TEST(poly_uniform_soft);    
+    RUN_TEST(masked_pasta_soft_test);
+    RUN_TEST(poly_uniform_soft);
     RUN_TEST(poly_mul_soft);
     RUN_TEST(poly_add_soft);
     RUN_TEST(coeff_mul_soft);
     RUN_TEST(coeff_add_soft);
     return(UnityEnd());
 }
-
