@@ -182,7 +182,7 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
  */
 void pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, uint64_t nonce) {
     // Generate keystream for this block (hardware-accelerated)
-    static poly state1, state2;
+    poly state1, state2;
     size_t r;
     uint64_t block_ctr;
 
