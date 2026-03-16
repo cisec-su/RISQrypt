@@ -198,7 +198,7 @@ void coeff_mul_soft() {
 
     BENCH_INIT()
     BENCH_START()
-    C.coeffs[0] = MOD_Q((uint64_t)A.coeffs[0] * B.coeffs[0]);
+    C.coeffs[0] = MOD_Q_MULT((uint32_t)A.coeffs[0], (uint32_t)B.coeffs[0]);
     BENCH_END(PASTA_COEFF_MUL)
 
     TEST_ASSERT_EQUAL_INT(0, ret);
@@ -224,8 +224,7 @@ void coeff_add_soft() {
 
     BENCH_INIT()
     BENCH_START()
-    // c = MOD_Q(a + b);
-    C.coeffs[0] = MOD_Q(A.coeffs[0] + B.coeffs[0]); // 19-cycle
+    C.coeffs[0] = MOD_Q_ADD(A.coeffs[0], B.coeffs[0]); // 19-cycle
     BENCH_END(PASTA_COEFF_ADD)
 
     TEST_ASSERT_EQUAL_INT(0, ret);

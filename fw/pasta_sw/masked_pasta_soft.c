@@ -269,12 +269,11 @@ void masked_pasta_soft_matmul(masked_poly *new_state, const masked_poly *state, 
  */
 void masked_poly_soft_mix_2a_b(masked_poly *r, const masked_poly *a, const masked_poly *b) {
     size_t i, j;
-    uint64_t prod;
     uint32_t prod_reduced;
+
     for (j = 0; j < MASKING_N; j++) {
         for (i = 0; i < N; i++) {
-            prod = 2 * (uint64_t)a->share[j].coeffs[i];
-            prod_reduced = MOD_Q(prod);
+            prod_reduced = MOD_Q_MULT((uint32_t)a->share[j].coeffs[i], 2);
             r->share[j].coeffs[i] = MOD_Q_ADD(prod_reduced, b->share[j].coeffs[i]);
         }
     }

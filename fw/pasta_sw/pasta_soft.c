@@ -16,13 +16,12 @@
  */
 void pasta_soft_sbox_cube(poly *B, const poly *A) {
     size_t el;
-    uint64_t square;
-    uint64_t cube;
+    uint32_t square;
+    uint32_t cube;
     for (el = 0; el < N; el++) {
-        square = (uint64_t)A->coeffs[el] * A->coeffs[el];
-        square = MOD_Q(square);
-        cube = square * A->coeffs[el];
-        B->coeffs[el] = MOD_Q(cube);
+        square = MOD_Q_MULT(A->coeffs[el], A->coeffs[el]);
+        cube = MOD_Q_MULT(square, A->coeffs[el]);
+        B->coeffs[el] = cube;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,12 +35,10 @@ void pasta_soft_sbox_cube(poly *B, const poly *A) {
  */
 void pasta_soft_sbox_feistel(poly *B, const poly *A) {
     size_t el;
-    uint64_t square;
     uint32_t sq_reduced;
     B->coeffs[0] = A->coeffs[0];
     for (el = 1; el < N; el++) {
-        square = (uint64_t)A->coeffs[el - 1] * A->coeffs[el - 1];
-        sq_reduced = MOD_Q(square);
+        sq_reduced = MOD_Q_MULT(A->coeffs[el - 1], A->coeffs[el - 1]);
         B->coeffs[el] = MOD_Q_ADD(sq_reduced, A->coeffs[el]);
     }
 }
@@ -57,13 +54,13 @@ void pasta_soft_sbox_feistel(poly *B, const poly *A) {
  */
 void pasta_soft_calculate_row(int32_t *C, const int32_t *B, const poly *A) {
     size_t i;
-    int32_t b_last = B[N];
-    uint64_t product;
+    int32_t b_last;
     uint32_t prod_reduced;
 
+    b_last = B[N];
+
     for (i = 0; i < N; i++) {
-        product = (uint64_t)A->coeffs[i] * b_last;
-        prod_reduced = MOD_Q(product);
+        prod_reduced = MOD_Q_MULT((uint32_t)A->coeffs[i], (uint32_t)b_last);
         C[i] = MOD_Q_ADD(prod_reduced, B[i]);
     }
 }
@@ -80,19 +77,16 @@ void pasta_soft_calculate_row(int32_t *C, const int32_t *B, const poly *A) {
  */
 void pasta_soft_mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_right) {
     size_t i;
-    uint64_t left_prod;
-    uint64_t right_prod;
     uint32_t left_reduced;
     uint32_t right_reduced;
+
     for (i = 0; i < N; i++) {
         // B_left[i] = 2*A_left[i] + A_right[i] mod Q
-        left_prod = 2 * A_left->coeffs[i];
-        left_reduced = MOD_Q(left_prod);
+        left_reduced = MOD_Q_MULT((uint32_t)A_left->coeffs[i], 2);
         B_left->coeffs[i] = MOD_Q_ADD(left_reduced, A_right->coeffs[i]);
 
         // B_right[i] = A_left[i] + 2*A_right[i] mod Q
-        right_prod = 2 * A_right->coeffs[i];
-        right_reduced = MOD_Q(right_prod);
+        right_reduced = MOD_Q_MULT((uint32_t)A_right->coeffs[i], 2);
         B_right->coeffs[i] = MOD_Q_ADD(A_left->coeffs[i], right_reduced);
     }
 }
@@ -297,6 +291,7 @@ void pasta_soft_poly_pointwise_add(poly *C, const poly *A, const poly *B) {
 void pasta_soft_poly_pointwise_sub(poly *C, const poly *A, const poly *B) {
     size_t i;
     uint32_t diff;
+
     for(i = 0; i < N; i++) {
         diff = A->coeffs[i] + Q - B->coeffs[i];
         if (diff >= Q)
@@ -316,7 +311,7 @@ void pasta_soft_poly_pointwise_sub(poly *C, const poly *A, const poly *B) {
 void pasta_soft_poly_pointwise_mult(poly *C, const poly *A, const poly *B) {
     size_t i;
     for(i = 0; i < N; i++) {
-        C->coeffs[i] = MOD_Q((uint64_t)A->coeffs[i] * B->coeffs[i]);
+        C->coeffs[i] = MOD_Q_MULT((uint32_t)A->coeffs[i], (uint32_t)B->coeffs[i]);
     }
 }
 /**

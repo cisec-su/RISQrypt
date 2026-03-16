@@ -5,16 +5,38 @@
 #include "params.h"
 
 #ifdef USE_BARRETT
+/**
+ * @brief Optimized modular reduction for single values
+ * @description Uses Barrett reduction for fast modulo Q operation (3-4 cycles vs 20-30)
+ * @param x Value to reduce (typically result of multiplication)
+ * @return Reduced value modulo Q
+ */
 static inline uint32_t barrett_reduce(uint64_t x) {
     int32_t r = (int32_t)(x & 0xFFFF) - (int32_t)(x >> 16);
     if (r < 0) r += Q;
     return (uint32_t)r;
 }
-#define MOD_Q(x) barrett_reduce((uint64_t)(x))
 
-/* Reduce accumulator of up to N unreduced products, each < (Q-1)^2.
+/**
+ * @brief Optimized modular multiplication
+ * @description Multiply two coefficients and reduce the result using Barrett reduction (3-4 cycles)
+ * @param a First coefficient (< Q)
+ * @param b Second coefficient (< Q)
+ * @return Product reduced modulo Q
+ */
+static inline uint32_t mod_q_mult(uint32_t a, uint32_t b) {
+    return barrett_reduce((uint64_t)a * b);
+}
+#define MOD_Q_MULT(a, b) mod_q_mult((a), (b))
+
+/**
+ * @brief Optimized modular reduction for accumulators
+ * @description Reduces accumulator of up to N unreduced products, each < (Q-1)^2.
  * Valid when x < 2^40 (e.g., N=128, Q=65537: 128*(Q-1)^2 < 2^39).
- * Uses 2^16 ≡ -1 (mod Q)  =>  2^32 ≡ 1 (mod Q). */
+ * Uses 2^16 ≡ -1 (mod Q) => 2^32 ≡ 1 (mod Q).
+ * @param x Accumulated value to reduce
+ * @return Reduced value modulo Q
+ */
 static inline uint32_t barrett_reduce_acc(uint64_t x) {
     int32_t r;
     r  = (int32_t)(x & 0xFFFF);
@@ -26,17 +48,24 @@ static inline uint32_t barrett_reduce_acc(uint64_t x) {
 }
 #define MOD_Q_ACC(x) barrett_reduce_acc((uint64_t)(x))
 
-/* Lightweight modular addition: reduce sum of two coefficients each < Q.
- * Result is always < 2*Q, so single conditional subtraction suffices. */
+/**
+ * @brief Lightweight modular addition
+ * @description Reduce sum of two coefficients each < Q.
+ * Result is always < 2*Q, so single conditional subtraction suffices.
+ * @param a First coefficient
+ * @param b Second coefficient
+ * @return Sum reduced modulo Q
+ */
 static inline uint32_t mod_q_add(uint32_t a, uint32_t b) {
     uint32_t sum = a + b;
     return (sum >= Q) ? (sum - Q) : sum;
 }
 #define MOD_Q_ADD(a, b) mod_q_add((a), (b))
 #else
-#define MOD_Q(x)       ((x) % Q)
-#define MOD_Q_ACC(x)   ((x) % Q)
-#define MOD_Q_ADD(a, b) (((a) + (b)) % Q)
+/* Fallback to standard modular arithmetic when Barrett optimization disabled */
+#define MOD_Q_MULT(a, b) (((uint64_t)(a) * (b)) % Q)
+#define MOD_Q_ACC(x)     ((x) % Q)
+#define MOD_Q_ADD(a, b)  (((a) + (b)) % Q)
 #endif
 
 extern const uint32_t PASTA_KEY[];

@@ -5,6 +5,7 @@
 #include "poly.h"
 #include "ntt_lite.h"
 #include "util.h"
+#include "pasta.h"
 
 /**
  * @brief PASTA S-box cube layer
@@ -210,22 +211,20 @@ void pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, 
  * The values returned are fixed constants defined in the implementation.
  */
 void pasta_key_gen(int32_t *key, uint64_t *nonce, uint64_t *block_ctr){
-    // Generate constant key, nonce, and block counter values.
-    // The caller must provide buffers of appropriate size.
-    // Values are set to simple constants for testing.
+    size_t i;
 
-    // constant key of all ones (mod Q)
+    // copy key from constant array
     if (key != NULL) {
-        for (size_t i = 0; i < 2 * N; i++) {
-            key[i] = 1 % Q;
+        for (i = 0; i < 2 * N; i++) {
+            key[i] = PASTA_KEY[i];
         }
     }
 
-    // constant nonce and block counter
+    // use constant nonce and block counter
     if (nonce != NULL) {
-        *nonce = 0x123456789ULL;
+        *nonce = PASTA_NONCE;
     }
     if (block_ctr != NULL) {
-        *block_ctr = 0x0ULL;
+        *block_ctr = PASTA_BLOCK_CTR;
     }
 }

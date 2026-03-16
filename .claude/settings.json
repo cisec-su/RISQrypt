@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/**)",
+      "Bash(ls -lh /home/ahmetmalal/Desktop/*.pdf)",
+      "Bash(ls -lh /home/ahmetmalal/Desktop/*.md)",
+      "Bash(/home/ahmetmalal/Desktop/COMPLETE_PROJECT_SUMMARY.txt:*)",
+      "Read(//home/ahmetmalal/.claude/projects/.../**)",
+      "Bash(grep -r MOD_Q /home/ahmetmalal/Desktop/repo/RISQrypt/fw/pasta_sw/*.h /home/ahmetmalal/Desktop/repo/RISQrypt/fw/pasta_sw/*.c)",
+      "Bash(grep -rn \"MOD_Q_MULT\\\\|MOD_Q_ADD\\\\|MOD_Q_ACC\" /home/ahmetmalal/Desktop/repo/RISQrypt/fw/pasta_sw/ --include=*.c --include=*.h)",
+      "Read(//home/ahmetmalal/Desktop/repo/RISQrypt/**)",
+      "Bash(grep -rn MOD_Q_MULT /home/ahmetmalal/Desktop/repo/RISQrypt/fw/pasta_sw/ --include=*.c --include=*.h)"
+    ]
+  }
+}
