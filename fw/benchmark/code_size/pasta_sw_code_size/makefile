@@ -17,9 +17,7 @@ INC = -I$(PASTA_SW_DIR)
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
-ifdef MASKING_EN
-CFLAGS += -DMASKING_EN
-endif
+# CFLAGS += -DMASKING_EN
 
 OPTIMIZATION = -O3 # Default is -O0
 

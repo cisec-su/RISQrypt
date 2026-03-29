@@ -234,9 +234,6 @@ void pasta_test() {
 
     poly plaintext;
     poly ciphertext;
-    uint32_t pasta_key[2 * N];
-    uint64_t nonce;
-    uint64_t block_ctr;
     size_t i;
 
     // assign plaintext from constant array
@@ -246,13 +243,10 @@ void pasta_test() {
     print_string("\n --- pasta_sw test --- \n");
 
     BENCH_INIT()
-    BENCH_START()
-    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
-    BENCH_END(PASTA_KEY_GEN)
 
     /* perform software encryption */
     BENCH_START()
-    pasta_soft_encrypt(&ciphertext, &plaintext, (int32_t *)pasta_key, nonce);
+    pasta_soft_encrypt(&ciphertext, &plaintext, (int32_t *)PASTA_KEY, PASTA_NONCE);
     BENCH_END(PASTA_SOFT_ENCRYPT)
     TEST_ASSERT_EQUAL_HEX32_ARRAY(PASTA_SW_EXP_CIPHERTEXT, ciphertext.coeffs, N);
 }
@@ -264,9 +258,6 @@ void pasta_test() {
 void masked_pasta_soft_test() {
     static poly plaintext;
     static poly ciphertext_masked;
-    uint32_t pasta_key[2 * N];
-    uint64_t nonce;
-    uint64_t block_ctr;
     size_t i;
 
     // Setup plaintext from constant array
@@ -277,13 +268,10 @@ void masked_pasta_soft_test() {
     print_string("\n --- masked_pasta_soft_encrypt test --- \n");
 
     BENCH_INIT()
-    BENCH_START()
-    pasta_soft_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
-    BENCH_END(PASTA_KEY_GEN)
 
     // Run masked encryption
     BENCH_START()
-    masked_pasta_soft_encrypt(&ciphertext_masked, &plaintext, (int32_t *)pasta_key, nonce);
+    masked_pasta_soft_encrypt(&ciphertext_masked, &plaintext, (int32_t *)PASTA_KEY, PASTA_NONCE);
     BENCH_END(MASKED_PASTA_SOFT_ENCRYPT)
 
     // Verify against test vector

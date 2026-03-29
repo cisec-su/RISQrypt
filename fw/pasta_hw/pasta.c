@@ -7,6 +7,7 @@
 #include "util.h"
 #include "pasta.h"
 
+
 /**
  * @brief PASTA S-box cube layer
  * @description Computes B[i] = A[i]^3 mod Q for all i using the hardware accelerator (ntt_lite_pwm). First computes A^2, then multiplies result by A
@@ -15,8 +16,14 @@
  * @return void
  */
 void pasta_sbox_cube(poly *B, poly *A) {
+#ifdef MEMORY_OPT_DIS
+    poly temp;
+    ntt_lite_pwm(temp.coeffs, A->coeffs, A->coeffs);
+    ntt_lite_pwm(B->coeffs, temp.coeffs, A->coeffs);
+#else
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->coeffs, A->coeffs);
     ntt_lite_pwm(B->coeffs, NTT_LITE_INPUT_DIS, A->coeffs);
+#endif
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -32,9 +39,16 @@ void pasta_sbox_feistel(poly *B, const poly *A) {
     // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
     uint32_t C[N+1];  // Shifted version of A
     C[0] = 0x00000;
+#ifdef MEMORY_OPT_DIS
+    memcpy(C + 1, A->coeffs, N * sizeof(uint32_t));
+    poly temp;
+    ntt_lite_pwm(temp.coeffs, C, C);  // C_square = C^2
+    ntt_lite_add(B->coeffs, temp.coeffs, A->coeffs); // B = A + C^2
+#else
     memcpy(C + 1, A->coeffs, N * sizeof(uint32_t));
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, C, C);  // C_square = C^2
     ntt_lite_add(B->coeffs, NTT_LITE_INPUT_DIS, A->coeffs); // B = A + C^2
+#endif
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -48,8 +62,14 @@ void pasta_sbox_feistel(poly *B, const poly *A) {
  */
 void pasta_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
     ntt_lite_set_bound(B[N]);
+#ifdef MEMORY_OPT_DIS
+    uint32_t temp[N];
+    ntt_lite_mul_const(temp, A->coeffs);
+    ntt_lite_add(C, temp, B);
+#else
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A->coeffs);
     ntt_lite_add(C, NTT_LITE_INPUT_DIS, B);
+#endif
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,10 +86,19 @@ void pasta_mix(poly *B_left, poly *B_right, const poly *A_left, const poly *A_ri
     // B_left = 2*A_left + A_right, B_right = A_left + 2*A_right
     // Uses single ntt_lite_set_bound call for both operations
     ntt_lite_set_bound(2);
+#ifdef MEMORY_OPT_DIS
+    poly temp_left;
+    poly temp_right;
+    ntt_lite_mul_const(temp_left.coeffs, A_left->coeffs);
+    ntt_lite_add(B_left->coeffs, temp_left.coeffs, A_right->coeffs);
+    ntt_lite_mul_const(temp_right.coeffs, A_right->coeffs);
+    ntt_lite_add(B_right->coeffs, temp_right.coeffs, A_left->coeffs);
+#else
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_left->coeffs);
     ntt_lite_add(B_left->coeffs, NTT_LITE_INPUT_DIS, A_right->coeffs);
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A_right->coeffs);
     ntt_lite_add(B_right->coeffs, NTT_LITE_INPUT_DIS, A_left->coeffs);
+#endif
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,22 +116,34 @@ void pasta_matmul(poly *new_state, const poly *state, uint64_t nonce, uint64_t b
     poly rand;
     uint32_t curr_row[N << 1];
     size_t i;
+#ifdef MEMORY_OPT_DIS
+    poly temp_pwm;
+#endif
 
     int allow_zero = 0;
     // Generate random vector (no zeros)
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, allow_zero, 0);
 
     ntt_lite_set_bound(0);
-    ntt_lite_add_const(curr_row + N, rand.coeffs); 
+    ntt_lite_add_const(curr_row + N, rand.coeffs);
+#ifdef MEMORY_OPT_DIS
+    ntt_lite_mul_const(curr_row, curr_row + N);
+#else
     ntt_lite_mul_const(curr_row, NTT_LITE_INPUT_DIS);
+#endif
 
     // For each row in the matrix
     for (i = 0; i < N; i++) {
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, curr_row + N - i, state->coeffs); 
+#ifdef MEMORY_OPT_DIS
+        ntt_lite_pwm(temp_pwm.coeffs, curr_row + N - i, state->coeffs);
+        ntt_lite_sum(&(new_state->coeffs[i]), temp_pwm.coeffs);
+#else
+        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, curr_row + N - i, state->coeffs);
         ntt_lite_sum(&(new_state->coeffs[i]), NTT_LITE_INPUT_DIS);
+#endif
         // Calculate next row if not last iteration
         if (i != N - 1) {
-            pasta_calculate_row(curr_row + N - i - 1, curr_row + N - i - 1, &rand); 
+            pasta_calculate_row(curr_row + N - i - 1, curr_row + N - i - 1, &rand);
         }
     }
 }
@@ -125,6 +166,9 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
     poly temp3, temp4;  // After add_rc
     poly rand;
     uint8_t poly_ctr;
+#ifdef MEMORY_OPT_DIS
+    poly temp_mul;
+#endif
 
     poly_ctr = (r << 2);
 
@@ -137,11 +181,19 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
 
     // Add round constants (random polynomials with allow_zero=1)
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
+#ifdef MEMORY_OPT_DIS
+    ntt_lite_add(temp3.coeffs, rand.coeffs, temp1.coeffs);
+#else
     ntt_lite_add(temp3.coeffs, NTT_LITE_INPUT_DIS, temp1.coeffs);
+#endif
     poly_ctr++;
 
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
+#ifdef MEMORY_OPT_DIS
+    ntt_lite_add(temp4.coeffs, rand.coeffs, temp2.coeffs);
+#else
     ntt_lite_add(temp4.coeffs, NTT_LITE_INPUT_DIS, temp2.coeffs);
+#endif
     poly_ctr++;
 
     // Step 3: Mix the two states - single bound set for both pasta_mix operations
@@ -150,22 +202,43 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
     // Step 4: Apply S-box (cube for last round, feistel otherwise)
     if (r == PASTA_R ){
          // Final round: D output is discarded, only C is used
+#ifdef MEMORY_OPT_DIS
+        ntt_lite_mul_const(temp_mul.coeffs, temp3.coeffs);
+        ntt_lite_add(C->coeffs, temp_mul.coeffs, temp4.coeffs);
+#else
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
         ntt_lite_add(C->coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
+#endif
     } else if (r == PASTA_R - 1) {
+#ifdef MEMORY_OPT_DIS
+        ntt_lite_mul_const(temp_mul.coeffs, temp3.coeffs);
+        ntt_lite_add(temp1.coeffs, temp_mul.coeffs, temp4.coeffs);
+
+        ntt_lite_mul_const(temp_mul.coeffs, temp4.coeffs);
+        ntt_lite_add(temp2.coeffs, temp_mul.coeffs, temp3.coeffs);
+#else
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
         ntt_lite_add(temp1.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
 
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs);
         ntt_lite_add(temp2.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
+#endif
         pasta_sbox_cube(C, &temp1);
         pasta_sbox_cube(D, &temp2);
     } else {
+#ifdef MEMORY_OPT_DIS
+        ntt_lite_mul_const(temp_mul.coeffs, temp3.coeffs);
+        ntt_lite_add(temp1.coeffs, temp_mul.coeffs, temp4.coeffs);
+
+        ntt_lite_mul_const(temp_mul.coeffs, temp4.coeffs);
+        ntt_lite_add(temp2.coeffs, temp_mul.coeffs, temp3.coeffs);
+#else
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp3.coeffs);
         ntt_lite_add(temp1.coeffs, NTT_LITE_INPUT_DIS, temp4.coeffs);
 
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, temp4.coeffs);
         ntt_lite_add(temp2.coeffs, NTT_LITE_INPUT_DIS, temp3.coeffs);
+#endif
         pasta_sbox_feistel(C, &temp1);
         pasta_sbox_feistel(D, &temp2);
     }
@@ -213,18 +286,16 @@ void pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t *key, 
 void pasta_key_gen(int32_t *key, uint64_t *nonce, uint64_t *block_ctr){
     size_t i;
 
-    // copy key from constant array
     if (key != NULL) {
         for (i = 0; i < 2 * N; i++) {
-            key[i] = PASTA_KEY[i];
+            key[i] = 1;
         }
     }
 
-    // use constant nonce and block counter
     if (nonce != NULL) {
-        *nonce = PASTA_NONCE;
+        *nonce = 0x123456789ULL;
     }
     if (block_ctr != NULL) {
-        *block_ctr = PASTA_BLOCK_CTR;
+        *block_ctr = 0x0ULL;
     }
 }

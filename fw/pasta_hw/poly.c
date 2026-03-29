@@ -67,40 +67,33 @@ void poly_pointwise(poly *c, const poly *a, const poly *b) {
  * @param block_ctr block counter for SHAKE128 seed
  * @param poly_ctr polynomial counter for SHAKE128 seed
  * @param allow_zero if 0: no zero coefficients; if 1: allows zero coefficients
- * @param to_hw if 1: output to NTT_LITE_OUTPUT_DIS; if 0: output to polynomial
+ * @param to_hw if 1: output to hardware register; if 0: output to polynomial
  * @return void
  */
 void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero, int to_hw)
 {
-    uint32_t *dst;
     poly b;
     size_t buflen = 4*STREAM128_BLOCKBYTES;
     uint32_t buf[(STREAM128_BLOCKBYTES>>2)*4]; // 316 -> 128
-
-    if (to_hw) {
-        dst = NTT_LITE_OUTPUT_DIS;
-    } else {
-        dst = a->coeffs;
-    }
 
     if (allow_zero == 0) {
         stream128_init(nonce, block_ctr, poly_ctr);
         stream128_squeeze((uint8_t*) buf, (N >> 1) << 2);
         ntt_lite_decode(NTT_LITE_OUTPUT_DIS, buf, 16);
         ntt_lite_set_bound(1); // add +1
-        ntt_lite_add_const(dst,NTT_LITE_INPUT_DIS);
+        ntt_lite_add_const(a->coeffs, NTT_LITE_INPUT_DIS);
     } else {
 
 #ifdef REJ_SAMP_DIS
         stream128_init(nonce, block_ctr, poly_ctr);
         stream128_squeeze((uint8_t*) buf, (N >> 1) << 2);
-        ntt_lite_decode(dst, buf, 16);
-#else 
+        ntt_lite_decode(a->coeffs, buf, 16);
+#else
         stream128_init(nonce, block_ctr, poly_ctr);
         stream128_squeezeblocks((uint8_t*) buf, 4);
         ntt_lite_set_inv2((STREAM128_BLOCKBYTES>>2)*4);
         ntt_lite_set_bound(Q);
-        ntt_lite_rejsamp(dst, buf, 17, NTT_LITE_REJSAMP_CENTER_DIS);
+        ntt_lite_rejsamp(a->coeffs, buf, 17, NTT_LITE_REJSAMP_CENTER_DIS);
 #endif
 
     }

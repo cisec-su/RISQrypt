@@ -7,12 +7,6 @@
 #include "masked_pasta_soft.h"
 #endif
 
-// Constants required by pasta_soft
-const uint32_t PASTA_KEY[2*N] = {0};
-const uint32_t PASTA_PLAINTEXT[N] = {0};
-const uint64_t PASTA_NONCE = 0x123456789ULL;
-const uint64_t PASTA_BLOCK_CTR = 0x0ULL;
-
 void test() {
     int32_t key[PASTA_KEY_SIZE];
     poly plaintext, ciphertext;

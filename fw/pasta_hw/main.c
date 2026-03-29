@@ -119,9 +119,6 @@ void masked_pasta_test() {
     int ret;
     poly plaintext;
     poly ciphertext;
-    uint32_t pasta_key[2 * N];
-    uint64_t nonce;
-    uint64_t block_ctr;
 
     // assign plaintext from constant array
     for (i = 0; i < N; i++) {
@@ -130,13 +127,9 @@ void masked_pasta_test() {
     print_string("\n -- masked_pasta_hw_test -- \n");
     BENCH_INIT()
 
-    BENCH_START()
-    pasta_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
-    BENCH_END(PASTA_KEY_GEN)
-
     /* perform masked encryption */
     BENCH_START()
-    masked_pasta_encrypt(&ciphertext, &plaintext, (int32_t *)pasta_key, nonce);
+    masked_pasta_encrypt(&ciphertext, &plaintext, (int32_t *)PASTA_KEY, PASTA_NONCE);
     BENCH_END(PASTA_ENCRYPT)
 
     // print_u32_arr(ciphertext.coeffs, 5);
@@ -150,9 +143,6 @@ void pasta_test() {
     int ret;
     poly plaintext;
     poly ciphertext;
-    uint32_t pasta_key[2 * N];
-    uint64_t nonce;
-    uint64_t block_ctr;
 
     // assign plaintext from constant array
     for (i = 0; i < N; i++) {
@@ -161,13 +151,9 @@ void pasta_test() {
     print_string("\n -- pasta_hw_test -- \n");
     BENCH_INIT()
 
-    BENCH_START()
-    pasta_key_gen((int32_t *)pasta_key, &nonce, &block_ctr);
-    BENCH_END(PASTA_KEY_GEN)
-
     /* perform encryption */
     BENCH_START()
-    pasta_encrypt(&ciphertext, &plaintext, (int32_t *)pasta_key, nonce);
+    pasta_encrypt(&ciphertext, &plaintext, (int32_t *)PASTA_KEY, PASTA_NONCE);
     BENCH_END(PASTA_ENCRYPT)
 
     // print_u32_arr(ciphertext.coeffs, 5);
@@ -237,10 +223,17 @@ void pasta_poly_uniform_test() {
 
 int main() {
 #ifdef REJ_SAMP_DIS
-    print_string("Rejection sampling: DISABLED\n");
+    print_string("Rejection sampling    : DISABLED\n");
 #else
-    print_string("Rejection sampling: ENABLED\n");
+    print_string("Rejection sampling    : ENABLED\n");
 #endif
+
+#ifdef MEMORY_OPT_DIS
+    print_string("Memory optimization   : DISABLED\n");
+#else
+    print_string("Memory optimization   : ENABLED\n");
+#endif
+
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
     x2x_seed(seed);

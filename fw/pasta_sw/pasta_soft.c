@@ -325,18 +325,16 @@ void pasta_soft_poly_pointwise_mult(poly *C, const poly *A, const poly *B) {
 void pasta_soft_key_gen(int32_t *key, uint64_t *nonce, uint64_t *block_ctr){
     size_t i;
 
-    // copy key from constant array
     if (key != NULL) {
         for (i = 0; i < 2 * N; i++) {
-            key[i] = PASTA_KEY[i];
+            key[i] = 1;
         }
     }
 
-    // use constant nonce and block counter
     if (nonce != NULL) {
-        *nonce = PASTA_NONCE;
+        *nonce = 0x123456789ULL;
     }
     if (block_ctr != NULL) {
-        *block_ctr = PASTA_BLOCK_CTR;
+        *block_ctr = 0x0ULL;
     }
 }

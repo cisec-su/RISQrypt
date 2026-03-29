@@ -68,10 +68,6 @@ static inline uint32_t mod_q_add(uint32_t a, uint32_t b) {
 #define MOD_Q_ADD(a, b)  (((a) + (b)) % Q)
 #endif
 
-extern const uint32_t PASTA_KEY[];
-extern const uint32_t PASTA_PLAINTEXT[];
-extern const uint64_t PASTA_NONCE;
-extern const uint64_t PASTA_BLOCK_CTR;
 
 void pasta_soft_sbox_feistel(poly *B, const poly *A);
 void pasta_soft_sbox_cube(poly *B, const poly *A);
