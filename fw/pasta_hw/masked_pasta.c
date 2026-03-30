@@ -137,18 +137,20 @@ void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, co
     poly_ctr++;
 
     // Add round constants (random polynomials with allow_zero=1)
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
 #ifdef MEMORY_OPT_DIS
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 0);
     ntt_lite_add(m_temp1.share[0].coeffs, rand.coeffs, m_temp1.share[0].coeffs);
 #else
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 1);
     ntt_lite_add(m_temp1.share[0].coeffs, NTT_LITE_INPUT_DIS, m_temp1.share[0].coeffs);
 #endif
     poly_ctr++;
 
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
 #ifdef MEMORY_OPT_DIS
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 0);
     ntt_lite_add(m_temp2.share[0].coeffs, rand.coeffs, m_temp2.share[0].coeffs);
 #else
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 1);
     ntt_lite_add(m_temp2.share[0].coeffs, NTT_LITE_INPUT_DIS, m_temp2.share[0].coeffs);
 #endif
     poly_ctr++;

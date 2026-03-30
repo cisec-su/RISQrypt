@@ -180,18 +180,20 @@ void pasta_round(poly *C, poly *D, const poly *A, const poly *B, uint64_t nonce,
     poly_ctr++;
 
     // Add round constants (random polynomials with allow_zero=1)
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
 #ifdef MEMORY_OPT_DIS
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 0);
     ntt_lite_add(temp3.coeffs, rand.coeffs, temp1.coeffs);
 #else
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 1);
     ntt_lite_add(temp3.coeffs, NTT_LITE_INPUT_DIS, temp1.coeffs);
 #endif
     poly_ctr++;
 
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1,1);
 #ifdef MEMORY_OPT_DIS
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 0);
     ntt_lite_add(temp4.coeffs, rand.coeffs, temp2.coeffs);
 #else
+    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 1);
     ntt_lite_add(temp4.coeffs, NTT_LITE_INPUT_DIS, temp2.coeffs);
 #endif
     poly_ctr++;
