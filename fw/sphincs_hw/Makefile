@@ -12,9 +12,9 @@ SRC = address.c
 SRC += randombytes.c
 #SRC += swmasked_merkle.c swmasked_wots.c swmasked_wotsx1.c swmasked_utils.c swmasked_utilsx1.c swmasked_fors.c swmasked_sign.c
 #SRC += swmasked_fips202.c swmasked_hash_shake.c swmasked_thash_shake_simple.c
-SRC += hwmasked_fips202.c hwmasked_hash_shake.c hwmasked_thash_shake_simple.c
-SRC += hwmasked_utils.c hwmasked_utilsx1.c hwmasked_wots.c hwmasked_wotsx1.c
-SRC += hwmasked_fors.c hwmasked_merkle.c hwmasked_sign.c
+#SRC += hwmasked_fips202.c hwmasked_hash_shake.c hwmasked_thash_shake_simple.c
+#SRC += hwmasked_utils.c hwmasked_utilsx1.c hwmasked_wots.c hwmasked_wotsx1.c
+#SRC += hwmasked_fors.c hwmasked_merkle.c hwmasked_sign.c
 SRC += merkle.c wots.c wotsx1.c utils.c utilsx1.c fors.c sign.c fips202.c hash_shake.c thash_shake_simple.c
 
 # Main file

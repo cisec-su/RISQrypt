@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "context.h"
 #include "params.h"
-#include <stddef.h>
 
 #define initialize_hash_function SPX_NAMESPACE(initialize_hash_function)
 void initialize_hash_function(spx_ctx *ctx);
