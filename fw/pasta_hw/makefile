@@ -15,10 +15,14 @@ SRC += ../common/unity.c
 INC = -I../common
 
 CFLAGS += -DBUSY_CHECK_DIS
-# CFLAGS += -DREJ_SAMP_DIS
+
+# CFLAGS += -DMASKING_EN
 # CFLAGS += -DMEMORY_OPT_DIS
+CFLAGS += -DREJ_SAMP_DIS
 
 
+
+ 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
 # Optimization level

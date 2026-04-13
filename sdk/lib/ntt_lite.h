@@ -89,5 +89,9 @@ int ntt_lite_make_hint(uint32_t *dst, const uint32_t *src_0, const uint32_t *src
 
 int ntt_lite_use_hint(uint32_t *dst, const uint32_t *src);
 
+void ntt_lite_reset_profile(void);
+
+void ntt_lite_print_profile(void);
+
 
 #endif

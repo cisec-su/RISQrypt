@@ -18,11 +18,11 @@ INC += -I../../../common
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
-
-ifdef MASKING_EN
-CFLAGS += -DMASKING_EN
-endif
+# CFLAGS += -DMASKING_EN
+CFLAGS += -DMEMORY_OPT_DIS
+# CFLAGS += -DREJ_SAMP_DIS
 CFLAGS += -DSDK_BENCHMARK_ENABLED
+CFLAGS += -DBENCH_CONST=0
 
 OPTIMIZATION = -O3 # Default is -O0
 

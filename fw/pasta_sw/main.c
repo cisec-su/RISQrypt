@@ -11,6 +11,7 @@
 #include "benchmark.h"
 #include "pasta_soft.h"
 #include "masked_pasta_soft.h"
+#include "fips202.h"
 
 ////////////////////////////////////////////////////////////////
 /**
@@ -278,6 +279,32 @@ void masked_pasta_soft_test() {
     TEST_ASSERT_EQUAL_HEX32_ARRAY(PASTA_SW_EXP_CIPHERTEXT, ciphertext_masked.coeffs, N);
 }
 
+void shake128_stream_bench_soft() {
+    uint8_t seed[17];
+    uint8_t buf[SHAKE128_RATE];
+    keccak_state state;
+    size_t i;
+
+    for (i = 0; i < sizeof(seed); i++) {
+        seed[i] = (uint8_t)i;
+    }
+
+    print_string("\n --- shake128_stream_bench_soft --- \n");
+
+    BENCH_INIT()
+
+    BENCH_START()
+    shake128_absorb(&state, seed, 17);
+    BENCH_END(PASTA_SW_SHAKE128_ABSORB)
+
+    BENCH_START()
+    shake128_squeezeblocks(buf, 1, &state);
+    BENCH_END(PASTA_SW_SHAKE128_SQUEEZEBLOCKS)
+
+    /* Prevent compiler from optimizing away squeeze output usage. */
+    TEST_ASSERT_NOT_EQUAL(0xFFFFFFFFu, (uint32_t)buf[0]);
+}
+
 int main() {
 
     UnityBegin("main.c");
@@ -294,5 +321,6 @@ int main() {
     RUN_TEST(poly_add_soft);
     RUN_TEST(coeff_mul_soft);
     RUN_TEST(coeff_add_soft);
+    RUN_TEST(shake128_stream_bench_soft);
     return(UnityEnd());
 }

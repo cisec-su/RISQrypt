@@ -3,7 +3,9 @@
 
 #include "timer.h"
 
+#ifndef BENCH_CONST
 #define BENCH_CONST  5
+#endif
 
 #ifdef SDK_BENCHMARK_ENABLED
 #define BENCH_START(g)       g -= timer_read();

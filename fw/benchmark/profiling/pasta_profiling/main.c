@@ -8,10 +8,45 @@
 #include "params.h"
 #include "masked_pasta.h"
 #include "pasta.h"
+#include "ntt_lite.h"
 
-extern unsigned int ntt_lite_cc;
 extern unsigned int keccak_cc;
 extern unsigned int x2x_cc;
+extern unsigned int ntt_lite_load_q_cc;
+extern unsigned int ntt_lite_set_q_cc;
+extern unsigned int ntt_lite_set_ctrl_cc;
+extern unsigned int ntt_lite_set_inv2_cc;
+extern unsigned int ntt_lite_set_mu_cc;
+extern unsigned int ntt_lite_set_bound_cc;
+extern unsigned int ntt_lite_set_clr_cc;
+extern unsigned int ntt_lite_set_clr_with_twiddle_cc;
+extern unsigned int ntt_lite_load_twiddle_cc;
+extern unsigned int ntt_lite_load_zeta_cc;
+extern unsigned int ntt_lite_read_twiddle_cc;
+extern unsigned int ntt_lite_read_poly_cc;
+extern unsigned int ntt_lite_forward_ntt_cc;
+extern unsigned int ntt_lite_backward_ntt_cc;
+extern unsigned int ntt_lite_pwm_cc;
+extern unsigned int ntt_lite_mul_const_cc;
+extern unsigned int ntt_lite_mac_cc;
+extern unsigned int ntt_lite_add_cc;
+extern unsigned int ntt_lite_add_const_cc;
+extern unsigned int ntt_lite_sub_cc;
+extern unsigned int ntt_lite_sub_const_cc;
+extern unsigned int ntt_lite_sub_rev_cc;
+extern unsigned int ntt_lite_sub_rev_const_cc;
+extern unsigned int ntt_lite_sum_cc;
+extern unsigned int ntt_lite_encode_cc;
+extern unsigned int ntt_lite_decode_cc;
+extern unsigned int ntt_lite_cbd_cc;
+extern unsigned int ntt_lite_rejsamp_cc;
+extern unsigned int ntt_lite_compress_cc;
+extern unsigned int ntt_lite_decompress_cc;
+extern unsigned int ntt_lite_decompress_floor_cc;
+extern unsigned int ntt_lite_decompose_cc;
+extern unsigned int ntt_lite_chknorm_cc;
+extern unsigned int ntt_lite_make_hint_cc;
+extern unsigned int ntt_lite_use_hint_cc;
 
 /**
     secret_key = [1]*256
@@ -94,14 +129,53 @@ static const uint32_t TEMP_TEST_EXP_CIPHERTEXT[] = {
 // #define MASKING_EN
 
 void reset_modules_cc() {
-    ntt_lite_cc = 0;
     keccak_cc = 0;
     x2x_cc = 0;
 }
 
+static unsigned int ntt_lite_total_cc(void) {
+    return ntt_lite_load_q_cc +
+           ntt_lite_set_q_cc +
+           ntt_lite_set_ctrl_cc +
+           ntt_lite_set_inv2_cc +
+           ntt_lite_set_mu_cc +
+           ntt_lite_set_bound_cc +
+           ntt_lite_set_clr_cc +
+           ntt_lite_set_clr_with_twiddle_cc +
+           ntt_lite_load_twiddle_cc +
+           ntt_lite_load_zeta_cc +
+           ntt_lite_read_twiddle_cc +
+           ntt_lite_read_poly_cc +
+           ntt_lite_forward_ntt_cc +
+           ntt_lite_backward_ntt_cc +
+           ntt_lite_pwm_cc +
+           ntt_lite_mul_const_cc +
+           ntt_lite_mac_cc +
+           ntt_lite_add_cc +
+           ntt_lite_add_const_cc +
+           ntt_lite_sub_cc +
+           ntt_lite_sub_const_cc +
+           ntt_lite_sub_rev_cc +
+           ntt_lite_sub_rev_const_cc +
+           ntt_lite_sum_cc +
+           ntt_lite_encode_cc +
+           ntt_lite_decode_cc +
+           ntt_lite_cbd_cc +
+           ntt_lite_rejsamp_cc +
+           ntt_lite_compress_cc +
+           ntt_lite_decompress_cc +
+           ntt_lite_decompress_floor_cc +
+           ntt_lite_decompose_cc +
+           ntt_lite_chknorm_cc +
+           ntt_lite_make_hint_cc +
+           ntt_lite_use_hint_cc;
+}
+
 void print_modules_cc(unsigned int time, unsigned int shift) {
+    unsigned int ntt_total = ntt_lite_total_cc();
+
     print_string("NTT-Lite cycles:\t");
-    print_u32_int(ntt_lite_cc >> shift);
+    print_u32_int(ntt_total >> shift);
     print_string("\n");
     print_string("Keccak cycles:\t");
     print_u32_int(keccak_cc >> shift);
@@ -109,11 +183,77 @@ void print_modules_cc(unsigned int time, unsigned int shift) {
     print_string("X2X cycles:\t");
     print_u32_int(x2x_cc >> shift);
     print_string("\n");
-    time = time - ntt_lite_cc - keccak_cc - x2x_cc;
+    time = time - ntt_total - keccak_cc - x2x_cc;
     print_string("SW cycles:\t");
     print_u32_int(time >> shift);
     print_string("\n");
     reset_modules_cc();
+}
+
+static void ntt_lite_print_one(const char *name, unsigned int g) {
+    print_string(name);
+    print_string(":\t");
+    print_u32_int(g);
+    print_string("\n");
+}
+
+void ntt_lite_print_profile(void) {
+    print_string("NTT-Lite function profile:\n");
+    ntt_lite_print_one("ntt_lite_load_q", ntt_lite_load_q_cc);
+    ntt_lite_print_one("ntt_lite_set_q", ntt_lite_set_q_cc);
+    ntt_lite_print_one("ntt_lite_set_ctrl", ntt_lite_set_ctrl_cc);
+    ntt_lite_print_one("ntt_lite_set_inv2", ntt_lite_set_inv2_cc);
+    ntt_lite_print_one("ntt_lite_set_mu", ntt_lite_set_mu_cc);
+    ntt_lite_print_one("ntt_lite_set_bound", ntt_lite_set_bound_cc);
+    ntt_lite_print_one("ntt_lite_set_clr", ntt_lite_set_clr_cc);
+    ntt_lite_print_one("ntt_lite_set_clr_with_twiddle", ntt_lite_set_clr_with_twiddle_cc);
+    ntt_lite_print_one("ntt_lite_load_twiddle", ntt_lite_load_twiddle_cc);
+    ntt_lite_print_one("ntt_lite_load_zeta", ntt_lite_load_zeta_cc);
+    ntt_lite_print_one("ntt_lite_read_twiddle", ntt_lite_read_twiddle_cc);
+    ntt_lite_print_one("ntt_lite_read_poly", ntt_lite_read_poly_cc);
+    ntt_lite_print_one("ntt_lite_forward_ntt", ntt_lite_forward_ntt_cc);
+    ntt_lite_print_one("ntt_lite_backward_ntt", ntt_lite_backward_ntt_cc);
+    ntt_lite_print_one("ntt_lite_pwm", ntt_lite_pwm_cc);
+    ntt_lite_print_one("ntt_lite_mul_const", ntt_lite_mul_const_cc);
+    ntt_lite_print_one("ntt_lite_mac", ntt_lite_mac_cc);
+    ntt_lite_print_one("ntt_lite_add", ntt_lite_add_cc);
+    ntt_lite_print_one("ntt_lite_add_const", ntt_lite_add_const_cc);
+    ntt_lite_print_one("ntt_lite_sub", ntt_lite_sub_cc);
+    ntt_lite_print_one("ntt_lite_sub_const", ntt_lite_sub_const_cc);
+    ntt_lite_print_one("ntt_lite_sub_rev", ntt_lite_sub_rev_cc);
+    ntt_lite_print_one("ntt_lite_sub_rev_const", ntt_lite_sub_rev_const_cc);
+    ntt_lite_print_one("ntt_lite_sum", ntt_lite_sum_cc);
+    ntt_lite_print_one("ntt_lite_encode", ntt_lite_encode_cc);
+    ntt_lite_print_one("ntt_lite_decode", ntt_lite_decode_cc);
+    ntt_lite_print_one("ntt_lite_cbd", ntt_lite_cbd_cc);
+    ntt_lite_print_one("ntt_lite_rejsamp", ntt_lite_rejsamp_cc);
+    ntt_lite_print_one("ntt_lite_compress", ntt_lite_compress_cc);
+    ntt_lite_print_one("ntt_lite_decompress", ntt_lite_decompress_cc);
+    ntt_lite_print_one("ntt_lite_decompress_floor", ntt_lite_decompress_floor_cc);
+    ntt_lite_print_one("ntt_lite_decompose", ntt_lite_decompose_cc);
+    ntt_lite_print_one("ntt_lite_chknorm", ntt_lite_chknorm_cc);
+    ntt_lite_print_one("ntt_lite_make_hint", ntt_lite_make_hint_cc);
+    ntt_lite_print_one("ntt_lite_use_hint", ntt_lite_use_hint_cc);
+}
+
+static void profile_pasta_encrypt_ntt_functions(poly *ciphertext,
+                                                const poly *plaintext,
+                                                const uint32_t *pasta_key,
+                                                uint64_t nonce) {
+    unsigned int start_cc;
+    unsigned int total_cc;
+
+    start_cc = timer_read();
+    ntt_lite_reset_profile();
+#ifdef MASKING_EN
+    masked_pasta_encrypt(ciphertext, plaintext, pasta_key, nonce);
+#else
+    pasta_encrypt(ciphertext, plaintext, pasta_key, nonce);
+#endif
+    total_cc = timer_read() - start_cc;
+
+    print_modules_cc(total_cc, 0);
+    ntt_lite_print_profile();
 }
 
 void test() {
@@ -143,16 +283,10 @@ void test() {
     pasta_key_gen(pasta_key, &nonce, &block_ctr);
     BENCH_END(PASTA_KEY_GEN)
 
-    print_modules_cc(time, 0);
+    // print_modules_cc(time, 0);
+    reset_modules_cc();
 
-    BENCH_START()
-#ifdef MASKING_EN
-    masked_pasta_encrypt(&ciphertext, &plaintext, pasta_key, nonce);
-#else
-    pasta_encrypt(&ciphertext, &plaintext, pasta_key, nonce);
-#endif
-    BENCH_END(PASTA_ENCRYPT)
-    print_modules_cc(time, 0);
+    profile_pasta_encrypt_ntt_functions(&ciphertext, &plaintext, pasta_key, nonce);
 }
 
 int main() {
