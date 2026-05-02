@@ -211,7 +211,7 @@ void masked_pasta_encrypt(poly *ciphertext, const poly *plaintext, const int32_t
         masked_pasta_round(&m_state1, &m_state2, &m_state1, &m_state2, nonce, block_ctr, r);
     }
 
-    masked_poly_add_unmasked(&m_state1, (poly *)plaintext, &m_state1);
+    masked_poly_add_unmasked(&m_state1, plaintext, &m_state1);
     masked_poly_unmask(ciphertext, &m_state1);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
