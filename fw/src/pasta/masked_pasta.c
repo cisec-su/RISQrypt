@@ -29,7 +29,7 @@ void masked_pasta_sbox_cube(masked_poly *B, const masked_poly *A) {
  */
 void masked_pasta_sbox_feistel(masked_poly *B, const masked_poly *A) {
     // Feistel function implementation: B[0]=A[0], B[i]=A[i]+A[i-1]^2 mod Q
-    masked_poly A_shifted, A_refreshed; // 0 a0 a1 a2 a3 a4 ... a126
+    static masked_poly A_shifted, A_refreshed; // 0 a0 a1 a2 a3 a4 ... a126
     masked_poly_right_shift(&A_shifted,A,1);
     masked_gadgets_x2x_a_ref(&A_refreshed, &A_shifted);
     masked_poly_mac(B,&A_shifted,&A_refreshed,A);
@@ -68,12 +68,12 @@ void masked_pasta_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
  * @return void
  */
 void masked_pasta_matmul(masked_poly *new_state, const masked_poly *state, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
-    poly rand;
+    static poly rand;
     size_t j;
     size_t i;
     size_t allow_zero;
-    uint32_t curr_row[N << 1];
-    masked_poly masked_new_state;
+    static uint32_t curr_row[N << 1];
+    static masked_poly masked_new_state;
 #ifdef MEMORY_OPT_DIS
     poly temp_pwm;
 #endif
@@ -123,9 +123,9 @@ void masked_pasta_matmul(masked_poly *new_state, const masked_poly *state, uint6
  */
 void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, const masked_poly *B, uint64_t nonce, uint64_t block_ctr, size_t r) {
     uint8_t poly_ctr;
-    poly rand;
-    masked_poly m_temp1, m_temp2;
-    masked_poly m_temp3;
+    static poly rand;
+    static masked_poly m_temp1, m_temp2;
+    static masked_poly m_temp3;
 
     poly_ctr = (r << 2);
 

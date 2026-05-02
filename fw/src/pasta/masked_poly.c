@@ -136,10 +136,10 @@ void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly
 #if MASKING_N != 2
 #error "Masking order not supported"
 #else
-    poly r;
+    static poly r;
 #ifdef MEMORY_OPT_DIS
-    poly temp_pwm1;
-    poly temp_pwm2;
+    static poly temp_pwm1;
+    static poly temp_pwm2;
 #endif
 
     masked_gadgets_init_q();
@@ -185,8 +185,8 @@ void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly
  * @return void
  */
 void masked_poly_square(masked_poly *B, const masked_poly *A) {
-    masked_poly CC;
-    masked_gadgets_x2x_a_ref(&CC, A); 
+    static masked_poly CC;
+    masked_gadgets_x2x_a_ref(&CC, A);
     masked_poly_mult_mm(B,A,&CC);
 }
 
@@ -198,8 +198,8 @@ void masked_poly_square(masked_poly *B, const masked_poly *A) {
  * @return void
  */
 void masked_poly_cube(masked_poly *B, const masked_poly *A) {
-    masked_poly CC;
-    masked_poly BB;
+    static masked_poly CC;
+    static masked_poly BB;
     masked_gadgets_x2x_a_ref(&CC, A); 
     masked_poly_mult_mm(&BB,A,&CC);
     masked_poly_mult_mm(B,A,&BB);

@@ -20,7 +20,7 @@ void masked_gadgets_init_q() {
  * @param a pointer to input unmasked polynomial
  * @return void
  */
-void masked_gadgets_mask_poly(const masked_poly *r, const poly *a) {
+void masked_gadgets_mask_poly(masked_poly *r, const poly *a) {
     x2x_a_share((uint32_t*) r->share[1].coeffs, (uint32_t*) r->share[0].coeffs, (uint32_t*) a->coeffs, N);
 }
 
@@ -32,7 +32,7 @@ void masked_gadgets_mask_poly(const masked_poly *r, const poly *a) {
  * @param a pointer to input masked polynomial
  * @return void
  */
-void masked_gadgets_x2x_a_ref(const masked_poly *r, const masked_poly *a) {
+void masked_gadgets_x2x_a_ref(masked_poly *r, const masked_poly *a) {
     x2x_a_ref(
         (uint32_t *)r->share[0].coeffs,
         (uint32_t *)r->share[1].coeffs,
