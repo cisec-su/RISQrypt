@@ -3,7 +3,6 @@
 #include "params.h"
 #include "symmetric.h"
 #include "keccak.h"
-#include "symmetric.h"
 #include "util.h"
 
 void pasta_shake128_stream_init(volatile uint64_t seed, volatile uint64_t nonce, uint8_t poly_ctr)
