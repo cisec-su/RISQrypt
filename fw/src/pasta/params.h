@@ -4,7 +4,7 @@
 
 #define PASTA_R 3
 #define Q 65537
-#define MODULUS_BIT_MASK (1<<17)-1 // 0x1FFFF
+#define MODULUS_BIT_MASK ((1U << 17) - 1U) // 0x1FFFF
 
 #define PASTA_NAMESPACE(s) pasta_##s
 
