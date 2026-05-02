@@ -127,7 +127,6 @@ void print_poly(const poly *p, size_t len) {
 
 void masked_pasta_test() {
     size_t i;
-    int ret;
     poly plaintext;
     poly ciphertext;
 
@@ -144,13 +143,11 @@ void masked_pasta_test() {
     BENCH_END(MASKED_PASTA_ENCRYPT)
 
     // print_u32_arr(ciphertext.coeffs, 5);
-    TEST_ASSERT_EQUAL_HEX32_ARRAY(ciphertext.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);
-    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(TEMP_TEST_EXP_CIPHERTEXT, ciphertext.coeffs, N);
 }
 
 void pasta_test() {
     size_t i;
-    int ret;
     poly plaintext;
     poly ciphertext;
 
@@ -166,8 +163,7 @@ void pasta_test() {
     BENCH_END(PASTA_ENCRYPT)
 
     // print_u32_arr(ciphertext.coeffs, 5);
-    TEST_ASSERT_EQUAL_HEX32_ARRAY(ciphertext.coeffs, TEMP_TEST_EXP_CIPHERTEXT, N);
-    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(TEMP_TEST_EXP_CIPHERTEXT, ciphertext.coeffs, N);
 }
 
 int main() {
