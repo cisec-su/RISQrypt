@@ -1,16 +1,12 @@
 #include "masked_poly.h"
 #include "masked_gadgets.h"
 #include "ntt_lite.h"
+#include "x2x.h"
+#include "util.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <util.h>
-
 #include <stddef.h>
-#include "ntt_lite.h"
-#include "x2x.h"
-#include "masked_gadgets.h"
-#include "util.h"
 
 /**
  * @brief Convert unmasked polynomial to masked form with two shares
