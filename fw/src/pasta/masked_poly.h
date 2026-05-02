@@ -1,6 +1,7 @@
 #ifndef MASKED_POLY_H
 #define MASKED_POLY_H
 
+#include <stddef.h>
 #include "poly.h"
 
 typedef struct {
