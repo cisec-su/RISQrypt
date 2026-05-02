@@ -9,13 +9,11 @@
 
 void test() {
     int32_t key[PASTA_KEY_SIZE];
-    poly plaintext, ciphertext;
+    poly plaintext = {0}, ciphertext;
     uint64_t nonce;
     uint64_t block_ctr;
 
     pasta_key_gen(key, &nonce, &block_ctr);
-    (void) plaintext;
-    (void) nonce;
     (void) block_ctr;
 
 #ifdef MASKING_EN
