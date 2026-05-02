@@ -28,3 +28,5 @@ __pycache__/
 *.ets
 *.npy
 .vscode
+.claude/
+.claude_settings.json
