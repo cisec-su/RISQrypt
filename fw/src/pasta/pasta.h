@@ -1,6 +1,7 @@
 #ifndef PASTA_H
 #define PASTA_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include "params.h"
 #include "poly.h"
