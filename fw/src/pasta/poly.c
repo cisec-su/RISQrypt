@@ -73,8 +73,6 @@ void poly_pointwise(poly *c, const poly *a, const poly *b) {
 void poly_uniform(poly *a, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr, int allow_zero, int to_hw)
 {
     uint32_t *dst;
-    poly b;
-    size_t buflen = 4*STREAM128_BLOCKBYTES;
     uint32_t buf[(STREAM128_BLOCKBYTES>>2)*4]; // 316 -> 128
 
     if (to_hw) {
