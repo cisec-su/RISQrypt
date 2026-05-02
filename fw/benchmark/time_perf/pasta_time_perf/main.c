@@ -4,7 +4,7 @@
 #include <string.h>
 #include "params.h"
 #include "poly.h"
-#include "../../src/pasta/symmetric.h"
+#include "symmetric.h"
 #include "ntt_lite.h"
 #include "x2x.h"
 #include "util.h"
