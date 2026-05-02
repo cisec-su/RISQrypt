@@ -73,7 +73,6 @@ void masked_pasta_matmul(masked_poly *new_state, const masked_poly *state, uint6
     size_t i;
     size_t allow_zero;
     static uint32_t curr_row[N << 1];
-    static masked_poly masked_new_state;
 #ifdef MEMORY_OPT_DIS
     poly temp_pwm;
 #endif
