@@ -46,14 +46,8 @@ void masked_pasta_sbox_feistel(masked_poly *B, const masked_poly *A) {
  */
 void masked_pasta_calculate_row(uint32_t *C, const uint32_t *B, const poly *A) {
     ntt_lite_set_bound(B[N]);
-#ifdef MEMORY_OPT_DIS
-    uint32_t temp[N];
-    ntt_lite_mul_const(temp, A->coeffs);
-    ntt_lite_add(C, temp, B);
-#else
     ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, A->coeffs);
     ntt_lite_add(C, NTT_LITE_INPUT_DIS, B);
-#endif
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -73,9 +67,6 @@ void masked_pasta_matmul(masked_poly *new_state, const masked_poly *state, uint6
     size_t i;
     size_t allow_zero;
     static uint32_t curr_row[N << 1];
-#ifdef MEMORY_OPT_DIS
-    poly temp_pwm;
-#endif
 
     allow_zero = 0;
     // Generate random vector (no zeros)
@@ -83,22 +74,13 @@ void masked_pasta_matmul(masked_poly *new_state, const masked_poly *state, uint6
 
     ntt_lite_set_bound(0);
     ntt_lite_add_const(curr_row + N, rand.coeffs);
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_mul_const(curr_row, curr_row + N);
-#else
     ntt_lite_mul_const(curr_row, NTT_LITE_INPUT_DIS);
-#endif
 
     // For each row in the matrix
     for (i = 0; i < N; i++) {
         for (j=0; j<MASKING_N; j++) {
-#ifdef MEMORY_OPT_DIS
-            ntt_lite_pwm(temp_pwm.coeffs, curr_row + N - i, state->share[j].coeffs);
-            ntt_lite_sum(&(new_state->share[j].coeffs[i]), temp_pwm.coeffs);
-#else
             ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, curr_row + N - i, state->share[j].coeffs);
             ntt_lite_sum(&(new_state->share[j].coeffs[i]), NTT_LITE_INPUT_DIS);
-#endif
         }
         // Calculate next row if not last iteration, public
         if (i != N - 1)
@@ -136,22 +118,12 @@ void masked_pasta_round(masked_poly *C, masked_poly *D, const masked_poly *A, co
     poly_ctr++;
 
     // Add round constants (random polynomials with allow_zero=1)
-#ifdef MEMORY_OPT_DIS
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 0);
-    ntt_lite_add(m_temp1.share[0].coeffs, rand.coeffs, m_temp1.share[0].coeffs);
-#else
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 1);
     ntt_lite_add(m_temp1.share[0].coeffs, NTT_LITE_INPUT_DIS, m_temp1.share[0].coeffs);
-#endif
     poly_ctr++;
 
-#ifdef MEMORY_OPT_DIS
-    poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 0);
-    ntt_lite_add(m_temp2.share[0].coeffs, rand.coeffs, m_temp2.share[0].coeffs);
-#else
     poly_uniform(&rand, nonce, block_ctr, poly_ctr, 1, 1);
     ntt_lite_add(m_temp2.share[0].coeffs, NTT_LITE_INPUT_DIS, m_temp2.share[0].coeffs);
-#endif
     poly_ctr++;
 
     ntt_lite_set_bound(2);

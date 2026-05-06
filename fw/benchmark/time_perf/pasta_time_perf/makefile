@@ -18,7 +18,6 @@ INC += -I../../../common
 
 OBJ_DUMP = 1 # Uncomment if disassembly is neededcd
 
-# CFLAGS += -DMEMORY_OPT_DIS
 CFLAGS += -DREJ_SAMP_DIS
 
 CFLAGS += -DSDK_BENCHMARK_ENABLED

@@ -20,10 +20,7 @@ INC += -I../../common
 
 CFLAGS += -DBUSY_CHECK_DIS
 
-# CFLAGS += -DMEMORY_OPT_DIS
 CFLAGS += -DREJ_SAMP_DIS
-
-
 
  
 OBJ_DUMP = 1 # Uncomment if disassembly is needed

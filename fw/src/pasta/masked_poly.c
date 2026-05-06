@@ -73,18 +73,10 @@ void masked_poly_mult_add_const(masked_poly *r, const masked_poly *a, const mask
     */
 
     size_t i;
-#ifdef MEMORY_OPT_DIS
-    poly temp_mul;
-#endif
     for(i = 0;i<MASKING_N; i++){
         ntt_lite_set_clr_with_twiddle();
-#ifdef MEMORY_OPT_DIS
-        ntt_lite_mul_const(temp_mul.coeffs, a->share[i].coeffs);
-        ntt_lite_add(r->share[i].coeffs, temp_mul.coeffs, b->share[i].coeffs);
-#else
         ntt_lite_mul_const(NTT_LITE_OUTPUT_DIS, a->share[i].coeffs);
         ntt_lite_add(r->share[i].coeffs, NTT_LITE_INPUT_DIS, b->share[i].coeffs);
-#endif
     }
 
 }
@@ -133,40 +125,22 @@ void masked_poly_mult_mm(masked_poly *C, const masked_poly *A, const masked_poly
 #error "Masking order not supported"
 #else
     static poly r;
-#ifdef MEMORY_OPT_DIS
-    static poly temp_pwm1;
-    static poly temp_pwm2;
-#endif
-
     masked_gadgets_init_q();
     masked_gadgets_x2x_prng_read(&r, N);
 
     ntt_lite_set_clr_with_twiddle();
 
     // c0 = a0*b0 - r
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_pwm(temp_pwm1.coeffs, A->share[0].coeffs, B->share[0].coeffs);
-    ntt_lite_sub(C->share[0].coeffs, temp_pwm1.coeffs, r.coeffs);
-#else
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->share[0].coeffs, B->share[0].coeffs);
     ntt_lite_sub(C->share[0].coeffs, NTT_LITE_INPUT_DIS, r.coeffs);
-#endif
 
     // r' = a0*b1 + r
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_pwm(temp_pwm2.coeffs, A->share[0].coeffs, B->share[1].coeffs);
-    ntt_lite_add(temp_pwm1.coeffs, temp_pwm2.coeffs, (uint32_t*)r.coeffs);
-#else
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->share[0].coeffs, B->share[1].coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*)r.coeffs);
-#endif
 
     // r' = (a0*b1 + r) + (b0*a1)
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_mac(temp_pwm1.coeffs, B->share[0].coeffs, A->share[1].coeffs);
-#else
     ntt_lite_mac(NTT_LITE_OUTPUT_DIS, B->share[0].coeffs, A->share[1].coeffs);
-#endif
+
     ntt_lite_set_clr_with_twiddle();
     // c1 = a1*b1 + r'
     ntt_lite_mac(C->share[1].coeffs, A->share[1].coeffs, B->share[1].coeffs);
@@ -215,35 +189,17 @@ void masked_poly_mac( masked_poly *D, const masked_poly *A, const masked_poly *B
 #error "Masking order not supported"
 #else
     //d = a*b + c
-#ifdef MEMORY_OPT_DIS
-    poly temp_pwm1;
-    poly temp_pwm2;
-#endif
 
     // c0 = a0*b0 + c
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_pwm(temp_pwm1.coeffs, A->share[0].coeffs, B->share[0].coeffs);
-    ntt_lite_add(D->share[0].coeffs, temp_pwm1.coeffs, C->share[0].coeffs);
-#else
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->share[0].coeffs, B->share[0].coeffs);
     ntt_lite_add(D->share[0].coeffs, NTT_LITE_INPUT_DIS, C->share[0].coeffs);
-#endif
 
     // r' = a0*b1 + c
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_pwm(temp_pwm2.coeffs, A->share[0].coeffs, B->share[1].coeffs);
-    ntt_lite_add(temp_pwm1.coeffs, temp_pwm2.coeffs, C->share[1].coeffs);
-#else
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, A->share[0].coeffs, B->share[1].coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, C->share[1].coeffs);
-#endif
 
     // r' = (a0*b1 + c) + (b0*a1)
-#ifdef MEMORY_OPT_DIS
-    ntt_lite_mac(temp_pwm1.coeffs, B->share[0].coeffs, A->share[1].coeffs);
-#else
     ntt_lite_mac(NTT_LITE_OUTPUT_DIS, B->share[0].coeffs, A->share[1].coeffs);
-#endif
     // c1 = a1*b1 + r'
     ntt_lite_mac(D->share[1].coeffs, A->share[1].coeffs, B->share[1].coeffs);
 #endif

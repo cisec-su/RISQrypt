@@ -9,11 +9,12 @@ RISQrypt is a hardware/software co-design framework targeting efficient implemen
 
 - CRYSTALS-Kyber (ML-KEM)
 - CRYSTALS-Dilithium (ML-DSA)
+- PASTA-3 (Transciphering algorithm for Fully Homomorphic Encryption)
 
 ## 🚀 Coming Soon
 - SPHINCS+ (SLH-DSA)
 - Falcon (FN-DSA)
-- Pasta, Rubato (Transciphering algorithms for Fully Homomorphic Encryption)
+- Rubato (Transciphering algorithm for Fully Homomorphic Encryption)
 
 ---
 
@@ -79,6 +80,15 @@ cd ../../../
 python3 sdk/toolchain/bootloader.py -f fw/test/dilithium_test/dilithium_test
 ```
 
+### 🔐 Pasta Test
+
+```bash
+cd fw/test/pasta_test
+make
+cd ../../../
+python3 sdk/toolchain/bootloader.py -f fw/test/pasta_test/pasta_test
+```
+
 ---
 
 ## ⏱ Benchmarking
@@ -109,6 +119,14 @@ python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/dilithium_time_per
 
 ---
 
+### 📊 Pasta Time Benchmark
+
+```bash
+cd fw/benchmark/time_perf/pasta_time_perf
+make
+cd ../../../../
+python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/pasta_time_perf/pasta_time_perf
+```
 
 ## 👤
 

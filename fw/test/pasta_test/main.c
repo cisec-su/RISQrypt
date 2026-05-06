@@ -173,12 +173,6 @@ int main() {
     print_string("Rejection sampling    : ENABLED\n");
 #endif
 
-#ifdef MEMORY_OPT_DIS
-    print_string("Memory optimization   : DISABLED\n");
-#else
-    print_string("Memory optimization   : ENABLED\n");
-#endif
-
     uint32_t seed[2] = {1, 1};
     UnityBegin("main.c");
     x2x_seed(seed);
