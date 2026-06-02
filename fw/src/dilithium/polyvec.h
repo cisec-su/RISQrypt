@@ -91,6 +91,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]);
 #define polyvec_matrix_pointwise DILITHIUM_NAMESPACE(polyvec_matrix_pointwise)
 void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K], const polyvecl *v);
 
+#define polyvec_matrix_pointwise_onthefly DILITHIUM_NAMESPACE(polyvec_matrix_pointwise_onthefly)
+void polyvec_matrix_pointwise_onthefly(polyveck *t, const uint8_t rho[SEEDBYTES], const polyvecl *v);
+
 #define polyveck_invntt_sub DILITHIUM_NAMESPACE(polyveck_invntt_sub)
 void polyveck_invntt_sub(polyveck *r, polyveck *v, polyveck *u);
 

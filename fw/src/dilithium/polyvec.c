@@ -53,6 +53,43 @@ void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K], const polyvecl
         polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
 }
 
+void polyvec_matrix_pointwise_onthefly(polyveck *t,
+                                       const uint8_t rho[SEEDBYTES],
+                                       const polyvecl *v)
+{
+    unsigned int i, j, i_next, j_next;
+    polyvecl row;
+
+    ntt_lite_set_inv2(STREAM128_BLOCKBYTES >> 2);
+    ntt_lite_set_bound(Q);
+
+    i_next = 0;
+    j_next = 1;
+
+    stream128_init(rho, 0);
+
+    for(i = 0; i < K; i++) {
+        for(j = 0; j < L; j++) {
+            poly_uniform_fromhw(&row.vec[j],
+                    rho,
+                    (i_next << 8) + j_next,
+                    (i != (K - 1)) || (j != (L - 1)));
+
+            if(j_next == (L - 1)) {
+                j_next = 0;
+                i_next++;
+            }
+            else {
+                j_next++;
+            }
+        }
+
+        polyvecl_pointwise_acc(&t->vec[i], &row, v);
+    }
+
+    ntt_lite_set_inv2(INV2);
+}
+
 /**************************************************************/
 /************ Vectors of polynomials of length L **************/
 /**************************************************************/

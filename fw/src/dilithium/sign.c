@@ -26,7 +26,6 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
     uint8_t seedbuf[2*SEEDBYTES + CRHBYTES];
     uint8_t tr[SEEDBYTES];
     const uint8_t *rho, *rhoprime, *key;
-    polyvecl mat[K];
     polyvecl s1;
     polyveck s2, t1, t0;
 
@@ -42,9 +41,6 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
     rhoprime = rho + SEEDBYTES;
     key = rhoprime + CRHBYTES;
 
-    /* Expand matrix */
-    polyvec_matrix_expand(mat, rho);
-
     /* Sample short vectors s1 and s2 */
     polyvecl_uniform_eta(&s1, rhoprime, 0);
     polyveck_uniform_eta(&s2, rhoprime, L);
@@ -54,7 +50,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
     poly_init_ntt();
     polyvecl_ntt(&s1);
 
-    polyvec_matrix_pointwise(&t1, mat, &s1);
+    polyvec_matrix_pointwise_onthefly(&t1, rho, &s1);
 
     poly_init_invntt();
     polyveck_invntt(&t1);
@@ -100,7 +96,7 @@ int crypto_sign_signature(uint8_t *sig,
     uint8_t *seedbuf = (uint8_t *) seedbuf_32;
     uint8_t *rho, *tr, *key, *mu, *rhoprime;
     uint16_t nonce = 0;
-    polyvecl mat[K], s1, y, z;
+    polyvecl s1, y, z;
     polyveck t0, s2, w1, w0, h;
     poly cp;
     int flag;
@@ -126,8 +122,6 @@ int crypto_sign_signature(uint8_t *sig,
 #endif
 
 
-    /* Expand matrix and transform vectors */
-    polyvec_matrix_expand(mat, rho);
 
     poly_init_ntt();
     polyvecl_ntt(&s1);
@@ -142,7 +136,7 @@ rej:
     poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
     polyvecl_ntt(&y);
 
-    polyvec_matrix_pointwise(&w1, mat, &y);
+    polyvec_matrix_pointwise_onthefly(&w1, rho, &y);
 
     poly_init_invntt();
     polyveck_invntt(&w1);
@@ -263,7 +257,7 @@ int crypto_sign_verify(const uint8_t *sig,
     uint8_t c[SEEDBYTES];
     uint8_t c2[SEEDBYTES];
     poly cp;
-    polyvecl mat[K], z;
+    polyvecl z;
     polyveck t1, w1, h;
 
     if(siglen != CRYPTO_BYTES)
@@ -282,7 +276,6 @@ int crypto_sign_verify(const uint8_t *sig,
 
     /* Matrix-vector multiplication; compute Az - c2^dt1 */
     poly_challenge(&cp, c);
-    polyvec_matrix_expand(mat, rho);
 
     poly_init_ntt();
 
@@ -292,7 +285,7 @@ int crypto_sign_verify(const uint8_t *sig,
 
     polyveck_shiftl_ntt(&t1);
 
-    polyvec_matrix_pointwise(&w1, mat, &z);
+    polyvec_matrix_pointwise_onthefly(&w1, rho, &z);
 
     polyveck_pointwise_poly_sub(&w1, &cp, &t1, &w1);
 
