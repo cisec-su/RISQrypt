@@ -39,7 +39,7 @@ int poly_is_short(const poly *s1, const poly *s2);
 #define poly_modq_decode FALCON_NAMESPACE(poly_modq_decode)
 int poly_modq_decode(poly *r, const void *in, size_t max_in_len);
 
-#define poly_comp_decode FALCON_NAMESPACE(poly_comp_decode)
-int poly_comp_decode(poly *r, const void *in, size_t max_in_len);
+#define poly_decompress FALCON_NAMESPACE(poly_decompress)
+int poly_decompress(poly *r, const void *in, size_t max_in_len);
 
 #endif

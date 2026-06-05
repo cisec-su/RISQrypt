@@ -379,19 +379,19 @@ int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
 }
 
 
-int ntt_lite_sq(uint32_t *dst, const uint32_t *src) {
+int ntt_lite_sqadd(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
     int ret;
     BENCH_START(ntt_lite_cc);
-    ret = ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SQ, 0, 0);
+    ret = ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SQADD, 0, 0);
     BENCH_END(ntt_lite_cc);
     return ret;
 }
 
 
-int ntt_lite_sqadd(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+int ntt_lite_sqadd_const(uint32_t *dst, const uint32_t *lhs) {
     int ret;
     BENCH_START(ntt_lite_cc);
-    ret = ntt_lite_pointwise_op(dst, lhs, rhs, NTT_LITE_CTRL_OP_SQADD, 0, 0);
+    ret = ntt_lite_pointwise_op(dst, lhs, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SQADD, NTT_LITE_CTRL_RHS_CONST_EN_V, 0);
     BENCH_END(ntt_lite_cc);
     return ret;
 }

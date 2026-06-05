@@ -9,11 +9,12 @@ typedef volatile uint32_t IO;
 
 typedef volatile uint32_t I;
 
+typedef const volatile uint32_t O;
 
 typedef struct
 {
     IO ctrl;       // BASE_ADDR + 0x00000000
-    I  status;     // BASE_ADDR + 0x00000004
+    O  status;     // BASE_ADDR + 0x00000004
     I  din_addr;   // BASE_ADDR + 0x00000008
     IO dout_addr;  // BASE_ADDR + 0x0000000C
     IO bound;      // BASE_ADDR + 0x00000010
@@ -61,11 +62,10 @@ typedef struct
 #define NTT_LITE_CTRL_OP_MAC               (((uint32_t) 0xF ) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_USEHINT           (((uint32_t) 0x10) << NTT_LITE_CTRL_OP_S)
 #define NTT_LITE_CTRL_OP_CHKL1NORM         (((uint32_t) 0x11) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_SQ                (((uint32_t) 0x12) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_SQADD             (((uint32_t) 0x13) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_TOCENTER          (((uint32_t) 0x14) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_FROMCENTER        (((uint32_t) 0x15) << NTT_LITE_CTRL_OP_S)
-#define NTT_LITE_CTRL_OP_FNDECOMPRESS      (((uint32_t) 0x16) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_SQADD             (((uint32_t) 0x12) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_TOCENTER          (((uint32_t) 0x13) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_FROMCENTER        (((uint32_t) 0x14) << NTT_LITE_CTRL_OP_S)
+#define NTT_LITE_CTRL_OP_FNDECOMPRESS      (((uint32_t) 0x15) << NTT_LITE_CTRL_OP_S)
 
 
 #define NTT_LITE_CTRL_OP_SWITCH_EN_S       ((uint32_t) 12 )

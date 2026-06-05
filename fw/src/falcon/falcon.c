@@ -176,7 +176,7 @@ int falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
      * Decode signature value.
      */
     u = 41;
-    v = poly_comp_decode(&sv, es + u, sig_len - u);
+    v = poly_decompress(&sv, es + u, sig_len - u);
     
     if (v == 0) {
         return FALCON_ERR_FORMAT;

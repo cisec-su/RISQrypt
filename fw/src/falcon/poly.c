@@ -112,11 +112,12 @@ int poly_is_short(const poly *s1, const poly *s2) {
         }
         src += ((i & ((N / 256) - 1)) << 7); 
         ntt_lite_decode(NTT_LITE_INPUT_DIS, src, 16);
-        ntt_lite_tocenter(NTT_LITE_OUTPUT_DIS, NTT_LITE_OUTPUT_DIS);
+        ntt_lite_tocenter(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
 
         ntt_lite_set_q(0);
         if (i == 0) {
-            ntt_lite_sq(temp, NTT_LITE_OUTPUT_DIS);
+            ntt_lite_set_bound(0);
+            ntt_lite_sqadd_const(temp, NTT_LITE_OUTPUT_DIS);
         }
         else {
             if (i == (((N / 256) * 2) - 1)) {
@@ -125,7 +126,7 @@ int poly_is_short(const poly *s1, const poly *s2) {
             else {
                 dst = temp;
             }
-            ntt_lite_sqadd(dst, NTT_LITE_OUTPUT_DIS, temp);
+            ntt_lite_sqadd(dst, NTT_LITE_INPUT_DIS, temp);
         }
     }
 
@@ -155,7 +156,7 @@ int poly_modq_decode(poly *r, const void *in, size_t max_in_len) {
 }
 
 
-int poly_comp_decode(poly *r, const void *in, size_t max_in_len) {
+int poly_decompress(poly *r, const void *in, size_t max_in_len) {
     ntt_lite_set_inv2((max_in_len + 3) >> 2);
     ntt_lite_fndecompress((uint32_t*) r->coeffs, in);
     // if ((acc & ((1u << acc_len) - 1u)) != 0) {
