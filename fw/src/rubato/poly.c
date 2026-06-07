@@ -111,44 +111,11 @@ void poly_uniform(poly *p, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr)
 
     ntt_lite_set_bound(0);
 
-    for (size_t i = 0; i < N; i++)
-    {
-        /* code */
-        p->coeffs[i] = 1;
-    }
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     /* code */
+    //     p->coeffs[i] = 1;
+    // }
     
 
 }
-
-
-/**
- * @brief Generate polynomial with uniformly random coefficients via rejection sampling
- * @description Generates random polynomial coefficients in [0, Q-1] using SHAKE128 stream cipher. Two modes: if allow_zero=0 extracts 16-bit values and adds 1 (coefficients in [1, Q-1]); if allow_zero=1 uses 17-bit rejection sampling (coefficients in [0, Q-1]). Output can be sent to hardware accelerator (to_hw=1) or stored in polynomial array (to_hw=0)
- * @param a pointer to output polynomial
- * @param nonce 8-byte nonce for SHAKE128 seed
- * @param block_ctr block counter for SHAKE128 seed
- * @param poly_ctr polynomial counter for SHAKE128 seed
- * @param allow_zero if 0: no zero coefficients; if 1: allows zero coefficients
- * @param to_hw if 1: output to hardware register; if 0: output to polynomial
- * @return void
- */
-// void poly_uniform(poly *p, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr )
-// {
-//     uint32_t *dst;
-//     uint32_t buf[POLY_UNIFORM_WORDS]; // 316 -> 128
-
-//     int to_hw = 0;
-
-//     if (to_hw) {
-//         dst = NTT_LITE_OUTPUT_DIS;
-//     } else {
-//         dst = p->coeffs;
-//     }
-
-//     stream128_init(nonce, block_ctr, poly_ctr);
-//     stream128_squeezeblocks((uint8_t*) buf, 4);
-//     ntt_lite_set_inv2((STREAM128_BLOCKBYTES>>2)*4);
-//     ntt_lite_set_bound(Q);
-//     ntt_lite_rejsamp(dst, buf, LOGQ, NTT_LITE_REJSAMP_CENTER_DIS);
-
-// }

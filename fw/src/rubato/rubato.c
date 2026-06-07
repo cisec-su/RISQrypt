@@ -7,11 +7,14 @@
 #include "poly.h"
 #include "util.h"
 
+static const int32_t state_init[N] = RUBATO_STATE_INIT;
+static const int32_t M[N] = MATMUL_M;
+static const int32_t M_T[N] = MATMUL_M_TRANSPOSE;
 
 /* Linear-layer matrix K = M (kron) M, where M is the V x V circulant of LINEAR_COEFFS.
    Selected by V (equivalently, by RUBATO_BLOCKSIZE = V*V). */
 #if (V == 4)
-static const poly K[N] = {
+const poly K[N] = {
     {.coeffs = { 4, 6, 2, 2, 6, 9, 3, 3, 2, 3, 1, 1, 2, 3, 1, 1}},
     {.coeffs = { 2, 4, 6, 2, 3, 6, 9, 3, 1, 2, 3, 1, 1, 2, 3, 1}},
     {.coeffs = { 2, 2, 4, 6, 3, 3, 6, 9, 1, 1, 2, 3, 1, 1, 2, 3}},
@@ -30,7 +33,7 @@ static const poly K[N] = {
     {.coeffs = { 9, 3, 3, 6, 3, 1, 1, 2, 3, 1, 1, 2, 6, 2, 2, 4}}
 };
 #elif (V == 8)
-static const poly K[N] = {
+const poly K[N] = {
     {.coeffs = {25,15,20,15,30,10, 5, 5, 15, 9,12, 9,18, 6, 3, 3, 20,12,16,12,24, 8, 4, 4, 15, 9,12, 9,18, 6, 3, 3, 30,18,24,18,36,12, 6, 6, 10, 6, 8, 6,12, 4, 2, 2,  5, 3, 4, 3, 6, 2, 1, 1,  5, 3, 4, 3, 6, 2, 1, 1}},
     {.coeffs = { 5,25,15,20,15,30,10, 5,  3,15, 9,12, 9,18, 6, 3,  4,20,12,16,12,24, 8, 4,  3,15, 9,12, 9,18, 6, 3,  6,30,18,24,18,36,12, 6,  2,10, 6, 8, 6,12, 4, 2,  1, 5, 3, 4, 3, 6, 2, 1,  1, 5, 3, 4, 3, 6, 2, 1}},
     {.coeffs = { 5, 5,25,15,20,15,30,10,  3, 3,15, 9,12, 9,18, 6,  4, 4,20,12,16,12,24, 8,  3, 3,15, 9,12, 9,18, 6,  6, 6,30,18,24,18,36,12,  2, 2,10, 6, 8, 6,12, 4,  1, 1, 5, 3, 4, 3, 6, 2,  1, 1, 5, 3, 4, 3, 6, 2}},
@@ -122,7 +125,7 @@ void rubato_sbox_feistel(poly *B, const poly *A) {
  * @param A Output polynomial.
  * @param B Input polynomial.
  */
-void rubato_linear_layer(poly *A, const poly *B) {
+void rubato_linear_layer_v0(poly *A, const poly *B) {
     size_t i;
     poly src;
 
@@ -134,6 +137,17 @@ void rubato_linear_layer(poly *A, const poly *B) {
         ntt_lite_sum((uint32_t *)&A->coeffs[i], NTT_LITE_INPUT_DIS);
     }
 
+}
+
+/**
+ * @brief Applies RUBATO linear layer A = M * B * M_transpoze over Z_q.
+ * @param A Output polynomial.
+ * @param B Input polynomial.
+ */
+void rubato_linear_layer(poly *A, const poly *B) {
+    poly temp;
+    ntt_lite_matmul(temp.coeffs, B->coeffs, (uint32_t*)M_T);
+    ntt_lite_matmul(A->coeffs, (uint32_t*)M, temp.coeffs);
 }
 
 
@@ -149,8 +163,8 @@ void rubato_encrypt(poly *ciphertext, const poly *plaintext, poly *key, uint64_t
 
     poly state;
     poly rnd;
+    poly temp;
     size_t r;
-    static const int32_t state_init[N] = RUBATO_STATE_INIT;
 
     poly_init_q();
 
@@ -169,6 +183,7 @@ void rubato_encrypt(poly *ciphertext, const poly *plaintext, poly *key, uint64_t
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, key->coeffs, rnd.coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, state.coeffs);
     ntt_lite_add(ciphertext->coeffs, NTT_LITE_INPUT_DIS, plaintext->coeffs);
+
 }
 
 /*

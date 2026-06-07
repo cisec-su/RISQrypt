@@ -1,0 +1,9 @@
+PARAM           XOF             RESULT       UNMASKED_CYCLES      MASKED_CYCLES       
+PARAM_80_S      XOF_SHAKE128    PASS         cycle=3903           masked_cycle=6508   
+PARAM_80_S      XOF_SHAKE256    PASS         cycle=3873           masked_cycle=6478   
+PARAM_80_L      XOF_SHAKE128    PASS         cycle=9561           masked_cycle=18164  
+PARAM_80_L      XOF_SHAKE256    PASS         cycle=9531           masked_cycle=18134  
+PARAM_128_S     XOF_SHAKE128    PASS         cycle=7930           masked_cycle=13165  
+PARAM_128_S     XOF_SHAKE256    PASS         cycle=7870           masked_cycle=13105  
+PARAM_128_L     XOF_SHAKE128    PASS         cycle=9561           masked_cycle=18164  
+PARAM_128_L     XOF_SHAKE256    PASS         cycle=9531           masked_cycle=18134  

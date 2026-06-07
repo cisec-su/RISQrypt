@@ -14,6 +14,7 @@
 #  define V                  4
 #  define RUBATO_OUTPUTSIZE  12
 #  define RUBATO_R           2
+#  define cbd_d              40
 #  define Q                  0x3EE0001
 #  define MODULUS_BIT_MASK   0x3FFFFFF
 #  define LINEAR_COEFFS      {2, 3, 1, 1}
@@ -24,6 +25,7 @@
 #  define V                  6
 #  define RUBATO_OUTPUTSIZE  32
 #  define RUBATO_R           2
+#  define cbd_d              3
 #  define Q                  0x1FC0001
 #  define MODULUS_BIT_MASK   0x1FFFFFF
 #  define LINEAR_COEFFS      {4, 2, 4, 3, 1, 1}
@@ -34,6 +36,7 @@
 #  define V                  8
 #  define RUBATO_OUTPUTSIZE  60
 #  define RUBATO_R           2
+#  define cbd_d              1
 #  define Q                  0x1FC0001
 #  define MODULUS_BIT_MASK   0x1FFFFFF
 #  define LINEAR_COEFFS      {5, 3, 4, 3, 6, 2, 1, 1}
@@ -44,6 +47,7 @@
 #  define V                  4
 #  define RUBATO_OUTPUTSIZE  12
 #  define RUBATO_R           5
+#  define cbd_d              36
 #  define Q                  0x3EE0001
 #  define MODULUS_BIT_MASK   0x3FFFFFF
 #  define LINEAR_COEFFS      {2, 3, 1, 1}
@@ -54,6 +58,7 @@
 #  define V                  6
 #  define RUBATO_OUTPUTSIZE  32
 #  define RUBATO_R           3
+#  define cbd_d              6
 #  define Q                  0x1FC0001
 #  define MODULUS_BIT_MASK   0x1FFFFFF
 #  define LINEAR_COEFFS      {4, 2, 4, 3, 1, 1}
@@ -64,6 +69,7 @@
 #  define V                  8
 #  define RUBATO_OUTPUTSIZE  60
 #  define RUBATO_R           2
+#  define cbd_d              6
 #  define Q                  0x1FC0001
 #  define MODULUS_BIT_MASK   0x1FFFFFF
 #  define LINEAR_COEFFS      {5, 3, 4, 3, 6, 2, 1, 1}

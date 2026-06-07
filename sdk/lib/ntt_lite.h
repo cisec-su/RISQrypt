@@ -92,5 +92,6 @@ int ntt_lite_make_hint(uint32_t *dst, const uint32_t *src_0, const uint32_t *src
 
 int ntt_lite_use_hint(uint32_t *dst, const uint32_t *src);
 
+int ntt_lite_matmul(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs);
 
 #endif

@@ -655,3 +655,37 @@ int ntt_lite_use_hint(uint32_t *dst, const uint32_t *src) {
     BENCH_END(ntt_lite_cc);
     return ret;
 }
+
+
+int ntt_lite_matmul(uint32_t *dst, const uint32_t *lhs, const uint32_t *rhs) {
+    uint32_t cmd;
+    BENCH_START(ntt_lite_cc);
+
+#ifndef BUSY_CHECK_DIS
+    if ((NTT_LITE_REGS->status & NTT_LITE_STATUS_BUSY_V)) {
+        return -1;
+    }
+#endif
+
+    NTT_LITE_REGS->dout_addr = (uint32_t) dst;
+
+    if (rhs != NTT_LITE_INPUT_DIS) {
+        ntt_lite_load_twiddle_core(rhs);
+    }
+
+    ntt_lite_set_clr();
+
+    if (lhs == NTT_LITE_INPUT_DIS) {
+        cmd = NTT_LITE_CTRL_CMD_START;
+    } else {
+        cmd = NTT_LITE_CTRL_CMD_LOAD_POLY;
+        NTT_LITE_REGS->din_addr = (uint32_t) lhs;
+    }
+
+    NTT_LITE_REGS->ctrl |= cmd | NTT_LITE_CTRL_OP_MATMUL;
+
+    while(!(NTT_LITE_REGS->status & NTT_LITE_STATUS_DONE_V));
+
+    BENCH_END(ntt_lite_cc);
+    return 0;
+}
