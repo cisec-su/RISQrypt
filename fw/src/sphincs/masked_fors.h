@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "params.h"
-#include "swmasked_context.h"
+#include "masked_context.h"
 
 #define fors_sign_hwmasked SPX_NAMESPACE(fors_sign_hwmasked)
 void fors_sign_hwmasked(unsigned char *sig, unsigned char *pk,

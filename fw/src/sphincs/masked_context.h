@@ -1,13 +1,15 @@
-#ifndef SPX_CONTEXT_H
-#define SPX_CONTEXT_H
+#ifndef SPX_MASKED_CONTEXT_H
+#define SPX_MASKED_CONTEXT_H
 
 #include <stdint.h>
 
 #include "params.h"
+// Defined two secret shares for masking
 
 typedef struct {
     uint8_t pub_seed[SPX_N];
-    uint8_t sk_seed[SPX_N];
+    uint8_t sk_seed1[SPX_N]; // Splitting
+    uint8_t sk_seed2[SPX_N];
 
 #ifdef SPX_SHA2
     // sha256 state that absorbed pub_seed

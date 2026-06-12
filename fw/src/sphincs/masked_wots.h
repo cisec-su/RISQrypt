@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "params.h"
-#include "swmasked_context.h"
+#include "masked_context.h"
 
 #define wots_pk_from_sig_hwmasked SPX_NAMESPACE(wots_pk_from_sig_hwmasked)
 void wots_pk_from_sig_hwmasked(unsigned char *pk,

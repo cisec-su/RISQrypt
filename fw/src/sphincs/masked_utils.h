@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "params.h"
-#include "swmasked_context.h"
+#include "masked_context.h"
 
 /* To support MSVC use alloca() instead of VLAs. See #20. */
 #ifdef _MSC_VER

@@ -5,25 +5,11 @@
 #include "fips202.h"
 #include "keccak.h"
 
-/*
- * HW-accelerated masked Keccak for SPHINCS+.
- *
- * Mirrors the pattern from kyber_hw/masked_symmetric.c:
- *   keccak_init(rate >> 3, KECCAK_MASK_EN)
- *   keccak_absorb(share0, share1, word_count)
- *   keccak_finish(&pad_word)
- *   keccak_squeeze(out0, out1, word_count)
- *
- * The HW manages both shares internally, so no ISW gadgets are needed.
- */
 
-// --------------------------------------------------------------------------
-// Context structure (reused layout from fips202.c)
-// --------------------------------------------------------------------------
 typedef struct {
-    uint8_t buf1[4];       // Buffered partial word share 1
-    uint8_t buf2[4];       // Buffered partial word share 2
-    uint32_t buf_len;      // Number of buffered bytes (0-3)
+    uint8_t buf1[4];
+    uint8_t buf2[4];
+    uint32_t buf_len;
     uint32_t rate_words;
     uint32_t pad;
     uint8_t finalized;
@@ -121,7 +107,6 @@ static void hwm_squeeze(hwmasked_keccak_ctx *ctx,
                          uint8_t *output1, uint8_t *output2,
                          size_t outlen)
 {
-    // Consume remaining bytes from squeeze buffer
     while (outlen > 0 && ctx->squeeze_rem > 0) {
         *output1++ = ctx->squeeze_buf1[ctx->squeeze_ptr];
         *output2++ = ctx->squeeze_buf2[ctx->squeeze_ptr];
@@ -132,7 +117,6 @@ static void hwm_squeeze(hwmasked_keccak_ctx *ctx,
 
     if (outlen == 0) return;
 
-    // Fast path: both outputs aligned and need multiple words
     if ((((uintptr_t)output1) & 0x3) == 0 &&
         (((uintptr_t)output2) & 0x3) == 0 &&
         outlen >= 4)
@@ -143,7 +127,6 @@ static void hwm_squeeze(hwmasked_keccak_ctx *ctx,
         output2 += (words << 2);
         outlen  -= (words << 2);
     } else {
-        // Unaligned: squeeze word by word into temp
         while (outlen >= 4) {
             uint32_t t1, t2;
             keccak_squeeze(&t1, &t2, 1);
@@ -155,7 +138,6 @@ static void hwm_squeeze(hwmasked_keccak_ctx *ctx,
         }
     }
 
-    // Handle remaining bytes (< 4)
     if (outlen > 0) {
         uint32_t t1, t2;
         keccak_squeeze(&t1, &t2, 1);

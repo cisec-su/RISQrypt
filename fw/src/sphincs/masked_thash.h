@@ -1,7 +1,7 @@
 #ifndef SPX_HWMASKED_THASH_H
 #define SPX_HWMASKED_THASH_H
 
-#include "swmasked_context.h"
+#include "masked_context.h"
 #include "params.h"
 
 #include <stdint.h>

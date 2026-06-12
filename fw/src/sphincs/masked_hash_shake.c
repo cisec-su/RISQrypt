@@ -2,21 +2,19 @@
 #include <string.h>
 
 #include "address.h"
-#include "hwmasked_fips202.h"
+#include "masked_fips202.h"
 #include "fips202.h"
-#include "swmasked_utils.h"
+#include "masked_utils.h"
 #include "params.h"
-#include "hwmasked_hash.h"
+#include "masked_hash.h"
 #include "randombytes.h"
 
 void initialize_hash_function_hwmasked(spx_ctx* ctx)
 {
-    (void)ctx; /* Suppress an 'unused parameter' warning. */
+    (void)ctx;
 }
 
-/**
- * Masked version of gen_message_random using HW Keccak masking.
- */
+
 void gen_message_random_hwmasked(unsigned char *R,
                                  const unsigned char *sk_prf,
                                  const unsigned char *optrand,

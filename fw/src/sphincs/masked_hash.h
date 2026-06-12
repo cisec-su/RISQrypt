@@ -2,7 +2,7 @@
 #define SPX_HASH_HWMASKED_H
 
 #include <stdint.h>
-#include "swmasked_context.h"
+#include "masked_context.h"
 #include "params.h"
 
 #define initialize_hash_function_hwmasked SPX_NAMESPACE(initialize_hash_function_hwmasked)

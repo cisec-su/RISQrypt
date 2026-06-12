@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "hwmasked_thash.h"
+#include "masked_thash.h"
 #include "address.h"
 #include "params.h"
-#include "swmasked_utils.h"
-#include "hwmasked_fips202.h"
+#include "masked_utils.h"
+#include "masked_fips202.h"
 
 /**
  * HW-accelerated masked thash using HW masked SHAKE256.
