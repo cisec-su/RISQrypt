@@ -12,7 +12,7 @@ struct masked_leaf_info_x1 {
     uint32_t pk_addr[8];
 };
 
-#define masked_INITIALIZE_LEAF_INFO_X1(info, addr, step_buffer) { \
+#define MASKED_INITIALIZE_LEAF_INFO_X1(info, addr, step_buffer) { \
     info.wots_sig1 = 0;             \
     info.wots_sig2 = 0;             \
     info.wots_sign_leaf = ~0u;      \

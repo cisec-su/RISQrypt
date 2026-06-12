@@ -461,7 +461,7 @@ void test_sphincs_cross_verify_hwmasked(void) {
 static void wots_gen_pkx1_masked_helper(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
     struct masked_leaf_info_x1 leaf;
     unsigned steps[SPX_WOTS_LEN] = {0};
-    masked_INITIALIZE_LEAF_INFO_X1(leaf, addr, steps);
+    MASKED_INITIALIZE_LEAF_INFO_X1(leaf, addr, steps);
 
     unsigned char pk_out_share1[SPX_WOTS_PK_BYTES];
     unsigned char pk_out_share2[SPX_WOTS_PK_BYTES];

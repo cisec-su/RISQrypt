@@ -20,7 +20,7 @@ void masked_merkle_sign(uint8_t *sig, unsigned char *root,
     unsigned int steps[ SPX_WOTS_LEN ];
     struct masked_leaf_info_x1 info = { 0 };
 
-    masked_INITIALIZE_LEAF_INFO_X1(info, wots_addr, steps);
+    MASKED_INITIALIZE_LEAF_INFO_X1(info, wots_addr, steps);
 
     SPX_VLA(uint8_t, wots_sig1, SPX_WOTS_BYTES);
     SPX_VLA(uint8_t, wots_sig2, SPX_WOTS_BYTES);
