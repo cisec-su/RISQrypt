@@ -1,15 +1,15 @@
 #include <string.h>
 
-#include "hwmasked_utils.h"
+#include "masked_utils.h"
 #include "params.h"
-#include "hwmasked_hash.h"
-#include "hwmasked_thash.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
 #include "address.h"
 #include "randombytes.h"
-#include "hwmasked_wotsx1.h"
+#include "masked_wotsx1.h"
 
 // HW Masked version of compute_root
-void compute_root_hwmasked(unsigned char *root1, unsigned char *root2,
+void masked_compute_root(unsigned char *root1, unsigned char *root2,
                            const unsigned char *leaf1, const unsigned char *leaf2,
                            uint32_t leaf_idx, uint32_t idx_offset,
                            const unsigned char *auth_path, uint32_t tree_height,
@@ -50,7 +50,7 @@ void compute_root_hwmasked(unsigned char *root1, unsigned char *root2,
         set_tree_index(addr, leaf_idx + idx_offset);
 
         if (leaf_idx & 1) {
-            hwmasked_thash(buffer1 + SPX_N, buffer2 + SPX_N,
+            masked_thash(buffer1 + SPX_N, buffer2 + SPX_N,
                            buffer1, buffer2,
                            2, ctx, addr);
 
@@ -61,7 +61,7 @@ void compute_root_hwmasked(unsigned char *root1, unsigned char *root2,
             }
         }
         else {
-            hwmasked_thash(buffer1, buffer2,
+            masked_thash(buffer1, buffer2,
                            buffer1, buffer2,
                            2, ctx, addr);
 
@@ -79,5 +79,5 @@ void compute_root_hwmasked(unsigned char *root1, unsigned char *root2,
     set_tree_height(addr, tree_height);
     set_tree_index(addr, leaf_idx + idx_offset);
 
-    hwmasked_thash(root1, root2, buffer1, buffer2, 2, ctx, addr);
+    masked_thash(root1, root2, buffer1, buffer2, 2, ctx, addr);
 }

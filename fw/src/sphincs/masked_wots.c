@@ -1,19 +1,19 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "hwmasked_utils.h"
+#include "masked_utils.h"
 #include "utils.h"
-#include "hwmasked_utilsx1.h"
-#include "hwmasked_hash.h"
-#include "hwmasked_thash.h"
-#include "hwmasked_wots.h"
-#include "hwmasked_wotsx1.h"
+#include "masked_utilsx1.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
+#include "masked_wots.h"
+#include "masked_wotsx1.h"
 #include "address.h"
 #include "params.h"
 #include "randombytes.h"
 
 // HW masked version of gen_chain
-static void gen_chain_hwmasked(unsigned char *out1, unsigned char *out2,
+static void masked_gen_chain(unsigned char *out1, unsigned char *out2,
                                const unsigned char *in1, const unsigned char *in2,
                                unsigned int start, unsigned int steps,
                                const spx_ctx *ctx, uint32_t addr[8])
@@ -25,12 +25,12 @@ static void gen_chain_hwmasked(unsigned char *out1, unsigned char *out2,
 
     for (i = start; i < (start+steps) && i < SPX_WOTS_W; i++) {
         set_hash_addr(addr, i);
-        hwmasked_thash(out1, out2, out1, out2, 1, ctx, addr);
+        masked_thash(out1, out2, out1, out2, 1, ctx, addr);
     }
 }
 
 // HW masked version of wots_pk_from_sig
-void wots_pk_from_sig_hwmasked(unsigned char *pk,
+void masked_wots_pk_from_sig(unsigned char *pk,
                                const unsigned char *sig,
                                const unsigned char *msg,
                                const spx_ctx *ctx, uint32_t addr[8])
@@ -54,7 +54,7 @@ void wots_pk_from_sig_hwmasked(unsigned char *pk,
             sig_share1[j] = sig[i*SPX_N + j] ^ sig_share2[j];
         }
 
-        gen_chain_hwmasked(pk_share1, pk_share2,
+        masked_gen_chain(pk_share1, pk_share2,
                            sig_share1, sig_share2,
                            lengths[i],
                            SPX_WOTS_W - 1 - lengths[i],

@@ -5,9 +5,17 @@
 
 #include "params.h"
 
+#ifndef SPX_CONTEXT_TYPE_DEFINED
+#define SPX_CONTEXT_TYPE_DEFINED
 typedef struct {
     uint8_t pub_seed[SPX_N];
-    uint8_t sk_seed[SPX_N];
+    union {
+        uint8_t sk_seed[SPX_N];
+        struct {
+            uint8_t sk_seed1[SPX_N];
+            uint8_t sk_seed2[SPX_N];
+        };
+    };
 
 #ifdef SPX_SHA2
     // sha256 state that absorbed pub_seed
@@ -24,5 +32,6 @@ typedef struct {
     uint32_t tweaked256_rc32[10][8];
 #endif
 } spx_ctx;
+#endif
 
 #endif

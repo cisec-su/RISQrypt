@@ -46,7 +46,7 @@ static void wots_gen_pkx1_helper(unsigned char *pk_out, const spx_ctx* ctx_in, u
 }
 
 // Helper for Masked WOTS pk generation
-static void wots_gen_pkx1_hwmasked_helper(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
+static void wots_gen_pkx1_masked_helper(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
     struct leaf_info_x1_hwmasked leaf;
     unsigned steps[SPX_WOTS_LEN] = {0};
     INITIALIZE_LEAF_INFO_X1_HWMASKED(leaf, addr, steps);
@@ -159,10 +159,10 @@ void test_thash_hwmasked(void) {
 
     timer_start();
     for (int i = 0; i < 100; i++) {
-        hwmasked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
+        masked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
     }
     time = timer_read();
-    BENCH_END_SHIFT_COL_T(SPX_THASH_HWMASKED_100X, 0, time);
+    BENCH_END_SHIFT_COL_T(SPX_THASH_MASKED_100X, 0, time);
 }
 
 
@@ -191,7 +191,7 @@ void test_wots_pkgen_hwmasked(void) {
     initialize_hash_function_hwmasked(&ctx);
 
     BENCH_START();
-    wots_gen_pkx1_hwmasked_helper(wots_pk, &ctx, addr);
+    wots_gen_pkx1_masked_helper(wots_pk, &ctx, addr);
     (void) wots_pk;
     BENCH_END_COL(SPX_WOTS_PKGEN_HWMASKED);
 }
@@ -237,8 +237,8 @@ void test_shake256_hwmasked(void) {
     }
 
     BENCH_START();
-    hwmasked_shake256(out1, out2, 32, input1, input2, 64);
-    BENCH_END_COL(SPX_HWMASKED_SHAKE256);
+    masked_shake256(out1, out2, 32, input1, input2, 64);
+    BENCH_END_COL(SPX_MASKED_SHAKE256);
 }
 
 

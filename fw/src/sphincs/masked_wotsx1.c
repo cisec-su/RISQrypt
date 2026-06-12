@@ -1,20 +1,20 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "hwmasked_utils.h"
-#include "hwmasked_hash.h"
-#include "hwmasked_thash.h"
-#include "hwmasked_wots.h"
-#include "hwmasked_wotsx1.h"
+#include "masked_utils.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
+#include "masked_wots.h"
+#include "masked_wotsx1.h"
 #include "address.h"
 #include "params.h"
 
 // HW masked version of wots_gen_leafx1
-void wots_gen_leafx1_hwmasked(unsigned char *dest1, unsigned char *dest2,
+void masked_wots_gen_leafx1(unsigned char *dest1, unsigned char *dest2,
                               const spx_ctx *ctx,
                               uint32_t leaf_idx, void *v_info)
 {
-    struct leaf_info_x1_hwmasked *info = (struct leaf_info_x1_hwmasked *)v_info;
+    struct masked_leaf_info_x1 *info = (struct masked_leaf_info_x1 *)v_info;
     uint32_t *leaf_addr = info->leaf_addr;
     uint32_t *pk_addr = info->pk_addr;
     unsigned int i, k;
@@ -45,7 +45,7 @@ void wots_gen_leafx1_hwmasked(unsigned char *dest1, unsigned char *dest2,
         set_hash_addr(leaf_addr, 0);
         set_type(leaf_addr, SPX_ADDR_TYPE_WOTSPRF);
 
-        hwmasked_prf_addr(buffer1, buffer2, ctx, leaf_addr);
+        masked_prf_addr(buffer1, buffer2, ctx, leaf_addr);
 
         set_type(leaf_addr, SPX_ADDR_TYPE_WOTS);
 
@@ -59,13 +59,13 @@ void wots_gen_leafx1_hwmasked(unsigned char *dest1, unsigned char *dest2,
 
             set_hash_addr(leaf_addr, k);
 
-            hwmasked_thash(buffer1, buffer2,
+            masked_thash(buffer1, buffer2,
                            buffer1, buffer2,
                            1, ctx, leaf_addr);
         }
     }
 
-    hwmasked_thash(dest1, dest2,
+    masked_thash(dest1, dest2,
                    pk_buffer1, pk_buffer2,
                    SPX_WOTS_LEN, ctx, pk_addr);
 }

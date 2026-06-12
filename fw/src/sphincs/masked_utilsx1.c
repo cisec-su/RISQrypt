@@ -1,18 +1,18 @@
 #include <string.h>
 
-#include "hwmasked_utils.h"
-#include "hwmasked_utilsx1.h"
+#include "masked_utils.h"
+#include "masked_utilsx1.h"
 #include "params.h"
-#include "hwmasked_thash.h"
+#include "masked_thash.h"
 #include "address.h"
 
 // HW Masked version of treehashx1
-void treehashx1_hwmasked(unsigned char *root1, unsigned char *root2,
+void masked_treehashx1(unsigned char *root1, unsigned char *root2,
                          unsigned char *auth_path,
                          const spx_ctx* ctx,
                          uint32_t leaf_idx, uint32_t idx_offset,
                          uint32_t tree_height,
-                         void (*gen_leaf_hwmasked)(
+                         void (*masked_gen_leaf)(
                              unsigned char*,
                              unsigned char* ,
                              const spx_ctx*,
@@ -30,7 +30,7 @@ void treehashx1_hwmasked(unsigned char *root1, unsigned char *root2,
         unsigned char current1[2 * SPX_N];
         unsigned char current2[2 * SPX_N];
 
-        gen_leaf_hwmasked(&current1[SPX_N], &current2[SPX_N],
+        masked_gen_leaf(&current1[SPX_N], &current2[SPX_N],
                           ctx, idx + idx_offset, info);
 
         uint32_t internal_idx_offset = idx_offset;
@@ -66,7 +66,7 @@ void treehashx1_hwmasked(unsigned char *root1, unsigned char *root2,
             memcpy(&current1[0], left1, SPX_N);
             memcpy(&current2[0], left2, SPX_N);
 
-            hwmasked_thash(&current1[1 * SPX_N], &current2[1 * SPX_N],
+            masked_thash(&current1[1 * SPX_N], &current2[1 * SPX_N],
                            &current1[0 * SPX_N], &current2[0 * SPX_N],
                            2, ctx, tree_addr);
         }

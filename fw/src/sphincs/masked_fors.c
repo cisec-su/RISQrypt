@@ -3,11 +3,11 @@
 #include <string.h>
 #include "util.h"
 
-#include "hwmasked_fors.h"
-#include "hwmasked_utils.h"
-#include "hwmasked_utilsx1.h"
-#include "hwmasked_hash.h"
-#include "hwmasked_thash.h"
+#include "masked_fors.h"
+#include "masked_utils.h"
+#include "masked_utilsx1.h"
+#include "masked_hash.h"
+#include "masked_thash.h"
 #include "address.h"
 #include "randombytes.h"
 
@@ -29,22 +29,22 @@ static void message_to_indices_hw(uint32_t *indices, const unsigned char *m)
     }
 }
 
-static void fors_gen_sk_hwmasked(unsigned char *sk1, unsigned char *sk2,
+static void masked_fors_gen_sk(unsigned char *sk1, unsigned char *sk2,
                                  const spx_ctx *ctx,
                                  uint32_t fors_leaf_addr[8])
 {
-    hwmasked_prf_addr(sk1, sk2, ctx, fors_leaf_addr);
+    masked_prf_addr(sk1, sk2, ctx, fors_leaf_addr);
 }
 
-static void fors_sk_to_leaf_hwmasked(unsigned char *leaf1, unsigned char *leaf2,
+static void masked_fors_sk_to_leaf(unsigned char *leaf1, unsigned char *leaf2,
                                      const unsigned char *sk1, const unsigned char *sk2,
                                      const spx_ctx *ctx,
                                      uint32_t fors_leaf_addr[8])
 {
-    hwmasked_thash(leaf1, leaf2, sk1, sk2, 1, ctx, fors_leaf_addr);
+    masked_thash(leaf1, leaf2, sk1, sk2, 1, ctx, fors_leaf_addr);
 }
 
-static void fors_gen_leafx1_hwmasked(unsigned char *leaf1, unsigned char *leaf2,
+static void masked_fors_gen_leafx1(unsigned char *leaf1, unsigned char *leaf2,
                                      const spx_ctx *ctx,
                                      uint32_t addr_idx, void *info)
 {
@@ -55,16 +55,16 @@ static void fors_gen_leafx1_hwmasked(unsigned char *leaf1, unsigned char *leaf2,
     set_tree_height(fors_leaf_addr, 0);
     set_type(fors_leaf_addr, SPX_ADDR_TYPE_FORSPRF);
 
-    fors_gen_sk_hwmasked(leaf1, leaf2, ctx, fors_leaf_addr);
+    masked_fors_gen_sk(leaf1, leaf2, ctx, fors_leaf_addr);
 
     set_type(fors_leaf_addr, SPX_ADDR_TYPE_FORSTREE);
-    fors_sk_to_leaf_hwmasked(leaf1, leaf2,
+    masked_fors_sk_to_leaf(leaf1, leaf2,
                              leaf1, leaf2,
                              ctx, fors_leaf_addr);
 }
 
 // HW masked version of fors_sign
-void fors_sign_hwmasked(unsigned char *sig, unsigned char *pk,
+void masked_fors_sign(unsigned char *sig, unsigned char *pk,
                         const unsigned char *m,
                         const spx_ctx *ctx,
                         const uint32_t fors_addr[8])
@@ -100,7 +100,7 @@ void fors_sign_hwmasked(unsigned char *sig, unsigned char *pk,
         set_tree_index(fors_tree_addr, indices[i] + idx_offset);
         set_type(fors_tree_addr, SPX_ADDR_TYPE_FORSPRF);
 
-        fors_gen_sk_hwmasked(sk_share1, sk_share2, ctx, fors_tree_addr);
+        masked_fors_gen_sk(sk_share1, sk_share2, ctx, fors_tree_addr);
 
         set_type(fors_tree_addr, SPX_ADDR_TYPE_FORSTREE);
 
@@ -109,11 +109,11 @@ void fors_sign_hwmasked(unsigned char *sig, unsigned char *pk,
         }
         sig += SPX_N;
 
-        treehashx1_hwmasked(roots1 + i*SPX_N, roots2 + i*SPX_N,
+        masked_treehashx1(roots1 + i*SPX_N, roots2 + i*SPX_N,
                             sig,
                             ctx,
                             indices[i], idx_offset, SPX_FORS_HEIGHT,
-                            fors_gen_leafx1_hwmasked,
+                            masked_fors_gen_leafx1,
                             fors_tree_addr, &fors_info);
 
         sig += SPX_N * SPX_FORS_HEIGHT;
@@ -122,7 +122,7 @@ void fors_sign_hwmasked(unsigned char *sig, unsigned char *pk,
     unsigned char pk1[SPX_N];
     unsigned char pk2[SPX_N];
 
-    hwmasked_thash(pk1, pk2,
+    masked_thash(pk1, pk2,
                    roots1, roots2,
                    SPX_FORS_TREES, ctx, fors_pk_addr);
 
@@ -132,7 +132,7 @@ void fors_sign_hwmasked(unsigned char *sig, unsigned char *pk,
 }
 
 // HW masked version of fors_pk_from_sig
-void fors_pk_from_sig_hwmasked(unsigned char *pk,
+void masked_fors_pk_from_sig(unsigned char *pk,
                                const unsigned char *sig, const unsigned char *m,
                                const spx_ctx* ctx,
                                const uint32_t fors_addr[8])
@@ -174,10 +174,10 @@ void fors_pk_from_sig_hwmasked(unsigned char *pk,
             sk_in2[j] = rand_mask[j];
         }
 
-        fors_sk_to_leaf_hwmasked(leaf1, leaf2, sk_in1, sk_in2, ctx, fors_tree_addr);
+        masked_fors_sk_to_leaf(leaf1, leaf2, sk_in1, sk_in2, ctx, fors_tree_addr);
         sig += SPX_N;
 
-        compute_root_hwmasked(roots1 + i*SPX_N, roots2 + i*SPX_N,
+        masked_compute_root(roots1 + i*SPX_N, roots2 + i*SPX_N,
                               leaf1, leaf2,
                               indices[i], idx_offset,
                               sig, SPX_FORS_HEIGHT, ctx, fors_tree_addr);
@@ -188,7 +188,7 @@ void fors_pk_from_sig_hwmasked(unsigned char *pk,
     unsigned char pk1[SPX_N];
     unsigned char pk2[SPX_N];
 
-    hwmasked_thash(pk1, pk2, roots1, roots2, SPX_FORS_TREES, ctx, fors_pk_addr);
+    masked_thash(pk1, pk2, roots1, roots2, SPX_FORS_TREES, ctx, fors_pk_addr);
 
     for(int j=0; j<SPX_N; j++) {
         pk[j] = pk1[j] ^ pk2[j];

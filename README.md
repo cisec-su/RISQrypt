@@ -80,17 +80,6 @@ cd ../../../
 python3 sdk/toolchain/bootloader.py -f fw/test/dilithium_test/dilithium_test
 ```
 
-### 🔐 Pasta Test
-
-```bash
-cd fw/test/pasta_test
-make
-cd ../../../
-python3 sdk/toolchain/bootloader.py -f fw/test/pasta_test/pasta_test
-```
-
----
-
 ### 🌲 SPHINCS+ Test
 
 ```bash
@@ -98,6 +87,17 @@ cd fw/test/sphincs_test
 make
 cd ../../../
 python3 sdk/toolchain/bootloader.py -f fw/test/sphincs_test/sphincs_test
+```
+
+---
+
+### 🔐 Pasta Test
+
+```bash
+cd fw/test/pasta_test
+make
+cd ../../../
+python3 sdk/toolchain/bootloader.py -f fw/test/pasta_test/pasta_test
 ```
 
 ---
@@ -130,17 +130,6 @@ python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/dilithium_time_per
 
 ---
 
-### 📊 Pasta Time Benchmark
-
-```bash
-cd fw/benchmark/time_perf/pasta_time_perf
-make
-cd ../../../../
-python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/pasta_time_perf/pasta_time_perf
-```
-
----
-
 ### 📊 SPHINCS+ Time Benchmark
 
 ```bash
@@ -148,6 +137,17 @@ cd fw/benchmark/time_perf/sphincs_time_perf
 make
 cd ../../../../
 python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/sphincs_time_perf/sphincs_time_perf
+```
+
+---
+
+### 📊 Pasta Time Benchmark
+
+```bash
+cd fw/benchmark/time_perf/pasta_time_perf
+make
+cd ../../../../
+python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/pasta_time_perf/pasta_time_perf
 ```
 
 

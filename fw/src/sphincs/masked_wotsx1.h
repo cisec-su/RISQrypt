@@ -1,9 +1,9 @@
-#if !defined( WOTSX1_HWMASKED_H_ )
-#define WOTSX1_HWMASKED_H_
+#if !defined( masked_WOTSX1_H_ )
+#define masked_WOTSX1_H_
 
 #include <string.h>
 
-struct leaf_info_x1_hwmasked {
+struct masked_leaf_info_x1 {
     unsigned char *wots_sig1;
     unsigned char *wots_sig2;
     uint32_t wots_sign_leaf;
@@ -12,7 +12,7 @@ struct leaf_info_x1_hwmasked {
     uint32_t pk_addr[8];
 };
 
-#define INITIALIZE_LEAF_INFO_X1_HWMASKED(info, addr, step_buffer) { \
+#define masked_INITIALIZE_LEAF_INFO_X1(info, addr, step_buffer) { \
     info.wots_sig1 = 0;             \
     info.wots_sig2 = 0;             \
     info.wots_sign_leaf = ~0u;      \
@@ -21,9 +21,9 @@ struct leaf_info_x1_hwmasked {
     memcpy( &info.pk_addr[0], addr, 32 ); \
 }
 
-#define wots_gen_leafx1_hwmasked SPX_NAMESPACE(wots_gen_leafx1_hwmasked)
-void wots_gen_leafx1_hwmasked(unsigned char *dest1, unsigned char *dest2,
+#define masked_wots_gen_leafx1 SPX_NAMESPACE(masked_wots_gen_leafx1)
+void masked_wots_gen_leafx1(unsigned char *dest1, unsigned char *dest2,
                               const spx_ctx *ctx,
                               uint32_t leaf_idx, void *v_info);
 
-#endif /* WOTSX1_HWMASKED_H_ */
+#endif /* masked_WOTSX1_H_ */

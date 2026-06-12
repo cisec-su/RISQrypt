@@ -4,19 +4,19 @@
 #include "util.h"
 
 #include "api.h"
-#include "hwmasked_thash.h"
+#include "masked_thash.h"
 #include "params.h"
-#include "hwmasked_wots.h"
-#include "hwmasked_fors.h"
-#include "hwmasked_hash.h"
+#include "masked_wots.h"
+#include "masked_fors.h"
+#include "masked_hash.h"
 #include "thash.h"
 #include "address.h"
 #include "randombytes.h"
-#include "hwmasked_utils.h"
-#include "hwmasked_merkle.h"
+#include "masked_utils.h"
+#include "masked_merkle.h"
 
 // HW masked version of crypto_sign_seed_keypair
-int crypto_sign_seed_keypair_hwmasked(unsigned char *pk, unsigned char *sk,
+int masked_crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
                                       const unsigned char *seed)
 {
     spx_ctx ctx;
@@ -32,9 +32,9 @@ int crypto_sign_seed_keypair_hwmasked(unsigned char *pk, unsigned char *sk,
         ctx.sk_seed2[i] = rand_mask[i];
     }
 
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
-    merkle_gen_root_hwmasked(sk + 3*SPX_N, &ctx);
+    masked_merkle_gen_root(sk + 3*SPX_N, &ctx);
 
     memcpy(pk + SPX_N, sk + 3*SPX_N, SPX_N);
 
@@ -46,16 +46,16 @@ int crypto_sign_seed_keypair_hwmasked(unsigned char *pk, unsigned char *sk,
  * Format sk: [SK_SEED || SK_PRF || PUB_SEED || root]
  * Format pk: [PUB_SEED || root]
  */
-int crypto_sign_keypair_hwmasked(unsigned char *pk, unsigned char *sk)
+int masked_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
   unsigned char seed[CRYPTO_SEEDBYTES];
   randombytes(seed, CRYPTO_SEEDBYTES);
-  crypto_sign_seed_keypair_hwmasked(pk, sk, seed);
+  masked_crypto_sign_seed_keypair(pk, sk, seed);
   return 0;
 }
 
 // HW masked version of crypto_sign_signature
-int crypto_sign_signature_hwmasked(uint8_t *sig, size_t *siglen,
+int masked_crypto_sign_signature(uint8_t *sig, size_t *siglen,
                                    const uint8_t *m, size_t mlen, const uint8_t *sk)
 {
     spx_ctx ctx;
@@ -83,16 +83,16 @@ int crypto_sign_signature_hwmasked(uint8_t *sig, size_t *siglen,
         ctx.sk_seed2[j] = rand_mask[j];
     }
 
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
 
     randombytes(optrand, SPX_N);
 
-    gen_message_random_hwmasked(sig, sk_prf, optrand, m, mlen, &ctx);
+    masked_gen_message_random(sig, sk_prf, optrand, m, mlen, &ctx);
 
-    hash_message_hwmasked(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    masked_hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     tree_addr_bytes[0] = (uint32_t)(tree);
@@ -101,7 +101,7 @@ int crypto_sign_signature_hwmasked(uint8_t *sig, size_t *siglen,
     set_tree_addr(wots_addr, tree_addr_bytes);
     set_keypair_addr(wots_addr, idx_leaf);
 
-    fors_sign_hwmasked(sig, root, mhash, &ctx, wots_addr);
+    masked_fors_sign(sig, root, mhash, &ctx, wots_addr);
 
     sig += SPX_FORS_BYTES;
 
@@ -114,7 +114,7 @@ int crypto_sign_signature_hwmasked(uint8_t *sig, size_t *siglen,
         copy_subtree_addr(wots_addr, tree_addr);
         set_keypair_addr(wots_addr, idx_leaf);
 
-        merkle_sign_hwmasked(sig, root, &ctx, wots_addr, tree_addr, idx_leaf);
+        masked_merkle_sign(sig, root, &ctx, wots_addr, tree_addr, idx_leaf);
 
         sig += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
 
@@ -128,7 +128,7 @@ int crypto_sign_signature_hwmasked(uint8_t *sig, size_t *siglen,
 }
 
 // HW masked version of crypto_sign_verify
-int crypto_sign_verify_hwmasked(const uint8_t *sig, size_t siglen,
+int masked_crypto_sign_verify(const uint8_t *sig, size_t siglen,
                                 const uint8_t *m, size_t mlen, const uint8_t *pk)
 {
     spx_ctx ctx;
@@ -154,13 +154,13 @@ int crypto_sign_verify_hwmasked(const uint8_t *sig, size_t siglen,
 
     memcpy(ctx.pub_seed, pk, SPX_N);
 
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
     set_type(wots_pk_addr, SPX_ADDR_TYPE_WOTSPK);
 
-    hash_message_hwmasked(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    masked_hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     tree_addr_bytes[0] = (uint32_t)(tree);
@@ -169,7 +169,7 @@ int crypto_sign_verify_hwmasked(const uint8_t *sig, size_t siglen,
     set_tree_addr(wots_addr, tree_addr_bytes);
     set_keypair_addr(wots_addr, idx_leaf);
 
-    fors_pk_from_sig_hwmasked(root, sig, mhash, &ctx, wots_addr);
+    masked_fors_pk_from_sig(root, sig, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
 
     for (i = 0; i < SPX_D; i++) {
@@ -184,13 +184,13 @@ int crypto_sign_verify_hwmasked(const uint8_t *sig, size_t siglen,
 
         copy_keypair_addr(wots_pk_addr, wots_addr);
 
-        wots_pk_from_sig_hwmasked(wots_pk, sig, root, &ctx, wots_addr);
+        masked_wots_pk_from_sig(wots_pk, sig, root, &ctx, wots_addr);
         sig += SPX_WOTS_BYTES;
 
         thash(leaf, wots_pk, SPX_WOTS_LEN, &ctx, wots_pk_addr);
 
         unsigned char zero_buf[SPX_N] = {0};
-        compute_root_hwmasked(root1, root2, leaf, zero_buf,
+        masked_compute_root(root1, root2, leaf, zero_buf,
                               idx_leaf, 0, sig, SPX_TREE_HEIGHT, &ctx, tree_addr);
 
         for(int j=0; j<SPX_N; j++) root[j] = root1[j] ^ root2[j];
@@ -209,13 +209,13 @@ int crypto_sign_verify_hwmasked(const uint8_t *sig, size_t siglen,
 }
 
 // HW masked version of crypto_sign
-int crypto_sign_hwmasked(unsigned char *sm, unsigned long long *smlen,
+int masked_crypto_sign(unsigned char *sm, unsigned long long *smlen,
                          const unsigned char *m, unsigned long long mlen,
                          const unsigned char *sk)
 {
     size_t siglen;
 
-    crypto_sign_signature_hwmasked(sm, &siglen, m, (size_t)mlen, sk);
+    masked_crypto_sign_signature(sm, &siglen, m, (size_t)mlen, sk);
 
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
@@ -224,7 +224,7 @@ int crypto_sign_hwmasked(unsigned char *sm, unsigned long long *smlen,
 }
 
 // HW masked version of crypto_sign_open
-int crypto_sign_open_hwmasked(unsigned char *m, unsigned long long *mlen,
+int masked_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
                               const unsigned char *sm, unsigned long long smlen,
                               const unsigned char *pk)
 {
@@ -236,7 +236,7 @@ int crypto_sign_open_hwmasked(unsigned char *m, unsigned long long *mlen,
 
     *mlen = smlen - SPX_BYTES;
 
-    if (crypto_sign_verify_hwmasked(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
+    if (masked_crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
         memset(m, 0, smlen);
         *mlen = 0;
         return -1;

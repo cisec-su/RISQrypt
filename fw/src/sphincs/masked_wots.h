@@ -1,13 +1,13 @@
-#ifndef SPX_WOTS_HWMASKED_H
-#define SPX_WOTS_HWMASKED_H
+#ifndef masked_SPX_WOTS_H
+#define masked_SPX_WOTS_H
 
 #include <stdint.h>
 
 #include "params.h"
 #include "masked_context.h"
 
-#define wots_pk_from_sig_hwmasked SPX_NAMESPACE(wots_pk_from_sig_hwmasked)
-void wots_pk_from_sig_hwmasked(unsigned char *pk,
+#define masked_wots_pk_from_sig SPX_NAMESPACE(masked_wots_pk_from_sig)
+void masked_wots_pk_from_sig(unsigned char *pk,
                                const unsigned char *sig,
                                const unsigned char *msg,
                                const spx_ctx *ctx, uint32_t addr[8]);

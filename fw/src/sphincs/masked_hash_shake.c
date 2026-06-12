@@ -9,13 +9,13 @@
 #include "masked_hash.h"
 #include "randombytes.h"
 
-void initialize_hash_function_hwmasked(spx_ctx* ctx)
+void masked_initialize_hash_function(spx_ctx* ctx)
 {
     (void)ctx;
 }
 
 
-void gen_message_random_hwmasked(unsigned char *R,
+void masked_gen_message_random(unsigned char *R,
                                  const unsigned char *sk_prf,
                                  const unsigned char *optrand,
                                  const unsigned char *m, unsigned long long mlen,
@@ -62,7 +62,7 @@ void gen_message_random_hwmasked(unsigned char *R,
     unsigned char R1[SPX_N];
     unsigned char R2[SPX_N];
 
-    hwmasked_shake256(R1, R2, SPX_N, buf1, buf2, total_len);
+    masked_shake256(R1, R2, SPX_N, buf1, buf2, total_len);
 
     // Recombine R
     for (int i = 0; i < SPX_N; i++) R[i] = R1[i] ^ R2[i];
@@ -72,7 +72,7 @@ void gen_message_random_hwmasked(unsigned char *R,
  * Computes the message hash using R, the public key, and the message.
  * This uses the unmasked incremental API since all inputs are public at this point.
  */
-void hash_message_hwmasked(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
+void masked_hash_message(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
                            const unsigned char *R, const unsigned char *pk,
                            const unsigned char *m, unsigned long long mlen,
                            const spx_ctx *ctx)
@@ -118,7 +118,7 @@ void hash_message_hwmasked(unsigned char *digest, uint64_t *tree, uint32_t *leaf
 /**
  * Masked version of prf_addr using HW Keccak masking.
  */
-void hwmasked_prf_addr(unsigned char *out1, unsigned char *out2,
+void masked_prf_addr(unsigned char *out1, unsigned char *out2,
                        const spx_ctx *ctx,
                        const uint32_t addr[8])
 {
@@ -133,5 +133,5 @@ void hwmasked_prf_addr(unsigned char *out1, unsigned char *out2,
     memset(buf2, 0, SPX_N + SPX_ADDR_BYTES);
     memcpy(buf2 + SPX_N + SPX_ADDR_BYTES, ctx->sk_seed2, SPX_N);
 
-    hwmasked_shake256(out1, out2, SPX_N, buf1, buf2, 2 * SPX_N + SPX_ADDR_BYTES);
+    masked_shake256(out1, out2, SPX_N, buf1, buf2, 2 * SPX_N + SPX_ADDR_BYTES);
 }

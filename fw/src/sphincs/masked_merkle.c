@@ -1,16 +1,16 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "hwmasked_utils.h"
-#include "hwmasked_utilsx1.h"
-#include "hwmasked_wots.h"
-#include "hwmasked_wotsx1.h"
-#include "hwmasked_merkle.h"
+#include "masked_utils.h"
+#include "masked_utilsx1.h"
+#include "masked_wots.h"
+#include "masked_wotsx1.h"
+#include "masked_merkle.h"
 #include "address.h"
 #include "params.h"
 
 // HW masked version of merkle_sign
-void merkle_sign_hwmasked(uint8_t *sig, unsigned char *root,
+void masked_merkle_sign(uint8_t *sig, unsigned char *root,
                           const spx_ctx *ctx,
                           uint32_t wots_addr[8], uint32_t tree_addr[8],
                           uint32_t idx_leaf)
@@ -18,9 +18,9 @@ void merkle_sign_hwmasked(uint8_t *sig, unsigned char *root,
     unsigned char *auth_path = sig + SPX_WOTS_BYTES;
 
     unsigned int steps[ SPX_WOTS_LEN ];
-    struct leaf_info_x1_hwmasked info = { 0 };
+    struct masked_leaf_info_x1 info = { 0 };
 
-    INITIALIZE_LEAF_INFO_X1_HWMASKED(info, wots_addr, steps);
+    masked_INITIALIZE_LEAF_INFO_X1(info, wots_addr, steps);
 
     SPX_VLA(uint8_t, wots_sig1, SPX_WOTS_BYTES);
     SPX_VLA(uint8_t, wots_sig2, SPX_WOTS_BYTES);
@@ -41,11 +41,11 @@ void merkle_sign_hwmasked(uint8_t *sig, unsigned char *root,
     unsigned char root1[SPX_N];
     unsigned char root2[SPX_N];
 
-    treehashx1_hwmasked(root1, root2, auth_path,
+    masked_treehashx1(root1, root2, auth_path,
                         ctx,
                         idx_leaf, 0,
                         SPX_TREE_HEIGHT,
-                        wots_gen_leafx1_hwmasked,
+                        masked_wots_gen_leafx1,
                         tree_addr, &info);
 
     for(int i = 0; i < SPX_WOTS_BYTES; i++) {
@@ -58,7 +58,7 @@ void merkle_sign_hwmasked(uint8_t *sig, unsigned char *root,
 }
 
 // HW masked version of merkle_gen_root
-void merkle_gen_root_hwmasked(unsigned char *root, const spx_ctx *ctx)
+void masked_merkle_gen_root(unsigned char *root, const spx_ctx *ctx)
 {
     SPX_VLA(uint8_t, auth_path, SPX_TREE_HEIGHT * SPX_N + SPX_WOTS_BYTES);
 
@@ -68,7 +68,7 @@ void merkle_gen_root_hwmasked(unsigned char *root, const spx_ctx *ctx)
     set_layer_addr(top_tree_addr, SPX_D - 1);
     set_layer_addr(wots_addr, SPX_D - 1);
 
-    merkle_sign_hwmasked(auth_path, root, ctx,
+    masked_merkle_sign(auth_path, root, ctx,
                          wots_addr, top_tree_addr,
                          (uint32_t)~0);
 }

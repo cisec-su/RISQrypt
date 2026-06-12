@@ -476,7 +476,7 @@ static void wots_gen_pkx1_hwmasked(unsigned char *pk_out, const spx_ctx* ctx_in,
 // =============================================================================
 // HW Masked Thash Benchmark
 // =============================================================================
-void test_thash_hwmasked_bench(void) {
+void test_thash_masked_bench(void) {
     unsigned char block1[SPX_N], block2[SPX_N];
     unsigned char out1[SPX_N], out2[SPX_N];
     unsigned char addr[SPX_ADDR_BYTES];
@@ -495,11 +495,11 @@ void test_thash_hwmasked_bench(void) {
     timer_start();
 
     for (int i = 0; i < 100; i++) {
-        hwmasked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
+        masked_thash(out1, out2, block1, block2, 1, &ctx, (uint32_t*)addr);
     }
 
     unsigned int elapsed = timer_read();
-    print_string("SPX_hwmasked_THASH_100X:\t");
+    print_string("SPX_masked_thash_100X:\t");
     print_u32_int(elapsed / 100);
     print_string(" cycles\n");
 
@@ -509,7 +509,7 @@ void test_thash_hwmasked_bench(void) {
 // =============================================================================
 // HW Masked WOTS pk gen benchmark
 // =============================================================================
-void test_wots_pk_hwmasked_bench(void) {
+void test_wots_pk_masked_bench(void) {
     BENCH_INIT()
     unsigned char wots_pk[SPX_WOTS_PK_BYTES];
     uint32_t addr[8] = {0};
@@ -530,14 +530,14 @@ void test_wots_pk_hwmasked_bench(void) {
 // =============================================================================
 // HW Masked Thash Correctness Test
 // =============================================================================
-void test_hwmasked_thash_correctness(void) {
+void test_masked_thash_correctness(void) {
     unsigned char block[SPX_N];
     unsigned char block1[SPX_N], block2[SPX_N];
     unsigned char out[SPX_N];
     unsigned char out1[SPX_N], out2[SPX_N];
     uint32_t addr[8] = {0};
 
-    print_string("\n[HW Masked Thash] Verifying hwmasked_thash vs thash...\n");
+    print_string("\n[HW Masked Thash] Verifying masked_thash vs thash...\n");
 
     randombytes(block, SPX_N);
     randombytes(block2, SPX_N); // Mask
@@ -554,7 +554,7 @@ void test_hwmasked_thash_correctness(void) {
     thash(out, block, 1, &ctx, addr);
 
     // Run HW masked
-    hwmasked_thash(out1, out2, block1, block2, 1, &ctx, addr);
+    masked_thash(out1, out2, block1, block2, 1, &ctx, addr);
 
     // Recombine
     unsigned char out_combined[SPX_N];
@@ -563,7 +563,7 @@ void test_hwmasked_thash_correctness(void) {
     }
 
     if (memcmp(out, out_combined, SPX_N)) {
-        print_string("  hwmasked_thash produces different result!\n");
+        print_string("  masked_thash produces different result!\n");
         print_hex_with_label("Expected", out, SPX_N);
         print_hex_with_label("Got", out_combined, SPX_N);
         TEST_FAIL();
@@ -576,13 +576,13 @@ void test_hwmasked_thash_correctness(void) {
 // =============================================================================
 // HW Masked SHAKE256 Correctness Test
 // =============================================================================
-void test_hwmasked_shake256_correctness(void) {
+void test_masked_shake256_correctness(void) {
     unsigned char input[64];
     unsigned char out_ref[32];
     unsigned char out1[32], out2[32];
     unsigned char input1[64], input2[64];
 
-    print_string("\n[HW Masked SHAKE256] Verifying hwmasked_shake256 vs shake256...\n");
+    print_string("\n[HW Masked SHAKE256] Verifying masked_shake256 vs shake256...\n");
 
     randombytes(input, 64);
     randombytes(input2, 64);  // Random mask
@@ -596,7 +596,7 @@ void test_hwmasked_shake256_correctness(void) {
     shake256(out_ref, 32, input, 64);
 
     // HW masked
-    hwmasked_shake256(out1, out2, 32, input1, input2, 64);
+    masked_shake256(out1, out2, 32, input1, input2, 64);
 
     // Recombine
     unsigned char out_combined[32];
@@ -605,7 +605,7 @@ void test_hwmasked_shake256_correctness(void) {
     }
 
     if (memcmp(out_ref, out_combined, 32)) {
-        print_string("  hwmasked_shake256 produces different result!\n");
+        print_string("  masked_shake256 produces different result!\n");
         print_hex_with_label("Expected", out_ref, 32);
         print_hex_with_label("Got", out_combined, 32);
         TEST_FAIL();
@@ -618,7 +618,7 @@ void test_hwmasked_shake256_correctness(void) {
 // =============================================================================
 // HW Masked Keypair Generation Benchmark
 // =============================================================================
-void test_hwmasked_keypair_generation_bench(void) {
+void test_masked_keypair_generation_bench(void) {
     unsigned char pk_b[CRYPTO_PUBLICKEYBYTES];
     unsigned char sk_b[CRYPTO_SECRETKEYBYTES];
 
@@ -631,7 +631,7 @@ void test_hwmasked_keypair_generation_bench(void) {
     }
 
     unsigned int elapsed = timer_read();
-    print_string("SPX_hwmasked_KEYPAIR_10X:\t");
+    print_string("SPX_masked_KEYPAIR_10X:\t");
     print_u32_int(elapsed / 10);
     print_string(" cycles\n");
 
@@ -646,9 +646,7 @@ int main(void) {
 
     print_string("\n");
     print_string("###############################################\n");
-    print_string("#     SPHINCS+ Hardware Implementation        #\n");
-    print_string("#        with Keccak Masking Support          #\n");
-    print_string("#          Unity Test Suite                   #\n");
+    print_string("#         SPHINCS+ Unity Test Start           #\n");
     print_string("###############################################\n");
 
     // Print all parameters first
@@ -667,16 +665,16 @@ int main(void) {
     RUN_TEST(test_wots_pk_bench);
 
     print_string("\n--- Starting HW Masked Tests ---\n");
-    RUN_TEST(test_hwmasked_shake256_correctness);
-    RUN_TEST(test_hwmasked_thash_correctness);
-    RUN_TEST(test_thash_hwmasked_bench);
-    RUN_TEST(test_wots_pk_hwmasked_bench);
+    RUN_TEST(test_masked_shake256_correctness);
+    RUN_TEST(test_masked_thash_correctness);
+    RUN_TEST(test_thash_masked_bench);
+    RUN_TEST(test_wots_pk_masked_bench);
     RUN_TEST(test_sphincs_keypair_hwmasked);
     RUN_TEST(test_sphincs_sign_hwmasked);
     RUN_TEST(test_sphincs_verify_hwmasked);
     RUN_TEST(test_sphincs_cross_verify_hwmasked);
 
-    RUN_TEST(test_hwmasked_keypair_generation_bench);
+    RUN_TEST(test_masked_keypair_generation_bench);
 
     print_string("\n--- All Tests Complete ---\n");
 
