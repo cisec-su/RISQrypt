@@ -356,7 +356,7 @@ void test_sphincs_keypair_hwmasked(void) {
 
     BENCH_START()
 
-    ret = crypto_sign_keypair_hwmasked(pk, sk);
+    ret = masked_crypto_sign_keypair(pk, sk);
 
     BENCH_END(SPX_KEYPAIR)
 
@@ -382,7 +382,7 @@ void test_sphincs_sign_hwmasked(void) {
 
     BENCH_START()
 
-    ret = crypto_sign_hwmasked(sm_hwmasked, &smlen_ull, m, SPX_MLEN, sk);
+    ret = masked_crypto_sign(sm_hwmasked, &smlen_ull, m, SPX_MLEN, sk);
     smlen_hwmasked = smlen_ull;
 
     BENCH_END(SPX_SIGN)
@@ -408,7 +408,7 @@ void test_sphincs_verify_hwmasked(void) {
 
     BENCH_START()
 
-    ret = crypto_sign_open_hwmasked(mout, &mlen_ull, sm_hwmasked, smlen_hwmasked, pk);
+    ret = masked_crypto_sign_open(mout, &mlen_ull, sm_hwmasked, smlen_hwmasked, pk);
     mlen = (size_t)mlen_ull;
 
     BENCH_END(SPX_VERIFY)
@@ -437,7 +437,7 @@ void test_sphincs_cross_verify_hwmasked(void) {
 
     print_string("\n[HW Cross Verify] Unmasked Sign -> HW Masked Verify...\n");
 
-    ret = crypto_sign_open_hwmasked(mout, &mlen_ull, sm, (unsigned long long)smlen, pk);
+    ret = masked_crypto_sign_open(mout, &mlen_ull, sm, (unsigned long long)smlen, pk);
     mlen = (size_t)mlen_ull;
 
     if (ret != 0) {
@@ -458,15 +458,15 @@ void test_sphincs_cross_verify_hwmasked(void) {
 // =============================================================================
 // Helper for HW Masked WOTS pk generation benchmark
 // =============================================================================
-static void wots_gen_pkx1_hwmasked(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
-    struct leaf_info_x1_hwmasked leaf;
+static void wots_gen_pkx1_masked_helper(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
+    struct masked_leaf_info_x1 leaf;
     unsigned steps[SPX_WOTS_LEN] = {0};
-    INITIALIZE_LEAF_INFO_X1_HWMASKED(leaf, addr, steps);
+    masked_INITIALIZE_LEAF_INFO_X1(leaf, addr, steps);
 
     unsigned char pk_out_share1[SPX_WOTS_PK_BYTES];
     unsigned char pk_out_share2[SPX_WOTS_PK_BYTES];
 
-    wots_gen_leafx1_hwmasked(pk_out_share1, pk_out_share2, ctx_in, 0, &leaf);
+    masked_wots_gen_leafx1(pk_out_share1, pk_out_share2, ctx_in, 0, &leaf);
 
     for(int i=0; i<SPX_WOTS_PK_BYTES; i++) {
         pk_out[i] = pk_out_share1[i] ^ pk_out_share2[i];
@@ -490,7 +490,7 @@ void test_thash_masked_bench(void) {
     randombytes(block2, SPX_N);
     randombytes(addr, SPX_ADDR_BYTES);
 
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     timer_start();
 
@@ -516,11 +516,11 @@ void test_wots_pk_masked_bench(void) {
 
     print_string("\n[WOTS HW Masked] Benchmarking HW Masked WOTS pk generation...\n");
 
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     BENCH_START()
 
-    wots_gen_pkx1_hwmasked(wots_pk, &ctx, addr);
+    wots_gen_pkx1_masked_helper(wots_pk, &ctx, addr);
 
     BENCH_END(SPX_WOTS_PKGEN)
 
@@ -548,7 +548,7 @@ void test_masked_thash_correctness(void) {
     }
 
     randombytes((unsigned char *)addr, SPX_ADDR_BYTES);
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     // Run unmasked
     thash(out, block, 1, &ctx, addr);
@@ -627,7 +627,7 @@ void test_masked_keypair_generation_bench(void) {
     timer_start();
 
     for (int i = 0; i < 10; i++) {
-        crypto_sign_keypair_hwmasked(pk_b, sk_b);
+        masked_crypto_sign_keypair(pk_b, sk_b);
     }
 
     unsigned int elapsed = timer_read();

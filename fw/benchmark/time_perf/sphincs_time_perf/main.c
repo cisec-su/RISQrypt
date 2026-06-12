@@ -47,14 +47,14 @@ static void wots_gen_pkx1_helper(unsigned char *pk_out, const spx_ctx* ctx_in, u
 
 // Helper for Masked WOTS pk generation
 static void wots_gen_pkx1_masked_helper(unsigned char *pk_out, const spx_ctx* ctx_in, uint32_t addr[8]) {
-    struct leaf_info_x1_hwmasked leaf;
+    struct masked_leaf_info_x1 leaf;
     unsigned steps[SPX_WOTS_LEN] = {0};
-    INITIALIZE_LEAF_INFO_X1_HWMASKED(leaf, addr, steps);
+    masked_INITIALIZE_LEAF_INFO_X1(leaf, addr, steps);
 
     unsigned char pk_out_share1[SPX_WOTS_PK_BYTES];
     unsigned char pk_out_share2[SPX_WOTS_PK_BYTES];
 
-    wots_gen_leafx1_hwmasked(pk_out_share1, pk_out_share2, ctx_in, 0, &leaf);
+    masked_wots_gen_leafx1(pk_out_share1, pk_out_share2, ctx_in, 0, &leaf);
 
     for(int i=0; i<SPX_WOTS_PK_BYTES; i++) {
         pk_out[i] = pk_out_share1[i] ^ pk_out_share2[i];
@@ -103,7 +103,7 @@ void test_masked_api(void) {
 
     // --- Masked Keypair ---
     BENCH_START();
-    crypto_sign_keypair_hwmasked(pk, sk);
+    masked_crypto_sign_keypair(pk, sk);
     (void) pk;
     (void) sk;
     BENCH_END_COL(SPX_KEYPAIR_HWMASKED);
@@ -111,14 +111,14 @@ void test_masked_api(void) {
     // --- Masked Sign ---
     randombytes(m, SPX_MLEN);
     BENCH_START();
-    ret = crypto_sign_hwmasked(sm_masked, &smlen_masked, m, SPX_MLEN, sk);
+    ret = masked_crypto_sign(sm_masked, &smlen_masked, m, SPX_MLEN, sk);
     (void) ret;
     (void) sm_masked;
     BENCH_END_COL(SPX_SIGN_HWMASKED);
 
     // --- Masked Verify ---
     BENCH_START();
-    ret = crypto_sign_open_hwmasked(mout, &mlen_ull, sm_masked, smlen_masked, pk);
+    ret = masked_crypto_sign_open(mout, &mlen_ull, sm_masked, smlen_masked, pk);
     (void) ret;
     (void) mout;
     BENCH_END_COL(SPX_VERIFY_HWMASKED);
@@ -155,7 +155,7 @@ void test_thash_hwmasked(void) {
     randombytes(block1, SPX_N);
     randombytes(block2, SPX_N);
     randombytes(addr, SPX_ADDR_BYTES);
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     timer_start();
     for (int i = 0; i < 100; i++) {
@@ -188,7 +188,7 @@ void test_wots_pkgen_hwmasked(void) {
     uint32_t addr[8] = {0};
     BENCH_INIT();
 
-    initialize_hash_function_hwmasked(&ctx);
+    masked_initialize_hash_function(&ctx);
 
     BENCH_START();
     wots_gen_pkx1_masked_helper(wots_pk, &ctx, addr);

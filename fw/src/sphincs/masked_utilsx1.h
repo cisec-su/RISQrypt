@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "params.h"
-#include "swmasked_context.h"
+#include "masked_context.h"
 
 #define masked_treehashx1 SPX_NAMESPACE(masked_treehashx1)
 void masked_treehashx1(unsigned char *root1, unsigned char *root2,

@@ -53,7 +53,7 @@ void test() {
 #else
     unsigned char seed[3*SPX_N];
     randombytes(seed, 3*SPX_N);
-    crypto_sign_seed_keypair_hwmasked(pk__, sk__, seed);
+    masked_crypto_sign_seed_keypair(pk__, sk__, seed);
 #endif
 
     BENCH_END(SPX_KEYPAIR)
@@ -67,7 +67,7 @@ void test() {
 #ifndef MASKING_EN
     crypto_sign(sm__, &smlen__, m__, 32, sk__);
 #else
-    crypto_sign_hwmasked(sm__, &smlen__, m__, 32, sk__);
+    masked_crypto_sign(sm__, &smlen__, m__, 32, sk__);
 #endif
 
     BENCH_END(SPX_SIGN)
@@ -81,7 +81,7 @@ void test() {
 #ifndef MASKING_EN
     ret = crypto_sign_open(mout__, &mlen__, sm__, smlen__, pk__);
 #else 
-    ret = crypto_sign_open_hwmasked(mout__, &mlen__, sm__, smlen__, pk__);
+    ret = masked_crypto_sign_open(mout__, &mlen__, sm__, smlen__, pk__);
 #endif
     (void) ret;
     (void) mout__;

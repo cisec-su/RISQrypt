@@ -34,12 +34,12 @@ void test() {
     (void) mlen_u;
 
     // HW-masked API
-    crypto_sign_keypair_hwmasked(pk__, sk__);
+    masked_crypto_sign_keypair(pk__, sk__);
 
-    crypto_sign_hwmasked(sm__, &smlen__, m__, 32, sk__);
+    masked_crypto_sign(sm__, &smlen__, m__, 32, sk__);
     (void) smlen__;
 
-    ret = crypto_sign_open_hwmasked(mout__, &mlen__, sm__, smlen__, pk__);
+    ret = masked_crypto_sign_open(mout__, &mlen__, sm__, smlen__, pk__);
     (void) mlen__;
 }
 
