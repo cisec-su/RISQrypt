@@ -9,10 +9,10 @@ RISQrypt is a hardware/software co-design framework targeting efficient implemen
 
 - CRYSTALS-Kyber (ML-KEM)
 - CRYSTALS-Dilithium (ML-DSA)
+- SPHINCS+ (SLH-DSA)
 - PASTA-3 (Transciphering algorithm for Fully Homomorphic Encryption)
 
 ## 🚀 Coming Soon
-- SPHINCS+ (SLH-DSA)
 - Falcon (FN-DSA)
 - Rubato (Transciphering algorithm for Fully Homomorphic Encryption)
 
@@ -91,6 +91,17 @@ python3 sdk/toolchain/bootloader.py -f fw/test/pasta_test/pasta_test
 
 ---
 
+### 🌲 SPHINCS+ Test
+
+```bash
+cd fw/test/sphincs_test
+make
+cd ../../../
+python3 sdk/toolchain/bootloader.py -f fw/test/sphincs_test/sphincs_test
+```
+
+---
+
 ## ⏱ Benchmarking
 
 Performance benchmarks measure execution time of cryptographic operations.
@@ -127,6 +138,18 @@ make
 cd ../../../../
 python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/pasta_time_perf/pasta_time_perf
 ```
+
+---
+
+### 📊 SPHINCS+ Time Benchmark
+
+```bash
+cd fw/benchmark/time_perf/sphincs_time_perf
+make
+cd ../../../../
+python3 sdk/toolchain/bootloader.py -f fw/benchmark/time_perf/sphincs_time_perf/sphincs_time_perf
+```
+
 
 ## 👤
 
