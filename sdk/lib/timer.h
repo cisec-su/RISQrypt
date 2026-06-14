@@ -7,6 +7,6 @@ void timer_start();
 
 void timer_reset();
 
-uint32_t timer_read();
+uint64_t timer_read();
 
 #endif

@@ -19,6 +19,7 @@ module timer_wb
 
 localparam CTRL_ADDR      = 8'h00;
 localparam DATA_ADDR      = 8'h04;
+localparam DATA_HI_ADDR   = 8'h08;
 
 localparam TIMER_START_BIT = 0;
 localparam TIMER_RESET_BIT = 1;
@@ -28,7 +29,7 @@ wire clk, rst;
 
 
 reg start, fw_rst;
-reg [31:0] timer;
+reg [63:0] timer;
 wire we_int;
 
 assign clk = wb_clk_i;
@@ -93,11 +94,11 @@ end
 
 always @(posedge clk) begin
     if (rst) begin
-        timer <= 32'h0;
+        timer <= 64'h0;
     end else if (start) begin
-        timer <= timer + 32'd1;
+        timer <= timer + 64'd1;
     end else if (fw_rst) begin
-        timer <= 32'h0;
+        timer <= 64'h0;
     end
 end
 
@@ -112,7 +113,8 @@ always @(posedge clk) begin
                 wb_dat_o[TIMER_START_BIT] <= start;
                 wb_dat_o[TIMER_RESET_BIT] <= fw_rst;
             end
-            DATA_ADDR   : wb_dat_o <= timer;
+            DATA_ADDR   : wb_dat_o <= timer[31:0];
+            DATA_HI_ADDR: wb_dat_o <= timer[63:32];
             default     : wb_dat_o <= 32'd0;
         endcase
     end
