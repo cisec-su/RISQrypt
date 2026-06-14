@@ -23,7 +23,7 @@
 
 #include "gpio_regs.h"
 
-#define GPIO_BASE_ADDR           ((uint32_t) 0x10008020)
+#define GPIO_BASE_ADDR           ((uint32_t) 0x10008024)
 #define GPIO_REGS                ((gpio_regs_t*) GPIO_BASE_ADDR)
 
 

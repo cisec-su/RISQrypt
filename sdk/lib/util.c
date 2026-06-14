@@ -79,3 +79,25 @@ void print_u32_int(uint32_t num) {
 
     uart_transmit_string(&buffer[i], 10 - i);
 }
+
+void print_u64(uint64_t num) {
+    print_u32((uint32_t)(num >> 32));
+    print_u32((uint32_t)(num));
+}
+
+void print_u64_int(uint64_t num) {
+    char buffer[21];
+    int i = 20;
+    buffer[i] = '\0';
+
+    if (num == 0) {
+        buffer[--i] = '0';
+    } else {
+        while (num > 0 && i > 0) {
+            buffer[--i] = '0' + (num % 10);
+            num /= 10;
+        }
+    }
+
+    uart_transmit_string(&buffer[i], 20 - i);
+}

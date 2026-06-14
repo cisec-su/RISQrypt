@@ -12,12 +12,12 @@
 #define ANSI_GREEN   "\x1b[32m"
 
 //TIMER MACROS FOR BENCHMARKING
-#define BENCH_INIT()        unsigned int time;
+#define BENCH_INIT()        uint64_t time;
 #define BENCH_START()       timer_start();
 
 #define BENCH_END_SHIFT(name, d)    time = timer_read(); \
                                     print_string(STR(name) ":\t"); \
-                                    print_u32_int(time >> d); \
+                                    print_u64_int(time >> d); \
                                     print_string(" cycles"); \
                                     print_string("\n");
 
@@ -34,7 +34,7 @@
 #define BENCH_END_SHIFT_COL_T(name, d, time)    print_string(STR(name)); \
                                         BENCH_PAD(name); \
                                         print_string(ANSI_GREEN); \
-                                        print_u32_int(time >> (d)); \
+                                        print_u64_int(time >> (d)); \
                                         print_string(ANSI_RESET); \
                                         print_string("\n");
 

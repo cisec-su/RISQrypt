@@ -14,6 +14,7 @@ typedef const volatile uint32_t O;
 typedef struct {
     IO  ctrl;
     O   data;
+    O   data_hi;
 } timer_regs_t;
 
 

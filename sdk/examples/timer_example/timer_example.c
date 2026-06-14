@@ -9,8 +9,8 @@ int main () {
 
     const unsigned int limit = 100000;
     unsigned int i;
-    char hex_out[sizeof(uint32_t) << 1];
-    unsigned int time;
+    char hex_out[sizeof(uint64_t) << 1];
+    uint64_t time;
 
     print_string("Timer Example\n");
 
@@ -18,21 +18,24 @@ int main () {
 
     time = timer_read();
     print_string("Timer Start: ");
-    print_u32_int(time);
+    byte_to_hex(hex_out, (const uint8_t *)(&time), sizeof(uint64_t), 1);
+    uart_transmit_string(hex_out, sizeof(uint64_t) << 1);
     print_string("\n");
 
     for (i = 0; i < limit; i++) {
         if (i % 100 == 0) {
             print_string("Count: ");
             time = timer_read();
-            print_u32_int(time);
+            byte_to_hex(hex_out, (const uint8_t *)(&time), sizeof(uint64_t), 1);
+            uart_transmit_string(hex_out, sizeof(uint64_t) << 1);
             print_string("\n");
         }
     }
 
     print_string("Timer End: ");
     time = timer_read();
-    print_u32_int(time);
+    byte_to_hex(hex_out, (const uint8_t *)(&time), sizeof(uint64_t), 1);
+    uart_transmit_string(hex_out, sizeof(uint64_t) << 1);
     print_string("\n");
 
 
