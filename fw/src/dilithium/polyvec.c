@@ -58,7 +58,7 @@ void polyvec_matrix_pointwise_onthefly(polyveck *t,
                                        const polyvecl *v)
 {
     unsigned int i, j, i_next, j_next;
-    polyvecl row;
+    poly row_poly;
 
     ntt_lite_set_inv2(STREAM128_BLOCKBYTES >> 2);
     ntt_lite_set_bound(Q);
@@ -70,7 +70,7 @@ void polyvec_matrix_pointwise_onthefly(polyveck *t,
 
     for(i = 0; i < K; i++) {
         for(j = 0; j < L; j++) {
-            poly_uniform_fromhw(&row.vec[j],
+            poly_uniform_fromhw(&row_poly,
                     rho,
                     (i_next << 8) + j_next,
                     (i != (K - 1)) || (j != (L - 1)));
@@ -82,9 +82,14 @@ void polyvec_matrix_pointwise_onthefly(polyveck *t,
             else {
                 j_next++;
             }
-        }
 
-        polyvecl_pointwise_acc(&t->vec[i], &row, v);
+            if(j == 0) {
+                poly_pointwise(&t->vec[i], &row_poly, &v->vec[j]);
+            }
+            else {
+                poly_pointwise_acc(&t->vec[i], &row_poly, &v->vec[j]);
+            }
+        }
     }
 
     ntt_lite_set_inv2(INV2);
