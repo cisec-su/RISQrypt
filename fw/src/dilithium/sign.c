@@ -26,8 +26,12 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
     uint8_t seedbuf[2*SEEDBYTES + CRHBYTES];
     uint8_t tr[SEEDBYTES];
     const uint8_t *rho, *rhoprime, *key;
-    polyvecl s1;
-    polyveck s2, t1, t0;
+    union {
+        polyvecl s1;
+        polyveck t0;
+    } scratch;
+
+    polyveck s2, t1;
 
     poly_init_q();
     
@@ -42,15 +46,15 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
     key = rhoprime + CRHBYTES;
 
     /* Sample short vectors s1 and s2 */
-    polyvecl_uniform_eta(&s1, rhoprime, 0);
+    polyvecl_uniform_eta(&scratch.s1, rhoprime, 0);
     polyveck_uniform_eta(&s2, rhoprime, L);
 
-    pack_sk_s1(sk, &s1);
+    pack_sk_s1(sk, &scratch.s1);
 
     poly_init_ntt();
-    polyvecl_ntt(&s1);
+    polyvecl_ntt(&scratch.s1);
 
-    polyvec_matrix_pointwise_onthefly(&t1, rho, &s1);
+    polyvec_matrix_pointwise_onthefly(&t1, rho, &scratch.s1);
 
     poly_init_invntt();
     polyveck_invntt(&t1);
@@ -59,14 +63,14 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
     polyveck_add(&t1, &t1, &s2);
 
     /* Extract t1 and write public key */
-    polyveck_power2round(&t1, &t0, &t1);
+    polyveck_power2round(&t1, &scratch.t0, &t1);
 
     pack_pk(pk, rho, &t1);
     
     /* Compute H(rho, t1) and write secret key CRYPTO_PUBLICKEYBYTES */ 
     dilithium_shake256(tr, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 
-    pack_sk(sk, rho, tr, key, &t0, NULL, &s2);
+    pack_sk(sk, rho, tr, key, &scratch.t0, NULL, &s2);
 
     return 0;
 }
