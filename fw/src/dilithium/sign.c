@@ -265,7 +265,7 @@ int crypto_sign_verify(const uint8_t *sig,
                        const uint8_t *pk)
 {
     unsigned int i;
-    uint8_t buf[K*POLYW1_PACKEDBYTES];
+    uint8_t buf[POLYW1_PACKEDBYTES];
     uint8_t rho[SEEDBYTES];
     uint8_t mu[CRHBYTES];
     uint8_t c[SEEDBYTES];
@@ -306,11 +306,17 @@ int crypto_sign_verify(const uint8_t *sig,
     poly_init_invntt();
     polyveck_invntt(&w1);
 
-    /* Reconstruct w1 */
-    polyveck_use_hint_pack(buf, &w1, &h);
+    /* Reconstruct w1 and absorb each packed polynomial */
+    polyveck_use_hint_pack_init();
+    dilithium_shake256_challenge_init(mu);
+
+    for(i = 0; i < K; i++) {
+        poly_use_hint_pack(buf, &w1.vec[i], &h.vec[i]);
+        dilithium_shake256_challenge_absorb(buf);
+    }
 
     /* Call random oracle and verify challenge */
-    dilithium_shake256_challenge(c2, mu, buf);
+    dilithium_shake256_challenge_finalize(c2);
 
     for(i = 0; i < SEEDBYTES; ++i)
         if(c[i] != c2[i])

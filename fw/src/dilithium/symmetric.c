@@ -65,6 +65,29 @@ void dilithium_shake256_challenge(uint8_t *dst, const uint8_t *mu, const uint8_t
     keccak_squeeze((uint32_t*)dst, NULL, (SEEDBYTES ) >> 2);
 }
 
+void dilithium_shake256_challenge_init(const uint8_t *mu) {
+    keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
+    keccak_absorb((uint32_t*) mu, NULL, CRHBYTES >> 2);
+}
+
+
+void dilithium_shake256_challenge_absorb(const uint8_t *w1packed) {
+    keccak_absorb(
+        (uint32_t*) w1packed,
+        NULL,
+        POLYW1_PACKEDBYTES >> 2
+    );
+}
+
+
+void dilithium_shake256_challenge_finalize(uint8_t *dst) {
+    volatile uint32_t t;
+
+    t = SHAKE_PAD;
+    keccak_finish((uint32_t*) &t);
+    keccak_squeeze((uint32_t*) dst, NULL, SEEDBYTES >> 2);
+}
+
 void dilithium_shake256(uint8_t *dst, size_t dst_len, const uint8_t *src, size_t src_len) {
     volatile uint32_t t;
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_DIS);
