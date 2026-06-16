@@ -28,6 +28,7 @@ INC += -I../../common
 
 CFLAGS += -DBUSY_CHECK_DIS
 CFLAGS += -DTEST_RNG
+CFLAGS += -fstack-usage
 
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 

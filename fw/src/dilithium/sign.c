@@ -96,7 +96,10 @@ int crypto_sign_signature(uint8_t *sig,
     uint8_t *seedbuf = (uint8_t *) seedbuf_32;
     uint8_t *rho, *tr, *key, *mu, *rhoprime;
     uint16_t nonce = 0;
-    polyvecl s1, y, z;
+    polyvecl s1, y;
+    #ifndef Z_CHECK_ITERATIVE
+        polyvecl z;
+    #endif
     polyveck t0, s2, w1, w0, h;
     poly cp;
     int flag;
@@ -155,7 +158,14 @@ rej:
 
     /* Compute z, reject if it reveals secret */
 #ifdef Z_CHECK_ITERATIVE
-    flag = polyvecl_pointwise_add_invntt_chknorm(&z, &s1, &cp, &y, GAMMA1 - BETA);
+    /*
+     * Compute z = y + c*s1 in-place.
+     * The original y is no longer needed after this operation,
+     * so the result z is stored in y to reduce stack usage.
+     */
+    flag = polyvecl_pointwise_add_invntt_chknorm(
+        &y, &s1, &cp, &y, GAMMA1 - BETA
+    );
 #else
     polyvecl_pointwise_poly(&z, &cp, &s1);
     polyvecl_add(&z, &z, &y);
@@ -194,7 +204,11 @@ rej:
     }
 
     /* Write signature */
-    pack_sig(sig, sig, &z, &h);
+    #ifdef Z_CHECK_ITERATIVE
+    pack_sig(sig, sig, &y, &h);
+    #else
+        pack_sig(sig, sig, &z, &h);
+    #endif
     *siglen = CRYPTO_BYTES;
 
     return 0;
