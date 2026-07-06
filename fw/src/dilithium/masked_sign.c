@@ -46,23 +46,32 @@ int masked_crypto_sign_signature_core(uint8_t *sig,
     uint8_t mu[CRHBYTES];
     masked_crh rhoprime;
     uint16_t nonce = 0;
-    polyveck w1, h;
-    masked_polyvecl y, z;
-    masked_polyveck w, w0;
+    polyveck w1;
+    masked_polyveck w0;
     polyvecl *z_unmasked;
     polyveck *w0_unmasked;
-    poly cp;
     masked_poly_ptr temp_ptr;
-
     int flag;
 
-    temp_ptr.share[0] = &y.share[0].vec[0];
-    temp_ptr.share[1] = &y.share[1].vec[0];
+    union {
+        masked_polyvecl y;
+        polyveck h;
+    } y_h;
+
+    union {
+        masked_polyveck w;
+        poly cp;
+    } w_cp;
+
+    masked_polyvecl z;
+
+    temp_ptr.share[0] = &y_h.y.share[0].vec[0];
+    temp_ptr.share[1] = &y_h.y.share[1].vec[0];
 
     w0_unmasked = (polyveck*) &w0;
     z_unmasked = (polyvecl*) &z;
 
-    /* Compute mu = CRH(tr | msg) rename    */
+    /* Compute mu = CRH(tr | msg) */
     dilithium_shake256_absorb_double(mu, CRHBYTES, tr, SEEDBYTES, m, mlen);
 
 #ifdef DILITHIUM_RANDOMIZED_SIGNING
@@ -70,7 +79,7 @@ int masked_crypto_sign_signature_core(uint8_t *sig,
 #else
     /* Compute rhoprime = SHAKE256(key | mu) */
     dilithium_masked_shake256_absorb_double((masked_flat_ptr) rhoprime, CRHBYTES, (masked_flat_ptr) key, SEEDBYTES, mu, CRHBYTES);
-#endif    
+#endif
 
     poly_init_ntt();
 
@@ -83,63 +92,79 @@ rej:
     if (nonce) {
         masked_gadgets_init_q();
     }
-    masked_polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
-    /* Matrix-vector multiplication */ 
-    poly_init_ntt(); // re-init NTT since uniform_gamma1 uses NTT-Lite
-    masked_polyvecl_ntt(&y);
+    masked_polyvecl_uniform_gamma1(&y_h.y, rhoprime, nonce++);
 
-    masked_polyvec_matrix_pointwise(&w, mat, &y);
+    /* Matrix-vector multiplication */
+    poly_init_ntt();
+    masked_polyvecl_ntt(&y_h.y);
+
+    masked_polyvec_matrix_pointwise(&w_cp.w, mat, &y_h.y);
 
     poly_init_invntt();
-    masked_polyveck_invntt(&w);
+    masked_polyveck_invntt(&w_cp.w);
 
     /* Decompose w and call the random oracle */
-    masked_polyveck_decompose(&w1, &w0, &w);
+    masked_polyveck_decompose(&w1, &w0, &w_cp.w);
 
     polyveck_pack_w1(sig, &w1);
-    dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K*POLYW1_PACKEDBYTES);
-    poly_challenge(&cp, sig);
+    dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K * POLYW1_PACKEDBYTES);
+    poly_challenge(&w_cp.cp, sig);
 
     poly_init_ntt();
 
-    poly_ntt(&cp);
+    poly_ntt(&w_cp.cp);
 
     /* Compute z, reject if it reveals secret */
-    flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, s1, &cp, &y, GAMMA1 - BETA);
-#ifndef TTEST // In t-test setting, we only perform a single iteration of the rejection sampling loop
-    if(flag) {
-        goto rej;
-    }
-#endif
+    flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, s1, &w_cp.cp, &y_h.y, GAMMA1 - BETA);
 
-    /* w0 - cs2. Check that subtracting cs2 does not change high bits of w and low bits
-     * do not reveal secret information */
-    flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, s2, &cp, &w0, &temp_ptr, GAMMA2 - BETA);
 #ifndef TTEST
-    if(flag) {
+    if (flag) {
         goto rej;
     }
 #endif
 
-#ifndef TTEST // Rest of the computations are either unmasking or public operations
-    /* Compute hints for w1 */
-    polyveck_pointwise_poly(&h, &cp, t0);
+    /*
+     * y is no longer needed after the z computation.
+     * Its storage is reused as temporary scratch through temp_ptr.
+     */
+
+    flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, s2, &w_cp.cp, &w0, &temp_ptr, GAMMA2 - BETA);
+
+#ifndef TTEST
+    if (flag) {
+        goto rej;
+    }
+#endif
+
+#ifndef TTEST
+    /*
+     * y scratch is no longer needed.
+     * The same union storage can now safely hold h.
+     */
+
+    polyveck_pointwise_poly(&y_h.h, &w_cp.cp, t0);
+
     poly_init_invntt();
-    flag = polyveck_invntt_chknorm(&h, GAMMA2);
-    if(flag) {
+
+    flag = polyveck_invntt_chknorm(&y_h.h, GAMMA2);
+
+    if (flag) {
         goto rej;
     }
 
     masked_polyveck_unmask(w0_unmasked, &w0);
 
-    n = polyveck_add_make_hint(&h, w0_unmasked, &w1, &h);
-    if(n > OMEGA) {
+    n = polyveck_add_make_hint(&y_h.h, w0_unmasked, &w1, &y_h.h);
+
+    if (n > OMEGA) {
         goto rej;
     }
+
     masked_polyvecl_unmask(z_unmasked, &z);
+
     /* Write signature */
-    pack_sig(sig, sig, z_unmasked, &h);
+    pack_sig(sig, sig, z_unmasked, &y_h.h);
     *siglen = CRYPTO_BYTES;
 #endif
 
@@ -156,7 +181,6 @@ int masked_crypto_sign_signature(uint8_t *sig,
                                  const uint8_t *sk)
 {
     polyvecl mat[K];
-    uint8_t rho[SEEDBYTES];
     uint8_t tr[SEEDBYTES];
     masked_polyvecl s1;
     masked_polyveck s2;
