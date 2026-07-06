@@ -3,7 +3,7 @@
 #include "masked_gadgets.h"
 #include "masked_symmetric.h"
 
-
+#define INV2 0x3ff001
 
 void masked_polyvecl_eta_unpack(masked_polyvecl *r, const uint8_t *a) {
     unsigned int i;
@@ -98,6 +98,39 @@ void masked_polyvec_matrix_pointwise(masked_polyveck *t, const polyvecl mat[K], 
     for(i = 0; i < K; i++) {
         masked_polyveck_to_poly_ptr(&t_ptr, t, i);
         masked_polyvecl_pointwise_acc(&t_ptr, &mat[i], v);
+    }
+}
+
+void masked_polyvec_matrix_pointwise_onthefly(masked_polyveck *t, const uint8_t rho[SEEDBYTES], const masked_polyvecl *v) {
+    unsigned int i, j, i_next, j_next;
+    polyvecl row;
+    masked_poly_ptr t_ptr;
+
+    i_next = 0;
+    j_next = 1;
+
+    stream128_init(rho, 0);
+
+    for(i = 0; i < K; i++) {
+        ntt_lite_set_inv2(STREAM128_BLOCKBYTES >> 2);
+        ntt_lite_set_bound(Q);
+
+        for(j = 0; j < L; j++) {
+            poly_uniform_fromhw(&row.vec[j], rho, (i_next << 8) + j_next, (i != (K - 1)) || (j != (L - 1)));
+
+            if(j_next == (L - 1)) {
+                j_next = 0;
+                i_next++;
+            }
+            else {
+                j_next++;
+            }
+        }
+
+        ntt_lite_set_inv2(INV2);
+
+        masked_polyveck_to_poly_ptr(&t_ptr, t, i);
+        masked_polyvecl_pointwise_acc(&t_ptr, &row, v);
     }
 }
 

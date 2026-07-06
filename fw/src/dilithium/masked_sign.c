@@ -10,37 +10,18 @@
 
 
 
-int masked_crypto_sign_signature_init(polyvecl mat[K],
-                                      uint8_t *tr,
-                                      polyveck *t0,
-                                      masked_polyvecl *s1,
-                                      masked_polyveck *s2,
-                                      masked_seed key,
-                                      const uint8_t *sk)
+int masked_crypto_sign_signature_init(uint8_t rho[SEEDBYTES], uint8_t *tr, polyveck *t0, masked_polyvecl *s1, masked_polyveck *s2, masked_seed key, const uint8_t *sk)
 {
-    uint8_t rho[SEEDBYTES];
-
     poly_init_q();
     masked_gadgets_init_q();
 
     masked_unpack_sk(rho, tr, key, t0, s1, s2, sk);
 
-    /* Expand matrix and transform vectors */
-    polyvec_matrix_expand(mat, rho);
     return 0;
 }
 
 
-int masked_crypto_sign_signature_core(uint8_t *sig,
-                                      size_t *siglen,
-                                      const uint8_t *m,
-                                      size_t mlen,
-                                      const polyvecl mat[K],
-                                      const uint8_t *tr,
-                                      const masked_seed key,
-                                      polyveck *t0,
-                                      masked_polyvecl *s1,
-                                      masked_polyveck *s2)
+int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t rho[SEEDBYTES], const uint8_t *tr, const masked_seed key, polyveck *t0, masked_polyvecl *s1, masked_polyveck *s2)
 {
     unsigned int n;
     uint8_t mu[CRHBYTES];
@@ -99,7 +80,7 @@ rej:
     poly_init_ntt();
     masked_polyvecl_ntt(&y_h.y);
 
-    masked_polyvec_matrix_pointwise(&w_cp.w, mat, &y_h.y);
+    masked_polyvec_matrix_pointwise_onthefly(&w_cp.w, rho, &y_h.y);
 
     poly_init_invntt();
     masked_polyveck_invntt(&w_cp.w);
@@ -174,20 +155,16 @@ rej:
 
 
 
-int masked_crypto_sign_signature(uint8_t *sig,
-                                 size_t *siglen,
-                                 const uint8_t *m,
-                                 size_t mlen,
-                                 const uint8_t *sk)
+int masked_crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk)
 {
-    polyvecl mat[K];
+    uint8_t rho[SEEDBYTES];
     uint8_t tr[SEEDBYTES];
     masked_polyvecl s1;
     masked_polyveck s2;
     polyveck t0;
     masked_seed key;
 
-    masked_crypto_sign_signature_init(mat, tr, &t0, &s1, &s2, key, sk);
+    masked_crypto_sign_signature_init(rho, tr, &t0, &s1, &s2, key, sk);
 
-    return masked_crypto_sign_signature_core(sig, siglen, m, mlen, mat, tr, key, &t0, &s1, &s2);
+    return masked_crypto_sign_signature_core(sig, siglen, m, mlen, rho, tr, key, &t0, &s1, &s2);
 }
