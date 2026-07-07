@@ -6,7 +6,7 @@
 ../../src/dilithium/sign.c:92:5:pqcrystals_dilithium_signature.constprop	42976	static
 ../../src/dilithium/sign.c:265:5:pqcrystals_dilithium_verify.constprop	24944	static
 ../../src/dilithium/masked_poly.c:90:5:pqcrystals_dilithium_masked_poly_ptr_chknorm	0	static
-../../src/dilithium/masked_sign.c:158:5:pqcrystals_dilithium_masked_signature.constprop	89312	static
+../../src/dilithium/masked_sign.c:148:5:pqcrystals_dilithium_masked_signature.constprop	80064	static
 ../../common/unity.c:248:6:UnityPrintNumber	32	static
 ../../src/dilithium/sign.c:25:5:pqcrystals_dilithium_crypto_sign_keypair.constprop	18656	static
 ../../common/unity.c:538:13:UnityTestResultsFailBegin	32	static

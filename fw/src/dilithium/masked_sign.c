@@ -29,6 +29,7 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
     uint16_t nonce = 0;
     polyveck w1;
     masked_polyveck w0;
+    poly cp;
     polyvecl *z_unmasked;
     polyveck *w0_unmasked;
     masked_poly_ptr temp_ptr;
@@ -38,11 +39,6 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
         masked_polyvecl y;
         polyveck h;
     } y_h;
-
-    union {
-        masked_polyveck w;
-        poly cp;
-    } w_cp;
 
     masked_polyvecl z;
 
@@ -76,28 +72,22 @@ rej:
 
     masked_polyvecl_uniform_gamma1(&y_h.y, rhoprime, nonce++);
 
-    /* Matrix-vector multiplication */
+    /* Matrix-vector multiplication, inverse NTT and decomposition */
     poly_init_ntt();
     masked_polyvecl_ntt(&y_h.y);
 
-    masked_polyvec_matrix_pointwise_onthefly(&w_cp.w, rho, &y_h.y);
-
-    poly_init_invntt();
-    masked_polyveck_invntt(&w_cp.w);
-
-    /* Decompose w and call the random oracle */
-    masked_polyveck_decompose(&w1, &w0, &w_cp.w);
+    masked_polyvec_matrix_pointwise_decompose_onthefly(&w1, &w0, rho, &y_h.y);
 
     polyveck_pack_w1(sig, &w1);
     dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K * POLYW1_PACKEDBYTES);
-    poly_challenge(&w_cp.cp, sig);
+    poly_challenge(&cp, sig);
 
     poly_init_ntt();
 
-    poly_ntt(&w_cp.cp);
+    poly_ntt(&cp);
 
     /* Compute z, reject if it reveals secret */
-    flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, s1, &w_cp.cp, &y_h.y, GAMMA1 - BETA);
+    flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, s1, &cp, &y_h.y, GAMMA1 - BETA);
 
 #ifndef TTEST
     if (flag) {
@@ -110,7 +100,7 @@ rej:
      * Its storage is reused as temporary scratch through temp_ptr.
      */
 
-    flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, s2, &w_cp.cp, &w0, &temp_ptr, GAMMA2 - BETA);
+    flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, s2, &cp, &w0, &temp_ptr, GAMMA2 - BETA);
 
 #ifndef TTEST
     if (flag) {
@@ -124,7 +114,7 @@ rej:
      * The same union storage can now safely hold h.
      */
 
-    polyveck_pointwise_poly(&y_h.h, &w_cp.cp, t0);
+    polyveck_pointwise_poly(&y_h.h, &cp, t0);
 
     poly_init_invntt();
 

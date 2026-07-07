@@ -135,6 +135,83 @@ void masked_polyvec_matrix_pointwise_onthefly(masked_polyveck *t, const uint8_t 
 }
 
 
+static void masked_poly_u_to_poly_ptr(masked_poly_ptr *dst, masked_poly_u *src) {
+    unsigned int i;
+
+    for (i = 0; i < MASKING_N; i++) {
+        dst->share[i] = &src->share[i];
+    }
+}
+
+
+static void masked_poly_u_to_poly_ptr_const(masked_poly_ptr_const *dst, const masked_poly_u *src) {
+    unsigned int i;
+
+    for (i = 0; i < MASKING_N; i++) {
+        dst->share[i] = &src->share[i];
+    }
+}
+
+
+static void masked_poly_ptr_invntt(masked_poly_ptr *r) {
+    unsigned int i;
+
+    for (i = 0; i < MASKING_N; i++) {
+        poly_init_invntt();
+
+        if (i != (MASKING_N - 1)) {
+            ntt_lite_set_clr_with_twiddle();
+        }
+
+        ntt_lite_backward_ntt((uint32_t*) r->share[i]->coeffs, (uint32_t*) r->share[i]->coeffs);
+    }
+}
+
+
+void masked_polyvec_matrix_pointwise_decompose_onthefly(polyveck *w1, masked_polyveck *w0, const uint8_t rho[SEEDBYTES], const masked_polyvecl *v) {
+    unsigned int i, j, i_next, j_next;
+    polyvecl row;
+    masked_poly_u w_tmp;
+    masked_poly_ptr w_tmp_ptr;
+    masked_poly_ptr_const w_tmp_ptr_const;
+    masked_poly_ptr w0_ptr;
+
+    masked_poly_u_to_poly_ptr(&w_tmp_ptr, &w_tmp);
+    masked_poly_u_to_poly_ptr_const(&w_tmp_ptr_const, &w_tmp);
+
+    i_next = 0;
+    j_next = 1;
+
+    stream128_init(rho, 0);
+
+    for(i = 0; i < K; i++) {
+        ntt_lite_set_inv2(STREAM128_BLOCKBYTES >> 2);
+        ntt_lite_set_bound(Q);
+
+        for(j = 0; j < L; j++) {
+            poly_uniform_fromhw(&row.vec[j], rho, (i_next << 8) + j_next, (i != (K - 1)) || (j != (L - 1)));
+
+            if(j_next == (L - 1)) {
+                j_next = 0;
+                i_next++;
+            }
+            else {
+                j_next++;
+            }
+        }
+
+        ntt_lite_set_inv2(INV2);
+
+        masked_polyvecl_pointwise_acc(&w_tmp_ptr, &row, v);
+
+        masked_poly_ptr_invntt(&w_tmp_ptr);
+
+        masked_polyveck_to_poly_ptr(&w0_ptr, w0, i);
+        masked_poly_ptr_decompose(&w1->vec[i], &w0_ptr, &w_tmp_ptr_const);
+    }
+}
+
+
 void masked_polyveck_decompose(polyveck *v1, masked_polyveck *v0, const masked_polyveck *v) {
     unsigned int i, j;
     masked_poly_ptr_const v_ptr;
