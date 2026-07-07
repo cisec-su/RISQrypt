@@ -509,3 +509,15 @@ void polyz_unpack(poly *r, const uint8_t *a) {
 void polyw1_pack(uint8_t *r, const poly *a) {
     ntt_lite_encode((uint32_t*) r, a->coeffs, LOG_GAMMA2);
 }
+
+/*************************************************
+* Name:        polyw1_unpack
+*
+* Description: Unpack polynomial w1.
+*
+* Arguments:   - poly *r: pointer to output polynomial
+*              - const uint8_t *a: byte array containing bit-packed w1
+**************************************************/
+void polyw1_unpack(poly *r, const uint8_t *a) {
+    ntt_lite_decode((uint32_t*) r->coeffs, (uint32_t*) a, LOG_GAMMA2);
+}

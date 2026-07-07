@@ -23,11 +23,12 @@ int masked_crypto_sign_signature_init(uint8_t rho[SEEDBYTES], uint8_t *tr, polyv
 
 int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t rho[SEEDBYTES], const uint8_t *tr, const masked_seed key, polyveck *t0, masked_polyvecl *s1, masked_polyveck *s2)
 {
-    unsigned int n;
+    unsigned int i, n;
     uint8_t mu[CRHBYTES];
+    uint8_t w1_head[SEEDBYTES];
+    uint8_t c[SEEDBYTES];
     masked_crh rhoprime;
     uint16_t nonce = 0;
-    polyveck w1;
     masked_polyveck w0;
     poly cp;
     polyvecl *z_unmasked;
@@ -76,11 +77,24 @@ rej:
     poly_init_ntt();
     masked_polyvecl_ntt(&y_h.y);
 
-    masked_polyvec_matrix_pointwise_decompose_onthefly(&w1, &w0, rho, &y_h.y);
+    masked_polyvec_matrix_pointwise_decompose_onthefly(sig, &w0, rho, &y_h.y);
 
-    polyveck_pack_w1(sig, &w1);
+    /*
+     * The challenge hash overwrites the first SEEDBYTES bytes of sig.
+     * Preserve the corresponding prefix of packed w1.
+     */
+    for(i = 0; i < SEEDBYTES; i++) {
+        w1_head[i] = sig[i];
+    }
+
     dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K * POLYW1_PACKEDBYTES);
-    poly_challenge(&cp, sig);
+
+    for(i = 0; i < SEEDBYTES; i++) {
+        c[i] = sig[i];
+        sig[i] = w1_head[i];
+    }
+
+    poly_challenge(&cp, c);
 
     poly_init_ntt();
 
@@ -126,7 +140,7 @@ rej:
 
     masked_polyveck_unmask(w0_unmasked, &w0);
 
-    n = polyveck_add_make_hint(&y_h.h, w0_unmasked, &w1, &y_h.h);
+    n = polyveck_add_make_hint_packed(&y_h.h, w0_unmasked, sig, &y_h.h);
 
     if (n > OMEGA) {
         goto rej;
@@ -135,15 +149,12 @@ rej:
     masked_polyvecl_unmask(z_unmasked, &z);
 
     /* Write signature */
-    pack_sig(sig, sig, z_unmasked, &y_h.h);
+    pack_sig(sig, c, z_unmasked, &y_h.h);
     *siglen = CRYPTO_BYTES;
 #endif
 
     return 0;
 }
-
-
-
 
 int masked_crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk)
 {

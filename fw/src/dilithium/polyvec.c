@@ -525,6 +525,29 @@ unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyv
     return s;
 }
 
+unsigned int polyveck_add_make_hint_packed(polyveck *h, const polyveck *v0, const uint8_t packed_w1[K * POLYW1_PACKEDBYTES], const polyveck *u) {
+    unsigned int i;
+    volatile uint32_t s;
+    poly w1_tmp;
+
+    ntt_lite_set_bound(GAMMA2);
+    ntt_lite_set_inv2(Q - GAMMA2);
+
+    for(i = 0; i < K; i++) {
+        polyw1_unpack(&w1_tmp, &packed_w1[i * POLYW1_PACKEDBYTES]);
+
+        ntt_lite_add(NTT_LITE_OUTPUT_DIS, (uint32_t*) v0->vec[i].coeffs, (uint32_t*) u->vec[i].coeffs);
+        ntt_lite_make_hint((uint32_t*) &h->vec[i].coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) w1_tmp.coeffs);
+        ntt_lite_sum((uint32_t*) &s, NTT_LITE_INPUT_DIS);
+
+        if(s > OMEGA) {
+            break;
+        }
+    }
+
+    return s;
+}
+
 
 /*************************************************
 * Name:        polyveck_use_hint

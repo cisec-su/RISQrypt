@@ -82,7 +82,7 @@ void masked_polyvec_matrix_pointwise(masked_polyveck *t, const polyvecl mat[K], 
 void masked_polyvec_matrix_pointwise_onthefly(masked_polyveck *t, const uint8_t rho[SEEDBYTES], const masked_polyvecl *v);
 
 #define masked_polyvec_matrix_pointwise_decompose_onthefly DILITHIUM_NAMESPACE(masked_polyvec_matrix_pointwise_decompose_onthefly)
-void masked_polyvec_matrix_pointwise_decompose_onthefly(polyveck *w1, masked_polyveck *w0, const uint8_t rho[SEEDBYTES], const masked_polyvecl *v);
+void masked_polyvec_matrix_pointwise_decompose_onthefly(uint8_t packed_w1[K * POLYW1_PACKEDBYTES], masked_polyveck *w0, const uint8_t rho[SEEDBYTES], const masked_polyvecl *v);
 
 #define masked_polyvecl_unmask DILITHIUM_NAMESPACE(masked_polyvecl_unmask)
 void masked_polyvecl_unmask(polyvecl *a, const masked_polyvecl *r);
