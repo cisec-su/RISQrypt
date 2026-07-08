@@ -7,21 +7,22 @@
 #include "masked_gadgets.h"
 #include "randombytes.h"
 #include "masked_symmetric.h"
+#include "ntt_lite.h"
 
 
 
-int masked_crypto_sign_signature_init(uint8_t rho[SEEDBYTES], uint8_t *tr, polyveck *t0, masked_polyvecl *s1, masked_polyveck *s2, masked_seed key, const uint8_t *sk)
+int masked_crypto_sign_signature_init(uint8_t rho[SEEDBYTES], uint8_t *tr, masked_polyvecl *s1, masked_polyveck *s2, masked_seed key, const uint8_t *sk)
 {
     poly_init_q();
     masked_gadgets_init_q();
 
-    masked_unpack_sk(rho, tr, key, t0, s1, s2, sk);
+    masked_unpack_sk(rho, tr, key, NULL, s1, s2, sk);
 
     return 0;
 }
 
 
-int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t rho[SEEDBYTES], const uint8_t *tr, const masked_seed key, polyveck *t0, masked_polyvecl *s1, masked_polyveck *s2)
+int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t rho[SEEDBYTES], const uint8_t *tr, const masked_seed key, masked_polyvecl *s1, masked_polyveck *s2, const uint8_t *sk)
 {
     unsigned int i, n;
     uint8_t mu[CRHBYTES];
@@ -31,6 +32,7 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
     uint16_t nonce = 0;
     masked_polyveck w0;
     poly cp;
+    poly t0_row;
     polyvecl *z_unmasked;
     polyveck *w0_unmasked;
     masked_poly_ptr temp_ptr;
@@ -63,11 +65,10 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
 
     masked_polyvecl_ntt(s1);
     masked_polyveck_ntt(s2);
-    polyveck_ntt(t0);
 
 rej:
     /* Sample intermediate vector y */
-    if (nonce) {
+    if(nonce) {
         masked_gadgets_init_q();
     }
 
@@ -104,7 +105,7 @@ rej:
     flag = masked_polyvecl_pointwise_add_invntt_chknorm(&z, s1, &cp, &y_h.y, GAMMA1 - BETA);
 
 #ifndef TTEST
-    if (flag) {
+    if(flag) {
         goto rej;
     }
 #endif
@@ -117,7 +118,7 @@ rej:
     flag = masked_polyveck_pointwise_invntt_sub_chknorm(&w0, s2, &cp, &w0, &temp_ptr, GAMMA2 - BETA);
 
 #ifndef TTEST
-    if (flag) {
+    if(flag) {
         goto rej;
     }
 #endif
@@ -126,23 +127,32 @@ rej:
     /*
      * y scratch is no longer needed.
      * The same union storage can now safely hold h.
+     *
+     * t0 is unpacked and processed one row at a time.
      */
+    for(i = 0; i < K; i++) {
+        masked_unpack_sk_t0_row(&t0_row, sk, i);
 
-    polyveck_pointwise_poly(&y_h.h, &cp, t0);
+        poly_init_ntt();
+        poly_ntt(&t0_row);
 
-    poly_init_invntt();
+        poly_pointwise(&y_h.h.vec[i], &cp, &t0_row);
 
-    flag = polyveck_invntt_chknorm(&y_h.h, GAMMA2);
+        poly_init_invntt();
+        ntt_lite_set_bound(GAMMA2);
 
-    if (flag) {
-        goto rej;
+        flag = poly_invntt_chknorm(&y_h.h.vec[i], GAMMA2);
+
+        if(flag) {
+            goto rej;
+        }
     }
 
     masked_polyveck_unmask(w0_unmasked, &w0);
 
     n = polyveck_add_make_hint_packed(&y_h.h, w0_unmasked, sig, &y_h.h);
 
-    if (n > OMEGA) {
+    if(n > OMEGA) {
         goto rej;
     }
 
@@ -162,10 +172,9 @@ int masked_crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
     uint8_t tr[SEEDBYTES];
     masked_polyvecl s1;
     masked_polyveck s2;
-    polyveck t0;
     masked_seed key;
 
-    masked_crypto_sign_signature_init(rho, tr, &t0, &s1, &s2, key, sk);
+    masked_crypto_sign_signature_init(rho, tr, &s1, &s2, key, sk);
 
-    return masked_crypto_sign_signature_core(sig, siglen, m, mlen, rho, tr, key, &t0, &s1, &s2);
+    return masked_crypto_sign_signature_core(sig, siglen, m, mlen, rho, tr, key, &s1, &s2, sk);
 }

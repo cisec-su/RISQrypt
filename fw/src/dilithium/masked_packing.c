@@ -10,12 +10,12 @@ void masked_unpack_sk(uint8_t *rho,
                       masked_polyveck *s2,
                       const uint8_t sk[CRYPTO_SECRETKEYBYTES])
 {
-    unsigned int i;    
+    unsigned int i;
 
     for(i = 0; i < SEEDBYTES; i++)
         rho[i] = sk[i];
     sk += SEEDBYTES;
-    
+
     mask_seed(key, sk);
     sk += SEEDBYTES;
 
@@ -24,12 +24,29 @@ void masked_unpack_sk(uint8_t *rho,
     sk += SEEDBYTES;
 
     masked_polyvecl_eta_unpack(s1, sk);
-    sk += L*POLYETA_PACKEDBYTES;
+    sk += L * POLYETA_PACKEDBYTES;
 
     masked_polyveck_eta_unpack(s2, sk);
-    sk += K*POLYETA_PACKEDBYTES;
+    sk += K * POLYETA_PACKEDBYTES;
+
+    if(t0 != NULL) {
+        ntt_lite_set_bound(1 << (D - 1));
+
+        for(i = 0; i < K; i++)
+            polyt0_unpack(&t0->vec[i], sk + i * POLYT0_PACKEDBYTES);
+    }
+}
+
+void masked_unpack_sk_t0_row(poly *t0, const uint8_t sk[CRYPTO_SECRETKEYBYTES], unsigned int i)
+{
+    const uint8_t *packed_t0;
+
+    packed_t0 = sk
+              + 3 * SEEDBYTES
+              + L * POLYETA_PACKEDBYTES
+              + K * POLYETA_PACKEDBYTES;
 
     ntt_lite_set_bound(1 << (D - 1));
-    for(i = 0; i < K; i++)
-        polyt0_unpack(&t0->vec[i], sk + i*POLYT0_PACKEDBYTES);
+
+    polyt0_unpack(t0, packed_t0 + i * POLYT0_PACKEDBYTES);
 }
