@@ -24,7 +24,7 @@ int masked_crypto_sign_signature_init(uint8_t rho[SEEDBYTES], uint8_t *tr, maske
 
 int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t rho[SEEDBYTES], const uint8_t *tr, const masked_seed key, masked_polyvecl *s1, masked_polyveck *s2, const uint8_t *sk)
 {
-    unsigned int i, n;
+    unsigned int i, j, k, n;
     uint8_t mu[CRHBYTES];
     uint8_t w1_head[SEEDBYTES];
     uint8_t c[SEEDBYTES];
@@ -36,6 +36,7 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
     polyvecl *z_unmasked;
     polyveck *w0_unmasked;
     masked_poly_ptr temp_ptr;
+    masked_poly_ptr_const z_ptr;
     int flag;
 
     union {
@@ -156,10 +157,41 @@ rej:
         goto rej;
     }
 
-    masked_polyvecl_unmask(z_unmasked, &z);
+    /*
+    * Unmask and pack z row by row. This combines the separate
+    * masked_polyvecl_unmask() and pack_sig() traversals.
+    */
+    for(i = 0; i < SEEDBYTES; i++) {
+        sig[i] = c[i];
+    }
+    sig += SEEDBYTES;
 
-    /* Write signature */
-    pack_sig(sig, c, z_unmasked, &y_h.h);
+    ntt_lite_set_bound(GAMMA1);
+
+    for(i = 0; i < L; i++) {
+        masked_polyvecl_to_poly_ptr_const(&z_ptr, &z, i);
+        masked_poly_ptr_unmask(&z_unmasked->vec[i], &z_ptr);
+        polyz_pack(sig + i * POLYZ_PACKEDBYTES, &z_unmasked->vec[i]);
+    }
+    sig += L * POLYZ_PACKEDBYTES;
+
+    /* Encode h */
+    for(i = 0; i < OMEGA + K; i++) {
+        sig[i] = 0;
+    }
+
+    k = 0;
+
+    for(i = 0; i < K; i++) {
+        for(j = 0; j < N; j++) {
+            if(y_h.h.vec[i].coeffs[j] != 0) {
+                sig[k++] = j;
+            }
+        }
+
+        sig[OMEGA + i] = k;
+    }
+
     *siglen = CRYPTO_BYTES;
 #endif
 

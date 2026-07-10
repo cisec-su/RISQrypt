@@ -33,6 +33,6 @@ CFLAGS += -fstack-usage
 OBJ_DUMP = 1 # Uncomment if disassembly is needed
 
 # Optimization level
-OPTIMIZATION = -O3 # Default is -O0
+OPTIMIZATION = -Os # Default is -O0
 
 include $(TOOLCHAIN_DIR)/makefile

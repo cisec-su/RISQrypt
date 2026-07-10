@@ -30,7 +30,7 @@ ifdef MASKING_EN
 CFLAGS += -DMASKING_EN
 endif
 
-OPTIMIZATION = -O3 # Default is -O0
+OPTIMIZATION = -Os # Default is -O0
 
 
 include $(TOOLCHAIN_DIR)/makefile
