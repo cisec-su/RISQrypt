@@ -1,3 +1,4 @@
+#include <string.h>
 #include "masked_packing.h"
 #include "ntt_lite.h"
 
@@ -12,15 +13,13 @@ void masked_unpack_sk(uint8_t *rho,
 {
     unsigned int i;
 
-    for(i = 0; i < SEEDBYTES; i++)
-        rho[i] = sk[i];
+    memcpy(rho, sk, SEEDBYTES);
     sk += SEEDBYTES;
 
     mask_seed(key, sk);
     sk += SEEDBYTES;
 
-    for(i = 0; i < SEEDBYTES; i++)
-        tr[i] = sk[i];
+    memcpy(tr, sk, SEEDBYTES);
     sk += SEEDBYTES;
 
     masked_polyvecl_eta_unpack(s1, sk);
