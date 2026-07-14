@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 #include "params.h"
 #include "masked_sign.h"
 #include "masked_packing.h"
@@ -153,9 +154,7 @@ rej:
     *
     * Unmask and pack z row by row.
     */
-    for(i = 0; i < SEEDBYTES; i++) {
-        sig[i] = c[i];
-    }
+    memcpy(sig, c, SEEDBYTES);
     sig += SEEDBYTES;
 
     ntt_lite_set_bound(GAMMA1);
