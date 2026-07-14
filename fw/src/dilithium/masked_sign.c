@@ -26,7 +26,6 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
 {
     unsigned int i, j, k, n;
     uint8_t mu[CRHBYTES];
-    uint8_t w1_head[SEEDBYTES];
     uint8_t c[SEEDBYTES];
     masked_crh rhoprime;
     uint16_t nonce = 0;
@@ -82,19 +81,10 @@ rej:
     masked_polyvec_matrix_pointwise_decompose_onthefly(sig, &w0, rho, &y_h.y);
 
     /*
-     * The challenge hash overwrites the first SEEDBYTES bytes of sig.
-     * Preserve the corresponding prefix of packed w1.
-     */
-    for(i = 0; i < SEEDBYTES; i++) {
-        w1_head[i] = sig[i];
-    }
-
-    dilithium_shake256_absorb_double(sig, SEEDBYTES, mu, CRHBYTES, sig, K * POLYW1_PACKEDBYTES);
-
-    for(i = 0; i < SEEDBYTES; i++) {
-        c[i] = sig[i];
-        sig[i] = w1_head[i];
-    }
+    * Compute the challenge hash directly into c.
+    * This keeps the packed w1 stored in sig unchanged.
+    */
+    dilithium_shake256_absorb_double(c, SEEDBYTES, mu, CRHBYTES, sig, K * POLYW1_PACKEDBYTES);
 
     poly_challenge(&cp, c);
 
