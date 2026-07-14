@@ -116,6 +116,5 @@ int polyvecl_pointwise_add_invntt_chknorm(polyvecl *r, const polyvecl *v, const 
 unsigned int polyveck_add_make_hint(polyveck *h, const polyveck *v0, const polyveck *v1, const polyveck *u);
 
 #define polyveck_add_make_hint_packed DILITHIUM_NAMESPACE(polyveck_add_make_hint_packed)
-unsigned int polyveck_add_make_hint_packed(polyveck *h, const polyveck *v0, const uint8_t packed_w1[K * POLYW1_PACKEDBYTES], const polyveck *u);
-
+unsigned int polyveck_add_make_hint_packed(uint8_t encoded_h[OMEGA + K], polyveck *h, const polyveck *v0, const uint8_t packed_w1[K * POLYW1_PACKEDBYTES], const polyveck *u);
 #endif
