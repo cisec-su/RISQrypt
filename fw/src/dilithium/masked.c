@@ -1,3 +1,4 @@
+#include <string.h>
 #include "masked.h"
 #include "x2x.h"
 
@@ -11,15 +12,11 @@ void mask_seed(masked_seed dst, const uint8_t src[SEEDBYTES])
 
     x2x_prng_read(rnd, 16);
 
+    for (j = 0; j < SEEDBYTES; j++) {
+        dst[0][j] = src[j] ^ rnd_ptr[j];
+    }
 
-    for (i = 0; i < MASKING_N; i++) {
-        for (j = 0; j < SEEDBYTES; j++) {
-            if (i == 0) {
-                dst[i][j] = src[j] ^ rnd_ptr[j];
-            }
-            else {
-                dst[i][j] = rnd_ptr[j];
-            }
-        }
+    for (i = 1; i < MASKING_N; i++) {
+        memcpy(dst[i], rnd_ptr, SEEDBYTES);
     }
 }
