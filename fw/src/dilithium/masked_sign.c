@@ -68,10 +68,7 @@ int masked_crypto_sign_signature_core(uint8_t *sig, size_t *siglen, const uint8_
     masked_polyveck_ntt(s2);
 
 rej:
-    /* Sample intermediate vector y */
-    if(nonce) {
-        masked_gadgets_init_q();
-    }
+    masked_gadgets_init_q();
 
     masked_polyvecl_uniform_gamma1(&y_h.y, rhoprime, nonce++);
 
