@@ -234,8 +234,6 @@ int masked_polyvecl_pointwise_add_invntt_chknorm(masked_polyvecl *r, const maske
     masked_poly_ptr_const v_ptr;
     masked_poly_ptr u_ptr, r_ptr;
 
-    ntt_lite_set_bound(B - 1);
-
     for (i = 0; i < L; i++) {
         masked_polyvecl_to_poly_ptr(&r_ptr, r, i);
         masked_polyvecl_to_poly_ptr(&u_ptr, u, i);
