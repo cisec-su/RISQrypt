@@ -27,26 +27,24 @@ void masked_polyveck_eta_unpack(masked_polyveck *r, const uint8_t *a) {
 }
 
 
-static __attribute__((noinline, noclone)) void masked_polyvecl_share_ntt(polyvecl_u *r) {
-    unsigned int j;
+static __attribute__((noinline, noclone)) void masked_poly_array_ntt(poly_u *r, unsigned int n) {
+    unsigned int i;
 
-    for (j = 0; j < L; j++) {
-        ntt_lite_forward_ntt((uint32_t*) &r->vec[j].coeffs, (uint32_t*) &r->vec[j].coeffs);
+    for (i = 0; i < n; i++) {
+        ntt_lite_forward_ntt((uint32_t*) &r[i].coeffs, (uint32_t*) &r[i].coeffs);
     }
 }
 
+
 void masked_polyvecl_ntt(masked_polyvecl *r) {
-    masked_polyvecl_share_ntt(&r->share[0]);
-    masked_polyvecl_share_ntt(&r->share[1]);
+    masked_poly_array_ntt(r->share[0].vec, L);
+    masked_poly_array_ntt(r->share[1].vec, L);
 }
 
 
 void masked_polyveck_ntt(masked_polyveck *r) {
-    unsigned int i, j;
-
-    for(i = 0; i < MASKING_N; i++)
-        for(j = 0; j < K; j++)
-            ntt_lite_forward_ntt((uint32_t*) &r->share[i].vec[j].coeffs, (uint32_t*) &r->share[i].vec[j].coeffs);
+    masked_poly_array_ntt(r->share[0].vec, K);
+    masked_poly_array_ntt(r->share[1].vec, K);
 }
 
 
