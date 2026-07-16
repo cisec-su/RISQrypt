@@ -156,22 +156,23 @@ int masked_poly_ptr_chknorm(const masked_poly_ptr *r, const masked_poly_ptr *tem
 
 int masked_poly_ptr_pointwise_add_invntt_chknorm(const masked_poly_ptr *r_ptr, const masked_poly_ptr_const *v_ptr, const poly *c, const masked_poly_ptr *u_ptr, uint32_t B) {
     masked_poly temp;
-    unsigned int i, j;
     int flag;
     poly *ptr[MASKING_N];
     uint32_t B2 = (B << 1) - 1;
     uint32_t *dst;
     ntt_lite_set_bound(B - 1);
 
-    for (i = 0; i < MASKING_N; i++) {
-        ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) v_ptr->share[i]->coeffs, (uint32_t*) &c->coeffs);
-        ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u_ptr->share[i]->coeffs);
-        poly_init_invntt();
-        if (i != (MASKING_N - 1)) {
-            ntt_lite_set_clr_with_twiddle();
-        }
-        ntt_lite_backward_ntt((uint32_t*) r_ptr->share[i]->coeffs, NTT_LITE_INPUT_DIS);
-    }
+    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) v_ptr->share[0]->coeffs, (uint32_t*) &c->coeffs);
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u_ptr->share[0]->coeffs);
+    poly_init_invntt();
+    ntt_lite_set_clr_with_twiddle();
+    ntt_lite_backward_ntt((uint32_t*) r_ptr->share[0]->coeffs, NTT_LITE_INPUT_DIS);
+
+    ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, (uint32_t*) v_ptr->share[1]->coeffs, (uint32_t*) &c->coeffs);
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, (uint32_t*) u_ptr->share[1]->coeffs);
+    poly_init_invntt();
+    ntt_lite_backward_ntt((uint32_t*) r_ptr->share[1]->coeffs, NTT_LITE_INPUT_DIS);
+
     return masked_poly_ptr_chknorm(r_ptr, u_ptr, B);
 }
 
