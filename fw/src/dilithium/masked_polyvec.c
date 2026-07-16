@@ -169,7 +169,7 @@ static void masked_poly_ptr_invntt(masked_poly_ptr *r) {
 
 
 void masked_polyvec_matrix_pointwise_decompose_onthefly(uint8_t packed_w1[K * POLYW1_PACKEDBYTES], masked_polyveck *w0, const uint8_t rho[SEEDBYTES], const masked_polyvecl *v) {
-    unsigned int i, j, i_next, j_next;
+    unsigned int i, j, nonce_next;
     polyvecl row;
     poly w1_tmp;
     masked_poly_u w_tmp;
@@ -180,8 +180,7 @@ void masked_polyvec_matrix_pointwise_decompose_onthefly(uint8_t packed_w1[K * PO
     masked_poly_u_to_poly_ptr(&w_tmp_ptr, &w_tmp);
     masked_poly_u_to_poly_ptr_const(&w_tmp_ptr_const, &w_tmp);
 
-    i_next = 0;
-    j_next = 1;
+    nonce_next = 1;
 
     stream128_init(rho, 0);
 
@@ -189,15 +188,13 @@ void masked_polyvec_matrix_pointwise_decompose_onthefly(uint8_t packed_w1[K * PO
         ntt_lite_set_inv2(STREAM128_BLOCKBYTES >> 2);
         ntt_lite_set_bound(Q);
 
-        for(j = 0; j < L; j++) {
-            poly_uniform_fromhw(&row.vec[j], rho, (i_next << 8) + j_next, (i != (K - 1)) || (j != (L - 1)));
+        for (j = 0; j < L; j++) {
+            poly_uniform_fromhw(&row.vec[j], rho, nonce_next, (i != (K - 1)) || (j != (L - 1)));
 
-            if(j_next == (L - 1)) {
-                j_next = 0;
-                i_next++;
-            }
-            else {
-                j_next++;
+            if (j == (L - 2)) {
+                nonce_next += (1 << 8) - (L - 1);
+            } else {
+                nonce_next++;
             }
         }
 
