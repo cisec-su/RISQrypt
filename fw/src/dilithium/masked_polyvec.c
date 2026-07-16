@@ -27,12 +27,17 @@ void masked_polyveck_eta_unpack(masked_polyveck *r, const uint8_t *a) {
 }
 
 
-void masked_polyvecl_ntt(masked_polyvecl *r) {
-    unsigned int i, j;
+static __attribute__((noinline, noclone)) void masked_polyvecl_share_ntt(polyvecl_u *r) {
+    unsigned int j;
 
-    for(i = 0; i < MASKING_N; i++)
-        for(j = 0; j < L; j++)
-            ntt_lite_forward_ntt((uint32_t*) &r->share[i].vec[j].coeffs, (uint32_t*) &r->share[i].vec[j].coeffs);
+    for (j = 0; j < L; j++) {
+        ntt_lite_forward_ntt((uint32_t*) &r->vec[j].coeffs, (uint32_t*) &r->vec[j].coeffs);
+    }
+}
+
+void masked_polyvecl_ntt(masked_polyvecl *r) {
+    masked_polyvecl_share_ntt(&r->share[0]);
+    masked_polyvecl_share_ntt(&r->share[1]);
 }
 
 
