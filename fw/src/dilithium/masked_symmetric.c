@@ -16,10 +16,10 @@ void dilithium_masked_shake256_absorb_double(masked_flat_ptr dst, unsigned int d
 
 
 void dilithium_masked_shake256_stream_init(const masked_crh seed, const uint16_t nonce) {
-    volatile uint32_t t;
+    volatile uint32_t t = (SHAKE_PAD << 16) | ((uint32_t) nonce);
+
     keccak_init(SHAKE256_RATE >> 3, KECCAK_MASK_EN);
-    keccak_absorb((uint32_t*) seed[0], (uint32_t*) seed[1], (CRHBYTES) >> 2);
-    t = (SHAKE_PAD << 16) | ((uint32_t) nonce);
+    keccak_absorb((uint32_t*) seed[0], (uint32_t*) seed[1], CRHBYTES >> 2);
     keccak_finish((uint32_t*) &t);
 }
 
