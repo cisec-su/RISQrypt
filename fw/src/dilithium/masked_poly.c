@@ -199,27 +199,21 @@ void masked_poly_ptr_decompose(poly *v1, const masked_poly_ptr *v0, const masked
     #error "This implementation requires DILITHIUM_MODE = 3 or 5"
 #else
     unsigned int i, j;
-    uint32_t *lhs, *dst;
     const uint32_t gamma = GAMMA2_D >> 1;
-    const uint32_t mu[2] = {0, 1 << 28}; // hard-coded
+    const uint32_t mu[2] = {0, 1 << 28};
     masked_poly temp;
 
     ntt_lite_set_bound(Q - gamma);
-    for (i = 0; i < MASKING_N; i++) {
-        if (i == 0) {
-            dst = NTT_LITE_INPUT_DIS;
-        }
-        else {
-            dst = (uint32_t*) &temp.share[i].coeffs;
-        }
-        ntt_lite_set_clr();
-        ntt_lite_mul_const(dst, (uint32_t*) &v->share[i]->coeffs);
-        if (i == 0) {
-            ntt_lite_set_bound((Q - 1) >> 1);
-            ntt_lite_add_const((uint32_t*) &temp.share[i].coeffs, NTT_LITE_INPUT_DIS);
-            ntt_lite_set_bound(Q - gamma);
-        }
-    }
+
+    ntt_lite_set_clr();
+    ntt_lite_mul_const(NTT_LITE_INPUT_DIS, (uint32_t*) &v->share[0]->coeffs);
+
+    ntt_lite_set_bound((Q - 1) >> 1);
+    ntt_lite_add_const((uint32_t*) &temp.share[0].coeffs, NTT_LITE_INPUT_DIS);
+
+    ntt_lite_set_bound(Q - gamma);
+    ntt_lite_set_clr();
+    ntt_lite_mul_const((uint32_t*) &temp.share[1].coeffs, (uint32_t*) &v->share[1]->coeffs);
 
     masked_gadgets_A2B_q(&temp, &temp);
 
