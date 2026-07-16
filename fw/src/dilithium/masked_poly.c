@@ -66,11 +66,14 @@ void masked_poly_ptr_uniform_gamma1_fromhw_inner(const masked_poly_ptr *y, const
 
     masked_gadgets_B2A_q_ptr(y, (masked_poly_ptr_const*) y);
     ntt_lite_set_bound(GAMMA1);
-    for(i = 0; i < MASKING_N; i++) {
-        ntt_lite_set_clr();
-        ntt_lite_sub_rev_const((uint32_t*) y->share[i]->coeffs, (uint32_t*) y->share[i]->coeffs);
-        ntt_lite_set_bound(0);
-    }
+
+    ntt_lite_set_clr();
+    ntt_lite_sub_rev_const((uint32_t*) y->share[0]->coeffs, (uint32_t*) y->share[0]->coeffs);
+    ntt_lite_set_bound(0);
+
+    ntt_lite_set_clr();
+    ntt_lite_sub_rev_const((uint32_t*) y->share[1]->coeffs, (uint32_t*) y->share[1]->coeffs);
+    ntt_lite_set_bound(0);
 }
 
 
@@ -190,7 +193,7 @@ int masked_poly_ptr_pointwise_invntt_sub_chknorm(const masked_poly_ptr *r, const
     poly_init_invntt();
     ntt_lite_backward_ntt(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS);
     ntt_lite_sub_rev((uint32_t*) r->share[1]->coeffs, NTT_LITE_INPUT_DIS, (uint32_t*) u->share[1]->coeffs);
-    
+
     return masked_poly_ptr_chknorm(r, temp, B);
 }
 
