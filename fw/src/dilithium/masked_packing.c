@@ -22,11 +22,21 @@ void masked_unpack_sk(uint8_t *rho,
     memcpy(tr, sk, SEEDBYTES);
     sk += SEEDBYTES;
 
-    masked_polyvecl_eta_unpack(s1, sk);
-    sk += L * POLYETA_PACKEDBYTES;
+    for (i = 0; i < L + K; i++) {
+        masked_poly_ptr r_ptr;
 
-    masked_polyveck_eta_unpack(s2, sk);
-    sk += K * POLYETA_PACKEDBYTES;
+        if (i < L) {
+            r_ptr.share[0] = &s1->share[0].vec[i];
+            r_ptr.share[1] = &s1->share[1].vec[i];
+        } else {
+            r_ptr.share[0] = &s2->share[0].vec[i - L];
+            r_ptr.share[1] = &s2->share[1].vec[i - L];
+        }
+
+        masked_poly_ptr_unpack(&r_ptr, sk + i * POLYETA_PACKEDBYTES, L, LOG_ETA, ETA);
+    }
+
+    sk += (L + K) * POLYETA_PACKEDBYTES;
 
     if(t0 != NULL) {
         ntt_lite_set_bound(1 << (D - 1));
