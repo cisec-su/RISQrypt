@@ -147,13 +147,8 @@ int masked_poly_ptr_chknorm(const masked_poly_ptr *r, const masked_poly_ptr *tem
 #else
     flag = NTT_LITE_CHKNORM_SUCC;
 #endif
-    poly_set_q(); // reset the modulus to Dilithium's Q
-    if (flag == NTT_LITE_CHKNORM_FAIL) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+    poly_set_q();
+    return flag;
 }
 
 
