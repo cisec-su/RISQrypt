@@ -27,24 +27,26 @@ void masked_polyveck_eta_unpack(masked_polyveck *r, const uint8_t *a) {
 }
 
 
-static __attribute__((noinline, noclone)) void masked_poly_array_ntt(poly_u *r, unsigned int n) {
+_Static_assert(sizeof(masked_polyvecl) == MASKING_N * L * sizeof(poly_u), "masked_polyvecl layout is not contiguous");
+_Static_assert(sizeof(masked_polyveck) == MASKING_N * K * sizeof(poly_u), "masked_polyveck layout is not contiguous");
+
+static __attribute__((noinline, noclone)) void masked_poly_array_ntt(void *base, unsigned int n) {
     unsigned int i;
+    uint8_t *cursor = (uint8_t*) base;
 
     for (i = 0; i < n; i++) {
-        ntt_lite_forward_ntt((uint32_t*) &r[i].coeffs, (uint32_t*) &r[i].coeffs);
+        poly_u *current = (poly_u*) cursor;
+        ntt_lite_forward_ntt((uint32_t*) current->coeffs, (uint32_t*) current->coeffs);
+        cursor += sizeof(poly_u);
     }
 }
 
-
 void masked_polyvecl_ntt(masked_polyvecl *r) {
-    masked_poly_array_ntt(r->share[0].vec, L);
-    masked_poly_array_ntt(r->share[1].vec, L);
+    masked_poly_array_ntt(r, MASKING_N * L);
 }
 
-
 void masked_polyveck_ntt(masked_polyveck *r) {
-    masked_poly_array_ntt(r->share[0].vec, K);
-    masked_poly_array_ntt(r->share[1].vec, K);
+    masked_poly_array_ntt(r, MASKING_N * K);
 }
 
 
