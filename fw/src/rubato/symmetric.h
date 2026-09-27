@@ -24,6 +24,12 @@ void rubato_shake256_stream_init(uint64_t seed, uint64_t nonce, uint8_t poly_ctr
 void rubato_shake256_squeeze(uint8_t *dst, unsigned int dst_len);
 void rubato_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
 
+void rubato_masked_shake128_stream_init(uint64_t seed, uint64_t nonce, uint8_t poly_ctr);
+void rubato_masked_shake128_squeeze(uint8_t *dst_0, uint8_t *dst_1, unsigned int dst_len);
+
+void rubato_masked_shake256_stream_init(uint64_t seed, uint64_t nonce, uint8_t poly_ctr);
+void rubato_masked_shake256_squeeze(uint8_t *dst_0, uint8_t *dst_1, unsigned int dst_len);
+
 #define stream128_init(SEED, NONCE, POLY_CTR)   rubato_shake128_stream_init(SEED, NONCE, POLY_CTR)
 #define stream128_squeezeblocks(OUT, OUTBLOCKS) rubato_shake128_squeezeblocks(OUT, OUTBLOCKS)
 #define stream128_squeeze(OUT, OUT_LEN)         rubato_shake128_squeeze(OUT, OUT_LEN)
@@ -38,11 +44,15 @@ void rubato_shake256_squeezeblocks(uint8_t *dst, unsigned int num_blocks);
 #  define rubato_stream_init         stream128_init
 #  define rubato_stream_squeezeblocks stream128_squeezeblocks
 #  define rubato_stream_squeeze      stream128_squeeze
+#  define masked_rubato_stream_init    rubato_masked_shake128_stream_init
+#  define masked_rubato_stream_squeeze rubato_masked_shake128_squeeze
 #elif defined(XOF_SHAKE256)
 #  define RUBATO_STREAM_BLOCKBYTES   STREAM256_BLOCKBYTES
 #  define rubato_stream_init         stream256_init
 #  define rubato_stream_squeezeblocks stream256_squeezeblocks
 #  define rubato_stream_squeeze      stream256_squeeze
+#  define masked_rubato_stream_init    rubato_masked_shake256_stream_init
+#  define masked_rubato_stream_squeeze rubato_masked_shake256_squeeze
 #else
 #  error "No XOF (XOF_SHAKE128 or XOF_SHAKE256) selected in params.h"
 #endif

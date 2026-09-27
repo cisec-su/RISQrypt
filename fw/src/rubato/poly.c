@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include "params.h"
 #include "poly.h"
+#include "cbd.h"
 #include "symmetric.h"
 #include "ntt_lite.h"
 #include "util.h"
@@ -118,4 +119,50 @@ void poly_uniform(poly *p, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr)
     // }
     
 
+}
+
+
+#if (3*NOISE_CBD3_CNT + 2*NOISE_CBD2_CNT) != cbd_d
+#error "NOISE_CBD3_CNT/NOISE_CBD2_CNT in params.h do not match cbd_d"
+#endif
+
+/**
+ * @brief Sample a noise polynomial from a centered binomial distribution with parameter cbd_d
+ * @description Initializes a fresh XOF stream with (nonce, block_ctr, poly_ctr), squeezes
+ *              NOISE_BYTES and sums NOISE_CBD3_CNT cbd3 and NOISE_CBD2_CNT cbd2 samples
+ *              (e.g. cbd_d = 40 -> 12 x cbd3 + 2 x cbd2, cbd_d = 6 -> 2 x cbd3)
+ * @param e pointer to output noise polynomial
+ * @param nonce 64-bit nonce
+ * @param block_ctr 64-bit block counter
+ * @param poly_ctr XOF domain separator, must differ from the poly_uniform counters
+ * @return void
+ */
+void poly_getnoise(poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+    uint32_t buf[NOISE_BYTES / 4];
+    const uint8_t *p = (const uint8_t *) buf;
+    poly tmp;
+    size_t i;
+
+    rubato_stream_init(nonce, block_ctr, poly_ctr);
+    rubato_stream_squeeze((uint8_t *) buf, NOISE_BYTES);
+
+    for (i = 0; i < NOISE_CBD3_CNT; i++) {
+        if (i == 0) {
+            cbd3(e, p);
+        } else {
+            cbd3(&tmp, p);
+            poly_add(e, e, &tmp);
+        }
+        p += NOISE_CBD3_BYTES;
+    }
+
+    for (i = 0; i < NOISE_CBD2_CNT; i++) {
+        if ((NOISE_CBD3_CNT == 0) && (i == 0)) {
+            cbd2(e, p);
+        } else {
+            cbd2(&tmp, p);
+            poly_add(e, e, &tmp);
+        }
+        p += NOISE_CBD2_BYTES;
+    }
 }

@@ -15,6 +15,9 @@
 #define RUBATO_OUTPUTSIZE 12
 #define RUBATO_R 2
 #define cbd_d 40
+#define NOISE_CBD3_CNT 12  /* unmasked: cbd_d = 3*NOISE_CBD3_CNT + 2*NOISE_CBD2_CNT */
+#define NOISE_CBD2_CNT 2
+#define MASKED_NOISE_CBD2_CNT 20  /* masked: cbd_d = 2*MASKED_NOISE_CBD2_CNT */
 #define Q 0x3EE0001
 #define LOGQ 26
 #define MODULUS_BIT_MASK 0x3FFFFFF
@@ -29,7 +32,10 @@
 #define V 8
 #define RUBATO_OUTPUTSIZE 60
 #define RUBATO_R 2
-#define cbd_d 1
+#define cbd_d 2 // 1 is not supported so we use 2 instead
+#define NOISE_CBD3_CNT 0  /* unmasked: cbd_d = 3*NOISE_CBD3_CNT + 2*NOISE_CBD2_CNT */
+#define NOISE_CBD2_CNT 1
+#define MASKED_NOISE_CBD2_CNT 1  /* masked: cbd_d = 2*MASKED_NOISE_CBD2_CNT */
 #define Q 0x1FC0001
 #define LOGQ 25
 #define MODULUS_BIT_MASK 0x1FFFFFF
@@ -45,6 +51,9 @@
 #define RUBATO_OUTPUTSIZE 12
 #define RUBATO_R 5
 #define cbd_d 36
+#define NOISE_CBD3_CNT 12  /* unmasked: cbd_d = 3*NOISE_CBD3_CNT + 2*NOISE_CBD2_CNT */
+#define NOISE_CBD2_CNT 0
+#define MASKED_NOISE_CBD2_CNT 18  /* masked: cbd_d = 2*MASKED_NOISE_CBD2_CNT */
 #define Q 0x3EE0001
 #define LOGQ 26
 #define MODULUS_BIT_MASK 0x3FFFFFF
@@ -60,6 +69,9 @@
 #define RUBATO_OUTPUTSIZE 60
 #define RUBATO_R 2
 #define cbd_d 6
+#define NOISE_CBD3_CNT 2  /* unmasked: cbd_d = 3*NOISE_CBD3_CNT + 2*NOISE_CBD2_CNT */
+#define NOISE_CBD2_CNT 0
+#define MASKED_NOISE_CBD2_CNT 3  /* masked: cbd_d = 2*MASKED_NOISE_CBD2_CNT */
 #define Q 0x1FC0001
 #define LOGQ 25
 #define MODULUS_BIT_MASK 0x1FFFFFF
@@ -74,6 +86,14 @@
 
 /* N is the block (state) size */
 #define N RUBATO_BLOCKSIZE
+
+/* XOF bytes consumed by one cbd3 / cbd2 sample */
+#define NOISE_CBD3_BYTES (3*N/4)
+#define NOISE_CBD2_BYTES (2*N/4)
+/* Unmasked noise: NOISE_CBD3_CNT cbd3 + NOISE_CBD2_CNT cbd2 samples */
+#define NOISE_BYTES (NOISE_CBD3_CNT*NOISE_CBD3_BYTES + NOISE_CBD2_CNT*NOISE_CBD2_BYTES)
+/* Masked noise: MASKED_NOISE_CBD2_CNT cbd2 samples */
+#define MASKED_NOISE_BYTES (MASKED_NOISE_CBD2_CNT*NOISE_CBD2_BYTES)
 
 /* XOF rate in bytes (used for coefficient generation) */
 #if defined(XOF_SHAKE128)

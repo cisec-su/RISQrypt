@@ -122,7 +122,7 @@ void rubato_sbox_feistel(poly *B, const poly *A) {
 
 /**
  * @brief Applies RUBATO linear layer A = M * B * M_transpoze over Z_q.
- * @param A Output polynomial.
+ * @param A Output polynomial.2
  * @param B Input polynomial.
  */
 void rubato_linear_layer_v0(poly *A, const poly *B) {
@@ -180,9 +180,11 @@ void rubato_encrypt(poly *ciphertext, const poly *plaintext, poly *key, uint64_t
     rubato_linear_layer(&state, &state);
 
     poly_uniform(&rnd, nonce, block_ctr, RUBATO_R);
+    poly_getnoise(&temp, nonce, block_ctr, RUBATO_R + 1);
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, key->coeffs, rnd.coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, state.coeffs);
-    ntt_lite_add(ciphertext->coeffs, NTT_LITE_INPUT_DIS, plaintext->coeffs);
+    ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, plaintext->coeffs);
+    ntt_lite_add(ciphertext->coeffs, NTT_LITE_INPUT_DIS, temp.coeffs); // + noise
 
 }
 

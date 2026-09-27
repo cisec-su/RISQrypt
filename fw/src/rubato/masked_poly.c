@@ -1,5 +1,7 @@
 #include "masked_poly.h"
 #include "masked_gadgets.h"
+#include "masked_cbd.h"
+#include "symmetric.h"
 #include "ntt_lite.h"
 #include "x2x.h"
 #include "util.h"
@@ -239,5 +241,41 @@ void masked_poly_mult_add_umm(masked_poly *d, poly *a,const masked_poly *b, cons
         ntt_lite_set_clr_with_twiddle();
         ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, a->coeffs, b->share[i].coeffs);
         ntt_lite_add(d->share[i].coeffs, NTT_LITE_INPUT_DIS, c->share[i].coeffs);
+    }
+}
+
+
+/**
+ * @brief Masked noise sampling, masked counterpart of poly_getnoise()
+ * @description Runs the same XOF stream as poly_getnoise() in masked Keccak mode, which
+ *              returns Boolean shares of the MASKED_NOISE_BYTES random bytes, and sums
+ *              MASKED_NOISE_CBD2_CNT masked_cbd2 samples (cbd2 only, e.g. cbd_d = 40 -> 20 x cbd2).
+ *              Same distribution as poly_getnoise(), but since the unmasked version groups the
+ *              bytes into cbd3/cbd2 samples, the sampled values differ from it
+ * @param e pointer to output masked noise polynomial
+ * @param nonce 64-bit nonce
+ * @param block_ctr 64-bit block counter
+ * @param poly_ctr XOF domain separator, must differ from the poly_uniform counters
+ * @return void
+ */
+#if (2*MASKED_NOISE_CBD2_CNT) != cbd_d
+#error "MASKED_NOISE_CBD2_CNT in params.h does not match cbd_d"
+#endif
+
+void masked_poly_getnoise(masked_poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+    uint32_t buf[MASKING_N][MASKED_NOISE_BYTES / 4];
+    uint32_t *p[MASKING_N] = {buf[0], buf[1]};
+    masked_poly tmp;
+    size_t i;
+
+    masked_rubato_stream_init(nonce, block_ctr, poly_ctr);
+    masked_rubato_stream_squeeze((uint8_t *) buf[0], (uint8_t *) buf[1], MASKED_NOISE_BYTES);
+
+    masked_cbd2(e, p);
+    for (i = 1; i < MASKED_NOISE_CBD2_CNT; i++) {
+        p[0] += MASKED_CBD2_WORDS;
+        p[1] += MASKED_CBD2_WORDS;
+        masked_cbd2(&tmp, p);
+        masked_poly_add(e, e, &tmp);
     }
 }

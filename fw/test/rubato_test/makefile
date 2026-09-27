@@ -7,6 +7,8 @@ LIB_DIR = ../../../sdk/lib
 RUBATO_DIR = ../../src/rubato
 
 SRC  = main.c
+SRC += $(RUBATO_DIR)/cbd.c
+SRC += $(RUBATO_DIR)/masked_cbd.c
 SRC += $(RUBATO_DIR)/rubato.c
 SRC += $(RUBATO_DIR)/poly.c
 SRC += $(RUBATO_DIR)/masked_rubato.c
