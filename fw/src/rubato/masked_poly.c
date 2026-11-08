@@ -249,7 +249,7 @@ void masked_poly_mult_add_umm(masked_poly *d, poly *a,const masked_poly *b, cons
  * @brief Masked noise sampling, masked counterpart of poly_getnoise()
  * @description Runs the same XOF stream as poly_getnoise() in masked Keccak mode, which
  *              returns Boolean shares of the MASKED_NOISE_BYTES random bytes, and sums
- *              MASKED_NOISE_CBD2_CNT masked_cbd2 samples (cbd2 only, e.g. cbd_d = 40 -> 20 x cbd2).
+ *              cbd_d/2 masked_cbd2 samples (cbd2 only, e.g. cbd_d = 40 -> 20 x cbd2).
  *              Same distribution as poly_getnoise(), but since the unmasked version groups the
  *              bytes into cbd3/cbd2 samples, the sampled values differ from it
  * @param e pointer to output masked noise polynomial
@@ -258,11 +258,7 @@ void masked_poly_mult_add_umm(masked_poly *d, poly *a,const masked_poly *b, cons
  * @param poly_ctr XOF domain separator, must differ from the poly_uniform counters
  * @return void
  */
-#if (2*MASKED_NOISE_CBD2_CNT) != cbd_d
-#error "MASKED_NOISE_CBD2_CNT in params.h does not match cbd_d"
-#endif
-
-void masked_poly_getnoise(masked_poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+void masked_poly_getnoise_v0(masked_poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
     uint32_t buf[MASKING_N][MASKED_NOISE_BYTES / 4];
     uint32_t *p[MASKING_N] = {buf[0], buf[1]};
     masked_poly tmp;
@@ -272,10 +268,98 @@ void masked_poly_getnoise(masked_poly *e, uint64_t nonce, uint64_t block_ctr, ui
     masked_rubato_stream_squeeze((uint8_t *) buf[0], (uint8_t *) buf[1], MASKED_NOISE_BYTES);
 
     masked_cbd2(e, p);
-    for (i = 1; i < MASKED_NOISE_CBD2_CNT; i++) {
+    for (i = 1; i < cbd_d/2; i++) {
         p[0] += MASKED_CBD2_WORDS;
         p[1] += MASKED_CBD2_WORDS;
         masked_cbd2(&tmp, p);
         masked_poly_add(e, e, &tmp);
     }
+}
+
+
+void masked_poly_getnoise(masked_poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+#if defined(PARAM_80_S)
+    uint32_t random[MASKING_N][160 / sizeof(uint32_t)];
+    uint32_t reduced256[MASKING_N][16];
+    uint32_t reduced64[MASKING_N][16];
+    uint32_t *random_share[MASKING_N] = {random[0], random[1]};
+    uint32_t *random64_share[MASKING_N] = {
+        random[0] + (128 / sizeof(uint32_t)),
+        random[1] + (128 / sizeof(uint32_t))
+    };
+    size_t i;
+
+    masked_rubato_stream_init(nonce, block_ctr, poly_ctr);
+    masked_rubato_stream_squeeze((uint8_t *)random[0], (uint8_t *)random[1], sizeof(random[0]));
+
+    masked_cbd2_sum_stage_n((uint32_t *[MASKING_N]){reduced256[0], reduced256[1]}, random_share, 256, 8, 3);
+    masked_cbd2_sum_stage_n((uint32_t *[MASKING_N]){reduced64[0], reduced64[1]}, random64_share, 64, 6, 1);
+
+    ntt_lite_set_ctrl(4, LOGQ, NTT_LITE_MODE_SINGLE);
+    for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_add(e->share[i].coeffs, reduced256[i], reduced64[i]);
+    }
+#elif defined(PARAM_80_L)
+    uint32_t random[MASKING_N][32 / sizeof(uint32_t)];
+    uint32_t *random_share[MASKING_N] = {random[0], random[1]};
+    uint32_t *dst_share[MASKING_N] = {
+        (uint32_t *)e->share[0].coeffs,
+        (uint32_t *)e->share[1].coeffs
+    };
+
+    masked_rubato_stream_init(nonce, block_ctr, poly_ctr);
+    masked_rubato_stream_squeeze((uint8_t *)random[0], (uint8_t *)random[1], sizeof(random[0]));
+    ntt_lite_set_ctrl(6, LOGQ, NTT_LITE_MODE_SINGLE);
+    masked_cbd2_n(dst_share, random_share, 64);
+#elif defined(PARAM_128_S)
+    uint32_t random[MASKING_N][144 / sizeof(uint32_t)];
+    uint32_t cbd16_a[MASKING_N][16];
+    uint32_t cbd16_b[MASKING_N][16];
+    uint32_t reduced256[MASKING_N][16];
+    uint32_t *random_share[MASKING_N] = {random[0], random[1]};
+    uint32_t *random16_a_share[MASKING_N] = {
+        random[0] + (128 / sizeof(uint32_t)),
+        random[1] + (128 / sizeof(uint32_t))
+    };
+    uint32_t *random16_b_share[MASKING_N] = {
+        random[0] + (136 / sizeof(uint32_t)),
+        random[1] + (136 / sizeof(uint32_t))
+    };
+    size_t i;
+
+    masked_rubato_stream_init(nonce, block_ctr, poly_ctr);
+    masked_rubato_stream_squeeze((uint8_t *)random[0], (uint8_t *)random[1], sizeof(random[0]));
+
+    masked_cbd2_sum_stage_n((uint32_t *[MASKING_N]){reduced256[0], reduced256[1]}, random_share, 256, 8, 3);
+
+    ntt_lite_set_ctrl(4, LOGQ, NTT_LITE_MODE_SINGLE);
+    masked_cbd2_n((uint32_t *[MASKING_N]){cbd16_a[0], cbd16_a[1]}, random16_a_share, 16);
+    masked_cbd2_n((uint32_t *[MASKING_N]){cbd16_b[0], cbd16_b[1]}, random16_b_share, 16);
+    for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_add(e->share[i].coeffs, reduced256[i], cbd16_a[i]);
+        ntt_lite_add(e->share[i].coeffs, e->share[i].coeffs, cbd16_b[i]);
+    }
+#else //defined(PARAM_128_L)
+    uint32_t random[MASKING_N][96 / sizeof(uint32_t)];
+    uint32_t cbd64[MASKING_N][64];
+    uint32_t reduced128[MASKING_N][64];
+    uint32_t *random_share[MASKING_N] = {random[0], random[1]};
+    uint32_t *cbd64_share[MASKING_N] = {cbd64[0], cbd64[1]};
+    uint32_t *random64_share[MASKING_N] = {
+        random[0] + (64 / sizeof(uint32_t)),
+        random[1] + (64 / sizeof(uint32_t))
+    };
+    size_t i;
+
+    masked_rubato_stream_init(nonce, block_ctr, poly_ctr);
+    masked_rubato_stream_squeeze((uint8_t *)random[0], (uint8_t *)random[1], sizeof(random[0]));
+
+    masked_cbd2_sum_stage_n((uint32_t *[MASKING_N]){reduced128[0], reduced128[1]}, random_share, 128, 7, 1);
+
+    ntt_lite_set_ctrl(6, LOGQ, NTT_LITE_MODE_SINGLE);
+    masked_cbd2_n(cbd64_share, random64_share, 64);
+    for (i = 0; i < MASKING_N; i++) {
+        ntt_lite_add(e->share[i].coeffs, reduced128[i], cbd64[i]);
+    }
+#endif
 }

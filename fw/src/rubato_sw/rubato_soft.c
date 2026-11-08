@@ -185,14 +185,76 @@ void rubato_soft_poly_uniform(poly *p, uint64_t nonce, uint64_t block_ctr) {
     }
 }
 
+/**
+ * @brief Samples a RUBATO noise polynomial from a discrete Gaussian (CDT sampling).
+ * @description Scalar version of gen_noise_b16/b36/b64 of the Rubato AVX2 reference.
+ *              Each coefficient consumes one little-endian 32-bit XOF word: bit 0 is
+ *              the sign, the upper 31 bits u are compared against every NOISE_CDT
+ *              entry, and |e| = #{i : NOISE_CDT[i] < u}. The comparison is the
+ *              branch-free (cdt - u) >> 31, so the run time does not depend on u.
+ *              The signed value +-|e| is then lifted branch-free to its canonical
+ *              representative (-e -> Q - e), so the output can be masked and added
+ *              directly by the [0, Q) masked/poly routines.
+ * @param e Output noise polynomial, coefficients in canonical form [0, Q).
+ * @param nonce Nonce value for stream seed.
+ * @param block_ctr Block counter for stream seed.
+ * @param poly_ctr XOF domain separator.
+ * @return void
+ */
+void rubato_soft_getnoise(poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+    static const uint32_t cdt[NOISE_CDT_LEN] = NOISE_CDT;
+    uint8_t seed[17];
+    uint8_t buf[NOISE_CDT_BLOCKS * XOF_RATE_BYTES];
+    keccak_state state;
+    size_t i, k;
+    uint32_t u, sign, mag;
+
+    for (i = 0; i < 8; i++) {
+        seed[i] = (uint8_t)((nonce >> (8 * i)) & 0xFF);
+        seed[8 + i] = (uint8_t)((block_ctr >> (8 * i)) & 0xFF);
+    }
+    seed[16] = poly_ctr;
+
+#if defined(XOF_SHAKE128)
+    shake128_absorb(&state, seed, sizeof(seed));
+    shake128_squeezeblocks(buf, NOISE_CDT_BLOCKS, &state);
+#elif defined(XOF_SHAKE256)
+    shake256_absorb(&state, seed, sizeof(seed));
+    shake256_squeezeblocks(buf, NOISE_CDT_BLOCKS, &state);
+#endif
+
+    for (k = 0; k < N; k++) {
+        u = (uint32_t)buf[4 * k + 0]
+          | ((uint32_t)buf[4 * k + 1] << 8)
+          | ((uint32_t)buf[4 * k + 2] << 16)
+          | ((uint32_t)buf[4 * k + 3] << 24);
+        sign = u & 1u;
+        u >>= 1;
+
+        mag = 0;
+        /* scan the whole table: fixed trip count, no data-dependent branch */
+        for (i = 0; i < NOISE_CDT_LEN; i++) {
+            mag += (cdt[i] - u) >> 31;
+        }
+        /* conditional negation: sign ? -mag : mag, then branch-free lift
+           [-q,0) -> [0,q) (the sign is secret, so no branch) */
+        int32_t v = (int32_t)((mag ^ (0u - sign)) + sign);
+        e->coeffs[k] = v + (Q & (v >> 31));
+    }
+}
 
 /**
  * @brief Generates one RUBATO ciphertext block from plaintext and keystream.
- * @param ciphertext Output polynomial holding RUBATO_OUTPUTSIZE coefficients.
- * @param plaintext Input plaintext coefficients.
- * @param key Secret key coefficients.
+ * @description Runs RUBATO_R rounds of (ARK, linear layer, Feistel S-box), a final
+ *              linear layer and ARK to obtain the keystream, then computes
+ *              c = keystream + plaintext + noise (mod Q) over all N coefficients.
+ *              Truncation to RUBATO_OUTPUTSIZE is left to the caller.
+ * @param ciphertext Output polynomial, all N coefficients in [0, Q).
+ * @param plaintext Input plaintext coefficients (any int32, reduced mod Q).
+ * @param key Secret key polynomial (N coefficients in [0, Q)).
  * @param nonce Nonce value.
  * @param block_ctr Block counter.
+ * @return void
  */
 void rubato_soft_encrypt(poly *ciphertext, const poly *plaintext, const poly *key, uint64_t nonce, uint64_t block_ctr) {
     poly coeffs[RUBATO_R + 1];
@@ -200,6 +262,8 @@ void rubato_soft_encrypt(poly *ciphertext, const poly *plaintext, const poly *ke
     size_t r;
     size_t i;
     poly keystream;
+    poly noise;
+    poly pt;
 
     rubato_soft_sampling(coeffs, nonce, block_ctr);
 
@@ -215,9 +279,7 @@ void rubato_soft_encrypt(poly *ciphertext, const poly *plaintext, const poly *ke
 
     rubato_soft_linear_layer(&state, &state);
     poly_soft_mult_add(&keystream, &coeffs[RUBATO_R], key, &state);
-
-    for (i = 0; i < N; i++) {
-        ciphertext->coeffs[i] = (keystream.coeffs[i] + plaintext->coeffs[i]) % Q;
-    }
-    
+    rubato_soft_getnoise(&noise, nonce, block_ctr, RUBATO_R + 1);
+    poly_soft_pointwise_add(ciphertext, &keystream, &noise); /* + noise */
+    poly_soft_pointwise_add(ciphertext, ciphertext, plaintext);    /* + plaintext */
 }

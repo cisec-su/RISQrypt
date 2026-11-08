@@ -20,7 +20,14 @@ typedef struct
     IO q;          // BASE_ADDR + 0x00000014
     IO mu[2];      // BASE_ADDR + 0x0000001C
     IO inv2;       // BASE_ADDR + 0x00000020
+    IO actrl;      // BASE_ADDR + 0x00000024
 } ntt_lite_regs_t;
+
+
+#define NTT_LITE_ACTRL_SUM_STAGE_S       ((uint32_t) 0)
+#define NTT_LITE_ACTRL_SUM_STAGE_M       ((uint32_t) 0xF)
+#define NTT_LITE_ACTRL_SUM_STAGE_V       (NTT_LITE_ACTRL_SUM_STAGE_M << NTT_LITE_ACTRL_SUM_STAGE_S)
+#define NTT_LITE_SUM_STAGE_FINAL         ((uint32_t) 0xF)
 
 
 

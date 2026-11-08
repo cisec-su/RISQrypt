@@ -206,7 +206,7 @@ void rubato_test() {
     poly coeffs[RUBATO_R + 1];
 
     print_string("\n --- rubato_soft_encrypt test --- \n");
-    for (size_t i = 0; i < RUBATO_OUTPUTSIZE; i++)
+    for (size_t i = 0; i < N; i++)
     {
         plaintext.coeffs[i] = 0;
     }
@@ -262,7 +262,7 @@ void masked_rubato_test() {
     size_t i;
 
     print_string("\n --- rubato_soft_encrypt test --- \n");
-    for (size_t i = 0; i < RUBATO_OUTPUTSIZE; i++)
+    for (size_t i = 0; i < N; i++)
     {
         plaintext.coeffs[i] = 0;
     }

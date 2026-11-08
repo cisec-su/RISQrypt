@@ -160,6 +160,66 @@ void tearDown(void)
 ////////////////////////////////////////////////////////////////
 
 /**
+ * @brief Tests the first NTT-lite SUM reduction stage for N=16.
+ */
+void test_ntt_lite_sum_stage(void) {
+    static const uint32_t input[16] = {
+        1, 2, 3, 4, 5, 6, 7, 8,
+        9, 10, 11, 12, 13, 14, 15, 16
+    };
+    static const uint32_t expected_stage0[8] = {
+        3, 7, 11, 15, 19, 23, 27, 31
+    };
+    
+    static const uint32_t expected_stage1[4] = {
+        10, 26, 42, 58
+    };
+    static const uint32_t expected_stage2[2] = {
+        36, 100
+    };
+    static const uint32_t expected_stage3[1] = {
+        136
+    };
+
+    static uint32_t output0[8];
+    static uint32_t output1[4];
+    static uint32_t output2[2];
+    static uint32_t output3[1];
+    int ret;
+
+    poly_init_q();
+    ret = ntt_lite_set_ctrl(4, LOGQ, NTT_LITE_MODE_SINGLE);
+    TEST_ASSERT_EQUAL_INT(0, ret);
+
+
+    BENCH_INIT()
+
+    BENCH_START()
+    ret = ntt_lite_sum_stage(output0, input, 0);
+    BENCH_END(ntt_lite_sum_stage0)
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(expected_stage0, output0, 8);
+
+    BENCH_START()
+    ret = ntt_lite_sum_stage(output1, input, 1);
+    BENCH_END(ntt_lite_sum_stage1)
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(expected_stage1, output1, 4);
+
+    BENCH_START()
+    ret = ntt_lite_sum_stage(output2, input, 2);
+    BENCH_END(ntt_lite_sum_stage2)
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(expected_stage2, output2, 2);
+
+    BENCH_START()
+    ret = ntt_lite_sum_stage(output3, input, 3);
+    BENCH_END(ntt_lite_sum_stage3)
+    TEST_ASSERT_EQUAL_INT(0, ret);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(expected_stage3, output3, 1);
+}
+
+/**
  * @brief Tests and benchmarks software RUBATO keystream generation.
  */
 void rubato_test() {
@@ -247,6 +307,7 @@ int main() {
 
     UnityBegin("main.c");
     print_string("\n --- Rubato Test Start --- \n");
+    RUN_TEST(test_ntt_lite_sum_stage);
     RUN_TEST(rubato_test);
     RUN_TEST(masked_rubato_test);
     return(UnityEnd());

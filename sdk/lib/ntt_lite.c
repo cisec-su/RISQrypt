@@ -4,6 +4,7 @@
 
 
 unsigned int ntt_lite_cc = 0;
+static uint32_t ntt_lite_logn = 0;
 
 
 int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, uint32_t inv2, uint32_t mode) {
@@ -43,6 +44,7 @@ int ntt_lite_load_q(uint32_t q, const uint32_t *mu, uint32_t logn, uint32_t k, u
     NTT_LITE_REGS->inv2 = inv2;
 
     NTT_LITE_REGS->ctrl = (logn << NTT_LITE_CTRL_LOGN_S) | (k << NTT_LITE_CTRL_K_S) | mode_int;
+    ntt_lite_logn = logn;
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -74,6 +76,7 @@ int ntt_lite_set_ctrl(uint32_t logn, uint32_t k, uint32_t mode) {
     }
 
     NTT_LITE_REGS->ctrl = (logn << NTT_LITE_CTRL_LOGN_S) | (k << NTT_LITE_CTRL_K_S) | mode_int;
+    ntt_lite_logn = logn;
 
     BENCH_END(ntt_lite_cc);
     return 0;
@@ -373,6 +376,22 @@ int ntt_lite_sub_rev_const(uint32_t *dst, const uint32_t *lhs) {
 int ntt_lite_sum(uint32_t *dst, const uint32_t *src) {
     int ret;
     BENCH_START(ntt_lite_cc);
+    NTT_LITE_REGS->actrl = NTT_LITE_SUM_STAGE_FINAL;
+    ret = ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM, 0, 0);
+    BENCH_END(ntt_lite_cc);
+    return ret;
+}
+
+
+int ntt_lite_sum_stage(uint32_t *dst, const uint32_t *src, uint32_t stage) {
+    int ret;
+
+    if (stage >= NTT_LITE_SUM_STAGE_FINAL || stage >= ntt_lite_logn) {
+        return -1;
+    }
+
+    BENCH_START(ntt_lite_cc);
+    NTT_LITE_REGS->actrl = stage << NTT_LITE_ACTRL_SUM_STAGE_S;
     ret = ntt_lite_pointwise_op(dst, src, NTT_LITE_INPUT_DIS, NTT_LITE_CTRL_OP_SUM, 0, 0);
     BENCH_END(ntt_lite_cc);
     return ret;

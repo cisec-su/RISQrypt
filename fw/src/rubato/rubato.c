@@ -174,13 +174,13 @@ void rubato_encrypt(poly *ciphertext, const poly *plaintext, poly *key, uint64_t
     for (r = 0; r < (size_t) RUBATO_R; r++) {
         poly_uniform(&rnd, nonce, block_ctr, r);
         poly_mult_add(&state, &rnd, key, &state);
-        rubato_linear_layer(&state, &state);
+        RUBATO_LINEAR_LAYER(&state, &state);
         rubato_sbox_feistel(&state, &state);
     }
-    rubato_linear_layer(&state, &state);
+    RUBATO_LINEAR_LAYER(&state, &state);
 
     poly_uniform(&rnd, nonce, block_ctr, RUBATO_R);
-    poly_getnoise(&temp, nonce, block_ctr, RUBATO_R + 1);
+    RUBATO_POLY_GETNOISE(&temp, nonce, block_ctr, RUBATO_R + 1);
     ntt_lite_pwm(NTT_LITE_OUTPUT_DIS, key->coeffs, rnd.coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, state.coeffs);
     ntt_lite_add(NTT_LITE_OUTPUT_DIS, NTT_LITE_INPUT_DIS, plaintext->coeffs);

@@ -41,8 +41,10 @@ void masked_poly_right_shift(masked_poly *B, const masked_poly *A, size_t shift_
 #define masked_poly_mult_add_umm RUBATO_NAMESPACE(masked_poly_mult_add_umm)
 void masked_poly_mult_add_umm(masked_poly *d, poly *a, const masked_poly *b, const masked_poly *c);
 
-
 #define masked_poly_getnoise RUBATO_NAMESPACE(masked_poly_getnoise)
 void masked_poly_getnoise(masked_poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr);
+
+#define masked_poly_getnoise_v0 RUBATO_NAMESPACE(masked_poly_getnoise_v0)
+void masked_poly_getnoise_v0(masked_poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr);
 
 #endif

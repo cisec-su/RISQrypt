@@ -1,7 +1,7 @@
 # Vivado TCL Script for automatic FPGA bitstream upload.
 
 set impl_dir "../risqrypt.runs/impl_1"
-set bitstream_file "$impl_dir/fpga_top.bit"
+set bitstream_file "$impl_dir/risqrypt_top.bit"
 
 open_hw_manager
 connect_hw_server

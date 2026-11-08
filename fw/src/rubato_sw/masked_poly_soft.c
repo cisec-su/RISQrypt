@@ -40,12 +40,15 @@ void masked_poly_soft_mult(masked_poly *C, const masked_poly *A, const masked_po
 
 /**
  * @brief Masked multiply-add with public coefficients.
- * @description Computes D = A*B + C share-wise where A is public and
- *              B, C, D are two-share masked polynomials.
- * @param D Output masked polynomial.
- * @param A Public coefficient polynomial.
- * @param B Masked multiplicand.
- * @param C Masked addend.
+ * @description Computes D = A*B + C (mod Q) share-wise where A is public and
+ *              B, C, D are masked: D.share[j] = A*B.share[j] + C.share[j].
+ *              Multiplying by a public value and adding are both linear, so the
+ *              shares are processed independently and never combined.
+ * @param D Output masked polynomial (may alias B or C).
+ * @param A Public coefficient polynomial, coefficients in [0, Q).
+ * @param B Masked multiplicand, shares in [0, Q).
+ * @param C Masked addend, shares in [0, Q).
+ * @return void
  */
 void masked_poly_soft_mult_add(masked_poly *D, const poly *A, const masked_poly *B, const masked_poly *C) {
     size_t i;
@@ -57,6 +60,53 @@ void masked_poly_soft_mult_add(masked_poly *D, const poly *A, const masked_poly 
             acc = ((uint64_t)(uint32_t)A->coeffs[i] * (uint32_t)B->share[j].coeffs[i])
                 + (uint32_t)C->share[j].coeffs[i];
             D->share[j].coeffs[i] = (int32_t)(acc % (uint64_t)Q);
+        }
+    }
+}
+
+/**
+ * @brief Masked polynomial addition (software).
+ * @description Computes C = A + B (mod Q) share-wise. Addition is linear, so
+ *              each share is added independently and shares are never combined.
+ *              Uses poly_soft_pointwise_add per share. Inputs must be
+ *              canonical [0, Q); the output is canonical too.
+ * @param C Output masked polynomial (may alias A or B).
+ * @param A First masked addend, shares in [0, Q).
+ * @param B Second masked addend, shares in [0, Q).
+ * @return void
+ */
+void masked_poly_soft_add(masked_poly *C, const masked_poly *A, const masked_poly *B) {
+    size_t j;
+
+    for (j = 0; j < MASKING_N; j++) {
+        poly_soft_pointwise_add(&C->share[j], &A->share[j], &B->share[j]);
+    }
+}
+
+/**
+ * @brief Add an unmasked polynomial to a masked polynomial (software).
+ * @description Computes r = a + b (mod Q) where a is unmasked and b is masked.
+ *              An unmasked addend shifts the share sum, so it is added to the
+ *              first share only: r.share[0] = a + b.share[0];
+ *              r.share[j] = b.share[j] for j > 0.
+ *              Uses poly_soft_pointwise_add on share 0. Inputs must be
+ *              canonical [0, Q); the output is canonical too.
+ *              Software counterpart of masked_poly_add_unmasked (rubato/masked_poly.c).
+ *              Unlike the HW version, the remaining shares are copied from b when
+ *              r and b are different objects, so r does not need to alias b.
+ * @param r Output masked polynomial (may alias b).
+ * @param a Unmasked addend, coefficients in [0, Q).
+ * @param b Masked addend, shares in [0, Q).
+ * @return void
+ */
+void masked_poly_soft_add_unmasked(masked_poly *r, const poly *a, const masked_poly *b) {
+    size_t j;
+
+    poly_soft_pointwise_add(&r->share[0], a, &b->share[0]);
+
+    if (r != b) {
+        for (j = 1; j < MASKING_N; j++) {
+            r->share[j] = b->share[j];
         }
     }
 }
@@ -101,24 +151,6 @@ void masked_poly_soft_mask(masked_poly *r, const poly *a) {
 void masked_poly_soft_unmask(poly *a, const masked_poly *r) {
     size_t i, j;
     for (i = 0; i < N; i++) {
-        uint32_t acc = 0u;
-        for (j = 0; j < MASKING_N; j++) {
-            acc += (uint32_t)r->share[j].coeffs[i];
-            if (acc >= Q) acc -= Q;
-        }
-        a->coeffs[i] = (int32_t)acc;
-    }
-}
-
-/**
- * @brief Recovers only the first count coefficients from a masked polynomial.
- * @param a Output unmasked polynomial.
- * @param r Input masked polynomial.
- * @param count Number of coefficients to unmask.
- */
-void masked_poly_soft_unmask_n(poly *a, const masked_poly *r, size_t count) {
-    size_t i, j;
-    for (i = 0; i < count; i++) {
         uint32_t acc = 0u;
         for (j = 0; j < MASKING_N; j++) {
             acc += (uint32_t)r->share[j].coeffs[i];

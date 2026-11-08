@@ -137,7 +137,7 @@ void poly_uniform(poly *p, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr)
  * @param poly_ctr XOF domain separator, must differ from the poly_uniform counters
  * @return void
  */
-void poly_getnoise(poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+void poly_getnoise_v0(poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
     uint32_t buf[NOISE_BYTES / 4];
     const uint8_t *p = (const uint8_t *) buf;
     poly tmp;
@@ -165,4 +165,62 @@ void poly_getnoise(poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr
         }
         p += NOISE_CBD2_BYTES;
     }
+}
+
+void poly_getnoise(poly *e, uint64_t nonce, uint64_t block_ctr, uint8_t poly_ctr) {
+#if defined(PARAM_80_S)
+    uint32_t random[160 / sizeof(uint32_t)];
+    uint32_t reduced256[16];
+    uint32_t reduced64[16];
+
+    rubato_stream_init(nonce, block_ctr, poly_ctr);
+    rubato_stream_squeeze((uint8_t *)random, sizeof(random));
+    ntt_lite_set_ctrl(8, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_cbd(NTT_LITE_OUTPUT_DIS, random, 2);
+    ntt_lite_sum_stage(reduced256, NTT_LITE_INPUT_DIS, 3);
+
+    ntt_lite_set_ctrl(6, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_cbd(NTT_LITE_OUTPUT_DIS, random + (128 / sizeof(uint32_t)), 2);
+    ntt_lite_sum_stage(reduced64, NTT_LITE_INPUT_DIS, 1);
+
+    ntt_lite_set_ctrl(4, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_add((uint32_t *)e->coeffs, reduced256, reduced64);
+#elif defined(PARAM_80_L)
+    uint32_t random[32 / sizeof(uint32_t)];
+
+    rubato_stream_init(nonce, block_ctr, poly_ctr);
+    rubato_stream_squeeze((uint8_t *)random, sizeof(random));
+    ntt_lite_set_ctrl(6, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_cbd((uint32_t *)e->coeffs, random, 2);
+#elif defined(PARAM_128_S)
+    uint32_t random[144 / sizeof(uint32_t)];
+    uint32_t reduced256[16];
+    uint32_t reduced16_a[16];
+    uint32_t reduced16_b[16];
+
+    rubato_stream_init(nonce, block_ctr, poly_ctr);
+    rubato_stream_squeeze((uint8_t *)random, sizeof(random));
+
+    ntt_lite_set_ctrl(8, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_cbd(NTT_LITE_OUTPUT_DIS, random, 2);
+    ntt_lite_sum_stage(reduced256, NTT_LITE_INPUT_DIS, 3);
+
+    ntt_lite_set_ctrl(4, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_cbd(reduced16_a, random + (128 / sizeof(uint32_t)), 2);
+    ntt_lite_cbd(reduced16_b, random + (136 / sizeof(uint32_t)), 2);
+    ntt_lite_add((uint32_t *)e->coeffs, reduced256, reduced16_a);
+    ntt_lite_add((uint32_t *)e->coeffs, (uint32_t *)e->coeffs, reduced16_b);
+#else //defined(PARAM_128_L)
+
+    uint32_t random[96 / sizeof(uint32_t)];
+    uint32_t cbd64[64];
+
+    rubato_stream_init(nonce, block_ctr, poly_ctr);
+    rubato_stream_squeeze((uint8_t *)random, sizeof(random));
+
+    ntt_lite_set_ctrl(6, LOGQ, NTT_LITE_MODE_SINGLE);
+    ntt_lite_cbd((uint32_t *)e->coeffs, random, 3);
+    ntt_lite_cbd(cbd64, random + (48 / sizeof(uint32_t)), 3);
+    ntt_lite_add((uint32_t *)e->coeffs, (uint32_t *)e->coeffs, cbd64);
+#endif
 }

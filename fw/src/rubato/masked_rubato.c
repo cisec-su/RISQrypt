@@ -62,20 +62,20 @@ void masked_rubato_encrypt(poly *ciphertext, const poly *plaintext, poly *key, u
         masked_poly_mult_add_umm(&m_state,&rnd,&m_key,&m_state);
 
         for (i = 0; i < MASKING_N; i++) {
-            rubato_linear_layer(&m_state.share[i], &m_state.share[i]);
+            RUBATO_LINEAR_LAYER(&m_state.share[i], &m_state.share[i]);
         }
 
         masked_rubato_sbox_feistel(&m_state, &m_state);
     }
 
     for (i = 0; i < MASKING_N; i++) {
-        rubato_linear_layer(&m_state.share[i], &m_state.share[i]);
+        RUBATO_LINEAR_LAYER(&m_state.share[i], &m_state.share[i]);
     }
 
 
     poly_uniform(&rnd, nonce, block_ctr, RUBATO_R);
     masked_poly_mult_add_umm(&m_state,&rnd,&m_key,&m_state);
-    masked_poly_getnoise(&m_noise, nonce, block_ctr, RUBATO_R + 1);
+    RUBATO_MASKED_POLY_GETNOISE(&m_noise, nonce, block_ctr, RUBATO_R + 1);
     masked_poly_add(&m_state, &m_state, &m_noise); // + noise
     masked_poly_add_unmasked(&m_state, plaintext, &m_state); // + plaintext
     masked_poly_unmask(ciphertext, &m_state);
